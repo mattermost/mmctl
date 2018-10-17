@@ -20,8 +20,17 @@ var UploadLicenseCmd = &cobra.Command{
 	RunE:    uploadLicenseCmdF,
 }
 
+var RemoveLicenseCmd = &cobra.Command{
+	Use:     "remove",
+	Short:   "Remove the current license.",
+	Long:    "Remove the current license and leave mattermost in Team Edition.",
+	Example: "  license remove",
+	RunE:    removeLicenseCmdF,
+}
+
 func init() {
 	LicenseCmd.AddCommand(UploadLicenseCmd)
+	LicenseCmd.AddCommand(RemoveLicenseCmd)
 	RootCmd.AddCommand(LicenseCmd)
 }
 
@@ -45,6 +54,21 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	}
 
 	CommandPrettyPrintln("Uploaded license file")
+
+	return nil
+}
+
+func removeLicenseCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	if _, response := c.RemoveLicenseFile(); response.Error != nil {
+		return response.Error
+	}
+
+	CommandPrettyPrintln("Removed license")
 
 	return nil
 }
