@@ -3,8 +3,10 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"syscall"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var AuthCmd = &cobra.Command{
@@ -13,11 +15,12 @@ var AuthCmd = &cobra.Command{
 }
 
 var LoginCmd = &cobra.Command{
-	Use:     "login [instance url] [username] [password]",
-	Short:   "Login into an instance instance",
-	Long:    "Login into an instance and store credentials",
-	Example: `  auth login https://mattermost.example.com sysadmin mysupersecret`,
-	RunE:    loginCmdF,
+	Use:   "login [instance url] [username] [password]",
+	Short: "Login into an instance instance",
+	Long:  "Login into an instance and store credentials",
+	Example: `  auth login https://mattermost.example.com sysadmin mysupersecret
+  auth login https://mattermost.example.com sysadmin --password`,
+	RunE: loginCmdF,
 }
 
 var CurrentCmd = &cobra.Command{
@@ -37,6 +40,8 @@ var CleanCmd = &cobra.Command{
 }
 
 func init() {
+	LoginCmd.Flags().Bool("password", false, "asks for the password interactively instead of getting it from the args")
+
 	AuthCmd.AddCommand(
 		LoginCmd,
 		CurrentCmd,
@@ -47,14 +52,30 @@ func init() {
 }
 
 func loginCmdF(command *cobra.Command, args []string) error {
-	if len(args) != 3 {
+	passwordFlag, _ := command.Flags().GetBool("password")
+	if passwordFlag && len(args) != 2 {
+		return errors.New("instance url and username must be specified in conjunction with the --password flag")
+	}
+
+	if !passwordFlag && len(args) != 3 {
 		return errors.New("Expected three arguments. See help text for details.")
+	}
+
+	var password string
+	if passwordFlag {
+		stdinPassword, err := getPasswordFromStdin()
+		if err != nil {
+			return errors.New("Couldn't read password. Error: " + err.Error())
+		}
+		password = stdinPassword
+	} else {
+		password = args[2]
 	}
 
 	credentials := Credentials{
 		InstanceUrl: args[0],
 		Username:    args[1],
-		Password:    args[2],
+		Password:    password,
 	}
 
 	_, err := InitClientWithCredentials(&credentials)
@@ -70,6 +91,16 @@ func loginCmdF(command *cobra.Command, args []string) error {
 
 	fmt.Printf("\n  credentials for %v @ %v stored\n\n", args[1], args[0])
 	return nil
+}
+
+func getPasswordFromStdin() (string, error) {
+	fmt.Printf("Password: ")
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	fmt.Println("")
+	if err != nil {
+		return "", nil
+	}
+	return string(bytePassword), nil
 }
 
 func currentCmdF(command *cobra.Command, args []string) error {

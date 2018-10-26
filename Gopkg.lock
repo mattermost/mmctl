@@ -129,9 +129,21 @@
   packages = [
     "bcrypt",
     "blowfish",
+    "ssh/terminal",
   ]
   pruneopts = ""
   revision = "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
+
+[[projects]]
+  branch = "master"
+  digest = "1:d374223fb7ea5917aac51ec87e538a335b8c082333d9e98d70a40a2d667d0a62"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows",
+  ]
+  pruneopts = ""
+  revision = "731415f00dce967a133e841b3079eda31c996761"
 
 [[projects]]
   digest = "1:11c58e19ff7ce22740423bb933f1ddca3bf575def40d5ac3437ec12871b1648b"
@@ -156,6 +168,7 @@
     "github.com/mattermost/mattermost-server/model",
     "github.com/pkg/errors",
     "github.com/spf13/cobra",
+    "golang.org/x/crypto/ssh/terminal",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
