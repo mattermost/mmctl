@@ -43,3 +43,19 @@ Flags:
 
 Use "mmctl [command] --help" for more information about a command.
 ```
+
+## Roadmap
+
+ - [X] Login command
+ - [X] Team command
+ - [X] Channel command
+ - [X] User command
+ - [X] License command
+ - [X] Plugin command
+ - [ ] Config command
+ - [ ] Command command
+ - [ ] Roles command
+ - [ ] Add more commands to the list
+ - [ ] Unit tests
+ - [ ] Credentials storage
+ - [ ] Contexts
