@@ -4,6 +4,14 @@ A remote CLI tool for
 [Mattermost](https://github.com/mattermost/mattermost-server): the
 Open Source, self-hosted Slack-alternative.
 
+## Install
+
+To install the project in your `$GOPATH`, simply run:
+
+```
+go get -u github.com/mgdelacroix/mmctl
+```
+
 ## Compile
 
 First we have to install the dependencies of the project. `mmctl` uses
