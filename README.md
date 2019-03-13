@@ -15,23 +15,25 @@ go get -u github.com/mgdelacroix/mmctl
 ## Compile
 
 First we have to install the dependencies of the project. `mmctl` uses
-[Go dep](https://github.com/golang/dep) to manage the dependencies, so
-after installing it, we need to run from the root of the project:
+go modules to manage the dependencies, so you need to have installed
+go 1.11 or greater.
+
+Dependencies will be managed by go automatically, but if you want to
+install them locally on the vendor folder, just run:
 
 ```sh
-dep ensure
+make vendor
 ```
 
-With the dependencies installed, we can compile the binary with:
+We can compile the binary with:
 
 ```sh
-go build -o bin/mmctl mmctl/main.go
+make build
 ```
 
 ## Usage
 
 ```sh
-$ ./bin/mmctl
 Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com
 
 Usage:
@@ -42,6 +44,7 @@ Available Commands:
   channel     Management of channels
   help        Help about any command
   license     Licensing commands
+  permissions Management of permissions and roles
   plugin      Management of plugins
   team        Management of teams
   user        Management of users

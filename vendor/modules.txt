@@ -1,0 +1,48 @@
+# github.com/google/uuid v1.0.0
+github.com/google/uuid
+# github.com/gorilla/websocket v0.0.0-20181012020131-76e4896901ef
+github.com/gorilla/websocket
+# github.com/inconshreveable/mousetrap v1.0.0
+github.com/inconshreveable/mousetrap
+# github.com/mattermost/mattermost-server v5.3.1+incompatible
+github.com/mattermost/mattermost-server/model
+github.com/mattermost/mattermost-server/mlog
+github.com/mattermost/mattermost-server/utils/jsonutils
+github.com/mattermost/mattermost-server/utils/markdown
+# github.com/nicksnyder/go-i18n v1.10.0
+github.com/nicksnyder/go-i18n/i18n
+github.com/nicksnyder/go-i18n/i18n/bundle
+github.com/nicksnyder/go-i18n/i18n/language
+github.com/nicksnyder/go-i18n/i18n/translation
+# github.com/pborman/uuid v0.0.0-20180906182336-adf5a7427709
+github.com/pborman/uuid
+# github.com/pelletier/go-toml v1.2.0
+github.com/pelletier/go-toml
+# github.com/pkg/errors v0.8.0
+github.com/pkg/errors
+# github.com/spf13/cobra v0.0.3
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.3
+github.com/spf13/pflag
+# go.uber.org/atomic v1.3.2
+go.uber.org/atomic
+# go.uber.org/multierr v1.1.0
+go.uber.org/multierr
+# go.uber.org/zap v1.9.1
+go.uber.org/zap
+go.uber.org/zap/zapcore
+go.uber.org/zap/internal/bufferpool
+go.uber.org/zap/buffer
+go.uber.org/zap/internal/color
+go.uber.org/zap/internal/exit
+# golang.org/x/crypto v0.0.0-20181015023909-0c41d7ab0a0e
+golang.org/x/crypto/ssh/terminal
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
+# golang.org/x/sys v0.0.0-20181026064943-731415f00dce
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# gopkg.in/natefinch/lumberjack.v2 v2.0.0-20170531160350-a96e63847dc3
+gopkg.in/natefinch/lumberjack.v2
+# gopkg.in/yaml.v2 v2.2.1
+gopkg.in/yaml.v2
