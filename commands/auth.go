@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"syscall"
 
@@ -172,8 +173,10 @@ func listCmdF(command *cobra.Command, args []string) error {
 		return errors.New("There are no registered credentials, maybe you need to use login first")
 	}
 
+	serverNames := []string{}
 	var maxNameLen, maxUsernameLen, maxInstanceUrlLen int
 	for _, c := range *credentialsList {
+		serverNames = append(serverNames, c.Name)
 		if maxNameLen <= len(c.Name) {
 			maxNameLen = len(c.Name)
 		}
@@ -184,10 +187,14 @@ func listCmdF(command *cobra.Command, args []string) error {
 			maxInstanceUrlLen = len(c.InstanceUrl)
 		}
 	}
+	sort.Slice(serverNames, func(i, j int) bool {
+		return serverNames[i] < serverNames[j]
+	})
 
 	fmt.Printf("\n    | Active | %*s | %*s | %*s |\n", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceUrlLen, "InstanceUrl")
 	fmt.Printf("    |%s|%s|%s|%s|\n", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceUrlLen+2))
-	for _, c := range *credentialsList {
+	for _, name := range serverNames {
+		c := (*credentialsList)[name]
 		if c.Active {
 			fmt.Printf("    |      * | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceUrlLen, c.InstanceUrl)
 		} else {
