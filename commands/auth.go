@@ -153,7 +153,13 @@ func currentCmdF(command *cobra.Command, args []string) error {
 }
 
 func setCmdF(command *cobra.Command, args []string) error {
-	return SetCurrent(args[0])
+	if err := SetCurrent(args[0]); err != nil {
+		return err
+	}
+
+	fmt.Printf("Credentials for server \"%v\" set as active\n", args[0])
+
+	return nil
 }
 
 func listCmdF(command *cobra.Command, args []string) error {
