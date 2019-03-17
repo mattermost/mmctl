@@ -68,6 +68,7 @@ var CleanCmd = &cobra.Command{
 
 func init() {
 	LoginCmd.Flags().Bool("password", false, "asks for the password interactively instead of getting it from the args")
+	LoginCmd.Flags().BoolP("active", "a", false, "activates the credentials right after login")
 
 	AuthCmd.AddCommand(
 		LoginCmd,
@@ -118,6 +119,13 @@ func loginCmdF(command *cobra.Command, args []string) error {
 
 	if err := SaveCredentials(credentials); err != nil {
 		return err
+	}
+
+	active, _ := command.Flags().GetBool("active")
+	if active {
+		if err := SetCurrent(args[0]); err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("\n  credentials for %v: %v@%v stored\n\n", args[0], args[2], args[1])
