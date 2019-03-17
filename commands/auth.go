@@ -33,7 +33,7 @@ var CurrentCmd = &cobra.Command{
 }
 
 var SetCmd = &cobra.Command{
-	Use:     "set",
+	Use:     "set [server name]",
 	Short:   "Set the credentials to use",
 	Long:    "Set an credentials to use in the following commands",
 	Example: `  auth set local-server`,
@@ -50,7 +50,7 @@ var ListCmd = &cobra.Command{
 }
 
 var DeleteCmd = &cobra.Command{
-	Use:     "delete",
+	Use:     "delete [server name]",
 	Short:   "Delete an credentials",
 	Long:    "Delete an credentials by its name",
 	Example: `  auth delete local-server`,
