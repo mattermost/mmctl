@@ -16,7 +16,7 @@ var AuthCmd = &cobra.Command{
 }
 
 var LoginCmd = &cobra.Command{
-	Use:   "login [instance url] [username] [password]",
+	Use:   "login [server name] [instance url] [username] [password]",
 	Short: "Login into an instance",
 	Long:  "Login into an instance and store credentials",
 	Example: `  auth login local-server https://mattermost.example.com sysadmin mysupersecret
