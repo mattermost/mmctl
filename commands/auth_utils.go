@@ -10,7 +10,7 @@ import (
 
 type Credentials struct {
 	Username    string `json:"username"`
-	Password    string `json:"password"`
+	AuthToken   string `json:"authToken"`
 	InstanceUrl string `json:"instanceUrl"`
 }
 

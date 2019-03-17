@@ -72,17 +72,17 @@ func loginCmdF(command *cobra.Command, args []string) error {
 		password = args[2]
 	}
 
-	credentials := Credentials{
-		InstanceUrl: args[0],
-		Username:    args[1],
-		Password:    password,
-	}
-
-	_, err := InitClientWithCredentials(&credentials)
+	c, err := InitClientWithUsernameAndPassword(args[1], password, args[0])
 	if err != nil {
 		CommandPrintErrorln(err.Error())
 		// We don't want usage to be printed as the command was correctly built
 		return nil
+	}
+
+	credentials := Credentials{
+		InstanceUrl: args[0],
+		Username:    args[1],
+		AuthToken:   c.AuthToken,
 	}
 
 	if err := SaveCredentials(credentials); err != nil {
