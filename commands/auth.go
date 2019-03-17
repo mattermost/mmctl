@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -11,15 +12,15 @@ import (
 
 var AuthCmd = &cobra.Command{
 	Use:   "auth",
-	Short: "Manages the credentials of the remote Mattermost instance",
+	Short: "Manages the credentials of the remote Mattermost instances",
 }
 
 var LoginCmd = &cobra.Command{
 	Use:   "login [instance url] [username] [password]",
-	Short: "Login into an instance instance",
+	Short: "Login into an instance",
 	Long:  "Login into an instance and store credentials",
-	Example: `  auth login https://mattermost.example.com sysadmin mysupersecret
-  auth login https://mattermost.example.com sysadmin --password`,
+	Example: `  auth login local-server https://mattermost.example.com sysadmin mysupersecret
+  auth login local-server https://mattermost.example.com sysadmin --password`,
 	RunE: loginCmdF,
 }
 
@@ -31,10 +32,36 @@ var CurrentCmd = &cobra.Command{
 	RunE:    currentCmdF,
 }
 
+var SetCmd = &cobra.Command{
+	Use:     "set",
+	Short:   "Set the credentials to use",
+	Long:    "Set an credentials to use in the following commands",
+	Example: `  auth set local-server`,
+	Args:    cobra.ExactArgs(1),
+	RunE:    setCmdF,
+}
+
+var ListCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "Lists the credentials",
+	Long:    "Print a list of the registered credentials",
+	Example: `  auth list`,
+	RunE:    listCmdF,
+}
+
+var DeleteCmd = &cobra.Command{
+	Use:     "delete",
+	Short:   "Delete an credentials",
+	Long:    "Delete an credentials by its name",
+	Example: `  auth delete local-server`,
+	Args:    cobra.ExactArgs(1),
+	RunE:    deleteCmdF,
+}
+
 var CleanCmd = &cobra.Command{
 	Use:     "clean",
-	Short:   "Clean current user credentials",
-	Long:    "Clean the currently stored user credentials",
+	Short:   "Clean all credentials",
+	Long:    "Clean the currently stored credentials",
 	Example: `  auth clean`,
 	RunE:    cleanCmdF,
 }
@@ -45,6 +72,9 @@ func init() {
 	AuthCmd.AddCommand(
 		LoginCmd,
 		CurrentCmd,
+		SetCmd,
+		ListCmd,
+		DeleteCmd,
 		CleanCmd,
 	)
 
@@ -53,12 +83,12 @@ func init() {
 
 func loginCmdF(command *cobra.Command, args []string) error {
 	passwordFlag, _ := command.Flags().GetBool("password")
-	if passwordFlag && len(args) != 2 {
-		return errors.New("instance url and username must be specified in conjunction with the --password flag")
+	if passwordFlag && len(args) != 3 {
+		return errors.New("name, instance url and username must be specified in conjunction with the --password flag")
 	}
 
-	if !passwordFlag && len(args) != 3 {
-		return errors.New("Expected three arguments. See help text for details.")
+	if !passwordFlag && len(args) != 4 {
+		return errors.New("Expected four arguments. See help text for details.")
 	}
 
 	var password string
@@ -69,10 +99,10 @@ func loginCmdF(command *cobra.Command, args []string) error {
 		}
 		password = stdinPassword
 	} else {
-		password = args[2]
+		password = args[3]
 	}
 
-	c, err := InitClientWithUsernameAndPassword(args[1], password, args[0])
+	c, err := InitClientWithUsernameAndPassword(args[2], password, args[1])
 	if err != nil {
 		CommandPrintErrorln(err.Error())
 		// We don't want usage to be printed as the command was correctly built
@@ -80,8 +110,9 @@ func loginCmdF(command *cobra.Command, args []string) error {
 	}
 
 	credentials := Credentials{
-		InstanceUrl: args[0],
-		Username:    args[1],
+		Name:        args[0],
+		InstanceUrl: args[1],
+		Username:    args[2],
 		AuthToken:   c.AuthToken,
 	}
 
@@ -89,7 +120,7 @@ func loginCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\n  credentials for %v @ %v stored\n\n", args[1], args[0])
+	fmt.Printf("\n  credentials for %v: %v@%v stored\n\n", args[0], args[2], args[1])
 	return nil
 }
 
@@ -104,13 +135,69 @@ func getPasswordFromStdin() (string, error) {
 }
 
 func currentCmdF(command *cobra.Command, args []string) error {
-	credentials, err := ReadCredentials()
+	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("\n  found credentials for %v @ %v\n\n", credentials.Username, credentials.InstanceUrl)
+	fmt.Printf("\n  found credentials for %v: %v @ %v\n\n", credentials.Name, credentials.Username, credentials.InstanceUrl)
 	return nil
+}
+
+func setCmdF(command *cobra.Command, args []string) error {
+	return SetCurrent(args[0])
+}
+
+func listCmdF(command *cobra.Command, args []string) error {
+	credentialsList, err := ReadCredentialsList()
+	if err != nil {
+		return err
+	}
+
+	if len(*credentialsList) == 0 {
+		return errors.New("There are no registered credentials, maybe you need to use login first")
+	}
+
+	var maxNameLen, maxUsernameLen, maxInstanceUrlLen int
+	for _, c := range *credentialsList {
+		if maxNameLen <= len(c.Name) {
+			maxNameLen = len(c.Name)
+		}
+		if maxUsernameLen <= len(c.Username) {
+			maxUsernameLen = len(c.Username)
+		}
+		if maxInstanceUrlLen <= len(c.InstanceUrl) {
+			maxInstanceUrlLen = len(c.InstanceUrl)
+		}
+	}
+
+	fmt.Printf("\n    | Active | %*s | %*s | %*s |\n", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceUrlLen, "InstanceUrl")
+	fmt.Printf("    |%s|%s|%s|%s|\n", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceUrlLen+2))
+	for _, c := range *credentialsList {
+		if c.Active {
+			fmt.Printf("    |      * | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceUrlLen, c.InstanceUrl)
+		} else {
+			fmt.Printf("    |        | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceUrlLen, c.InstanceUrl)
+		}
+	}
+	fmt.Println("")
+	return nil
+}
+
+func deleteCmdF(command *cobra.Command, args []string) error {
+	credentialsList, err := ReadCredentialsList()
+	if err != nil {
+		return err
+	}
+
+	name := args[0]
+	credentials := (*credentialsList)[name]
+	if credentials == nil {
+		return errors.New(fmt.Sprintf("Cannot find credentials for server name %v", name))
+	}
+
+	delete(*credentialsList, name)
+	return SaveCredentialsList(credentialsList)
 }
 
 func cleanCmdF(command *cobra.Command, args []string) error {

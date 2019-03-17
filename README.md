@@ -40,7 +40,7 @@ Usage:
   mmctl [command]
 
 Available Commands:
-  auth        Manages the credentials of the remote Mattermost instance
+  auth        Manages the credentials of the remote Mattermost instances
   channel     Management of channels
   help        Help about any command
   license     Licensing commands
@@ -69,4 +69,4 @@ Use "mmctl [command] --help" for more information about a command.
  - [ ] Add more commands to the list
  - [ ] Unit tests
  - [ ] Credentials storage
- - [ ] Contexts
+ - [X] Contexts

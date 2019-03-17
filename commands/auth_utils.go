@@ -9,10 +9,14 @@ import (
 )
 
 type Credentials struct {
+	Name        string `json:"name"`
 	Username    string `json:"username"`
 	AuthToken   string `json:"authToken"`
 	InstanceUrl string `json:"instanceUrl"`
+	Active      bool   `json:"active"`
 }
+
+type CredentialsList map[string]*Credentials
 
 func getConfigFilePath() (string, error) {
 	user, err := user.Current()
@@ -22,7 +26,7 @@ func getConfigFilePath() (string, error) {
 	return user.HomeDir + "/.mmctl", nil
 }
 
-func ReadCredentials() (*Credentials, error) {
+func ReadCredentialsList() (*CredentialsList, error) {
 	configFilePath, err := getConfigFilePath()
 	if err != nil {
 		return nil, err
@@ -37,27 +41,75 @@ func ReadCredentials() (*Credentials, error) {
 		return nil, errors.New("There was a problem reading the credentials file. Error: " + err.Error())
 	}
 
-	var credentials Credentials
-	if err := json.Unmarshal(fileContents, &credentials); err != nil {
+	var credentialsList CredentialsList
+	if err := json.Unmarshal(fileContents, &credentialsList); err != nil {
 		return nil, errors.New("There was a problem parsing the credentials file. Error: " + err.Error())
 	}
 
-	return &credentials, nil
+	return &credentialsList, nil
+}
+
+func GetCurrentCredentials() (*Credentials, error) {
+	credentialsList, err := ReadCredentialsList()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range *credentialsList {
+		if c.Active {
+			return c, nil
+		}
+	}
+	return nil, errors.New("No current context available. Please use the \"auth set\" command.")
 }
 
 func SaveCredentials(credentials Credentials) error {
+	credentialsList, err := ReadCredentialsList()
+	if err != nil {
+		credentialsList = &CredentialsList{}
+		credentials.Active = true
+	}
+
+	(*credentialsList)[credentials.Name] = &credentials
+	return SaveCredentialsList(credentialsList)
+}
+
+func SaveCredentialsList(credentialsList *CredentialsList) error {
 	configFilePath, err := getConfigFilePath()
 	if err != nil {
 		return err
 	}
 
-	marshaledCredentials, _ := json.Marshal(credentials)
+	marshaledCredentialsList, _ := json.Marshal(credentialsList)
 
-	if err := ioutil.WriteFile(configFilePath, marshaledCredentials, 0600); err != nil {
+	if err := ioutil.WriteFile(configFilePath, marshaledCredentialsList, 0600); err != nil {
 		return errors.New("Cannot save the credentials. Error: " + err.Error())
 	}
 
 	return nil
+}
+
+func SetCurrent(name string) error {
+	credentialsList, err := ReadCredentialsList()
+	if err != nil {
+		return err
+	}
+
+	found := false
+	for _, c := range *credentialsList {
+		if c.Name == name {
+			found = true
+			c.Active = true
+		} else {
+			c.Active = false
+		}
+	}
+
+	if !found {
+		return errors.New("Cannot find credentials for server " + name)
+	}
+
+	return SaveCredentialsList(credentialsList)
 }
 
 func CleanCredentials() error {

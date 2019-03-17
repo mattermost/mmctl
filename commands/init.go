@@ -26,7 +26,7 @@ func InitClientWithCredentials(credentials *Credentials) (*model.Client4, error)
 }
 
 func InitClient() (*model.Client4, error) {
-	credentials, err := ReadCredentials()
+	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return nil, err
 	}
