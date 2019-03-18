@@ -63,10 +63,14 @@ Use "mmctl [command] --help" for more information about a command.
  - [X] User command
  - [X] License command
  - [X] Plugin command
- - [ ] Config command
+ - [X] Authentication Contexts
  - [ ] Command command
- - [ ] Roles command
- - [ ] Add more commands to the list
+ - [ ] Config command
+ - [ ] ? Export command
+ - [ ] ? Import command
+ - [ ] ldap command
+ - [ ] ? logs command
+ - [ ] roles command
+ - [ ] ? version command
  - [ ] Unit tests
- - [ ] Credentials storage
- - [X] Contexts
+ - [ ] Autocomplete
