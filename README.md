@@ -55,6 +55,40 @@ Flags:
 Use "mmctl [command] --help" for more information about a command.
 ```
 
+First we have to log into a mattermost instance:
+
+```sh
+$ mmctl auth login my-instance https://my-instance.example.com john.doe mysupersecret
+
+  credentials for my-instance: john.doe@https://my-instance.example.com stored
+
+```
+
+We can check the currently stored credentials with:
+
+```sh
+$ mmctl auth list
+
+    | Active |        Name | Username |                     InstanceUrl |
+    |--------|-------------|----------|---------------------------------|
+    |      * | my-instance | john.doe | https://my-instance.example.com |
+
+```
+
+And now we can run commands normaly:
+
+```sh
+$ mmctl user search john.doe
+id: qykfw3t933y38k57ubct77iu9c
+username: john.doe
+nickname:
+position:
+first_name: John
+last_name: Doe
+email: john.doe@example.com
+auth_service:
+```
+
 ## Roadmap
 
  - [X] Login command
