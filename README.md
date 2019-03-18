@@ -75,7 +75,7 @@ $ mmctl auth list
 
 ```
 
-And now we can run commands normaly:
+And now we can run commands normally:
 
 ```sh
 $ mmctl user search john.doe
