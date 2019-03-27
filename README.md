@@ -12,6 +12,15 @@ To install the project in your `$GOPATH`, simply run:
 go get -u github.com/mgdelacroix/mmctl
 ```
 
+### Install shell completions
+
+To install the shell completions for bash, add the following line to
+your `~/.bashrc` or `~/.profile` file:
+
+```sh
+source <(mmctl completion bash)
+```
+
 ## Compile
 
 First we have to install the dependencies of the project. `mmctl` uses
@@ -42,6 +51,7 @@ Usage:
 Available Commands:
   auth        Manages the credentials of the remote Mattermost instances
   channel     Management of channels
+  completion  Generates autocompletion scripts for bash and zsh
   help        Help about any command
   license     Licensing commands
   permissions Management of permissions and roles
@@ -100,11 +110,9 @@ auth_service:
  - [X] Authentication Contexts
  - [ ] Command command
  - [ ] Config command
- - [ ] ? Export command
- - [ ] ? Import command
  - [ ] ldap command
  - [ ] ? logs command
  - [ ] roles command
- - [ ] ? version command
  - [ ] Unit tests
- - [ ] Autocomplete
+ - [X] Shell completions
+ - [ ] Complex completions
