@@ -21,6 +21,12 @@ your `~/.bashrc` or `~/.profile` file:
 source <(mmctl completion bash)
 ```
 
+For zsh, add the following line to file `~/.zshrc`:
+
+```sh
+source <(mmctl completion zsh)
+```
+
 ## Compile
 
 First we have to install the dependencies of the project. `mmctl` uses
