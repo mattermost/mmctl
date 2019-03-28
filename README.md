@@ -60,6 +60,7 @@ Available Commands:
   completion  Generates autocompletion scripts for bash and zsh
   help        Help about any command
   license     Licensing commands
+  logs        Display logs in a human-readable format
   permissions Management of permissions and roles
   plugin      Management of plugins
   team        Management of teams
@@ -117,7 +118,7 @@ auth_service:
  - [ ] Command command
  - [ ] Config command
  - [ ] ldap command
- - [ ] ? logs command
+ - [X] logs command
  - [ ] roles command
  - [ ] Unit tests
  - [X] Shell completions
