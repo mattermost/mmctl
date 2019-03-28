@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"mgdelacroix/mmctl/commands"
+	"github.com/mgdelacroix/mmctl/commands"
 )
 
 func main() {
