@@ -7,12 +7,12 @@ import (
 )
 
 var CompletionCmd = &cobra.Command{
-	Use: "completion",
+	Use:   "completion",
 	Short: "Generates autocompletion scripts for bash and zsh",
 }
 
 var BashCmd = &cobra.Command{
-	Use: "bash",
+	Use:   "bash",
 	Short: "Generates the bash autocompletion scripts",
 	Long: `To load completion, run
 
@@ -24,7 +24,7 @@ To configure your bash shell to load completions for each session, add the above
 }
 
 var ZshCmd = &cobra.Command{
-	Use: "zsh",
+	Use:   "zsh",
 	Short: "Generates the zsh autocompletion scripts",
 	Long: `To load completion, run
 
@@ -181,7 +181,7 @@ __mmctl_convert_bash_to_zsh() {
 	<<'BASH_COMPLETION_EOF'
 `
 
-		zshTail := `
+	zshTail := `
 BASH_COMPLETION_EOF
 }
 __mmctl_bash_source <(__mmctl_convert_bash_to_zsh)

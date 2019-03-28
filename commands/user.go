@@ -1,10 +1,10 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -77,8 +77,11 @@ var SearchUserCmd = &cobra.Command{
 
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
+	UserCreateCmd.MarkFlagRequired("username")
 	UserCreateCmd.Flags().String("email", "", "Required. The email address for the new user account.")
+	UserCreateCmd.MarkFlagRequired("email")
 	UserCreateCmd.Flags().String("password", "", "Required. The password for the new user account.")
+	UserCreateCmd.MarkFlagRequired("password")
 	UserCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account.")
 	UserCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account.")
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account.")
@@ -133,16 +136,16 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	username, erru := command.Flags().GetString("username")
-	if erru != nil || username == "" {
-		return errors.New("Username is required")
+	if erru != nil {
+		return errors.Wrap(erru, "Username is required")
 	}
 	email, erre := command.Flags().GetString("email")
-	if erre != nil || email == "" {
-		return errors.New("Email is required")
+	if erre != nil {
+		return errors.Wrap(erre, "Email is required")
 	}
 	password, errp := command.Flags().GetString("password")
-	if errp != nil || password == "" {
-		return errors.New("Password is required")
+	if errp != nil {
+		return errors.Wrap(errp, "Password is required")
 	}
 	nickname, _ := command.Flags().GetString("nickname")
 	firstname, _ := command.Flags().GetString("firstname")
