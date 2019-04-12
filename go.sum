@@ -9,6 +9,7 @@ github.com/gorilla/websocket v0.0.0-20181012020131-76e4896901ef h1:h/5b4X1nDmIAU
 github.com/gorilla/websocket v0.0.0-20181012020131-76e4896901ef/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/mattermost/mattermost-server v5.3.1+incompatible h1:R/ld+VjFz7u7SgAFiJbvh2HFUaMaJtyCM/jXDe/wXTI=
 github.com/mattermost/mattermost-server v5.3.1+incompatible/go.mod h1:5L6MjAec+XXQwMIt791Ganu45GKsSiM+I0tLR9wUj8Y=

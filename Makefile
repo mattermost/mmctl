@@ -2,8 +2,8 @@ GO_PACKAGES=$(shell go list ./...)
 
 all: build
 
-build:
-	go build
+build: vendor check
+	go build -mod=vendor
 
 fmt:
 	go fmt $(GO_PACKAGES)
