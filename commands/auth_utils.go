@@ -80,7 +80,7 @@ func SaveCredentialsList(credentialsList *CredentialsList) error {
 		return err
 	}
 
-	marshaledCredentialsList, _ := json.Marshal(credentialsList)
+	marshaledCredentialsList, _ := json.MarshalIndent(credentialsList, "", "    ")
 
 	if err := ioutil.WriteFile(configFilePath, marshaledCredentialsList, 0600); err != nil {
 		return errors.New("Cannot save the credentials. Error: " + err.Error())
