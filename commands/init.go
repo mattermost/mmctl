@@ -13,6 +13,15 @@ func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (
 	return client, nil
 }
 
+func InitClientWithMFA(username, password, mfaToken, instanceUrl string) (*model.Client4, error) {
+	client := model.NewAPIv4Client(instanceUrl)
+	_, response := client.LoginWithMFA(username, password, mfaToken)
+	if response.Error != nil {
+		return nil, response.Error
+	}
+	return client, nil
+}
+
 func InitClientWithCredentials(credentials *Credentials) (*model.Client4, error) {
 	client := model.NewAPIv4Client(credentials.InstanceUrl)
 

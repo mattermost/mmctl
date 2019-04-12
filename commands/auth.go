@@ -11,6 +11,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 var AuthCmd = &cobra.Command{
@@ -71,11 +73,12 @@ var CleanCmd = &cobra.Command{
 }
 
 func init() {
-	LoginCmd.Flags().StringP("name", "n", "", "set the password")
-	LoginCmd.Flags().StringP("username", "u", "", "set the password")
-	LoginCmd.Flags().StringP("access-token", "a", "", "set the password")
-	LoginCmd.Flags().StringP("password", "p", "", "set the password")
-	LoginCmd.Flags().Bool("no-activate", false, "activates the credentials right after login")
+	LoginCmd.Flags().StringP("name", "n", "", "sets the password")
+	LoginCmd.Flags().StringP("username", "u", "", "sets the password")
+	LoginCmd.Flags().StringP("access-token", "a", "", "sets the password")
+	LoginCmd.Flags().StringP("mfa-token", "m", "", "sets the MFA token")
+	LoginCmd.Flags().StringP("password", "p", "", "sets the password")
+	LoginCmd.Flags().Bool("no-activate", false, "if present, it won't activate the credentials after login")
 
 	AuthCmd.AddCommand(
 		LoginCmd,
@@ -103,6 +106,10 @@ func loginCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	accessToken, err := command.Flags().GetString("access-token")
+	if err != nil {
+		return err
+	}
+	mfaToken, err := command.Flags().GetString("mfa-token")
 	if err != nil {
 		return err
 	}
@@ -142,7 +149,13 @@ func loginCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if username != "" {
-		c, err := InitClientWithUsernameAndPassword(username, password, url)
+		var c *model.Client4
+		var err error
+		if mfaToken != "" {
+			c, err = InitClientWithMFA(username, password, mfaToken, url)
+		} else {
+			c, err = InitClientWithUsernameAndPassword(username, password, url)
+		}
 		if err != nil {
 			CommandPrintErrorln(err.Error())
 			// We don't want usage to be printed as the command was correctly built
