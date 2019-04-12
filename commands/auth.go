@@ -1,8 +1,10 @@
 package commands
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"syscall"
@@ -17,11 +19,12 @@ var AuthCmd = &cobra.Command{
 }
 
 var LoginCmd = &cobra.Command{
-	Use:   "login [server name] [instance url] [username] [password]",
+	Use:   "login [instance url] --name [server name] --username [username] --password [password]",
 	Short: "Login into an instance",
 	Long:  "Login into an instance and store credentials",
-	Example: `  auth login local-server https://mattermost.example.com sysadmin mysupersecret
-  auth login local-server https://mattermost.example.com sysadmin --password`,
+	Example: `  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
+  auth login https://mattermost.example.com --name local-server --username sysadmin`,
+	Args: cobra.ExactArgs(1),
 	RunE: loginCmdF,
 }
 
@@ -68,8 +71,11 @@ var CleanCmd = &cobra.Command{
 }
 
 func init() {
-	LoginCmd.Flags().Bool("password", false, "asks for the password interactively instead of getting it from the args")
-	LoginCmd.Flags().BoolP("active", "a", false, "activates the credentials right after login")
+	LoginCmd.Flags().StringP("name", "n", "", "set the password")
+	LoginCmd.Flags().StringP("username", "u", "", "set the password")
+	LoginCmd.Flags().StringP("access-token", "a", "", "set the password")
+	LoginCmd.Flags().StringP("password", "p", "", "set the password")
+	LoginCmd.Flags().Bool("no-activate", false, "activates the credentials right after login")
 
 	AuthCmd.AddCommand(
 		LoginCmd,
@@ -84,52 +90,88 @@ func init() {
 }
 
 func loginCmdF(command *cobra.Command, args []string) error {
-	passwordFlag, _ := command.Flags().GetBool("password")
-	if passwordFlag && len(args) != 3 {
-		return errors.New("name, instance url and username must be specified in conjunction with the --password flag")
+	name, err := command.Flags().GetString("name")
+	if err != nil {
+		return err
+	}
+	username, err := command.Flags().GetString("username")
+	if err != nil {
+		return err
+	}
+	password, err := command.Flags().GetString("password")
+	if err != nil {
+		return err
+	}
+	accessToken, err := command.Flags().GetString("access-token")
+	if err != nil {
+		return err
 	}
 
-	if !passwordFlag && len(args) != 4 {
-		return errors.New("Expected four arguments. See help text for details.")
+	url := args[0]
+
+	if name == "" {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Connection name: ")
+		name, err = reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		name = strings.TrimSpace(name)
 	}
 
-	var password string
-	if passwordFlag {
+	if accessToken != "" && username != "" {
+		return errors.New("You must use --access-token or --username, but not both.")
+	}
+
+	if accessToken == "" && username == "" {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Username: ")
+		username, err = reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		username = strings.TrimSpace(username)
+	}
+
+	if username != "" && password == "" {
 		stdinPassword, err := getPasswordFromStdin()
 		if err != nil {
 			return errors.New("Couldn't read password. Error: " + err.Error())
 		}
 		password = stdinPassword
-	} else {
-		password = args[3]
 	}
 
-	c, err := InitClientWithUsernameAndPassword(args[2], password, args[1])
-	if err != nil {
-		CommandPrintErrorln(err.Error())
-		// We don't want usage to be printed as the command was correctly built
-		return nil
+	if username != "" {
+		c, err := InitClientWithUsernameAndPassword(username, password, url)
+		if err != nil {
+			CommandPrintErrorln(err.Error())
+			// We don't want usage to be printed as the command was correctly built
+			return nil
+		}
+		accessToken = c.AuthToken
+	} else {
+		username = "Personal Access Token"
 	}
 
 	credentials := Credentials{
-		Name:        args[0],
-		InstanceUrl: args[1],
-		Username:    args[2],
-		AuthToken:   c.AuthToken,
+		Name:        name,
+		InstanceUrl: url,
+		Username:    username,
+		AuthToken:   accessToken,
 	}
 
 	if err := SaveCredentials(credentials); err != nil {
 		return err
 	}
 
-	active, _ := command.Flags().GetBool("active")
-	if active {
-		if err := SetCurrent(args[0]); err != nil {
+	noActivate, _ := command.Flags().GetBool("no-activate")
+	if !noActivate {
+		if err := SetCurrent(name); err != nil {
 			return err
 		}
 	}
 
-	fmt.Printf("\n  credentials for %v: %v@%v stored\n\n", args[0], args[2], args[1])
+	fmt.Printf("\n  credentials for %v: %v@%v stored\n\n", name, username, url)
 	return nil
 }
 
