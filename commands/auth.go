@@ -24,8 +24,10 @@ var LoginCmd = &cobra.Command{
 	Use:   "login [instance url] --name [server name] --username [username] --password [password]",
 	Short: "Login into an instance",
 	Long:  "Login into an instance and store credentials",
-	Example: `  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
-  auth login https://mattermost.example.com --name local-server --username sysadmin`,
+	Example: `  auth login https://mattermost.example.com
+  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
+  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret --mfa-token 123456
+  auth login https://mattermost.example.com --name local-server --username sysadmin --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
 	RunE: loginCmdF,
 }
@@ -73,12 +75,12 @@ var CleanCmd = &cobra.Command{
 }
 
 func init() {
-	LoginCmd.Flags().StringP("name", "n", "", "sets the password")
-	LoginCmd.Flags().StringP("username", "u", "", "sets the password")
-	LoginCmd.Flags().StringP("access-token", "a", "", "sets the password")
-	LoginCmd.Flags().StringP("mfa-token", "m", "", "sets the MFA token")
-	LoginCmd.Flags().StringP("password", "p", "", "sets the password")
-	LoginCmd.Flags().Bool("no-activate", false, "if present, it won't activate the credentials after login")
+	LoginCmd.Flags().StringP("name", "n", "", "Name for the credentials")
+	LoginCmd.Flags().StringP("username", "u", "", "Username for the credentials")
+	LoginCmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+	LoginCmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
+	LoginCmd.Flags().StringP("password", "p", "", "Password for the credentials")
+	LoginCmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
 	AuthCmd.AddCommand(
 		LoginCmd,

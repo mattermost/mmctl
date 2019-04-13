@@ -33,13 +33,6 @@ First we have to install the dependencies of the project. `mmctl` uses
 go modules to manage the dependencies, so you need to have installed
 go 1.11 or greater.
 
-Dependencies will be managed by go automatically, but if you want to
-install them locally on the vendor folder, just run:
-
-```sh
-make vendor
-```
-
 We can compile the binary with:
 
 ```sh
@@ -75,7 +68,7 @@ Use "mmctl [command] --help" for more information about a command.
 First we have to log into a mattermost instance:
 
 ```sh
-$ mmctl auth login my-instance https://my-instance.example.com john.doe mysupersecret
+$ mmctl auth login https://my-instance.example.com --name my-instance --username john.doe --password mysupersecret
 
   credentials for my-instance: john.doe@https://my-instance.example.com stored
 
@@ -106,6 +99,42 @@ email: john.doe@example.com
 auth_service:
 ```
 
+## Login methods
+
+### Password
+
+```sh
+$ mmctl auth login https://community.mattermost.com --name community --username my-username --password mysupersecret
+```
+
+The `login` command can also work interactively, so if you leave any
+needed flag empty, `mmctl` will ask you for it interactively:
+
+```sh
+$ mmctl auth login https://community.mattermost.com
+Connection name: community
+Username: my-username
+Password:
+```
+
+### MFA
+
+If you want to login with MFA, you just need to use the `--mfa-token`
+flag:
+
+```sh
+$ mmctl auth login https://community.mattermost.com --name community --username my-username --password mysupersecret --mfa-token 123456
+```
+
+### Access tokens
+
+Instead of using username and password to log in, you can generate and
+use a personal access token to authenticate with a server:
+
+```sh
+$ mmctl auth login https://community.mattermost.com --name community --username my-username --access-token MY_ACCESS_TOKEN
+```
+
 ## Roadmap
 
  - [X] Login command
@@ -120,6 +149,4 @@ auth_service:
  - [ ] ldap command
  - [X] logs command
  - [ ] roles command
- - [ ] Unit tests
  - [X] Shell completions
- - [ ] Complex completions
