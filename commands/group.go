@@ -14,6 +14,14 @@ var GroupCmd = &cobra.Command{
 	Short: "Management of groups",
 }
 
+var ListLdapGroupsCmd = &cobra.Command{
+	Use:     "list-ldap",
+	Short:   "List LDAP groups",
+	Example: "  group list-ldap",
+	Args:    cobra.NoArgs,
+	RunE:    listLdapGroupsCmdF,
+}
+
 var ChannelGroupCmd = &cobra.Command{
 	Use:   "channel",
 	Short: "Management of channel groups",
@@ -106,11 +114,30 @@ func init() {
 	)
 
 	GroupCmd.AddCommand(
+		ListLdapGroupsCmd,
 		ChannelGroupCmd,
 		TeamGroupCmd,
 	)
 
 	RootCmd.AddCommand(GroupCmd)
+}
+
+func listLdapGroupsCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	groups, res := c.GetLdapGroups()
+	if res.Error != nil {
+		return res.Error
+	}
+
+	for _, group := range groups {
+		fmt.Println(group)
+	}
+
+	return nil
 }
 
 func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
