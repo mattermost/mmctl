@@ -85,34 +85,34 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 	RunE:    makeChannelPrivateCmdF,
 }
 
-var GroupConstrainedCmd = &cobra.Command{
+var ChannelGroupConstrainedCmd = &cobra.Command{
 	Use:   "group-constrained",
 	Short: "Manage group-constrained status",
 	Long:  "Manage channel group-constrained status and it's associated groups",
 }
 
-var GroupConstrainedEnableCmd = &cobra.Command{
+var ChannelGroupConstrainedEnableCmd = &cobra.Command{
 	Use:     "enable [team]:[channel]",
 	Short:   "Enables group-constrained restrictions in the specified channel",
 	Example: "  channel group-constrained enable myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
-	RunE:    groupConstrainedEnableCmdF,
+	RunE:    channelGroupConstrainedEnableCmdF,
 }
 
-var GroupConstrainedDisableCmd = &cobra.Command{
+var ChannelGroupConstrainedDisableCmd = &cobra.Command{
 	Use:     "disable [team]:[channel]",
 	Short:   "Disables group-constrained restrictions in the specified channel",
 	Example: "  channel group-constrained disable myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
-	RunE:    groupConstrainedDisableCmdF,
+	RunE:    channelGroupConstrainedDisableCmdF,
 }
 
-var GroupConstrainedStatusCmd = &cobra.Command{
+var ChannelGroupConstrainedStatusCmd = &cobra.Command{
 	Use:     "status [team]:[channel]",
 	Short:   "Show's the group-constrained status for the specified channel",
 	Example: "  channel group-constrained status",
 	Args:    cobra.ExactArgs(1),
-	RunE:    groupConstrainedStatusCmdF,
+	RunE:    channelGroupConstrainedStatusCmdF,
 }
 
 func init() {
@@ -127,10 +127,10 @@ func init() {
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
-	GroupConstrainedCmd.AddCommand(
-		GroupConstrainedEnableCmd,
-		GroupConstrainedDisableCmd,
-		GroupConstrainedStatusCmd,
+	ChannelGroupConstrainedCmd.AddCommand(
+		ChannelGroupConstrainedEnableCmd,
+		ChannelGroupConstrainedDisableCmd,
+		ChannelGroupConstrainedStatusCmd,
 	)
 
 	ChannelCmd.AddCommand(
@@ -142,7 +142,7 @@ func init() {
 		RestoreChannelsCmd,
 		MakeChannelPrivateCmd,
 		ChannelRenameCmd,
-		GroupConstrainedCmd,
+		ChannelGroupConstrainedCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -431,7 +431,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func groupConstrainedEnableCmdF(command *cobra.Command, args []string) error {
+func channelGroupConstrainedEnableCmdF(command *cobra.Command, args []string) error {
 	c, err := InitClient()
 	if err != nil {
 		return err
@@ -459,7 +459,7 @@ func groupConstrainedEnableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func groupConstrainedDisableCmdF(command *cobra.Command, args []string) error {
+func channelGroupConstrainedDisableCmdF(command *cobra.Command, args []string) error {
 	c, err := InitClient()
 	if err != nil {
 		return err
@@ -478,7 +478,7 @@ func groupConstrainedDisableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func groupConstrainedStatusCmdF(command *cobra.Command, args []string) error {
+func channelGroupConstrainedStatusCmdF(command *cobra.Command, args []string) error {
 	c, err := InitClient()
 	if err != nil {
 		return err
