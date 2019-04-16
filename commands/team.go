@@ -65,45 +65,6 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    searchTeamCmdF,
 }
 
-var TeamGroupConstrainedCmd = &cobra.Command{
-	Use:   "group-constrained",
-	Short: "Manage group-constrained status",
-	Long:  "Manage team group-constrained status and it's associated groups",
-}
-
-var TeamGroupConstrainedEnableCmd = &cobra.Command{
-	Use:     "enable [team]",
-	Short:   "Enables group-constrained restrictions in the specified team",
-	Example: "  team group-constrained enable myteam",
-	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupConstrainedEnableCmdF,
-}
-
-var TeamGroupConstrainedDisableCmd = &cobra.Command{
-	Use:     "disable [team]",
-	Short:   "Disables group-constrained restrictions in the specified team",
-	Example: "  team group-constrained disable myteam",
-	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupConstrainedDisableCmdF,
-}
-
-var TeamGroupConstrainedStatusCmd = &cobra.Command{
-	Use:     "status [team]",
-	Short:   "Show's the group-constrained status for the specified team",
-	Example: "  team group-constrained status myteam",
-	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupConstrainedStatusCmdF,
-}
-
-var TeamGroupConstrainedGetGroupsCmd = &cobra.Command{
-	Use:     "get-groups",
-	Short:   "Get team's groups",
-	Long:    "List the groups associated with a team",
-	Example: "  team get-groups myteam",
-	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupConstrainedGetGroupsCmdF,
-}
-
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -112,13 +73,6 @@ func init() {
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
 
-	TeamGroupConstrainedCmd.AddCommand(
-		TeamGroupConstrainedEnableCmd,
-		TeamGroupConstrainedDisableCmd,
-		TeamGroupConstrainedStatusCmd,
-		TeamGroupConstrainedGetGroupsCmd,
-	)
-
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		RemoveUsersCmd,
@@ -126,8 +80,8 @@ func init() {
 		DeleteTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
-		TeamGroupConstrainedCmd,
 	)
+
 	RootCmd.AddCommand(TeamCmd)
 }
 
@@ -337,94 +291,4 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 		return result[i].Name < result[j].Name
 	})
 	return result
-}
-
-func teamGroupConstrainedEnableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	groups, res := c.GetGroupsByTeam(team.Id, 0, 10)
-	if res.Error != nil {
-		return res.Error
-	}
-
-	if len(groups) == 0 {
-		return errors.New("Team '" + args[0] + "' has no groups associated. It cannot be group-constrained")
-	}
-
-	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(true)}
-	if _, res = c.PatchTeam(team.Id, &teamPatch); res.Error != nil {
-		return res.Error
-	}
-
-	return nil
-}
-
-func teamGroupConstrainedDisableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
-	if _, res := c.PatchTeam(team.Id, &teamPatch); res.Error != nil {
-		return res.Error
-	}
-
-	return nil
-}
-
-func teamGroupConstrainedStatusCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	if team.GroupConstrained != nil && *team.GroupConstrained {
-		fmt.Println("Enabled")
-	} else {
-		fmt.Println("Disabled")
-	}
-
-	return nil
-}
-
-func teamGroupConstrainedGetGroupsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	groups, res := c.GetGroupsByTeam(team.Id, 0, 9999)
-	if res.Error != nil {
-		return res.Error
-	}
-
-	for _, group := range groups {
-		fmt.Println(group.DisplayName)
-	}
-
-	return nil
 }
