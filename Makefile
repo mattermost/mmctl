@@ -5,6 +5,9 @@ all: build
 build: vendor check
 	go build -mod=vendor
 
+install: vendor check
+	go install -mod=vendor
+
 fmt:
 	go fmt $(GO_PACKAGES)
 
