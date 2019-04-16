@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/model"
 
 	"github.com/pkg/errors"
@@ -83,6 +85,36 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 	RunE:    makeChannelPrivateCmdF,
 }
 
+var GroupConstrainedCmd = &cobra.Command{
+	Use:   "group-constrained",
+	Short: "Manage group-constrained status",
+	Long:  "Manage channel group-constrained status and it's associated groups",
+}
+
+var GroupConstrainedEnableCmd = &cobra.Command{
+	Use:     "enable [team]:[channel]",
+	Short:   "Enables group-constrained restrictions in the specified channel",
+	Example: "  channel group-constrained enable myteam:mychannel",
+	Args:    cobra.ExactArgs(1),
+	RunE:    groupConstrainedEnableCmdF,
+}
+
+var GroupConstrainedDisableCmd = &cobra.Command{
+	Use:     "disable [team]:[channel]",
+	Short:   "Disables group-constrained restrictions in the specified channel",
+	Example: "  channel group-constrained disable myteam:mychannel",
+	Args:    cobra.ExactArgs(1),
+	RunE:    groupConstrainedDisableCmdF,
+}
+
+var GroupConstrainedStatusCmd = &cobra.Command{
+	Use:     "status [team]:[channel]",
+	Short:   "Show's the group-constrained status for the specified channel",
+	Example: "  channel group-constrained status",
+	Args:    cobra.ExactArgs(1),
+	RunE:    groupConstrainedStatusCmdF,
+}
+
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
 	ChannelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
@@ -95,6 +127,12 @@ func init() {
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
+	GroupConstrainedCmd.AddCommand(
+		GroupConstrainedEnableCmd,
+		GroupConstrainedDisableCmd,
+		GroupConstrainedStatusCmd,
+	)
+
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -104,6 +142,7 @@ func init() {
 		RestoreChannelsCmd,
 		MakeChannelPrivateCmd,
 		ChannelRenameCmd,
+		GroupConstrainedCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -387,6 +426,73 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 
 	if _, response := c.PatchChannel(channel.Id, &channelPatch); response.Error != nil {
 		return response.Error
+	}
+
+	return nil
+}
+
+func groupConstrainedEnableCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	channel := getChannelFromChannelArg(c, args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	groups, res := c.GetGroupsByChannel(channel.Id, 0, 10)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if len(groups) == 0 {
+		return errors.New("Channel '" + args[0] + "' has no groups associated. It cannot be group-constrained")
+	}
+
+	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(true)}
+	if _, res = c.PatchChannel(channel.Id, &channelPatch); res.Error != nil {
+		return res.Error
+	}
+
+	return nil
+}
+
+func groupConstrainedDisableCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	channel := getChannelFromChannelArg(c, args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(false)}
+	if _, res := c.PatchChannel(channel.Id, &channelPatch); res.Error != nil {
+		return res.Error
+	}
+
+	return nil
+}
+
+func groupConstrainedStatusCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	channel := getChannelFromChannelArg(c, args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	if channel.GroupConstrained != nil && *channel.GroupConstrained {
+		fmt.Println("Enabled")
+	} else {
+		fmt.Println("Disabled")
 	}
 
 	return nil
