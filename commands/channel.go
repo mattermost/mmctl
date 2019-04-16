@@ -110,9 +110,18 @@ var ChannelGroupConstrainedDisableCmd = &cobra.Command{
 var ChannelGroupConstrainedStatusCmd = &cobra.Command{
 	Use:     "status [team]:[channel]",
 	Short:   "Show's the group-constrained status for the specified channel",
-	Example: "  channel group-constrained status",
+	Example: "  channel group-constrained status myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
 	RunE:    channelGroupConstrainedStatusCmdF,
+}
+
+var ChannelGroupConstrainedGetGroupsCmd = &cobra.Command{
+	Use:     "get-groups [team]:[channel]",
+	Short:   "Get channel's groups",
+	Long:    "List the groups associated with a channel",
+	Example: "  channel get-groups myteam:mychannel",
+	Args:    cobra.ExactArgs(1),
+	RunE:    channelGroupConstrainedGetGroupsCmdF,
 }
 
 func init() {
@@ -131,6 +140,7 @@ func init() {
 		ChannelGroupConstrainedEnableCmd,
 		ChannelGroupConstrainedDisableCmd,
 		ChannelGroupConstrainedStatusCmd,
+		ChannelGroupConstrainedGetGroupsCmd,
 	)
 
 	ChannelCmd.AddCommand(
@@ -493,6 +503,29 @@ func channelGroupConstrainedStatusCmdF(command *cobra.Command, args []string) er
 		fmt.Println("Enabled")
 	} else {
 		fmt.Println("Disabled")
+	}
+
+	return nil
+}
+
+func channelGroupConstrainedGetGroupsCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	channel := getChannelFromChannelArg(c, args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	groups, res := c.GetGroupsByChannel(channel.Id, 0, 9999)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	for _, group := range groups {
+		fmt.Println(group.DisplayName)
 	}
 
 	return nil

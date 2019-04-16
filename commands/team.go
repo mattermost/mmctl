@@ -90,9 +90,18 @@ var TeamGroupConstrainedDisableCmd = &cobra.Command{
 var TeamGroupConstrainedStatusCmd = &cobra.Command{
 	Use:     "status [team]",
 	Short:   "Show's the group-constrained status for the specified team",
-	Example: "  team group-constrained status",
+	Example: "  team group-constrained status myteam",
 	Args:    cobra.ExactArgs(1),
 	RunE:    teamGroupConstrainedStatusCmdF,
+}
+
+var TeamGroupConstrainedGetGroupsCmd = &cobra.Command{
+	Use:     "get-groups",
+	Short:   "Get team's groups",
+	Long:    "List the groups associated with a team",
+	Example: "  team get-groups myteam",
+	Args:    cobra.ExactArgs(1),
+	RunE:    teamGroupConstrainedGetGroupsCmdF,
 }
 
 func init() {
@@ -107,6 +116,7 @@ func init() {
 		TeamGroupConstrainedEnableCmd,
 		TeamGroupConstrainedDisableCmd,
 		TeamGroupConstrainedStatusCmd,
+		TeamGroupConstrainedGetGroupsCmd,
 	)
 
 	TeamCmd.AddCommand(
@@ -391,6 +401,29 @@ func teamGroupConstrainedStatusCmdF(command *cobra.Command, args []string) error
 		fmt.Println("Enabled")
 	} else {
 		fmt.Println("Disabled")
+	}
+
+	return nil
+}
+
+func teamGroupConstrainedGetGroupsCmdF(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return err
+	}
+
+	team := getTeamFromTeamArg(c, args[0])
+	if team == nil {
+		return errors.New("Unable to find team '" + args[0] + "'")
+	}
+
+	groups, res := c.GetGroupsByTeam(team.Id, 0, 9999)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	for _, group := range groups {
+		fmt.Println(group.DisplayName)
 	}
 
 	return nil
