@@ -12,7 +12,7 @@ github.com/gorilla/websocket
 github.com/inconshreveable/mousetrap
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
-# github.com/mattermost/mattermost-server v0.0.0-20190416171630-13fba10eb824
+# github.com/mattermost/mattermost-server v0.0.0-20190417144445-84a59ddb3928
 github.com/mattermost/mattermost-server/mlog/human
 github.com/mattermost/mattermost-server/model
 github.com/mattermost/mattermost-server/mlog

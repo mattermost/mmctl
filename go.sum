@@ -155,12 +155,15 @@ github.com/marstr/guid v0.0.0-20170427235115-8bdf7d1a087c/go.mod h1:74gB1z2wpxxI
 github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible/go.mod h1:0kX1qa3DOpaPJyOdMLeo7TcBN0QmUszj9a/VygOhDe0=
 github.com/mattermost/mattermost-server v0.0.0-20190416171630-13fba10eb824 h1:sQphcyZMnTJM/bVD5NQgjx0clel8MVL3kiGq9XmyklE=
 github.com/mattermost/mattermost-server v0.0.0-20190416171630-13fba10eb824/go.mod h1:/ZSPDRN6dUv1vWWTl8Vi05VwOIxPfGqIcDo01ytBiIQ=
+github.com/mattermost/mattermost-server v0.0.0-20190417144445-84a59ddb3928 h1:OoQ4ONxc0V1dsZ+zW4+bMC5/6O+l8B1sjUEKPdaOXQI=
+github.com/mattermost/mattermost-server v0.0.0-20190417144445-84a59ddb3928/go.mod h1:/ZSPDRN6dUv1vWWTl8Vi05VwOIxPfGqIcDo01ytBiIQ=
 github.com/mattermost/mattermost-server v5.3.1+incompatible h1:R/ld+VjFz7u7SgAFiJbvh2HFUaMaJtyCM/jXDe/wXTI=
 github.com/mattermost/mattermost-server v5.3.1+incompatible/go.mod h1:5L6MjAec+XXQwMIt791Ganu45GKsSiM+I0tLR9wUj8Y=
 github.com/mattermost/mattermost-server v5.9.0+incompatible h1:bUlZKAhjp7cGQRepmmsv225vbXyZaXOuVstqgpB+cE4=
 github.com/mattermost/mattermost-server v5.9.0+incompatible/go.mod h1:5L6MjAec+XXQwMIt791Ganu45GKsSiM+I0tLR9wUj8Y=
 github.com/mattermost/mattermost-server v5.10.0-rc6+incompatible h1:ylEbLN0V8VyuVjY0a2N9JDkevF7qYYOLdoBzvuo89sU=
 github.com/mattermost/mattermost-server v5.10.0-rc6+incompatible/go.mod h1:5L6MjAec+XXQwMIt791Ganu45GKsSiM+I0tLR9wUj8Y=
+github.com/mattermost/mattermost-server v5.10.0+incompatible h1:egegOxu77bvu1N5VVUwLylJAqWqs6nriFPM2QrdSbLs=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/viper v1.0.4/go.mod h1:uc5hKG9lv4/KRwPOt2c1omOyirS/UnuA2TytiZQSFHM=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
