@@ -36,6 +36,7 @@ func init() {
 	PostCreateCmd.Flags().StringP("reply-to", "r", "", "Post id to reply to")
 
 	PostListCmd.Flags().IntP("number", "n", 20, "Number of messages to list")
+	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
 
 	PostCmd.AddCommand(
 		PostCreateCmd,
@@ -96,6 +97,7 @@ func postListCmdF(command *cobra.Command, args []string) error {
 	}
 
 	number, _ := command.Flags().GetInt("number")
+	showIds, _ := command.Flags().GetBool("show-ids")
 
 	postList, res := c.GetPostsForChannel(channel.Id, 0, number, "")
 	if res.Error != nil {
@@ -113,7 +115,11 @@ func postListCmdF(command *cobra.Command, args []string) error {
 			username = user.Username
 		}
 
-		fmt.Println(fmt.Sprintf("%s [%s] %s", post.Id, username, post.Message))
+		if showIds {
+			fmt.Println(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s", post.Id, username, post.Message))
+		} else {
+			fmt.Println(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m %s", username, post.Message))
+		}
 	}
 	return nil
 }
