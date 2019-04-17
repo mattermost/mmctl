@@ -51,6 +51,7 @@ Available Commands:
   auth        Manages the credentials of the remote Mattermost instances
   channel     Management of channels
   completion  Generates autocompletion scripts for bash and zsh
+  group       Management of groups
   help        Help about any command
   license     Licensing commands
   logs        Display logs in a human-readable format
