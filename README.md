@@ -57,6 +57,7 @@ Available Commands:
   logs        Display logs in a human-readable format
   permissions Management of permissions and roles
   plugin      Management of plugins
+  post        Management of posts
   team        Management of teams
   user        Management of users
 
