@@ -1,7 +1,10 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
 func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (*model.Client4, error) {
@@ -40,4 +43,16 @@ func InitClient() (*model.Client4, error) {
 		return nil, err
 	}
 	return InitClientWithCredentials(credentials)
+}
+
+func InitWebSocketClient() (*model.WebSocketClient, error) {
+	credentials, err := GetCurrentCredentials()
+	if err != nil {
+		return nil, err
+	}
+	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceUrl, "http", "ws", 1), credentials.AuthToken)
+	if appErr != nil {
+		return nil, errors.New("Unable to create the websockets connection")
+	}
+	return client, nil
 }
