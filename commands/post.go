@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/model"
 
@@ -37,6 +38,7 @@ func init() {
 
 	PostListCmd.Flags().IntP("number", "n", 20, "Number of messages to list")
 	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
+	PostListCmd.Flags().BoolP("follow", "f", false, "Output appended data as new messages are posted to the channel")
 
 	PostCmd.AddCommand(
 		PostCreateCmd,
@@ -85,6 +87,44 @@ func postCreateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func eventDataToPost(eventData map[string]interface{}) (*model.Post, error) {
+	post := &model.Post{}
+	var rawPost string
+	for k, v := range eventData {
+		if k == "post" {
+			rawPost = v.(string)
+		}
+	}
+
+	err := json.Unmarshal([]byte(rawPost), &post)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
+}
+
+func printPost(c *model.Client4, post *model.Post, usernames map[string]string, showIds bool) {
+	var username string
+
+	if usernames[post.UserId] != "" {
+		username = usernames[post.UserId]
+	} else {
+		user, res := c.GetUser(post.UserId, "")
+		if res.Error != nil {
+			username = post.UserId
+		} else {
+			usernames[post.UserId] = user.Username
+			username = user.Username
+		}
+	}
+
+	if showIds {
+		fmt.Println(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s", post.Id, username, post.Message))
+	} else {
+		fmt.Println(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m %s", username, post.Message))
+	}
+}
+
 func postListCmdF(command *cobra.Command, args []string) error {
 	c, err := InitClient()
 	if err != nil {
@@ -98,6 +138,7 @@ func postListCmdF(command *cobra.Command, args []string) error {
 
 	number, _ := command.Flags().GetInt("number")
 	showIds, _ := command.Flags().GetBool("show-ids")
+	follow, _ := command.Flags().GetBool("follow")
 
 	postList, res := c.GetPostsForChannel(channel.Id, 0, number, "")
 	if res.Error != nil {
@@ -108,24 +149,32 @@ func postListCmdF(command *cobra.Command, args []string) error {
 	usernames := map[string]string{}
 	for i := 1; i <= len(posts); i++ {
 		post := posts[len(posts)-i]
-		var username string
+		printPost(c, post, usernames, showIds)
+	}
 
-		if usernames[post.UserId] != "" {
-			username = usernames[post.UserId]
-		} else {
-			user, res := c.GetUser(post.UserId, "")
-			if res.Error != nil {
-				username = post.UserId
-			} else {
-				usernames[post.UserId] = user.Username
-				username = user.Username
-			}
+	if follow {
+		ws, err := InitWebSocketClient()
+		if err != nil {
+			return err
 		}
 
-		if showIds {
-			fmt.Println(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s", post.Id, username, post.Message))
-		} else {
-			fmt.Println(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m %s", username, post.Message))
+		appErr := ws.Connect()
+		if appErr != nil {
+			return errors.New(appErr.Error())
+		}
+
+		ws.Listen()
+		for {
+			event := <- ws.EventChannel
+			if event.EventType() == model.WEBSOCKET_EVENT_POSTED {
+				post, err := eventDataToPost(event.Data)
+				if err != nil {
+					fmt.Println("Error parsing incoming post: " + err.Error())
+				}
+				if post.ChannelId == channel.Id {
+					printPost(c, post, usernames, showIds)
+				}
+			}
 		}
 	}
 	return nil
