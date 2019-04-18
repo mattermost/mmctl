@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
 
@@ -165,7 +165,7 @@ func postListCmdF(command *cobra.Command, args []string) error {
 
 		ws.Listen()
 		for {
-			event := <- ws.EventChannel
+			event := <-ws.EventChannel
 			if event.EventType() == model.WEBSOCKET_EVENT_POSTED {
 				post, err := eventDataToPost(event.Data)
 				if err != nil {
