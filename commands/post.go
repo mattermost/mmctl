@@ -105,14 +105,21 @@ func postListCmdF(command *cobra.Command, args []string) error {
 	}
 
 	posts := postList.ToSlice()
+	usernames := map[string]string{}
 	for i := 1; i <= len(posts); i++ {
 		post := posts[len(posts)-i]
 		var username string
-		user, res := c.GetUser(post.UserId, "")
-		if res.Error != nil {
-			username = post.UserId
+
+		if usernames[post.UserId] != "" {
+			username = usernames[post.UserId]
 		} else {
-			username = user.Username
+			user, res := c.GetUser(post.UserId, "")
+			if res.Error != nil {
+				username = post.UserId
+			} else {
+				usernames[post.UserId] = user.Username
+				username = user.Username
+			}
 		}
 
 		if showIds {
