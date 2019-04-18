@@ -60,6 +60,7 @@ Available Commands:
   post        Management of posts
   team        Management of teams
   user        Management of users
+  websocket   Display websocket in a human-readable format
 
 Flags:
   -h, --help   help for mmctl
