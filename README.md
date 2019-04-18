@@ -9,7 +9,7 @@ Open Source, self-hosted Slack-alternative.
 To install the project in your `$GOPATH`, simply run:
 
 ```
-go get -u github.com/mgdelacroix/mmctl
+go get -u github.com/mattermost/mmctl
 ```
 
 ### Install shell completions

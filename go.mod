@@ -1,4 +1,4 @@
-module github.com/mgdelacroix/mmctl
+module github.com/mattermost/mmctl
 
 go 1.12
 
