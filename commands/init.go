@@ -52,7 +52,7 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	}
 	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceUrl, "http", "ws", 1), credentials.AuthToken)
 	if appErr != nil {
-		return nil, errors.New("Unable to create the websockets connection")
+		return nil, errors.Wrap(appErr, "unable to create the websockets connection")
 	}
 	return client, nil
 }
