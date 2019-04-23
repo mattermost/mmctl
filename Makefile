@@ -1,4 +1,5 @@
 GO_PACKAGES=$(shell go list ./...)
+GO ?= $(shell command -v go 2> /dev/null)
 
 all: build
 
@@ -25,13 +26,34 @@ package: vendor check
 
 	rm mmctl mmctl.exe
 
-fmt:
-	go fmt $(GO_PACKAGES)
+gofmt:
+	@echo Running gofmt
+	@for package in $(GO_PACKAGES); do \
+		echo "Checking "$$package; \
+		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
+		if [ "$$files" ]; then \
+			gofmt_output=$$(gofmt -d -s $$files 2>&1); \
+			if [ "$$gofmt_output" ]; then \
+				echo "$$gofmt_output"; \
+				echo "Gofmt failure"; \
+				exit 1; \
+			fi; \
+		fi; \
+	done
+	@echo Gofmt success
 
-vet:
-	go vet $(GO_PACKAGES)
+govet:
+	@echo Running govet
+	$(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	$(GO) vet $(GO_PACKAGES)
+	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
+	@echo Govet success
 
-check: fmt vet
+test:
+	@echo Running tests
+	$(GO) test -race -v $(GO_PACKAGES)
+
+check: gofmt govet
 
 vendor:
 	go mod vendor
