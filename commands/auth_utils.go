@@ -32,8 +32,8 @@ func ReadCredentialsList() (*CredentialsList, error) {
 		return nil, err
 	}
 
-	if _, err := os.Stat(configFilePath); err != nil {
-		return nil, errors.New("Cannot read user credentials, maybe you need to use login first. Error: " + err.Error())
+	if _, errStat := os.Stat(configFilePath); err != nil {
+		return nil, errors.New("Cannot read user credentials, maybe you need to use login first. Error: " + errStat.Error())
 	}
 
 	fileContents, err := ioutil.ReadFile(configFilePath)
