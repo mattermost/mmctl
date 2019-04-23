@@ -1,4 +1,4 @@
-# mmctl
+# mmctl ![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg)
 
 A remote CLI tool for
 [Mattermost](https://github.com/mattermost/mattermost-server): the
