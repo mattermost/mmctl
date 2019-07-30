@@ -27,7 +27,7 @@ var LoginCmd = &cobra.Command{
 	Example: `  auth login https://mattermost.example.com
   auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
   auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret --mfa-token 123456
-  auth login https://mattermost.example.com --name local-server --username sysadmin --access-token myaccesstoken`,
+  auth login https://mattermost.example.com --name local-server --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
 	RunE: loginCmdF,
 }
