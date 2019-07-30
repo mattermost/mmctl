@@ -135,7 +135,7 @@ Instead of using username and password to log in, you can generate and
 use a personal access token to authenticate with a server:
 
 ```sh
-$ mmctl auth login https://community.mattermost.com --name community --username my-username --access-token MY_ACCESS_TOKEN
+$ mmctl auth login https://community.mattermost.com --name community --access-token MY_ACCESS_TOKEN
 ```
 
 ## Roadmap
