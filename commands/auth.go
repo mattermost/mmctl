@@ -166,6 +166,15 @@ func loginCmdF(command *cobra.Command, args []string) error {
 		accessToken = c.AuthToken
 	} else {
 		username = "Personal Access Token"
+		credentials := Credentials{
+			InstanceUrl: url,
+			AuthToken:   accessToken,
+		}
+		if _, err := InitClientWithCredentials(&credentials); err != nil {
+			CommandPrintErrorln(err.Error())
+			// We don't want usage to be printed as the command was correctly built
+			return nil
+		}
 	}
 
 	credentials := Credentials{
