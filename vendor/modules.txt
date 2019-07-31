@@ -54,7 +54,7 @@ go.uber.org/zap/internal/exit
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
-# golang.org/x/net v0.0.0-20190327214358-63eda1eb0650
+# golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/html
 golang.org/x/net/html/atom
 # golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
