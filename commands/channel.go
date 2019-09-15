@@ -167,9 +167,12 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		CreatorId:   "",
 	}
 
-	if _, response := c.CreateChannel(channel); response.Error != nil {
+	newChannel, response := c.CreateChannel(channel)
+	if response.Error != nil {
 		return response.Error
 	}
+
+	Log.PrintT("New team {{.Name}} successfully created", newChannel)
 
 	return nil
 }
@@ -309,7 +312,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list public channels for '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 		for _, channel := range publicChannels {
-			CommandPrettyPrintln(channel.Name)
+			Log.PrintT("{{.Name}}", channel)
 		}
 
 		deletedChannels, response := c.GetDeletedChannelsForTeam(team.Id, 0, 10000, "")
@@ -317,7 +320,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list archived channels for '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 		for _, channel := range deletedChannels {
-			CommandPrettyPrintln(channel.Name + " (archived)")
+			Log.PrintT("{{.Name}} (archived)", channel)
 		}
 	}
 
@@ -419,14 +422,14 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	if teamArg, _ := command.Flags().GetString("team"); teamArg != "" {
 		team := getTeamFromTeamArg(c, teamArg)
 		if team == nil {
-			CommandPrettyPrintln(fmt.Sprintf("Team %s is not found", teamArg))
+			Log.PrintT("Team {{.}} is not found", teamArg)
 			return nil
 		}
 
 		var response *model.Response
 		channel, response = c.GetChannelByName(args[0], team.Id, "")
 		if response.Error != nil || channel == nil {
-			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
+			Log.Print(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
 			return nil
 		}
 	} else {
@@ -443,15 +446,15 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 		}
 
 		if channel == nil {
-			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in any team", args[0]))
+			Log.PrintT("Channel {{.}} is not found in any team", args[0])
 			return nil
 		}
 	}
 
 	if channel.DeleteAt > 0 {
-		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s (archived)`, channel.Name, channel.DisplayName, channel.Id))
+		Log.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}} (archived)", channel)
 	} else {
-		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s`, channel.Name, channel.DisplayName, channel.Id))
+		Log.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}}", channel)
 	}
 	return nil
 }
