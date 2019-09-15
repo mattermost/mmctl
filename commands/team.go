@@ -119,7 +119,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Team creation failed: " + response.Error.Error())
 	}
 
-	Log.PrintT(newTeam, "New team {{.Name}} successfully created")
+	Log.PrintT("New team {{.Name}} successfully created", newTeam)
 
 	return nil
 }
@@ -226,7 +226,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 		if _, response := deleteTeam(c, team); response.Error != nil {
 			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
-			Log.PrintT(team, "Deleted team '{{.Name}}'")
+			Log.PrintT("Deleted team '{{.Name}}'", team)
 		}
 	}
 
@@ -250,9 +250,9 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 
 	for _, team := range teams {
 		if team.DeleteAt > 0 {
-			Log.PrintT(team, "{{.Name}} (archived)")
+			Log.PrintT("{{.Name}} (archived)", team)
 		} else {
-			Log.PrintT(team, "{{.Name}}")
+			Log.PrintT("{{.Name}}", team)
 		}
 	}
 
@@ -278,7 +278,7 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
 	for _, team := range sortedTeams {
-		Log.PrintT(team, "{{.Name}}: {{.DisplayName}} ({{.Id}})")
+		Log.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
 	}
 
 	return nil

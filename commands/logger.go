@@ -21,7 +21,7 @@ func (l *Logger) SetType(t string) {
 	l.LogType = t
 }
 
-func (l *Logger) PrintT(v interface{}, templateString string) {
+func (l *Logger) PrintT(templateString string, v interface{}) {
 	switch l.LogType {
 	case LOGGER_TYPE_PLAIN:
 		t := template.Must(template.New("").Parse(templateString))
@@ -34,7 +34,7 @@ func (l *Logger) PrintT(v interface{}, templateString string) {
 }
 
 func (l *Logger) Print(v interface{}) {
-	l.PrintT(v, "{{printf \"%+v\" .}}")
+	l.PrintT("{{printf \"%+v\" .}}", v)
 }
 
 func (l *Logger) Flush() {
