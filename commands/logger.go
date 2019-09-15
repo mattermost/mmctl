@@ -9,7 +9,6 @@ import (
 
 const (
 	LOGGER_TYPE_PLAIN = "plain"
-	LOGGER_TYPE_TABLE = "table"
 	LOGGER_TYPE_JSON  = "json"
 )
 
@@ -29,8 +28,6 @@ func (l *Logger) PrintT(v interface{}, templateString string) {
 		var tpl bytes.Buffer
 		t.Execute(&tpl, v)
 		fmt.Println(tpl.String())
-	case LOGGER_TYPE_TABLE:
-		panic("Not implemented yet")
 	case LOGGER_TYPE_JSON:
 		l.Lines = append(l.Lines, v)
 	}

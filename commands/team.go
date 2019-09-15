@@ -114,9 +114,12 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		Type:        teamType,
 	}
 
-	if _, response := c.CreateTeam(team); response.Error != nil {
+	newTeam, response := c.CreateTeam(team)
+	if response.Error != nil {
 		return errors.New("Team creation failed: " + response.Error.Error())
 	}
+
+	Log.PrintT(newTeam, "New team {{.Name}} successfully created")
 
 	return nil
 }
@@ -223,7 +226,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 		if _, response := deleteTeam(c, team); response.Error != nil {
 			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
-			CommandPrettyPrintln("Deleted team '" + team.Name + "'")
+			Log.PrintT(team, "Deleted team '{{.Name}}'")
 		}
 	}
 
