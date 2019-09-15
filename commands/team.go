@@ -247,9 +247,9 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 
 	for _, team := range teams {
 		if team.DeleteAt > 0 {
-			CommandPrettyPrintln(team.Name + " (archived)")
+			Log.PrintT(team, "{{.Name}} (archived)")
 		} else {
-			CommandPrettyPrintln(team.Name)
+			Log.PrintT(team, "{{.Name}}")
 		}
 	}
 
