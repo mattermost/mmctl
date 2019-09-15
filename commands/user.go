@@ -175,7 +175,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	CommandPrettyPrintln("Created User")
+	Log.PrintT("Created user {{.Username}}", ruser)
 
 	return nil
 }
@@ -272,9 +272,12 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 
 	user.Email = newEmail
 
-	if _, response := c.UpdateUser(user); response.Error != nil {
+	ruser, response := c.UpdateUser(user)
+	if response.Error != nil {
 		return errors.New(response.Error.Error())
 	}
+
+	Log.PrintT("User {{.Username}} updated successfully", ruser)
 
 	return nil
 }
@@ -317,22 +320,23 @@ func searchUserCmdF(command *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args)
 
 	for i, user := range users {
+		tpl := `id: {{.Id}}
+username: {{.Username}}
+nickname: {{.Nickname}}
+position: {{.Position}}
+first_name: {{.FirstName}}
+last_name: {{.LastName}}
+email: {{.Email}}
+auth_service: {{.AuthService}}`
 		if i > 0 {
-			CommandPrettyPrintln("------------------------------")
+			tpl = "------------------------------\n" + tpl
 		}
 		if user == nil {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
 
-		CommandPrettyPrintln("id: " + user.Id)
-		CommandPrettyPrintln("username: " + user.Username)
-		CommandPrettyPrintln("nickname: " + user.Nickname)
-		CommandPrettyPrintln("position: " + user.Position)
-		CommandPrettyPrintln("first_name: " + user.FirstName)
-		CommandPrettyPrintln("last_name: " + user.LastName)
-		CommandPrettyPrintln("email: " + user.Email)
-		CommandPrettyPrintln("auth_service: " + user.AuthService)
+		Log.PrintT(tpl, user)
 	}
 
 	return nil
