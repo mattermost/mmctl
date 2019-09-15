@@ -275,7 +275,7 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
 	for _, team := range sortedTeams {
-		CommandPrettyPrintln(team.Name + ": " + team.DisplayName + " (" + team.Id + ")")
+		Log.PrintT(team, "{{.Name}}: {{.DisplayName}} ({{.Id}})")
 	}
 
 	return nil
