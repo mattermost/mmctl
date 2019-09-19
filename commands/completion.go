@@ -44,11 +44,11 @@ func init() {
 	RootCmd.AddCommand(CompletionCmd)
 }
 
-func bashCmdF(command *cobra.Command, args []string) {
+func bashCmdF(cmd *cobra.Command, args []string) {
 	RootCmd.GenBashCompletion(os.Stdout)
 }
 
-func zshCmdF(command *cobra.Command, args []string) {
+func zshCmdF(cmd *cobra.Command, args []string) {
 	zshInitialization := `
 __mmctl_bash_source() {
 	alias shopt=':'

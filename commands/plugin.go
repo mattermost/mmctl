@@ -65,7 +65,7 @@ func init() {
 	RootCmd.AddCommand(PluginCmd)
 }
 
-func pluginAddCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func pluginAddCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -87,7 +87,7 @@ func pluginAddCmdF(c *model.Client4, command *cobra.Command, args []string) erro
 	return nil
 }
 
-func pluginDeleteCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func pluginDeleteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -103,7 +103,7 @@ func pluginDeleteCmdF(c *model.Client4, command *cobra.Command, args []string) e
 	return nil
 }
 
-func pluginEnableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func pluginEnableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -119,7 +119,7 @@ func pluginEnableCmdF(c *model.Client4, command *cobra.Command, args []string) e
 	return nil
 }
 
-func pluginDisableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func pluginDisableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -135,7 +135,7 @@ func pluginDisableCmdF(c *model.Client4, command *cobra.Command, args []string) 
 	return nil
 }
 
-func pluginListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func pluginListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	pluginsResp, response := c.GetPlugins()
 	if response.Error != nil {
 		return errors.New("Unable to list plugins. Error: " + response.Error.Error())

@@ -23,8 +23,8 @@ func init() {
 	RootCmd.AddCommand(LogsCmd)
 }
 
-func logsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
-	number, _ := command.Flags().GetInt("number")
+func logsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+	number, _ := cmd.Flags().GetInt("number")
 	logLines, response := c.GetLogs(0, number)
 	if response.Error != nil {
 		return errors.New("Unable to retrieve logs. Error: " + response.Error.Error())
@@ -33,7 +33,7 @@ func logsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	reader := bytes.NewReader([]byte(strings.Join(logLines, "")))
 
 	var writer human.LogWriter
-	if logrus, _ := command.Flags().GetBool("logrus"); logrus {
+	if logrus, _ := cmd.Flags().GetBool("logrus"); logrus {
 		writer = human.NewLogrusWriter(os.Stdout)
 	} else {
 		writer = human.NewSimpleWriter(os.Stdout)

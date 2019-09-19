@@ -48,13 +48,13 @@ func init() {
 	RootCmd.AddCommand(PostCmd)
 }
 
-func postCreateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
-	message, _ := command.Flags().GetString("message")
+func postCreateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+	message, _ := cmd.Flags().GetString("message")
 	if message == "" {
 		return errors.New("Message cannot be empty")
 	}
 
-	replyTo, _ := command.Flags().GetString("reply-to")
+	replyTo, _ := cmd.Flags().GetString("reply-to")
 	if replyTo != "" {
 		replyToPost, res := c.GetPost(replyTo, "")
 		if res.Error != nil {
@@ -120,15 +120,15 @@ func printPost(c *model.Client4, post *model.Post, usernames map[string]string, 
 	}
 }
 
-func postListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func postListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	number, _ := command.Flags().GetInt("number")
-	showIds, _ := command.Flags().GetBool("show-ids")
-	follow, _ := command.Flags().GetBool("follow")
+	number, _ := cmd.Flags().GetInt("number")
+	showIds, _ := cmd.Flags().GetBool("show-ids")
+	follow, _ := cmd.Flags().GetBool("follow")
 
 	postList, res := c.GetPostsForChannel(channel.Id, 0, number, "")
 	if res.Error != nil {

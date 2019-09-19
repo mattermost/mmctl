@@ -36,7 +36,7 @@ func init() {
 	RootCmd.AddCommand(LicenseCmd)
 }
 
-func uploadLicenseCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func uploadLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Enter one license file to upload")
 	}
@@ -55,7 +55,7 @@ func uploadLicenseCmdF(c *model.Client4, command *cobra.Command, args []string) 
 	return nil
 }
 
-func removeLicenseCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func removeLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if _, response := c.RemoveLicenseFile(); response.Error != nil {
 		return response.Error
 	}

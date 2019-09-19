@@ -8,16 +8,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func withClient(fn func(c *model.Client4, command *cobra.Command, args []string) error) func(command *cobra.Command, args []string) error {
+func withClient(fn func(c *model.Client4, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	c, err := InitClient()
 	if err != nil {
-		return func(command *cobra.Command, args []string) error {
+		return func(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
 
-	return func(command *cobra.Command, args []string) error {
-		return fn(c, command, args)
+	return func(cmd *cobra.Command, args []string) error {
+		return fn(c, cmd, args)
 	}
 }
 

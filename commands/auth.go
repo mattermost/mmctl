@@ -94,24 +94,24 @@ func init() {
 	RootCmd.AddCommand(AuthCmd)
 }
 
-func loginCmdF(command *cobra.Command, args []string) error {
-	name, err := command.Flags().GetString("name")
+func loginCmdF(cmd *cobra.Command, args []string) error {
+	name, err := cmd.Flags().GetString("name")
 	if err != nil {
 		return err
 	}
-	username, err := command.Flags().GetString("username")
+	username, err := cmd.Flags().GetString("username")
 	if err != nil {
 		return err
 	}
-	password, err := command.Flags().GetString("password")
+	password, err := cmd.Flags().GetString("password")
 	if err != nil {
 		return err
 	}
-	accessToken, err := command.Flags().GetString("access-token")
+	accessToken, err := cmd.Flags().GetString("access-token")
 	if err != nil {
 		return err
 	}
-	mfaToken, err := command.Flags().GetString("mfa-token")
+	mfaToken, err := cmd.Flags().GetString("mfa-token")
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func loginCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	noActivate, _ := command.Flags().GetBool("no-activate")
+	noActivate, _ := cmd.Flags().GetBool("no-activate")
 	if !noActivate {
 		if err := SetCurrent(name); err != nil {
 			return err
@@ -209,7 +209,7 @@ func getPasswordFromStdin() (string, error) {
 	return string(bytePassword), nil
 }
 
-func currentCmdF(command *cobra.Command, args []string) error {
+func currentCmdF(cmd *cobra.Command, args []string) error {
 	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return err
@@ -219,7 +219,7 @@ func currentCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func setCmdF(command *cobra.Command, args []string) error {
+func setCmdF(cmd *cobra.Command, args []string) error {
 	if err := SetCurrent(args[0]); err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func setCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func listCmdF(command *cobra.Command, args []string) error {
+func listCmdF(cmd *cobra.Command, args []string) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
 		return err
@@ -271,7 +271,7 @@ func listCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteCmdF(command *cobra.Command, args []string) error {
+func deleteCmdF(cmd *cobra.Command, args []string) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
 		return err
@@ -287,7 +287,7 @@ func deleteCmdF(command *cobra.Command, args []string) error {
 	return SaveCredentialsList(credentialsList)
 }
 
-func cleanCmdF(command *cobra.Command, args []string) error {
+func cleanCmdF(cmd *cobra.Command, args []string) error {
 	if err := CleanCredentials(); err != nil {
 		return err
 	}

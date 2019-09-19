@@ -87,19 +87,19 @@ func init() {
 	RootCmd.AddCommand(TeamCmd)
 }
 
-func createTeamCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func createTeamCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	name, errn := command.Flags().GetString("name")
+	name, errn := cmd.Flags().GetString("name")
 	if errn != nil || name == "" {
 		return errors.New("Name is required")
 	}
-	displayname, errdn := command.Flags().GetString("display_name")
+	displayname, errdn := cmd.Flags().GetString("display_name")
 	if errdn != nil || displayname == "" {
 		return errors.New("Display Name is required")
 	}
-	email, _ := command.Flags().GetString("email")
-	useprivate, _ := command.Flags().GetBool("private")
+	email, _ := cmd.Flags().GetString("email")
+	useprivate, _ := cmd.Flags().GetBool("private")
 
 	teamType := model.TEAM_OPEN
 	if useprivate {
@@ -123,7 +123,7 @@ func createTeamCmdF(c *model.Client4, command *cobra.Command, args []string) err
 	return nil
 }
 
-func removeUsersCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func removeUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -151,7 +151,7 @@ func removeUserFromTeam(c *model.Client4, team *model.Team, user *model.User, us
 	}
 }
 
-func addUsersCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func addUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -180,12 +180,12 @@ func addUserToTeam(c *model.Client4, team *model.Team, user *model.User, userArg
 	}
 }
 
-func deleteTeamsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func deleteTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Not enough arguments.")
 	}
 
-	confirmFlag, _ := command.Flags().GetBool("confirm")
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		var confirm string
 		CommandPrettyPrintln("Have you performed a database backup? (YES/NO): ")
@@ -221,7 +221,7 @@ func deleteTeam(c *model.Client4, team *model.Team) (bool, *model.Response) {
 	return c.PermanentDeleteTeam(team.Id)
 }
 
-func listTeamsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func listTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	teams, response := c.GetAllTeams("", 0, 10000)
 	if response.Error != nil {
 		return response.Error
@@ -238,7 +238,7 @@ func listTeamsCmdF(c *model.Client4, command *cobra.Command, args []string) erro
 	return nil
 }
 
-func searchTeamCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func searchTeamCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
