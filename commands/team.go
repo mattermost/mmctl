@@ -6,6 +6,8 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
+
 	"github.com/spf13/cobra"
 )
 
@@ -90,6 +92,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	printer.SetSingle(true)
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -119,7 +122,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Team creation failed: " + response.Error.Error())
 	}
 
-	Log.PrintT("New team {{.Name}} successfully created", newTeam)
+	printer.PrintT("New team {{.Name}} successfully created", newTeam)
 
 	return nil
 }
@@ -226,7 +229,7 @@ func deleteTeamsCmdF(command *cobra.Command, args []string) error {
 		if _, response := deleteTeam(c, team); response.Error != nil {
 			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
-			Log.PrintT("Deleted team '{{.Name}}'", team)
+			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
 	}
 
@@ -250,9 +253,9 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 
 	for _, team := range teams {
 		if team.DeleteAt > 0 {
-			Log.PrintT("{{.Name}} (archived)", team)
+			printer.PrintT("{{.Name}} (archived)", team)
 		} else {
-			Log.PrintT("{{.Name}}", team)
+			printer.PrintT("{{.Name}}", team)
 		}
 	}
 
@@ -278,7 +281,7 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
 	for _, team := range sortedTeams {
-		Log.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
+		printer.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
 	}
 
 	return nil

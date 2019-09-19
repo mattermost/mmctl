@@ -8,5 +8,11 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.3
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
-	golang.org/x/tools v0.0.0-20190731163215-a81e99d7481f // indirect
+	golang.org/x/tools v0.0.0-20190919031856-7460b8e10b7e // indirect
+)
+
+replace (
+	git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+	// Workaround for https://github.com/golang/go/issues/30831 and fallout.
+	github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
 )

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -134,6 +136,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	printer.SetSingle(true)
 
 	username, erru := command.Flags().GetString("username")
 	if erru != nil {
@@ -175,7 +178,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	Log.PrintT("Created user {{.Username}}", ruser)
+	printer.PrintT("Created user {{.Username}}", ruser)
 
 	return nil
 }
@@ -250,6 +253,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	printer.SetSingle(true)
 
 	if len(args) != 2 {
 		return errors.New("Expected two arguments. See help text for details.")
@@ -277,7 +281,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 		return errors.New(response.Error.Error())
 	}
 
-	Log.PrintT("User {{.Username}} updated successfully", ruser)
+	printer.PrintT("User {{.Username}} updated successfully", ruser)
 
 	return nil
 }
@@ -312,6 +316,7 @@ func searchUserCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	printer.SetSingle(true)
 
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
@@ -336,7 +341,7 @@ auth_service: {{.AuthService}}`
 			continue
 		}
 
-		Log.PrintT(tpl, user)
+		printer.PrintT(tpl, user)
 	}
 
 	return nil
