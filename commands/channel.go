@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -130,6 +131,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	printer.SetSingle(true)
 
 	name, errn := command.Flags().GetString("name")
 	if errn != nil || name == "" {
@@ -172,7 +174,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		return response.Error
 	}
 
-	Log.PrintT("New team {{.Name}} successfully created", newChannel)
+	printer.PrintT("New team {{.Name}} successfully created", newChannel)
 
 	return nil
 }
@@ -312,7 +314,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list public channels for '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 		for _, channel := range publicChannels {
-			Log.PrintT("{{.Name}}", channel)
+			printer.PrintT("{{.Name}}", channel)
 		}
 
 		deletedChannels, response := c.GetDeletedChannelsForTeam(team.Id, 0, 10000, "")
@@ -320,7 +322,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list archived channels for '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 		for _, channel := range deletedChannels {
-			Log.PrintT("{{.Name}} (archived)", channel)
+			printer.PrintT("{{.Name}} (archived)", channel)
 		}
 	}
 
@@ -416,20 +418,21 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	printer.SetSingle(true)
 
 	var channel *model.Channel
 
 	if teamArg, _ := command.Flags().GetString("team"); teamArg != "" {
 		team := getTeamFromTeamArg(c, teamArg)
 		if team == nil {
-			Log.PrintT("Team {{.}} is not found", teamArg)
+			printer.PrintT("Team {{.}} is not found", teamArg)
 			return nil
 		}
 
 		var response *model.Response
 		channel, response = c.GetChannelByName(args[0], team.Id, "")
 		if response.Error != nil || channel == nil {
-			Log.Print(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
+			printer.Print(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
 			return nil
 		}
 	} else {
@@ -446,15 +449,15 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 		}
 
 		if channel == nil {
-			Log.PrintT("Channel {{.}} is not found in any team", args[0])
+			printer.PrintT("Channel {{.}} is not found in any team", args[0])
 			return nil
 		}
 	}
 
 	if channel.DeleteAt > 0 {
-		Log.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}} (archived)", channel)
+		printer.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}} (archived)", channel)
 	} else {
-		Log.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}}", channel)
+		printer.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}}", channel)
 	}
 	return nil
 }
