@@ -17,7 +17,7 @@ func init() {
 	RootCmd.AddCommand(WebsocketCmd)
 }
 
-func websocketCmdF(command *cobra.Command, args []string) error {
+func websocketCmdF(cmd *cobra.Command, args []string) error {
 	c, err := InitWebSocketClient()
 	if err != nil {
 		return err

@@ -122,7 +122,7 @@ func init() {
 	RootCmd.AddCommand(GroupCmd)
 }
 
-func listLdapGroupsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func listLdapGroupsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	groups, res := c.GetLdapGroups()
 	if res.Error != nil {
 		return res.Error
@@ -135,7 +135,7 @@ func listLdapGroupsCmdF(c *model.Client4, command *cobra.Command, args []string)
 	return nil
 }
 
-func channelGroupEnableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func channelGroupEnableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -158,7 +158,7 @@ func channelGroupEnableCmdF(c *model.Client4, command *cobra.Command, args []str
 	return nil
 }
 
-func channelGroupDisableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func channelGroupDisableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -172,7 +172,7 @@ func channelGroupDisableCmdF(c *model.Client4, command *cobra.Command, args []st
 	return nil
 }
 
-func channelGroupStatusCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func channelGroupStatusCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -187,7 +187,7 @@ func channelGroupStatusCmdF(c *model.Client4, command *cobra.Command, args []str
 	return nil
 }
 
-func channelGroupListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func channelGroupListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -205,7 +205,7 @@ func channelGroupListCmdF(c *model.Client4, command *cobra.Command, args []strin
 	return nil
 }
 
-func teamGroupEnableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func teamGroupEnableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -228,7 +228,7 @@ func teamGroupEnableCmdF(c *model.Client4, command *cobra.Command, args []string
 	return nil
 }
 
-func teamGroupDisableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func teamGroupDisableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -242,7 +242,7 @@ func teamGroupDisableCmdF(c *model.Client4, command *cobra.Command, args []strin
 	return nil
 }
 
-func teamGroupStatusCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func teamGroupStatusCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -257,7 +257,7 @@ func teamGroupStatusCmdF(c *model.Client4, command *cobra.Command, args []string
 	return nil
 }
 
-func teamGroupListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func teamGroupListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")

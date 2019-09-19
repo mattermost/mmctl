@@ -116,7 +116,7 @@ func deactivateUsers(c *model.Client4, userArgs []string) {
 	}
 }
 
-func userDeactivateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func userDeactivateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -126,26 +126,26 @@ func userDeactivateCmdF(c *model.Client4, command *cobra.Command, args []string)
 	return nil
 }
 
-func userCreateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func userCreateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	username, erru := command.Flags().GetString("username")
+	username, erru := cmd.Flags().GetString("username")
 	if erru != nil {
 		return errors.Wrap(erru, "Username is required")
 	}
-	email, erre := command.Flags().GetString("email")
+	email, erre := cmd.Flags().GetString("email")
 	if erre != nil {
 		return errors.Wrap(erre, "Email is required")
 	}
-	password, errp := command.Flags().GetString("password")
+	password, errp := cmd.Flags().GetString("password")
 	if errp != nil {
 		return errors.Wrap(errp, "Password is required")
 	}
-	nickname, _ := command.Flags().GetString("nickname")
-	firstname, _ := command.Flags().GetString("firstname")
-	lastname, _ := command.Flags().GetString("lastname")
-	locale, _ := command.Flags().GetString("locale")
-	systemAdmin, _ := command.Flags().GetBool("system_admin")
+	nickname, _ := cmd.Flags().GetString("nickname")
+	firstname, _ := cmd.Flags().GetString("firstname")
+	lastname, _ := cmd.Flags().GetString("lastname")
+	locale, _ := cmd.Flags().GetString("locale")
+	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
 
 	user := &model.User{
 		Username:  username,
@@ -174,7 +174,7 @@ func userCreateCmdF(c *model.Client4, command *cobra.Command, args []string) err
 	return nil
 }
 
-func userInviteCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func userInviteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Expected at least two arguments. See help text for details.")
 	}
@@ -211,7 +211,7 @@ func inviteUser(c *model.Client4, email string, team *model.Team, teamArg string
 	return nil
 }
 
-func sendPasswordResetEmailCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func sendPasswordResetEmailCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -229,7 +229,7 @@ func sendPasswordResetEmailCmdF(c *model.Client4, command *cobra.Command, args [
 	return nil
 }
 
-func updateUserEmailCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func updateUserEmailCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) != 2 {
@@ -263,7 +263,7 @@ func updateUserEmailCmdF(c *model.Client4, command *cobra.Command, args []string
 	return nil
 }
 
-func resetUserMfaCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func resetUserMfaCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -283,7 +283,7 @@ func resetUserMfaCmdF(c *model.Client4, command *cobra.Command, args []string) e
 	return nil
 }
 
-func searchUserCmdF(c *model.Client4, command *cobra.Command, args []string) error {
+func searchUserCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) < 1 {
