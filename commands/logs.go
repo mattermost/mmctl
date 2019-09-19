@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog/human"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
 
 var LogsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Display logs in a human-readable format",
-	RunE:  logsCmdF,
+	RunE:  withClient(logsCmdF),
 }
 
 func init() {
@@ -22,12 +23,7 @@ func init() {
 	RootCmd.AddCommand(LogsCmd)
 }
 
-func logsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func logsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	number, _ := command.Flags().GetInt("number")
 	logLines, response := c.GetLogs(0, number)
 	if response.Error != nil {

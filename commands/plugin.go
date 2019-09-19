@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 
+	"github.com/mattermost/mattermost-server/model"
+
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +19,7 @@ var PluginAddCmd = &cobra.Command{
 	Short:   "Add plugins",
 	Long:    "Add plugins to your Mattermost server.",
 	Example: `  plugin add hovercardexample.tar.gz pluginexample.tar.gz`,
-	RunE:    pluginAddCmdF,
+	RunE:    withClient(pluginAddCmdF),
 }
 
 var PluginDeleteCmd = &cobra.Command{
@@ -25,7 +27,7 @@ var PluginDeleteCmd = &cobra.Command{
 	Short:   "Delete plugins",
 	Long:    "Delete previously uploaded plugins from your Mattermost server.",
 	Example: `  plugin delete hovercardexample pluginexample`,
-	RunE:    pluginDeleteCmdF,
+	RunE:    withClient(pluginDeleteCmdF),
 }
 
 var PluginEnableCmd = &cobra.Command{
@@ -33,7 +35,7 @@ var PluginEnableCmd = &cobra.Command{
 	Short:   "Enable plugins",
 	Long:    "Enable plugins for use on your Mattermost server.",
 	Example: `  plugin enable hovercardexample pluginexample`,
-	RunE:    pluginEnableCmdF,
+	RunE:    withClient(pluginEnableCmdF),
 }
 
 var PluginDisableCmd = &cobra.Command{
@@ -41,7 +43,7 @@ var PluginDisableCmd = &cobra.Command{
 	Short:   "Disable plugins",
 	Long:    "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
 	Example: `  plugin disable hovercardexample pluginexample`,
-	RunE:    pluginDisableCmdF,
+	RunE:    withClient(pluginDisableCmdF),
 }
 
 var PluginListCmd = &cobra.Command{
@@ -49,7 +51,7 @@ var PluginListCmd = &cobra.Command{
 	Short:   "List plugins",
 	Long:    "List all active and inactive plugins installed on your Mattermost server.",
 	Example: `  plugin list`,
-	RunE:    pluginListCmdF,
+	RunE:    withClient(pluginListCmdF),
 }
 
 func init() {
@@ -63,12 +65,7 @@ func init() {
 	RootCmd.AddCommand(PluginCmd)
 }
 
-func pluginAddCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func pluginAddCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -90,12 +87,7 @@ func pluginAddCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginDeleteCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func pluginDeleteCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -111,12 +103,7 @@ func pluginDeleteCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginEnableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func pluginEnableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -132,12 +119,7 @@ func pluginEnableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginDisableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func pluginDisableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -153,12 +135,7 @@ func pluginDisableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginListCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func pluginListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	pluginsResp, response := c.GetPlugins()
 	if response.Error != nil {
 		return errors.New("Unable to list plugins. Error: " + response.Error.Error())

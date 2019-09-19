@@ -20,7 +20,7 @@ var PostCreateCmd = &cobra.Command{
 	Short:   "Create a post",
 	Example: `  post create myteam:mychannel --message "some text for the post"`,
 	Args:    cobra.ExactArgs(1),
-	RunE:    postCreateCmdF,
+	RunE:    withClient(postCreateCmdF),
 }
 
 var PostListCmd = &cobra.Command{
@@ -29,7 +29,7 @@ var PostListCmd = &cobra.Command{
 	Example: `  post list myteam:mychannel
   post list myteam:mychannel --number 20`,
 	Args: cobra.ExactArgs(1),
-	RunE: postListCmdF,
+	RunE: withClient(postListCmdF),
 }
 
 func init() {
@@ -48,12 +48,7 @@ func init() {
 	RootCmd.AddCommand(PostCmd)
 }
 
-func postCreateCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func postCreateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	message, _ := command.Flags().GetString("message")
 	if message == "" {
 		return errors.New("Message cannot be empty")
@@ -125,12 +120,7 @@ func printPost(c *model.Client4, post *model.Post, usernames map[string]string, 
 	}
 }
 
-func postListCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func postListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")

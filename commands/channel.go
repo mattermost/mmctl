@@ -19,7 +19,7 @@ var ChannelCreateCmd = &cobra.Command{
 	Long:  `Create a channel.`,
 	Example: `  channel create --team myteam --name mynewchannel --display_name "My New Channel"
   channel create --team myteam --name mynewprivatechannel --display_name "My New Private Channel" --private`,
-	RunE: createChannelCmdF,
+	RunE: withClient(createChannelCmdF),
 }
 
 var ChannelRenameCmd = &cobra.Command{
@@ -27,7 +27,7 @@ var ChannelRenameCmd = &cobra.Command{
 	Short:   "Rename a channel",
 	Long:    `Rename a channel.`,
 	Example: `  channel rename myteam:mychannel newchannelname --display_name "New Display Name"`,
-	RunE:    renameChannelCmdF,
+	RunE:    withClient(renameChannelCmdF),
 }
 
 var RemoveChannelUsersCmd = &cobra.Command{
@@ -36,7 +36,7 @@ var RemoveChannelUsersCmd = &cobra.Command{
 	Long:  "Remove some users from channel",
 	Example: `  channel remove myteam:mychannel user@example.com username
   channel remove myteam:mychannel --all-users`,
-	RunE: removeChannelUsersCmdF,
+	RunE: withClient(removeChannelUsersCmdF),
 }
 
 var AddChannelUsersCmd = &cobra.Command{
@@ -44,7 +44,7 @@ var AddChannelUsersCmd = &cobra.Command{
 	Short:   "Add users to channel",
 	Long:    "Add some users to channel",
 	Example: "  channel add myteam:mychannel user@example.com username",
-	RunE:    addChannelUsersCmdF,
+	RunE:    withClient(addChannelUsersCmdF),
 }
 
 var ArchiveChannelsCmd = &cobra.Command{
@@ -54,7 +54,7 @@ var ArchiveChannelsCmd = &cobra.Command{
 Archive a channel along with all related information including posts from the database.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel archive myteam:mychannel",
-	RunE:    archiveChannelsCmdF,
+	RunE:    withClient(archiveChannelsCmdF),
 }
 
 var ListChannelsCmd = &cobra.Command{
@@ -63,7 +63,7 @@ var ListChannelsCmd = &cobra.Command{
 	Long: `List all channels on specified teams.
 Archived channels are appended with ' (archived)'.`,
 	Example: "  channel list myteam",
-	RunE:    listChannelsCmdF,
+	RunE:    withClient(listChannelsCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{
@@ -72,7 +72,7 @@ var RestoreChannelsCmd = &cobra.Command{
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
-	RunE:    restoreChannelsCmdF,
+	RunE:    withClient(restoreChannelsCmdF),
 }
 
 var MakeChannelPrivateCmd = &cobra.Command{
@@ -81,7 +81,7 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Long: `Set the type of a channel from public to private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel make_private myteam:mychannel",
-	RunE:    makeChannelPrivateCmdF,
+	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
 var SearchChannelCmd = &cobra.Command{
@@ -92,7 +92,7 @@ Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
 	Example: `  channel search myChannel
   channel search --team myTeam myChannel`,
 	Args: cobra.ExactArgs(1),
-	RunE: searchChannelCmdF,
+	RunE: withClient(searchChannelCmdF),
 }
 
 func init() {
@@ -124,11 +124,7 @@ func init() {
 	RootCmd.AddCommand(ChannelCmd)
 }
 
-func createChannelCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
+func createChannelCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	name, errn := command.Flags().GetString("name")
@@ -177,12 +173,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func removeChannelUsersCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func removeChannelUsersCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	allUsers, _ := command.Flags().GetBool("all-users")
 
 	if allUsers && len(args) != 1 {
@@ -233,12 +224,7 @@ func removeAllUsersFromChannel(c *model.Client4, channel *model.Channel) {
 	}
 }
 
-func addChannelUsersCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func addChannelUsersCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -266,12 +252,7 @@ func addUserToChannel(c *model.Client4, channel *model.Channel, user *model.User
 	}
 }
 
-func archiveChannelsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func archiveChannelsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to archive.")
 	}
@@ -290,12 +271,7 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func listChannelsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func listChannelsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Enter at least one team.")
 	}
@@ -327,12 +303,7 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func restoreChannelsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func restoreChannelsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel.")
 	}
@@ -351,12 +322,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func makeChannelPrivateCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func makeChannelPrivateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Enter one channel to modify.")
 	}
@@ -377,12 +343,8 @@ func makeChannelPrivateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func renameChannelCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
+func renameChannelCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	var newDisplayName, newChannelName string
-	if err != nil {
-		return err
-	}
 
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
@@ -411,11 +373,7 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func searchChannelCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
+func searchChannelCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	var channel *model.Channel
@@ -440,7 +398,7 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	} else {
 		teams, response := c.GetAllTeams("", 0, 9999)
 		if response.Error != nil {
-			return errors.Wrap(err, "failed to GetAllTeams")
+			return errors.Wrap(response.Error, "failed to GetAllTeams")
 		}
 
 		for _, team := range teams {

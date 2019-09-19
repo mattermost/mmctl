@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"github.com/mattermost/mattermost-server/model"
+
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +19,7 @@ var UploadLicenseCmd = &cobra.Command{
 	Short:   "Upload a license.",
 	Long:    "Upload a license. Replaces current license.",
 	Example: "  license upload /path/to/license/mylicensefile.mattermost-license",
-	RunE:    uploadLicenseCmdF,
+	RunE:    withClient(uploadLicenseCmdF),
 }
 
 var RemoveLicenseCmd = &cobra.Command{
@@ -25,7 +27,7 @@ var RemoveLicenseCmd = &cobra.Command{
 	Short:   "Remove the current license.",
 	Long:    "Remove the current license and leave mattermost in Team Edition.",
 	Example: "  license remove",
-	RunE:    removeLicenseCmdF,
+	RunE:    withClient(removeLicenseCmdF),
 }
 
 func init() {
@@ -34,18 +36,13 @@ func init() {
 	RootCmd.AddCommand(LicenseCmd)
 }
 
-func uploadLicenseCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func uploadLicenseCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Enter one license file to upload")
 	}
 
-	var fileBytes []byte
-	if fileBytes, err = ioutil.ReadFile(args[0]); err != nil {
+	fileBytes, err := ioutil.ReadFile(args[0])
+	if err != nil {
 		return err
 	}
 
@@ -58,12 +55,7 @@ func uploadLicenseCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func removeLicenseCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func removeLicenseCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if _, response := c.RemoveLicenseFile(); response.Error != nil {
 		return response.Error
 	}

@@ -19,7 +19,7 @@ var ListLdapGroupsCmd = &cobra.Command{
 	Short:   "List LDAP groups",
 	Example: "  group list-ldap",
 	Args:    cobra.NoArgs,
-	RunE:    listLdapGroupsCmdF,
+	RunE:    withClient(listLdapGroupsCmdF),
 }
 
 var ChannelGroupCmd = &cobra.Command{
@@ -32,7 +32,7 @@ var ChannelGroupEnableCmd = &cobra.Command{
 	Short:   "Enables group constrains in the specified channel",
 	Example: "  group channel enable myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
-	RunE:    channelGroupEnableCmdF,
+	RunE:    withClient(channelGroupEnableCmdF),
 }
 
 var ChannelGroupDisableCmd = &cobra.Command{
@@ -40,7 +40,7 @@ var ChannelGroupDisableCmd = &cobra.Command{
 	Short:   "Disables group constrains in the specified channel",
 	Example: "  group channel disable myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
-	RunE:    channelGroupDisableCmdF,
+	RunE:    withClient(channelGroupDisableCmdF),
 }
 
 var ChannelGroupStatusCmd = &cobra.Command{
@@ -48,7 +48,7 @@ var ChannelGroupStatusCmd = &cobra.Command{
 	Short:   "Show's the group constrain status for the specified channel",
 	Example: "  group channel status myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
-	RunE:    channelGroupStatusCmdF,
+	RunE:    withClient(channelGroupStatusCmdF),
 }
 
 var ChannelGroupListCmd = &cobra.Command{
@@ -57,7 +57,7 @@ var ChannelGroupListCmd = &cobra.Command{
 	Long:    "List the groups associated with a channel",
 	Example: "  group channel list myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
-	RunE:    channelGroupListCmdF,
+	RunE:    withClient(channelGroupListCmdF),
 }
 
 var TeamGroupCmd = &cobra.Command{
@@ -70,7 +70,7 @@ var TeamGroupEnableCmd = &cobra.Command{
 	Short:   "Enables group constrains in the specified team",
 	Example: "  group team enable myteam",
 	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupEnableCmdF,
+	RunE:    withClient(teamGroupEnableCmdF),
 }
 
 var TeamGroupDisableCmd = &cobra.Command{
@@ -78,7 +78,7 @@ var TeamGroupDisableCmd = &cobra.Command{
 	Short:   "Disables group constrains in the specified team",
 	Example: "  group team disable myteam",
 	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupDisableCmdF,
+	RunE:    withClient(teamGroupDisableCmdF),
 }
 
 var TeamGroupStatusCmd = &cobra.Command{
@@ -86,7 +86,7 @@ var TeamGroupStatusCmd = &cobra.Command{
 	Short:   "Show's the group constrain status for the specified team",
 	Example: "  group team status myteam",
 	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupStatusCmdF,
+	RunE:    withClient(teamGroupStatusCmdF),
 }
 
 var TeamGroupListCmd = &cobra.Command{
@@ -95,7 +95,7 @@ var TeamGroupListCmd = &cobra.Command{
 	Long:    "List the groups associated with a team",
 	Example: "  group team list myteam",
 	Args:    cobra.ExactArgs(1),
-	RunE:    teamGroupListCmdF,
+	RunE:    withClient(teamGroupListCmdF),
 }
 
 func init() {
@@ -122,12 +122,7 @@ func init() {
 	RootCmd.AddCommand(GroupCmd)
 }
 
-func listLdapGroupsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func listLdapGroupsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	groups, res := c.GetLdapGroups()
 	if res.Error != nil {
 		return res.Error
@@ -140,12 +135,7 @@ func listLdapGroupsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func channelGroupEnableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -168,12 +158,7 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func channelGroupDisableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -187,12 +172,7 @@ func channelGroupDisableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func channelGroupStatusCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func channelGroupStatusCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -207,12 +187,7 @@ func channelGroupStatusCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func channelGroupListCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func channelGroupListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
@@ -230,12 +205,7 @@ func channelGroupListCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func teamGroupEnableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -258,12 +228,7 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func teamGroupDisableCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -277,12 +242,7 @@ func teamGroupDisableCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func teamGroupStatusCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func teamGroupStatusCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -297,12 +257,7 @@ func teamGroupStatusCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func teamGroupListCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func teamGroupListCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
