@@ -19,7 +19,7 @@ var AddPermissionsCmd = &cobra.Command{
 	Long:    `Add one or more permissions to an existing role (Only works in Enterprise Edition).`,
 	Example: `  permissions add system_user list_open_teams`,
 	Args:    cobra.MinimumNArgs(2),
-	RunE:    addPermissionsCmdF,
+	RunE:    withClient(addPermissionsCmdF),
 }
 
 var RemovePermissionsCmd = &cobra.Command{
@@ -28,7 +28,7 @@ var RemovePermissionsCmd = &cobra.Command{
 	Long:    `Remove one or more permissions from an existing role (Only works in Enterprise Edition).`,
 	Example: `  permissions remove system_user list_open_teams`,
 	Args:    cobra.MinimumNArgs(2),
-	RunE:    removePermissionsCmdF,
+	RunE:    withClient(removePermissionsCmdF),
 }
 
 var ShowRoleCmd = &cobra.Command{
@@ -37,7 +37,7 @@ var ShowRoleCmd = &cobra.Command{
 	Long:    "Show all the information about a role.",
 	Example: `  permissions show system_user`,
 	Args:    cobra.ExactArgs(1),
-	RunE:    showRoleCmdF,
+	RunE:    withClient(showRoleCmdF),
 }
 
 func init() {
@@ -50,12 +50,7 @@ func init() {
 	RootCmd.AddCommand(PermissionsCmd)
 }
 
-func addPermissionsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func addPermissionsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error
@@ -82,12 +77,7 @@ func removePermission(permissions []string, permission string) []string {
 	return newPermissions
 }
 
-func removePermissionsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func removePermissionsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error
@@ -109,12 +99,7 @@ func removePermissionsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func showRoleCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func showRoleCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error

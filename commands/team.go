@@ -22,7 +22,7 @@ var TeamCreateCmd = &cobra.Command{
 	Long:  `Create a team.`,
 	Example: `  team create --name mynewteam --display_name "My New Team"
   team create --name private --display_name "My New Private Team" --private`,
-	RunE: createTeamCmdF,
+	RunE: withClient(createTeamCmdF),
 }
 
 var RemoveUsersCmd = &cobra.Command{
@@ -30,7 +30,7 @@ var RemoveUsersCmd = &cobra.Command{
 	Short:   "Remove users from team",
 	Long:    "Remove some users from team",
 	Example: "  team remove myteam user@example.com username",
-	RunE:    removeUsersCmdF,
+	RunE:    withClient(removeUsersCmdF),
 }
 
 var AddUsersCmd = &cobra.Command{
@@ -38,7 +38,7 @@ var AddUsersCmd = &cobra.Command{
 	Short:   "Add users to team",
 	Long:    "Add some users to team",
 	Example: "  team add myteam user@example.com username",
-	RunE:    addUsersCmdF,
+	RunE:    withClient(addUsersCmdF),
 }
 
 var DeleteTeamsCmd = &cobra.Command{
@@ -47,7 +47,7 @@ var DeleteTeamsCmd = &cobra.Command{
 	Long: `Permanently delete some teams.
 Permanently deletes a team along with all related information including posts from the database.`,
 	Example: "  team delete myteam",
-	RunE:    deleteTeamsCmdF,
+	RunE:    withClient(deleteTeamsCmdF),
 }
 
 var ListTeamsCmd = &cobra.Command{
@@ -55,7 +55,7 @@ var ListTeamsCmd = &cobra.Command{
 	Short:   "List all teams.",
 	Long:    `List all teams on the server.`,
 	Example: "  team list",
-	RunE:    listTeamsCmdF,
+	RunE:    withClient(listTeamsCmdF),
 }
 
 var SearchTeamCmd = &cobra.Command{
@@ -64,7 +64,7 @@ var SearchTeamCmd = &cobra.Command{
 	Long:    "Search for teams based on name",
 	Example: "  team search team1",
 	Args:    cobra.MinimumNArgs(1),
-	RunE:    searchTeamCmdF,
+	RunE:    withClient(searchTeamCmdF),
 }
 
 func init() {
@@ -87,11 +87,7 @@ func init() {
 	RootCmd.AddCommand(TeamCmd)
 }
 
-func createTeamCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
+func createTeamCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	name, errn := command.Flags().GetString("name")
@@ -127,12 +123,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func removeUsersCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func removeUsersCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -160,12 +151,7 @@ func removeUserFromTeam(c *model.Client4, team *model.Team, user *model.User, us
 	}
 }
 
-func addUsersCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func addUsersCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -194,12 +180,7 @@ func addUserToTeam(c *model.Client4, team *model.Team, user *model.User, userArg
 	}
 }
 
-func deleteTeamsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func deleteTeamsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Not enough arguments.")
 	}
@@ -240,12 +221,7 @@ func deleteTeam(c *model.Client4, team *model.Team) (bool, *model.Response) {
 	return c.PermanentDeleteTeam(team.Id)
 }
 
-func listTeamsCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func listTeamsCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	teams, response := c.GetAllTeams("", 0, 10000)
 	if response.Error != nil {
 		return response.Error
@@ -262,12 +238,7 @@ func listTeamsCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func searchTeamCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func searchTeamCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {

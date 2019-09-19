@@ -5,7 +5,21 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
+
+func withClient(fn func(c *model.Client4, command *cobra.Command, args []string) error) func(command *cobra.Command, args []string) error {
+	c, err := InitClient()
+	if err != nil {
+		return func(command *cobra.Command, args []string) error {
+			return err
+		}
+	}
+
+	return func(command *cobra.Command, args []string) error {
+		return fn(c, command, args)
+	}
+}
 
 func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (*model.Client4, error) {
 	client := model.NewAPIv4Client(instanceUrl)

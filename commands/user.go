@@ -21,7 +21,7 @@ var UserDeactivateCmd = &cobra.Command{
 	Long:  "Deactivate users. Deactivated users are immediately logged out of all sessions and are unable to log back in.",
 	Example: `  user deactivate user@example.com
   user deactivate username`,
-	RunE: userDeactivateCmdF,
+	RunE: withClient(userDeactivateCmdF),
 }
 
 var UserCreateCmd = &cobra.Command{
@@ -29,7 +29,7 @@ var UserCreateCmd = &cobra.Command{
 	Short:   "Create a user",
 	Long:    "Create a user",
 	Example: `  user create --email user@example.com --username userexample --password Password1`,
-	RunE:    userCreateCmdF,
+	RunE:    withClient(userCreateCmdF),
 }
 
 var UserInviteCmd = &cobra.Command{
@@ -40,7 +40,7 @@ You can invite a user to multiple teams by listing them.
 You can specify teams by name or ID.`,
 	Example: `  user invite user@example.com myteam
   user invite user@example.com myteam1 myteam2`,
-	RunE: userInviteCmdF,
+	RunE: withClient(userInviteCmdF),
 }
 
 var SendPasswordResetEmailCmd = &cobra.Command{
@@ -48,7 +48,7 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 	Short:   "Send users an email to reset their password",
 	Long:    "Send users an email to reset their password",
 	Example: "  user reset_password user@example.com",
-	RunE:    sendPasswordResetEmailCmdF,
+	RunE:    withClient(sendPasswordResetEmailCmdF),
 }
 
 var updateUserEmailCmd = &cobra.Command{
@@ -57,7 +57,7 @@ var updateUserEmailCmd = &cobra.Command{
 	Long:  "Change email of the user.",
 	Example: `  user email test user@example.com
   user activate username`,
-	RunE: updateUserEmailCmdF,
+	RunE: withClient(updateUserEmailCmdF),
 }
 
 var ResetUserMfaCmd = &cobra.Command{
@@ -66,7 +66,7 @@ var ResetUserMfaCmd = &cobra.Command{
 	Long: `Turn off multi-factor authentication for a user.
 If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they login.`,
 	Example: "  user resetmfa user@example.com",
-	RunE:    resetUserMfaCmdF,
+	RunE:    withClient(resetUserMfaCmdF),
 }
 
 var SearchUserCmd = &cobra.Command{
@@ -74,7 +74,7 @@ var SearchUserCmd = &cobra.Command{
 	Short:   "Search for users",
 	Long:    "Search for users based on username, email, or user ID.",
 	Example: "  user search user1@mail.com user2@mail.com",
-	RunE:    searchUserCmdF,
+	RunE:    withClient(searchUserCmdF),
 }
 
 func init() {
@@ -116,12 +116,7 @@ func deactivateUsers(c *model.Client4, userArgs []string) {
 	}
 }
 
-func userDeactivateCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func userDeactivateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -131,11 +126,7 @@ func userDeactivateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func userCreateCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
+func userCreateCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	username, erru := command.Flags().GetString("username")
@@ -183,12 +174,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func userInviteCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func userInviteCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Expected at least two arguments. See help text for details.")
 	}
@@ -225,12 +211,7 @@ func inviteUser(c *model.Client4, email string, team *model.Team, teamArg string
 	return nil
 }
 
-func sendPasswordResetEmailCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func sendPasswordResetEmailCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -248,11 +229,7 @@ func sendPasswordResetEmailCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func updateUserEmailCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
+func updateUserEmailCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) != 2 {
@@ -286,12 +263,7 @@ func updateUserEmailCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func resetUserMfaCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
-
+func resetUserMfaCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -311,11 +283,7 @@ func resetUserMfaCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func searchUserCmdF(command *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return err
-	}
+func searchUserCmdF(c *model.Client4, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) < 1 {
