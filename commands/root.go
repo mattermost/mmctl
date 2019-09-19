@@ -8,7 +8,7 @@ import (
 type Command = cobra.Command
 
 func Run(args []string) error {
-	RootCmd.PersistentFlags().StringP("format", "f", "plain", "the format of the command output [plain, json]")
+	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	RootCmd.SetArgs(args)
 	return RootCmd.Execute()
 }
