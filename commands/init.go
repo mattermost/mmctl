@@ -9,14 +9,11 @@ import (
 )
 
 func withClient(fn func(c *model.Client4, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
-	c, err := InitClient()
-	if err != nil {
-		return func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		c, err := InitClient()
+		if err != nil {
 			return err
 		}
-	}
-
-	return func(cmd *cobra.Command, args []string) error {
 		return fn(c, cmd, args)
 	}
 }
