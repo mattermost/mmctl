@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/printer"
 
@@ -174,7 +172,7 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		return response.Error
 	}
 
-	printer.PrintT("New team {{.Name}} successfully created", newChannel)
+	printer.PrintT("New channel {{.Name}} successfully created", newChannel)
 
 	return nil
 }
@@ -432,7 +430,11 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 		var response *model.Response
 		channel, response = c.GetChannelByName(args[0], team.Id, "")
 		if response.Error != nil || channel == nil {
-			printer.Print(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
+			data := struct {
+				Channel string
+				Team    string
+			}{args[0], teamArg}
+			printer.PrintT("Channel {{.Channel}} is not found in team {{.Team}}", data)
 			return nil
 		}
 	} else {
