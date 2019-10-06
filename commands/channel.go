@@ -388,10 +388,10 @@ func searchChannelCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 		var response *model.Response
 		channel, response = c.GetChannelByName(args[0], team.Id, "")
 		if response.Error != nil || channel == nil {
-			data := struct {
-				Channel string
-				Team    string
-			}{args[0], teamArg}
+			data := map[string]interface{}{
+				"Channel": args[0],
+				"Team":    teamArg,
+			}
 			printer.PrintT("Channel {{.Channel}} is not found in team {{.Team}}", data)
 			return nil
 		}
