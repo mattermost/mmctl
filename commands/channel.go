@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -124,7 +125,7 @@ func init() {
 	RootCmd.AddCommand(ChannelCmd)
 }
 
-func createChannelCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	name, errn := cmd.Flags().GetString("name")
@@ -173,7 +174,7 @@ func createChannelCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
-func removeChannelUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func removeChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	allUsers, _ := cmd.Flags().GetBool("all-users")
 
 	if allUsers && len(args) != 1 {
@@ -201,7 +202,7 @@ func removeChannelUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string)
 	return nil
 }
 
-func removeUserFromChannel(c *model.Client4, channel *model.Channel, user *model.User, userArg string) {
+func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
@@ -211,7 +212,7 @@ func removeUserFromChannel(c *model.Client4, channel *model.Channel, user *model
 	}
 }
 
-func removeAllUsersFromChannel(c *model.Client4, channel *model.Channel) {
+func removeAllUsersFromChannel(c client.Client, channel *model.Channel) {
 	members, response := c.GetChannelMembers(channel.Id, 0, 10000, "")
 	if response.Error != nil {
 		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + response.Error.Error())
@@ -224,7 +225,7 @@ func removeAllUsersFromChannel(c *model.Client4, channel *model.Channel) {
 	}
 }
 
-func addChannelUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func addChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -242,7 +243,7 @@ func addChannelUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 	return nil
 }
 
-func addUserToChannel(c *model.Client4, channel *model.Channel, user *model.User, userArg string) {
+func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
@@ -252,7 +253,7 @@ func addUserToChannel(c *model.Client4, channel *model.Channel, user *model.User
 	}
 }
 
-func archiveChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to archive.")
 	}
@@ -271,7 +272,7 @@ func archiveChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 	return nil
 }
 
-func listChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Enter at least one team.")
 	}
@@ -303,7 +304,7 @@ func listChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 	return nil
 }
 
-func restoreChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func restoreChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel.")
 	}
@@ -322,7 +323,7 @@ func restoreChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 	return nil
 }
 
-func makeChannelPrivateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Enter one channel to modify.")
 	}
@@ -343,7 +344,7 @@ func makeChannelPrivateCmdF(c *model.Client4, cmd *cobra.Command, args []string)
 	return nil
 }
 
-func renameChannelCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var newDisplayName, newChannelName string
 
 	if len(args) < 2 {
@@ -373,7 +374,7 @@ func renameChannelCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
-func searchChannelCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	var channel *model.Channel

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 
 	"github.com/spf13/cobra"
 )
@@ -50,7 +51,7 @@ func init() {
 	RootCmd.AddCommand(PermissionsCmd)
 }
 
-func addPermissionsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error
@@ -77,7 +78,7 @@ func removePermission(permissions []string, permission string) []string {
 	return newPermissions
 }
 
-func removePermissionsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error
@@ -99,7 +100,7 @@ func removePermissionsCmdF(c *model.Client4, cmd *cobra.Command, args []string) 
 	return nil
 }
 
-func showRoleCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error

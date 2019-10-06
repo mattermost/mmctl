@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -87,7 +88,7 @@ func init() {
 	RootCmd.AddCommand(TeamCmd)
 }
 
-func createTeamCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	name, errn := cmd.Flags().GetString("name")
@@ -123,7 +124,7 @@ func createTeamCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func removeUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func removeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -141,7 +142,7 @@ func removeUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 	return nil
 }
 
-func removeUserFromTeam(c *model.Client4, team *model.Team, user *model.User, userArg string) {
+func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
@@ -151,7 +152,7 @@ func removeUserFromTeam(c *model.Client4, team *model.Team, user *model.User, us
 	}
 }
 
-func addUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func addUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -169,7 +170,7 @@ func addUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func addUserToTeam(c *model.Client4, team *model.Team, user *model.User, userArg string) {
+func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
@@ -180,7 +181,7 @@ func addUserToTeam(c *model.Client4, team *model.Team, user *model.User, userArg
 	}
 }
 
-func deleteTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Not enough arguments.")
 	}
@@ -217,11 +218,11 @@ func deleteTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 	return nil
 }
 
-func deleteTeam(c *model.Client4, team *model.Team) (bool, *model.Response) {
+func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
 	return c.PermanentDeleteTeam(team.Id)
 }
 
-func listTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams, response := c.GetAllTeams("", 0, 10000)
 	if response.Error != nil {
 		return response.Error
@@ -238,7 +239,7 @@ func listTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func searchTeamCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {

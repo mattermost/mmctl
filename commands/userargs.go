@@ -2,9 +2,10 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 )
 
-func getUsersFromUserArgs(c *model.Client4, userArgs []string) []*model.User {
+func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 	users := make([]*model.User, 0, len(userArgs))
 	for _, userArg := range userArgs {
 		user := getUserFromUserArg(c, userArg)
@@ -13,7 +14,7 @@ func getUsersFromUserArgs(c *model.Client4, userArgs []string) []*model.User {
 	return users
 }
 
-func getUserFromUserArg(c *model.Client4, userArg string) *model.User {
+func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	var user *model.User
 	user, _ = c.GetUserByEmail(userArg, "")
 

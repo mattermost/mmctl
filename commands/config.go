@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -59,7 +59,7 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 	}
 }
 
-func configGetCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FORMAT_JSON)
 
@@ -78,7 +78,7 @@ func configGetCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func configShowCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func configShowCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FORMAT_JSON)
 	config, response := c.GetConfig()

@@ -4,11 +4,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-func withClient(fn func(c *model.Client4, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
+func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		c, err := InitClient()
 		if err != nil {

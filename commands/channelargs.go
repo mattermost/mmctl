@@ -4,11 +4,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 )
 
 const CHANNEL_ARG_SEPARATOR = ":"
 
-func getChannelsFromChannelArgs(c *model.Client4, channelArgs []string) []*model.Channel {
+func getChannelsFromChannelArgs(c client.Client, channelArgs []string) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(channelArgs))
 	for _, channelArg := range channelArgs {
 		channel := getChannelFromChannelArg(c, channelArg)
@@ -25,7 +26,7 @@ func parseChannelArg(channelArg string) (string, string) {
 	return result[0], result[1]
 }
 
-func getChannelFromChannelArg(c *model.Client4, channelArg string) *model.Channel {
+func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel {
 	teamArg, channelPart := parseChannelArg(channelArg)
 	if teamArg == "" && channelPart == "" {
 		return nil

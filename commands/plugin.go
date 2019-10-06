@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -66,7 +66,7 @@ func init() {
 	RootCmd.AddCommand(PluginCmd)
 }
 
-func pluginAddCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -88,7 +88,7 @@ func pluginAddCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginDeleteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -104,7 +104,7 @@ func pluginDeleteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 	return nil
 }
 
-func pluginEnableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -120,7 +120,7 @@ func pluginEnableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 	return nil
 }
 
-func pluginDisableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func pluginDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -136,7 +136,7 @@ func pluginDisableCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
-func pluginListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	pluginsResp, response := c.GetPlugins()
 	if response.Error != nil {
 		return errors.New("Unable to list plugins. Error: " + response.Error.Error())
