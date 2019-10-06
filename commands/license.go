@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -37,7 +37,7 @@ func init() {
 	RootCmd.AddCommand(LicenseCmd)
 }
 
-func uploadLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Enter one license file to upload")
 	}
@@ -56,7 +56,7 @@ func uploadLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
-func removeLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func removeLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if _, response := c.RemoveLicenseFile(); response.Error != nil {
 		return response.Error
 	}

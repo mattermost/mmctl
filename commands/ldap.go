@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
 )
@@ -26,7 +26,7 @@ func init() {
 	RootCmd.AddCommand(LdapCmd)
 }
 
-func ldapSyncCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	ok, response := c.SyncLdap()

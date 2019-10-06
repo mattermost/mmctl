@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
 )
@@ -64,7 +65,7 @@ func init() {
 	RootCmd.AddCommand(CommandCmd)
 }
 
-func createCommandCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	team := getTeamFromTeamArg(c, args[0])
@@ -127,7 +128,7 @@ func createCommandCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
-func listCommandCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 	if len(args) < 1 {
 		teamList, response := c.GetAllTeams("", 0, 10000)
@@ -156,7 +157,7 @@ func listCommandCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 	return nil
 }
 
-func deleteCommandCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func deleteCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	ok, response := c.DeleteCommand(args[0])
 	if response.Error != nil {
 		return errors.New("Unable to delete command '" + args[0] + "' error: " + response.Error.Error())

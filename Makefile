@@ -57,3 +57,6 @@ check: gofmt govet
 
 vendor:
 	go mod vendor
+
+mocks:
+	mockgen -destination=mocks/client_mock.go -package=mocks github.com/mattermost/mmctl/client Client

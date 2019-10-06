@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/pkg/errors"
@@ -103,7 +104,7 @@ func init() {
 	RootCmd.AddCommand(UserCmd)
 }
 
-func deactivateUsers(c *model.Client4, userArgs []string) {
+func deactivateUsers(c client.Client, userArgs []string) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
 		if user.IsSSOUser() {
@@ -116,7 +117,7 @@ func deactivateUsers(c *model.Client4, userArgs []string) {
 	}
 }
 
-func userDeactivateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -126,7 +127,7 @@ func userDeactivateCmdF(c *model.Client4, cmd *cobra.Command, args []string) err
 	return nil
 }
 
-func userCreateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	username, erru := cmd.Flags().GetString("username")
@@ -174,7 +175,7 @@ func userCreateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func userInviteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Expected at least two arguments. See help text for details.")
 	}
@@ -196,7 +197,7 @@ func userInviteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func inviteUser(c *model.Client4, email string, team *model.Team, teamArg string) error {
+func inviteUser(c client.Client, email string, team *model.Team, teamArg string) error {
 	invites := []string{email}
 	if team == nil {
 		return fmt.Errorf("Can't find team '%v'", teamArg)
@@ -211,7 +212,7 @@ func inviteUser(c *model.Client4, email string, team *model.Team, teamArg string
 	return nil
 }
 
-func sendPasswordResetEmailCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -229,7 +230,7 @@ func sendPasswordResetEmailCmdF(c *model.Client4, cmd *cobra.Command, args []str
 	return nil
 }
 
-func updateUserEmailCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) != 2 {
@@ -263,7 +264,7 @@ func updateUserEmailCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 	return nil
 }
 
-func resetUserMfaCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
@@ -283,7 +284,7 @@ func resetUserMfaCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 	return nil
 }
 
-func searchUserCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) < 1 {

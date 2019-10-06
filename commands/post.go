@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -48,7 +49,7 @@ func init() {
 	RootCmd.AddCommand(PostCmd)
 }
 
-func postCreateCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	message, _ := cmd.Flags().GetString("message")
 	if message == "" {
 		return errors.New("Message cannot be empty")
@@ -98,7 +99,7 @@ func eventDataToPost(eventData map[string]interface{}) (*model.Post, error) {
 	return post, nil
 }
 
-func printPost(c *model.Client4, post *model.Post, usernames map[string]string, showIds bool) {
+func printPost(c client.Client, post *model.Post, usernames map[string]string, showIds bool) {
 	var username string
 
 	if usernames[post.UserId] != "" {
@@ -120,7 +121,7 @@ func printPost(c *model.Client4, post *model.Post, usernames map[string]string, 
 	}
 }
 
-func postListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")

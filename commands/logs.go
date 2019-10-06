@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog/human"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,7 @@ func init() {
 	RootCmd.AddCommand(LogsCmd)
 }
 
-func logsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
+func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	number, _ := cmd.Flags().GetInt("number")
 	logLines, response := c.GetLogs(0, number)
 	if response.Error != nil {
