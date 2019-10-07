@@ -14,7 +14,7 @@ var LdapCmd = &cobra.Command{
 var LdapSyncCmd = &cobra.Command{
 	Use:     "sync",
 	Short:   "Synchronize now",
-	Long:    "Synchronize all LDAP users now.",
+	Long:    "Synchronize all LDAP users and groups now.",
 	Example: "  ldap sync",
 	RunE:    withClient(ldapSyncCmdF),
 }
