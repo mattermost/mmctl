@@ -8,7 +8,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.3
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
-	golang.org/x/tools v0.0.0-20190919031856-7460b8e10b7e // indirect
+	golang.org/x/tools v0.0.0-20191007151716-af92b0ef1f12 // indirect
 )
 
 replace (
