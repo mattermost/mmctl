@@ -3,15 +3,23 @@ package commands
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
+)
+
+const (
+	METHOD_PASSWORD = "P"
+	METHOD_TOKEN    = "T"
+	METHOD_MFA      = "M"
 )
 
 type Credentials struct {
 	Name        string `json:"name"`
 	Username    string `json:"username"`
 	AuthToken   string `json:"authToken"`
+	AuthMethod  string `json:"authMethod"`
 	InstanceUrl string `json:"instanceUrl"`
 	Active      bool   `json:"active"`
 }
@@ -61,6 +69,20 @@ func GetCurrentCredentials() (*Credentials, error) {
 		}
 	}
 	return nil, errors.New("No current context available. Please use the \"auth set\" command.")
+}
+
+func GetCredentials(name string) (*Credentials, error) {
+	credentialsList, err := ReadCredentialsList()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, c := range *credentialsList {
+		if c.Name == name {
+			return c, nil
+		}
+	}
+	return nil, errors.New(fmt.Sprintf("Couldn't find credentials for connection \"%s\"", name))
 }
 
 func SaveCredentials(credentials Credentials) error {
