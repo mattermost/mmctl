@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
 )
 
 var AuthCmd = &cobra.Command{
@@ -57,6 +58,15 @@ var ListCmd = &cobra.Command{
 	RunE:    listCmdF,
 }
 
+var RenewCmd = &cobra.Command{
+	Use:     "renew",
+	Short:   "Renews a set of credentials",
+	Long:    "Renews the credentials for a given server",
+	Example: `  auth renew local-server`,
+	Args:    cobra.ExactArgs(1),
+	RunE:    renewCmdF,
+}
+
 var DeleteCmd = &cobra.Command{
 	Use:     "delete [server name]",
 	Short:   "Delete an credentials",
@@ -82,11 +92,16 @@ func init() {
 	LoginCmd.Flags().StringP("password", "p", "", "Password for the credentials")
 	LoginCmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
+	RenewCmd.Flags().StringP("password", "p", "", "Password for the credentials")
+	RenewCmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+	RenewCmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
+
 	AuthCmd.AddCommand(
 		LoginCmd,
 		CurrentCmd,
 		SetCmd,
 		ListCmd,
+		RenewCmd,
 		DeleteCmd,
 		CleanCmd,
 	)
@@ -117,6 +132,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	url := args[0]
+	method := METHOD_PASSWORD
 
 	if name == "" {
 		reader := bufio.NewReader(os.Stdin)
@@ -155,6 +171,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		var err error
 		if mfaToken != "" {
 			c, err = InitClientWithMFA(username, password, mfaToken, url)
+			method = METHOD_MFA
 		} else {
 			c, err = InitClientWithUsernameAndPassword(username, password, url)
 		}
@@ -166,6 +183,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		accessToken = c.AuthToken
 	} else {
 		username = "Personal Access Token"
+		method = METHOD_TOKEN
 		credentials := Credentials{
 			InstanceUrl: url,
 			AuthToken:   accessToken,
@@ -182,6 +200,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		InstanceUrl: url,
 		Username:    username,
 		AuthToken:   accessToken,
+		AuthMethod:  method,
 	}
 
 	if err := SaveCredentials(credentials); err != nil {
@@ -268,6 +287,70 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 	fmt.Println("")
+	return nil
+}
+
+func renewCmdF(cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+	password, _ := cmd.Flags().GetString("password")
+	accessToken, _ := cmd.Flags().GetString("access-token")
+	mfaToken, _ := cmd.Flags().GetString("mfa-token")
+
+	credentials, err := GetCredentials(args[0])
+	if err != nil {
+		return err
+	}
+
+	if (credentials.AuthMethod == METHOD_PASSWORD || credentials.AuthMethod == METHOD_MFA) && password == "" {
+		if password == "" {
+			stdinPassword, err := getPasswordFromStdin()
+			if err != nil {
+				return errors.New("Couldn't read password. Error: " + err.Error())
+			}
+			password = stdinPassword
+		}
+	}
+
+	switch credentials.AuthMethod {
+	case METHOD_PASSWORD:
+		c, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceUrl)
+		if err != nil {
+			return err
+		}
+
+		credentials.AuthToken = c.AuthToken
+
+	case METHOD_TOKEN:
+		if accessToken == "" {
+			return errors.New("Requires the --access-token parameter to be set")
+		}
+
+		credentials.AuthToken = accessToken
+		if _, err := InitClientWithCredentials(credentials); err != nil {
+			return err
+		}
+
+	case METHOD_MFA:
+		if mfaToken == "" {
+			return errors.New("Requires the --mfa-token parameter to be set")
+		}
+
+		c, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceUrl)
+		if err != nil {
+			return err
+		}
+		credentials.AuthToken = c.AuthToken
+
+	default:
+		return errors.New(fmt.Sprintf("Invalid auth method \"%s\"", credentials.AuthMethod))
+	}
+
+	if err := SaveCredentials(*credentials); err != nil {
+		return err
+	}
+
+	printer.PrintT("Credentials for server \"{{.Name}}\" successfully renewed", credentials)
+
 	return nil
 }
 
