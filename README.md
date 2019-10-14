@@ -137,19 +137,3 @@ use a personal access token to authenticate with a server:
 ```sh
 $ mmctl auth login https://community.mattermost.com --name community --access-token MY_ACCESS_TOKEN
 ```
-
-## Roadmap
-
- - [X] Login command
- - [X] Team command
- - [X] Channel command
- - [X] User command
- - [X] License command
- - [X] Plugin command
- - [X] Authentication Contexts
- - [ ] Command command
- - [ ] Config command
- - [ ] ldap command
- - [X] logs command
- - [ ] roles command
- - [X] Shell completions
