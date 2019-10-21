@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -50,7 +51,7 @@ func uploadLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 		return response.Error
 	}
 
-	CommandPrettyPrintln("Uploaded license file")
+	printer.Print("Uploaded license file")
 
 	return nil
 }
@@ -60,7 +61,7 @@ func removeLicenseCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 		return response.Error
 	}
 
-	CommandPrettyPrintln("Removed license")
+	printer.Print("Removed license")
 
 	return nil
 }

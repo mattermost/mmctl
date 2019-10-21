@@ -141,12 +141,12 @@ func listCommandCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 
 	for i, team := range teams {
 		if team == nil {
-			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
 		commands, response := c.ListCommands(team.Id, true)
 		if response.Error != nil {
-			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
+			printer.PrintError("Unable to list commands for '" + args[i] + "'")
 			continue
 		}
 		for _, command := range commands {

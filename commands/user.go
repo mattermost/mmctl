@@ -107,11 +107,11 @@ func deactivateUsers(c *model.Client4, userArgs []string) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
 		if user.IsSSOUser() {
-			fmt.Println("You must also deactivate user " + userArgs[i] + " in the SSO provider or they will be reactivated on next login or sync.")
+			printer.Print("You must also deactivate user " + userArgs[i] + " in the SSO provider or they will be reactivated on next login or sync.")
 		}
 
 		if _, response := c.DeleteUser(user.Id); response.Error != nil {
-			CommandPrintErrorln("Unable to deactivate user " + userArgs[i] + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable to deactivate user " + userArgs[i] + ". Error: " + response.Error.Error())
 		}
 	}
 }
@@ -189,7 +189,7 @@ func userInviteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 		err := inviteUser(c, email, team, args[i+1])
 
 		if err != nil {
-			CommandPrintErrorln(err.Error())
+			printer.PrintError(err.Error())
 		}
 	}
 
@@ -206,7 +206,7 @@ func inviteUser(c *model.Client4, email string, team *model.Team, teamArg string
 		return errors.New("Unable to invite user with email " + email + " to team " + team.Name + ". Error: " + response.Error.Error())
 	}
 
-	CommandPrettyPrintln("Invites may or may not have been sent.")
+	printer.Print("Invites may or may not have been sent.")
 
 	return nil
 }
@@ -218,11 +218,11 @@ func sendPasswordResetEmailCmdF(c *model.Client4, cmd *cobra.Command, args []str
 
 	for _, email := range args {
 		if !model.IsValidEmail(email) {
-			CommandPrintErrorln("Invalid email '" + email + "'")
+			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
 		if _, response := c.SendPasswordResetEmail(email); response.Error != nil {
-			CommandPrintErrorln("Unable send reset password email to email " + email + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + response.Error.Error())
 		}
 	}
 
@@ -272,11 +272,11 @@ func resetUserMfaCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 
 	for i, user := range users {
 		if user == nil {
-			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
+			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
 		if _, response := c.UpdateUserMfa(user.Id, "", false); response.Error != nil {
-			CommandPrintErrorln("Unable to reset user '" + args[i] + "' MFA. Error: " + response.Error.Error())
+			printer.PrintError("Unable to reset user '" + args[i] + "' MFA. Error: " + response.Error.Error())
 		}
 	}
 
@@ -305,7 +305,7 @@ auth_service: {{.AuthService}}`
 			tpl = "------------------------------\n" + tpl
 		}
 		if user == nil {
-			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
+			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
 

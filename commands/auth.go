@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
 )
 
 var AuthCmd = &cobra.Command{
@@ -159,7 +160,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			c, err = InitClientWithUsernameAndPassword(username, password, url)
 		}
 		if err != nil {
-			CommandPrintErrorln(err.Error())
+			printer.PrintError(err.Error())
 			// We don't want usage to be printed as the command was correctly built
 			return nil
 		}
@@ -171,7 +172,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			AuthToken:   accessToken,
 		}
 		if _, err := InitClientWithCredentials(&credentials); err != nil {
-			CommandPrintErrorln(err.Error())
+			printer.PrintError(err.Error())
 			// We don't want usage to be printed as the command was correctly built
 			return nil
 		}

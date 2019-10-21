@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 	"text/template"
 )
 
@@ -68,4 +69,9 @@ func Flush() {
 		fmt.Println(string(b))
 		printer.Lines = []interface{}{}
 	}
+}
+
+// Prints an error string to the stderr.
+func PrintError(msg string) {
+	fmt.Fprintln(os.Stderr, msg)
 }

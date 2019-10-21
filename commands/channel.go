@@ -203,23 +203,23 @@ func removeChannelUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string)
 
 func removeUserFromChannel(c *model.Client4, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
+		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
 	if _, response := c.RemoveUserFromChannel(channel.Id, user.Id); response.Error != nil {
-		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
+		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
 	}
 }
 
 func removeAllUsersFromChannel(c *model.Client4, channel *model.Channel) {
 	members, response := c.GetChannelMembers(channel.Id, 0, 10000, "")
 	if response.Error != nil {
-		CommandPrintErrorln("Unable to remove all users from " + channel.Name + ". Error: " + response.Error.Error())
+		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + response.Error.Error())
 	}
 
 	for _, member := range *members {
 		if _, response := c.RemoveUserFromChannel(channel.Id, member.UserId); response.Error != nil {
-			CommandPrintErrorln("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + response.Error.Error())
 		}
 	}
 }
@@ -244,11 +244,11 @@ func addChannelUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 
 func addUserToChannel(c *model.Client4, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
+		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
 	if _, response := c.AddChannelMember(channel.Id, user.Id); response.Error != nil {
-		CommandPrintErrorln("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
+		printer.PrintError("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
 	}
 }
 
@@ -260,11 +260,11 @@ func archiveChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
 		if channel == nil {
-			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			printer.PrintError("Unable to find channel '" + args[i] + "'")
 			continue
 		}
 		if _, response := c.DeleteChannel(channel.Id); response.Error != nil {
-			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + response.Error.Error())
+			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + response.Error.Error())
 		}
 	}
 
@@ -279,13 +279,13 @@ func listChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
 
 		publicChannels, response := c.GetPublicChannelsForTeam(team.Id, 0, 10000, "")
 		if response.Error != nil {
-			CommandPrintErrorln("Unable to list public channels for '" + args[i] + "'. Error: " + response.Error.Error())
+			printer.PrintError("Unable to list public channels for '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 		for _, channel := range publicChannels {
 			printer.PrintT("{{.Name}}", channel)
@@ -293,7 +293,7 @@ func listChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 
 		deletedChannels, response := c.GetDeletedChannelsForTeam(team.Id, 0, 10000, "")
 		if response.Error != nil {
-			CommandPrintErrorln("Unable to list archived channels for '" + args[i] + "'. Error: " + response.Error.Error())
+			printer.PrintError("Unable to list archived channels for '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 		for _, channel := range deletedChannels {
 			printer.PrintT("{{.Name}} (archived)", channel)
@@ -311,11 +311,11 @@ func restoreChannelsCmdF(c *model.Client4, cmd *cobra.Command, args []string) er
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
 		if channel == nil {
-			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			printer.PrintError("Unable to find channel '" + args[i] + "'")
 			continue
 		}
 		if _, response := c.RestoreChannel(channel.Id); response.Error != nil {
-			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'. Error: " + response.Error.Error())
+			printer.PrintError("Unable to restore channel '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 	}
 

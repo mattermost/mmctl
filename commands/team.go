@@ -143,11 +143,11 @@ func removeUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 
 func removeUserFromTeam(c *model.Client4, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
+		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
 	if _, response := c.RemoveTeamMember(team.Id, user.Id); response.Error != nil {
-		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + response.Error.Error())
+		printer.PrintError("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + response.Error.Error())
 	}
 }
 
@@ -171,12 +171,12 @@ func addUsersCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 
 func addUserToTeam(c *model.Client4, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
-		CommandPrintErrorln("Can't find user '" + userArg + "'")
+		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
 
 	if _, response := c.AddTeamMember(team.Id, user.Id); response.Error != nil {
-		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + response.Error.Error())
+		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + response.Error.Error())
 	}
 }
 
@@ -188,13 +188,13 @@ func deleteTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		var confirm string
-		CommandPrettyPrintln("Have you performed a database backup? (YES/NO): ")
+		fmt.Println("Have you performed a database backup? (YES/NO): ")
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
-		CommandPrettyPrintln("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
+		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
@@ -204,11 +204,11 @@ func deleteTeamsCmdF(c *model.Client4, cmd *cobra.Command, args []string) error 
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
 		if _, response := deleteTeam(c, team); response.Error != nil {
-			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
+			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
