@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -77,9 +78,9 @@ func pluginAddCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 		}
 
 		if _, response := c.UploadPlugin(fileReader); response.Error != nil {
-			CommandPrintErrorln("Unable to add plugin: " + args[i] + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + response.Error.Error())
 		} else {
-			CommandPrettyPrintln("Added plugin: " + plugin)
+			printer.Print("Added plugin: " + plugin)
 		}
 		fileReader.Close()
 	}
@@ -94,9 +95,9 @@ func pluginDeleteCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 
 	for _, plugin := range args {
 		if _, response := c.RemovePlugin(plugin); response.Error != nil {
-			CommandPrintErrorln("Unable to delete plugin: " + plugin + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + response.Error.Error())
 		} else {
-			CommandPrettyPrintln("Deleted plugin: " + plugin)
+			printer.Print("Deleted plugin: " + plugin)
 		}
 	}
 
@@ -110,9 +111,9 @@ func pluginEnableCmdF(c *model.Client4, cmd *cobra.Command, args []string) error
 
 	for _, plugin := range args {
 		if _, response := c.EnablePlugin(plugin); response.Error != nil {
-			CommandPrintErrorln("Unable to enable plugin: " + plugin + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable to enable plugin: " + plugin + ". Error: " + response.Error.Error())
 		} else {
-			CommandPrettyPrintln("Enabled plugin: " + plugin)
+			printer.Print("Enabled plugin: " + plugin)
 		}
 	}
 
@@ -126,9 +127,9 @@ func pluginDisableCmdF(c *model.Client4, cmd *cobra.Command, args []string) erro
 
 	for _, plugin := range args {
 		if _, response := c.DisablePlugin(plugin); response.Error != nil {
-			CommandPrintErrorln("Unable to disable plugin: " + plugin + ". Error: " + response.Error.Error())
+			printer.PrintError("Unable to disable plugin: " + plugin + ". Error: " + response.Error.Error())
 		} else {
-			CommandPrettyPrintln("Disabled plugin: " + plugin)
+			printer.Print("Disabled plugin: " + plugin)
 		}
 	}
 
@@ -141,14 +142,19 @@ func pluginListCmdF(c *model.Client4, cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to list plugins. Error: " + response.Error.Error())
 	}
 
-	CommandPrettyPrintln("Listing active plugins")
-	for _, plugin := range pluginsResp.Active {
-		CommandPrettyPrintln(plugin.Manifest.Id + ": " + plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
-	}
+	format, _ := cmd.Flags().GetString("format")
+	if format == printer.FORMAT_JSON {
+		printer.Print(pluginsResp)
+	} else {
+		printer.Print("Listing active plugins")
+		for _, plugin := range pluginsResp.Active {
+			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
+		}
 
-	CommandPrettyPrintln("Listing inactive plugins")
-	for _, plugin := range pluginsResp.Inactive {
-		CommandPrettyPrintln(plugin.Manifest.Id + ": " + plugin.Manifest.Name + ", Version: " + plugin.Manifest.Version)
+		printer.Print("Listing inactive plugins")
+		for _, plugin := range pluginsResp.Inactive {
+			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
+		}
 	}
 
 	return nil
