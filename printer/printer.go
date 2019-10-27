@@ -14,9 +14,10 @@ const (
 )
 
 type Printer struct {
-	Format string
-	Single bool
-	Lines  []interface{}
+	Format     string
+	Single     bool
+	Lines      []interface{}
+	ErrorLines []interface{}
 }
 
 var printer Printer
@@ -71,7 +72,24 @@ func Flush() {
 	}
 }
 
+// Resets the printer's cummulated lines
+func Clean() {
+	printer.Lines = []interface{}{}
+	printer.ErrorLines = []interface{}{}
+}
+
+// Returns the printer's cummulated lines
+func GetLines() []interface{} {
+	return printer.Lines
+}
+
+// Returns the printer's cummulated error lines
+func GetErrorLines() []interface{} {
+	return printer.ErrorLines
+}
+
 // Prints an error string to the stderr.
 func PrintError(msg string) {
+	printer.ErrorLines = append(printer.ErrorLines, msg)
 	fmt.Fprintln(os.Stderr, msg)
 }
