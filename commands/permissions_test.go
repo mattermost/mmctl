@@ -2,21 +2,15 @@ package commands
 
 import (
 	"net/http"
-	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mmctl/mocks"
 
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/require"
 )
 
-func TestAddPermissionsCmd(t *testing.T) {
-	t.Run("Adding a new permission to an existing role", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
+func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
+	s.Run("Adding a new permission to an existing role", func() {
 		mockRole := &model.Role{
 			Id:          "mock-id",
 			Name:        "mock-role",
@@ -29,39 +23,34 @@ func TestAddPermissionsCmd(t *testing.T) {
 			Permissions: &expectedPermissions,
 		}
 
-		c := mocks.NewMockClient(mockCtrl)
-		c.
+		s.client.
 			EXPECT().
 			GetRoleByName(gomock.Eq(mockRole.Name)).
 			Return(mockRole, &model.Response{Error: nil}).
 			Times(1)
 
-		c.
+		s.client.
 			EXPECT().
 			PatchRole(gomock.Eq(mockRole.Id), gomock.Eq(expectedPatch)).
 			Return(&model.Role{}, &model.Response{Error: nil}).
 			Times(1)
 
 		args := []string{mockRole.Name, newPermission}
-		err := addPermissionsCmdF(c, &cobra.Command{}, args)
-		require.Nil(t, err)
+		err := addPermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
 	})
 
-	t.Run("Trying to add a new permission to a non existing role", func(t *testing.T) {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
+	s.Run("Trying to add a new permission to a non existing role", func() {
 		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
 
-		c := mocks.NewMockClient(mockCtrl)
-		c.
+		s.client.
 			EXPECT().
 			GetRoleByName(gomock.Any()).
 			Return(nil, &model.Response{Error: expectedError}).
 			Times(1)
 
 		args := []string{"mockRole", "newPermission"}
-		err := addPermissionsCmdF(c, &cobra.Command{}, args)
-		require.Equal(t, expectedError, err)
+		err := addPermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Equal(expectedError, err)
 	})
 }
