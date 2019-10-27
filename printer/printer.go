@@ -44,7 +44,9 @@ func PrintT(templateString string, v interface{}) {
 		t := template.Must(template.New("").Parse(templateString))
 		var tpl bytes.Buffer
 		t.Execute(&tpl, v)
-		fmt.Println(tpl.String())
+		tplString := tpl.String()
+		printer.Lines = append(printer.Lines, tplString)
+		fmt.Println(tplString)
 	case FORMAT_JSON:
 		printer.Lines = append(printer.Lines, v)
 	}
