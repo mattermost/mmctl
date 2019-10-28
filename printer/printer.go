@@ -74,18 +74,18 @@ func Flush() {
 	}
 }
 
-// Resets the printer's cummulated lines
+// Resets the printer's accumulated lines
 func Clean() {
 	printer.Lines = []interface{}{}
 	printer.ErrorLines = []interface{}{}
 }
 
-// Returns the printer's cummulated lines
+// Returns the printer's accumulated lines
 func GetLines() []interface{} {
 	return printer.Lines
 }
 
-// Returns the printer's cummulated error lines
+// Returns the printer's accumulated error lines
 func GetErrorLines() []interface{} {
 	return printer.ErrorLines
 }
