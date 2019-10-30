@@ -1,5 +1,7 @@
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
+# github.com/cpuguy83/go-md2man v1.0.10
+github.com/cpuguy83/go-md2man/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
@@ -39,10 +41,13 @@ github.com/pelletier/go-toml
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
+# github.com/russross/blackfriday v1.5.2
+github.com/russross/blackfriday
 # github.com/sirupsen/logrus v1.4.0
 github.com/sirupsen/logrus
 # github.com/spf13/cobra v0.0.3
 github.com/spf13/cobra
+github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
 # github.com/stretchr/testify v1.4.0
