@@ -109,6 +109,36 @@ func (mr *MockClientMockRecorder) CreateCommand(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCommand", reflect.TypeOf((*MockClient)(nil).CreateCommand), arg0)
 }
 
+// CreateIncomingWebhook mocks base method
+func (m *MockClient) CreateIncomingWebhook(arg0 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateIncomingWebhook", arg0)
+	ret0, _ := ret[0].(*model.IncomingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CreateIncomingWebhook indicates an expected call of CreateIncomingWebhook
+func (mr *MockClientMockRecorder) CreateIncomingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIncomingWebhook", reflect.TypeOf((*MockClient)(nil).CreateIncomingWebhook), arg0)
+}
+
+// CreateOutgoingWebhook mocks base method
+func (m *MockClient) CreateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOutgoingWebhook", arg0)
+	ret0, _ := ret[0].(*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CreateOutgoingWebhook indicates an expected call of CreateOutgoingWebhook
+func (mr *MockClientMockRecorder) CreateOutgoingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).CreateOutgoingWebhook), arg0)
+}
+
 // CreatePost mocks base method
 func (m *MockClient) CreatePost(arg0 *model.Post) (*model.Post, *model.Response) {
 	m.ctrl.T.Helper()
@@ -182,6 +212,36 @@ func (m *MockClient) DeleteCommand(arg0 string) (bool, *model.Response) {
 func (mr *MockClientMockRecorder) DeleteCommand(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCommand", reflect.TypeOf((*MockClient)(nil).DeleteCommand), arg0)
+}
+
+// DeleteIncomingWebhook mocks base method
+func (m *MockClient) DeleteIncomingWebhook(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteIncomingWebhook", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// DeleteIncomingWebhook indicates an expected call of DeleteIncomingWebhook
+func (mr *MockClientMockRecorder) DeleteIncomingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteIncomingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteIncomingWebhook), arg0)
+}
+
+// DeleteOutgoingWebhook mocks base method
+func (m *MockClient) DeleteOutgoingWebhook(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteOutgoingWebhook", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// DeleteOutgoingWebhook indicates an expected call of DeleteOutgoingWebhook
+func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), arg0)
 }
 
 // DeleteUser mocks base method
@@ -364,6 +424,51 @@ func (mr *MockClientMockRecorder) GetGroupsByTeam(arg0, arg1, arg2 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByTeam", reflect.TypeOf((*MockClient)(nil).GetGroupsByTeam), arg0, arg1, arg2)
 }
 
+// GetIncomingWebhook mocks base method
+func (m *MockClient) GetIncomingWebhook(arg0, arg1 string) (*model.IncomingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncomingWebhook", arg0, arg1)
+	ret0, _ := ret[0].(*model.IncomingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetIncomingWebhook indicates an expected call of GetIncomingWebhook
+func (mr *MockClientMockRecorder) GetIncomingWebhook(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingWebhook", reflect.TypeOf((*MockClient)(nil).GetIncomingWebhook), arg0, arg1)
+}
+
+// GetIncomingWebhooks mocks base method
+func (m *MockClient) GetIncomingWebhooks(arg0, arg1 int, arg2 string) ([]*model.IncomingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncomingWebhooks", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.IncomingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetIncomingWebhooks indicates an expected call of GetIncomingWebhooks
+func (mr *MockClientMockRecorder) GetIncomingWebhooks(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingWebhooks", reflect.TypeOf((*MockClient)(nil).GetIncomingWebhooks), arg0, arg1, arg2)
+}
+
+// GetIncomingWebhooksForTeam mocks base method
+func (m *MockClient) GetIncomingWebhooksForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.IncomingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetIncomingWebhooksForTeam", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*model.IncomingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetIncomingWebhooksForTeam indicates an expected call of GetIncomingWebhooksForTeam
+func (mr *MockClientMockRecorder) GetIncomingWebhooksForTeam(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingWebhooksForTeam", reflect.TypeOf((*MockClient)(nil).GetIncomingWebhooksForTeam), arg0, arg1, arg2, arg3)
+}
+
 // GetLdapGroups mocks base method
 func (m *MockClient) GetLdapGroups() ([]*model.Group, *model.Response) {
 	m.ctrl.T.Helper()
@@ -392,6 +497,66 @@ func (m *MockClient) GetLogs(arg0, arg1 int) ([]string, *model.Response) {
 func (mr *MockClientMockRecorder) GetLogs(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogs", reflect.TypeOf((*MockClient)(nil).GetLogs), arg0, arg1)
+}
+
+// GetOutgoingWebhook mocks base method
+func (m *MockClient) GetOutgoingWebhook(arg0 string) (*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOutgoingWebhook", arg0)
+	ret0, _ := ret[0].(*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetOutgoingWebhook indicates an expected call of GetOutgoingWebhook
+func (mr *MockClientMockRecorder) GetOutgoingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).GetOutgoingWebhook), arg0)
+}
+
+// GetOutgoingWebhooks mocks base method
+func (m *MockClient) GetOutgoingWebhooks(arg0, arg1 int, arg2 string) ([]*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOutgoingWebhooks", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetOutgoingWebhooks indicates an expected call of GetOutgoingWebhooks
+func (mr *MockClientMockRecorder) GetOutgoingWebhooks(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutgoingWebhooks", reflect.TypeOf((*MockClient)(nil).GetOutgoingWebhooks), arg0, arg1, arg2)
+}
+
+// GetOutgoingWebhooksForChannel mocks base method
+func (m *MockClient) GetOutgoingWebhooksForChannel(arg0 string, arg1, arg2 int, arg3 string) ([]*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOutgoingWebhooksForChannel", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetOutgoingWebhooksForChannel indicates an expected call of GetOutgoingWebhooksForChannel
+func (mr *MockClientMockRecorder) GetOutgoingWebhooksForChannel(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutgoingWebhooksForChannel", reflect.TypeOf((*MockClient)(nil).GetOutgoingWebhooksForChannel), arg0, arg1, arg2, arg3)
+}
+
+// GetOutgoingWebhooksForTeam mocks base method
+func (m *MockClient) GetOutgoingWebhooksForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOutgoingWebhooksForTeam", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetOutgoingWebhooksForTeam indicates an expected call of GetOutgoingWebhooksForTeam
+func (mr *MockClientMockRecorder) GetOutgoingWebhooksForTeam(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOutgoingWebhooksForTeam", reflect.TypeOf((*MockClient)(nil).GetOutgoingWebhooksForTeam), arg0, arg1, arg2, arg3)
 }
 
 // GetPlugins mocks base method
@@ -634,6 +799,21 @@ func (mr *MockClientMockRecorder) PermanentDeleteTeam(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteTeam", reflect.TypeOf((*MockClient)(nil).PermanentDeleteTeam), arg0)
 }
 
+// RegenOutgoingHookToken mocks base method
+func (m *MockClient) RegenOutgoingHookToken(arg0 string) (*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegenOutgoingHookToken", arg0)
+	ret0, _ := ret[0].(*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// RegenOutgoingHookToken indicates an expected call of RegenOutgoingHookToken
+func (mr *MockClientMockRecorder) RegenOutgoingHookToken(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegenOutgoingHookToken", reflect.TypeOf((*MockClient)(nil).RegenOutgoingHookToken), arg0)
+}
+
 // RemoveLicenseFile mocks base method
 func (m *MockClient) RemoveLicenseFile() (bool, *model.Response) {
 	m.ctrl.T.Helper()
@@ -752,6 +932,36 @@ func (m *MockClient) SyncLdap() (bool, *model.Response) {
 func (mr *MockClientMockRecorder) SyncLdap() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap))
+}
+
+// UpdateIncomingWebhook mocks base method
+func (m *MockClient) UpdateIncomingWebhook(arg0 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateIncomingWebhook", arg0)
+	ret0, _ := ret[0].(*model.IncomingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateIncomingWebhook indicates an expected call of UpdateIncomingWebhook
+func (mr *MockClientMockRecorder) UpdateIncomingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateIncomingWebhook", reflect.TypeOf((*MockClient)(nil).UpdateIncomingWebhook), arg0)
+}
+
+// UpdateOutgoingWebhook mocks base method
+func (m *MockClient) UpdateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOutgoingWebhook", arg0)
+	ret0, _ := ret[0].(*model.OutgoingWebhook)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateOutgoingWebhook indicates an expected call of UpdateOutgoingWebhook
+func (mr *MockClientMockRecorder) UpdateOutgoingWebhook(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).UpdateOutgoingWebhook), arg0)
 }
 
 // UpdateUser mocks base method
