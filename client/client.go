@@ -60,4 +60,5 @@ type Client interface {
 	DeleteCommand(commandId string) (bool, *model.Response)
 	GetConfig() (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
+	GetUsers(page int, perPage int, etag string) ([]*model.User, *model.Response)
 }

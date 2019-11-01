@@ -5,10 +5,11 @@
 package mocks
 
 import (
-	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/model"
 	io "io"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	model "github.com/mattermost/mattermost-server/model"
 )
 
 // MockClient is a mock of Client interface
@@ -510,6 +511,21 @@ func (m *MockClient) GetUser(arg0, arg1 string) (*model.User, *model.Response) {
 
 // GetUser indicates an expected call of GetUser
 func (mr *MockClientMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockClient)(nil).GetUser), arg0, arg1)
+}
+
+// GetUsers mocks base method
+func (m *MockClient) GetUsers(arg0 int, arg1 int, arg2 string) ([]*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsers", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUsers indicates an expected call of GetUsers
+func (mr *MockClientMockRecorder) GetUsers(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockClient)(nil).GetUser), arg0, arg1)
 }
