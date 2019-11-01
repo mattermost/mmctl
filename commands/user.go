@@ -78,6 +78,14 @@ var SearchUserCmd = &cobra.Command{
 	RunE:    withClient(searchUserCmdF),
 }
 
+var ListUsersCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "List users",
+	Long:    "List all the users",
+	Example: "  user list",
+	RunE:    withClient(listUsersCmdF),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
 	UserCreateCmd.MarkFlagRequired("username")
@@ -91,6 +99,10 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
+	ListUsersCmd.Flags().Int("page", 0, "Start page for list of users")
+	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
+	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. Will ignore --page and --per-page")
+
 	UserCmd.AddCommand(
 		UserDeactivateCmd,
 		UserCreateCmd,
@@ -99,6 +111,7 @@ func init() {
 		updateUserEmailCmd,
 		ResetUserMfaCmd,
 		SearchUserCmd,
+		ListUsersCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -311,6 +324,26 @@ auth_service: {{.AuthService}}`
 		}
 
 		printer.PrintT(tpl, user)
+	}
+
+	return nil
+}
+
+func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
+	page, _ := command.Flags().GetInt("page")
+	perPage, _ := command.Flags().GetInt("per-page")
+	showAll, _ := command.Flags().GetBool("all")
+
+	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
+	for users, _ := c.GetUsers(page, perPage, ""); users != nil && len(users) > 0; users, _ = c.GetUsers(page, perPage, "") {
+		for _, user := range users {
+			printer.PrintT(tpl, user)
+		}
+
+		if !showAll {
+			break
+		}
+		page += perPage
 	}
 
 	return nil
