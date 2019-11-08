@@ -382,24 +382,21 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	if teamArg, _ := cmd.Flags().GetString("team"); teamArg != "" {
 		team := getTeamFromTeamArg(c, teamArg)
 		if team == nil {
-			printer.PrintT("Team {{.}} is not found", teamArg)
-			return nil
+			return errors.New("Team " + teamArg + " was not found")
 		}
 
 		var response *model.Response
 		channel, response = c.GetChannelByName(args[0], team.Id, "")
-		if response.Error != nil || channel == nil {
-			data := map[string]interface{}{
-				"Channel": args[0],
-				"Team":    teamArg,
-			}
-			printer.PrintT("Channel {{.Channel}} is not found in team {{.Team}}", data)
-			return nil
+		if response.Error != nil {
+			return response.Error
+		}
+		if channel == nil {
+			return errors.New("Channel " + args[0] + " was not found in team " + teamArg)
 		}
 	} else {
 		teams, response := c.GetAllTeams("", 0, 9999)
 		if response.Error != nil {
-			return errors.Wrap(response.Error, "failed to GetAllTeams")
+			return response.Error
 		}
 
 		for _, team := range teams {
@@ -410,8 +407,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		if channel == nil {
-			printer.PrintT("Channel {{.}} is not found in any team", args[0])
-			return nil
+			return errors.New("Channel " + args[0] + " was not found in any team")
 		}
 	}
 
