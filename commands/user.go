@@ -343,7 +343,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		if !showAll {
 			break
 		}
-		page += perPage
+		page++
 	}
 
 	return nil
