@@ -84,6 +84,7 @@ var ListUsersCmd = &cobra.Command{
 	Long:    "List all the users",
 	Example: "  user list",
 	RunE:    withClient(listUsersCmdF),
+	Args:    cobra.NoArgs,
 }
 
 func init() {
