@@ -25,13 +25,13 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 
 		s.client.
 			EXPECT().
-			GetRoleByName(gomock.Eq(mockRole.Name)).
+			GetRoleByName(mockRole.Name).
 			Return(mockRole, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			PatchRole(gomock.Eq(mockRole.Id), gomock.Eq(expectedPatch)).
+			PatchRole(mockRole.Id, expectedPatch).
 			Return(&model.Role{}, &model.Response{Error: nil}).
 			Times(1)
 

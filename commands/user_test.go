@@ -4,7 +4,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/golang/mock/gomock"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +14,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(gomock.Eq(emailArg), gomock.Eq("")).
+			GetUserByEmail(emailArg, "").
 			Return(&mockUser, &model.Response{Error: nil}).
 			Times(1)
 
@@ -31,19 +30,19 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(gomock.Eq(arg), gomock.Eq("")).
+			GetUserByEmail(arg, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByUsername(gomock.Eq(arg), gomock.Eq("")).
+			GetUserByUsername(arg, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUser(gomock.Eq(arg), gomock.Eq("")).
+			GetUser(arg, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 

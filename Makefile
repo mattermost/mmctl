@@ -1,13 +1,16 @@
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
+BUILD_HASH = $(shell git rev-parse HEAD)
+
+LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
 
 all: build
 
 build: vendor check
-	go build -mod=vendor
+	go build -ldflags '$(LDFLAGS)' -mod=vendor
 
 install: vendor check
-	go install -mod=vendor
+	go install -ldflags '$(LDFLAGS)' -mod=vendor
 
 package: vendor check
 	mkdir -p build
