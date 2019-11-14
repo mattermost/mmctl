@@ -54,61 +54,55 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
-	s.Run("Invite user to one existing team by Id", func() {
+	s.Run("Invite user to an existing team by Id", func() {
 		printer.Clean()
 		argUser := "example@example.com"
-		argTeam := []string{"teamId"}
-		resultTeamModels := [1]*model.Team{&model.Team{Id: "teamId"}}
+		argTeam := "teamId"
 
 		s.client.
 			EXPECT().
-			GetTeam(argTeam[0], "").
-			Return(resultTeamModels[0], &model.Response{Error: nil}).
+			GetTeam(argTeam, "").
+			Return(&model.Team{Id: "teamId"}, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam[0], "").
-			Times(0)
-
-		s.client.
-			EXPECT().
-			InviteUsersToTeam(resultTeamModels[0].Id, []string{argUser}).
+			InviteUsersToTeam(argTeam, []string{argUser}).
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
+		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Invite user to one existing team by name", func() {
+	s.Run("Invite user to an existing team by name", func() {
 		printer.Clean()
 		argUser := "example@example.com"
-		argTeam := []string{"teamName"}
-		resultTeamModels := [1]*model.Team{&model.Team{Id: "teamId"}}
+		argTeam := "teamName"
+		resultID := "teamId"
 
 		s.client.
 			EXPECT().
-			GetTeam(argTeam[0], "").
+			GetTeam(argTeam, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam[0], "").
-			Return(resultTeamModels[0], &model.Response{Error: nil}).
+			GetTeamByName(argTeam, "").
+			Return(&model.Team{Id: resultID}, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(resultTeamModels[0].Id, []string{argUser}).
+			InviteUsersToTeam(resultID, []string{argUser}).
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
+		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[0])
@@ -175,10 +169,10 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		// Setup InvitUsersToTeam
-		for i := 0; i < len(argTeam); i++ {
+		for _, resultTeamModel := range resultTeamModels {
 			s.client.
 				EXPECT().
-				InviteUsersToTeam(resultTeamModels[i].Id, []string{argUser}).
+				InviteUsersToTeam(resultTeamModel.Id, []string{argUser}).
 				Return(false, &model.Response{Error: nil}).
 				Times(1)
 		}
@@ -192,63 +186,58 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Invite user to one un-existing team", func() {
+	s.Run("Invite user to an un-existing team", func() {
 		printer.Clean()
 		argUser := "example@example.com"
-		argTeam := []string{"unexistent"}
+		argTeam := "unexistent"
 
 		s.client.
 			EXPECT().
-			GetTeam(argTeam[0], "").
+			GetTeam(argTeam, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam[0], "").
+			GetTeamByName(argTeam, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
-		s.client.
-			EXPECT().
-			InviteUsersToTeam(nil, []string{argUser}).
-			Times(0)
-
-		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
+		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Can't find team 'unexistent'", printer.GetErrorLines()[0])
+		s.Require().Equal("Can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
 	})
 
-	s.Run("Invite user to one existing team and fail invite", func() {
+	s.Run("Invite user to an existing team and fail invite", func() {
 		printer.Clean()
 		argUser := "example@example.com"
-		argTeam := []string{"teamId"}
-		resultTeamModels := [1]*model.Team{&model.Team{Id: "teamId", Name: "teamName"}}
+		argTeam := "teamId"
+		resultName := "teamName"
 
 		s.client.
 			EXPECT().
-			GetTeam(argTeam[0], "").
-			Return(resultTeamModels[0], &model.Response{Error: nil}).
+			GetTeam(argTeam, "").
+			Return(&model.Team{Id: argTeam, Name: resultName}, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam[0], "").
+			GetTeamByName(argTeam, "").
 			Times(0)
 
 		s.client.
 			EXPECT().
-			InviteUsersToTeam(resultTeamModels[0].Id, []string{argUser}).
+			InviteUsersToTeam(argTeam, []string{argUser}).
 			Return(false, &model.Response{Error: model.NewAppError("", "Mock Error", nil, "", 0)}).
 			Times(1)
 
-		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
+		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultTeamModels[0].Name+". Error: "+": Mock Error, ", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultName+". Error: "+": Mock Error, ", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Invite user to several existing and non-existing teams by name and id and reject one invite", func() {
@@ -316,24 +305,9 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam[2], "").
-			Times(0)
-
-		s.client.
-			EXPECT().
 			GetTeamByName(argTeam[3], "").
 			Return(resultTeamModels[3], &model.Response{Error: nil}).
 			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(argTeam[4], "").
-			Times(0)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(argTeam[5], "").
-			Times(0)
 
 		// Setup InvitUsersToTeam
 		s.client.
@@ -341,11 +315,6 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			InviteUsersToTeam(resultTeamModels[0].Id, []string{argUser}).
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
-
-		s.client.
-			EXPECT().
-			InviteUsersToTeam(nil, []string{argUser}).
-			Times(0)
 
 		s.client.
 			EXPECT().
@@ -378,8 +347,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal("Can't find team 'unexistent'", printer.GetErrorLines()[0])
+		s.Require().Equal("Can't find team '"+argTeam[1]+"'", printer.GetErrorLines()[0])
 		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultTeamModels[4].Name+". Error: "+": Mock Error, ", printer.GetErrorLines()[1])
-
 	})
 }
