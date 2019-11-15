@@ -1,3 +1,4 @@
+.PHONY: vendor docs
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
 BUILD_HASH = $(shell git rev-parse HEAD)
@@ -60,6 +61,11 @@ check: gofmt govet
 
 vendor:
 	go mod vendor
+	go mod tidy
 
 mocks:
 	mockgen -destination=mocks/client_mock.go -package=mocks github.com/mattermost/mmctl/client Client
+
+docs:
+	rm -rf docs
+	go run -mod=vendor mmctl.go docs
