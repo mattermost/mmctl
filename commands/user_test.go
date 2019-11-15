@@ -62,7 +62,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(argTeam, "").
-			Return(&model.Team{Id: "teamId"}, &model.Response{Error: nil}).
+			Return(&model.Team{Id: argTeam}, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -154,16 +154,6 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam[1], "").
-			Times(0)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(argTeam[2], "").
-			Times(0)
-
-		s.client.
-			EXPECT().
 			GetTeamByName(argTeam[3], "").
 			Return(resultTeamModels[3], &model.Response{Error: nil}).
 			Times(1)
@@ -215,6 +205,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		argUser := "example@example.com"
 		argTeam := "teamId"
 		resultName := "teamName"
+		mockError := model.NewAppError("", "Mock Error", nil, "", 0)
 
 		s.client.
 			EXPECT().
@@ -224,20 +215,15 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeamByName(argTeam, "").
-			Times(0)
-
-		s.client.
-			EXPECT().
 			InviteUsersToTeam(argTeam, []string{argUser}).
-			Return(false, &model.Response{Error: model.NewAppError("", "Mock Error", nil, "", 0)}).
+			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultName+". Error: "+": Mock Error, ", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultName+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Invite user to several existing and non-existing teams by name and id and reject one invite", func() {
@@ -252,6 +238,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			&model.Team{Id: "reject", Name: "rejectName"},
 			&model.Team{Id: "teamId6", Name: "teamName6"},
 		}
+		mockError := model.NewAppError("", "Mock Error", nil, "", 0)
 
 		// Setup GetTeam
 		s.client.
@@ -331,7 +318,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		s.client.
 			EXPECT().
 			InviteUsersToTeam(resultTeamModels[4].Id, []string{argUser}).
-			Return(false, &model.Response{Error: model.NewAppError("", "Mock Error", nil, "", 0)}).
+			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
@@ -348,6 +335,6 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		}
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal("Can't find team '"+argTeam[1]+"'", printer.GetErrorLines()[0])
-		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultTeamModels[4].Name+". Error: "+": Mock Error, ", printer.GetErrorLines()[1])
+		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultTeamModels[4].Name+". Error: "+mockError.Error(), printer.GetErrorLines()[1])
 	})
 }
