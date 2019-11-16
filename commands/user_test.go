@@ -190,3 +190,189 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		s.Require().Equal("Unable to update user roles. Error: : Remote error, ", error.Error())
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
+	s.Run("Two arguments are not provided", func() {
+		command := cobra.Command{}
+
+		error := updateUserEmailCmdF(s.client, &command, []string{})
+
+		s.Require().Equal("Expected two arguments. See help text for details.", error.Error())
+	})
+
+	s.Run("Invalid email provided", func() {
+		printer.Clean()
+
+		userArg := "testUser"
+		emailArg := "invalidEmail"
+		command := cobra.Command{}
+
+		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+
+		s.Require().Equal("Invalid email: 'invalidEmail'", error.Error())
+	})
+
+	s.Run("User not found using email, username or id as identifier", func() {
+		printer.Clean()
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given id"}}).
+			Times(1)
+
+		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+
+		s.Require().Equal("Unable to find user 'testUser'", error.Error())
+	})
+
+	s.Run("Client returning error while updating user", func() {
+		printer.Clean()
+
+		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(&mockUser).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "Remote error"}}).
+			Times(1)
+
+		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+
+		s.Require().Equal(": Remote error, ", error.Error())
+	})
+
+	s.Run("User email is updated successfully using username as identifier", func() {
+		printer.Clean()
+
+		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+
+		command := cobra.Command{}
+		userArg := "testUser"
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(&mockUser).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+
+		s.Require().Nil(error)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("User email is updated successfully using email as identifier", func() {
+		printer.Clean()
+
+		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+
+		command := cobra.Command{}
+		userArg := "user@email.com"
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(&mockUser).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+
+		s.Require().Nil(error)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("User email is updated successfully using id as identifier", func() {
+		printer.Clean()
+
+		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+
+		command := cobra.Command{}
+		userArg := "userId"
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUser(&mockUser).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+
+		s.Require().Nil(error)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
