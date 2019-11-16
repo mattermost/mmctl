@@ -5,8 +5,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type Command = cobra.Command
-
 func Run(args []string) error {
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	RootCmd.SetArgs(args)
@@ -14,9 +12,10 @@ func Run(args []string) error {
 }
 
 var RootCmd = &cobra.Command{
-	Use:   "mmctl",
-	Short: "Remote client for the Open Source, self-hosted Slack-alternative",
-	Long:  `Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com`,
+	Use:               "mmctl",
+	Short:             "Remote client for the Open Source, self-hosted Slack-alternative",
+	Long:              `Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com`,
+	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		format, _ := cmd.Flags().GetString("format")
 		printer.SetFormat(format)
