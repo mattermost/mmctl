@@ -63,6 +63,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 	s.Run("List commands for a existing team", func() {
 		printer.Clean()
 		teamArg := "example-team-id"
+		mockTeam := model.Team{Id: teamArg}
 
 		cmd := &cobra.Command{}
 		// cmd.Flags().String("team", teamArg, "")
@@ -82,6 +83,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 	s.Run("Delete commands for a existing team", func() {
 		printer.Clean()
 		teamArg := "example-team-id"
+		mockTeam := model.Team{Id: teamArg}
 
 		cmd := &cobra.Command{}
 		// cmd.Flags().String("team", teamArg, "")
