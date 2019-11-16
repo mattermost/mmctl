@@ -9,6 +9,7 @@ import (
 
 func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 	s.Run("Create a new custom slash command for a specified team", func() {
+		printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		titleArg := "example-command-name"
@@ -60,6 +61,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 
 
 	s.Run("List commands for a existing team", func() {
+		printer.Clean()
 		teamArg := "example-team-id"
 
 		cmd := &cobra.Command{}
@@ -78,6 +80,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 	})
 
 	s.Run("Delete commands for a existing team", func() {
+		printer.Clean()
 		teamArg := "example-team-id"
 
 		cmd := &cobra.Command{}
