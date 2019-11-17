@@ -14,7 +14,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		descriptionArg := "example-description-text"
 		triggerWordArg := "example-trigger-word"
 		urlArg := "http://localhost:8000/example"
-		creatorUsernameArg := "example-username"
+		creatorIdArg := "example-username"
 		responseUsernameArg := "example-username2"
 		iconArg := "icon-url"
 		method := "G"
@@ -23,14 +23,14 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		autocompleteHint := "autocompleteHint"
 
 		mockTeam := model.Team{Id: teamArg}
-		mockCreator := model.User{Username: creatorUsernameArg}
+		mockUser := model.User{Id: creatorIdArg}
 		mockCommand := model.Command{
 			TeamId:           teamArg,
 			DisplayName:      titleArg,
 			Description:      descriptionArg,
 			Trigger:          triggerWordArg,
 			URL:              urlArg,
-			CreatorId:        creatorUsernameArg,
+			CreatorId:        creatorIdArg,
 			Username:         responseUsernameArg,
 			IconURL:          iconArg,
 			Method:           method,
@@ -45,7 +45,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		cmd.Flags().String("description", descriptionArg, "")
 		cmd.Flags().String("trigger-word", triggerWordArg, "")
 		cmd.Flags().String("url", urlArg, "")
-		cmd.Flags().String("creator", creatorUsernameArg, "")
+		cmd.Flags().String("creator", creatorIdArg, "")
 		cmd.Flags().String("response-username", responseUsernameArg, "")
 		cmd.Flags().String("icon", iconArg, "")
 		cmd.Flags().String("method", method, "")
@@ -61,8 +61,8 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetUserByEmail(creatorUsernameArg, "").
-			Return(&mockCreator, &model.Response{Error: nil}).
+			GetUserByEmail(creatorIdArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
 			EXPECT().
