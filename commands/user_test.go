@@ -64,6 +64,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Int("page", page, "")
 
+		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUsers(page, perPage, "").
@@ -85,11 +86,17 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		cmd.Flags().Bool("all", true, "")
 		cmd.Flags().Int("per-page", perPage, "")
 
-		printer.Flush()
+		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUsers(0, perPage, "").
 			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsers(1, perPage, "").
+			Return([]*model.User{}, &model.Response{Error: nil}).
 			Times(1)
 
 		err := listUsersCmdF(s.client, cmd, []string{})
@@ -106,7 +113,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Int("page", page, "")
 
-		printer.Flush()
+		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUsers(page, perPage, "").
