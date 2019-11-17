@@ -14,7 +14,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		descriptionArg := "example-description-text"
 		triggerWordArg := "example-trigger-word"
 		urlArg := "http://localhost:8000/example"
-		creatorIdArg := "example-username"
+		creatorIdArg := "example-user-id"
 		responseUsernameArg := "example-username2"
 		iconArg := "icon-url"
 		method := "G"
@@ -53,7 +53,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
 		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
-		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg,
+		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg which then calls GetUserByEmail
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
