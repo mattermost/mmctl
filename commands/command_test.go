@@ -25,14 +25,14 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		mockTeam := model.Team{Id: teamArg}
 		mockCreator := model.User{Username: creatorUsernameArg}
 		mockCommand := model.Command{
-			CreatorId:        creatorUsernameArg,
 			TeamId:           teamArg,
-			Trigger:          triggerWordArg,
-			Username:         responseUsernameArg,
-			IconURL:          iconArg,
 			DisplayName:      titleArg,
 			Description:      descriptionArg,
+			Trigger:          triggerWordArg,
 			URL:              urlArg,
+			CreatorId:        creatorUsernameArg,
+			Username:         responseUsernameArg,
+			IconURL:          iconArg,
 			Method:           method,
 			AutoComplete:     autocomplete,
 			AutoCompleteDesc: autocompleteDesc,
@@ -48,6 +48,10 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		cmd.Flags().String("creator", creatorUsernameArg, "")
 		cmd.Flags().String("response-username", responseUsernameArg, "")
 		cmd.Flags().String("icon", iconArg, "")
+		cmd.Flags().String("method", method, "")
+		cmd.Flags().Bool("autocomplete", autocomplete, "")
+		cmd.Flags().String("autocompleteDesc", autocompleteDesc, "")
+		cmd.Flags().String("autocompleteHint", autocompleteHint, "")
 
 		// createCommandCmdF will call getTeamFromTeamArg,  getUserFromUserArg,
 		s.client.
@@ -62,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			CreateCommand(cmd).		// ERROR ; passing in the wrong argument???
+			CreateCommand(&mockCommand).	// still gives an error!
 			Return(&mockCommand, &model.Response{Error: nil}).
 			Times(1)
 
