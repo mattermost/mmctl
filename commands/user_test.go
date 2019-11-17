@@ -52,3 +52,69 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		s.Require().Equal("Unable to find user 'example@example.com'", printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestListUserCmdF() {
+	s.Run("Listing users with paging", func() {
+		emailArg := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: emailArg}
+		page := 0
+		perPage := 1
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("per-page", perPage, "")
+		cmd.Flags().Int("page", page, "")
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("Listing all the users", func() {
+		emailArg := "example2@example.com"
+		mockUser := model.User{Username: "ExampleUser2", Email: emailArg}
+		perPage := 200
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("--all", true, "")
+		cmd.Flags().Int("per-page", perPage, "")
+
+		printer.Flush()
+		s.client.
+			EXPECT().
+			GetUsers(0, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("Try to listing all the users when there are no uses in store", func() {
+		page := 0
+		perPage := 1
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("per-page", perPage, "")
+		cmd.Flags().Int("page", page, "")
+
+		printer.Flush()
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return([]*model.User{}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
