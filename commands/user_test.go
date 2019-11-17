@@ -82,7 +82,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		perPage := 200
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Bool("--all", true, "")
+		cmd.Flags().Bool("all", true, "")
 		cmd.Flags().Int("per-page", perPage, "")
 
 		printer.Flush()
