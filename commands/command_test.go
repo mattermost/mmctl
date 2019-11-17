@@ -15,6 +15,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		triggerWordArg := "example-trigger-word"
 		urlArg := "http://localhost:8000/example"
 		creatorIdArg := "example-user-id"
+		creatorUsernameArg := "example-user"
 		responseUsernameArg := "example-username2"
 		iconArg := "icon-url"
 		method := "G"
@@ -23,7 +24,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		autocompleteHint := "autocompleteHint"
 
 		mockTeam := model.Team{Id: teamArg}
-		mockUser := model.User{Id: creatorIdArg}
+		mockUser := model.User{Id: creatorIdArg, Username: creatorUsernameArg}
 		mockCommand := model.Command{
 			TeamId:           teamArg,
 			DisplayName:      titleArg,
