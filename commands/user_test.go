@@ -55,6 +55,8 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Listing users with paging", func() {
+		printer.Clean()
+
 		emailArg := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: emailArg}
 		page := 0
@@ -64,7 +66,6 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Int("page", page, "")
 
-		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUsers(page, perPage, "").
@@ -78,6 +79,8 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	})
 
 	s.Run("Listing all the users", func() {
+		printer.Clean()
+
 		emailArg := "example2@example.com"
 		mockUser := model.User{Username: "ExampleUser2", Email: emailArg}
 		perPage := 200
@@ -86,7 +89,6 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		cmd.Flags().Bool("all", true, "")
 		cmd.Flags().Int("per-page", perPage, "")
 
-		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUsers(0, perPage, "").
@@ -106,6 +108,8 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	})
 
 	s.Run("Try to listing all the users when there are no uses in store", func() {
+		printer.Clean()
+
 		page := 0
 		perPage := 1
 
@@ -113,7 +117,6 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Int("page", page, "")
 
-		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUsers(page, perPage, "").
