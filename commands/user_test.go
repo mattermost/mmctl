@@ -273,10 +273,10 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			Return(&argUsers[2], &model.Response{Error: nil}).
 			Times(1)
 
-		for i := 0; i < len(argsDelete); i++ {
+		for _, user := range argUsers {
 			s.client.
 				EXPECT().
-				DeleteUser(argUsers[i].Id).
+				DeleteUser(user.Id).
 				Return(true, &model.Response{Error: nil}).
 				Times(1)
 		}
