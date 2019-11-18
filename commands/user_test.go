@@ -67,7 +67,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Times(1)
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -84,7 +84,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Times(1)
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable send reset password email to email "+emailArg+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -117,7 +117,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 		}
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, emailArg)
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal("Unable send reset password email to email "+emailArg[1]+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
