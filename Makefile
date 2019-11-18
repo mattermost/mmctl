@@ -48,7 +48,7 @@ gofmt:
 
 govet:
 	@echo Running govet
-	$(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GO_PACKAGES)
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
 	@echo Govet success
