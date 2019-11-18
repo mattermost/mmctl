@@ -548,3 +548,134 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		s.Require().Equal("Unable to update user roles. Error: : Remote error, ", error.Error())
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
+	s.Run("One user without problems", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			UpdateUserMfa("userId", "", false).
+			Return(false, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail("userId", "").
+			Return(&model.User{Id: "userId"}, nil).
+			Times(1)
+
+		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Cannot find one user", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetUserByEmail("userId", "").
+			Return(nil, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername("userId", "").
+			Return(nil, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser("userId", "").
+			Return(nil, nil).
+			Times(1)
+
+		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to find user 'userId'")
+	})
+
+	s.Run("One user, unable to reset", func() {
+		printer.Clean()
+		mockError := model.AppError{Message: "Mock error"}
+
+		s.client.
+			EXPECT().
+			UpdateUserMfa("userId", "", false).
+			Return(false, &model.Response{Error: &mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail("userId", "").
+			Return(&model.User{Id: "userId"}, nil).
+			Times(1)
+
+		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to reset user 'userId' MFA. Error: "+mockError.Error())
+	})
+
+	s.Run("Several users, with unknown users and users unable to be reset", func() {
+		printer.Clean()
+		users := []string{"user0", "error1", "user2", "unknown3", "user4"}
+		mockError := model.AppError{Message: "Mock error"}
+
+		for _, user := range users {
+			if user == "error1" {
+				s.client.
+					EXPECT().
+					UpdateUserMfa(user, "", false).
+					Return(false, &model.Response{Error: &mockError}).
+					Times(1)
+			} else if user != "unknown3" {
+				s.client.
+					EXPECT().
+					UpdateUserMfa(user, "", false).
+					Return(false, &model.Response{Error: nil}).
+					Times(1)
+			}
+		}
+
+		for _, user := range users {
+			if user != "unknown3" {
+				s.client.
+					EXPECT().
+					GetUserByEmail(user, "").
+					Return(&model.User{Id: user}, nil).
+					Times(1)
+			} else {
+				s.client.
+					EXPECT().
+					GetUserByEmail(user, "").
+					Return(nil, nil).
+					Times(1)
+
+				s.client.
+					EXPECT().
+					GetUserByUsername(user, "").
+					Return(nil, nil).
+					Times(1)
+
+				s.client.
+					EXPECT().
+					GetUser(user, "").
+					Return(nil, nil).
+					Times(1)
+			}
+		}
+
+		err := resetUserMfaCmdF(s.client, &cobra.Command{}, users)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to reset user '"+users[1]+"' MFA. Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[1], "Unable to find user '"+users[3]+"'")
+	})
+}
