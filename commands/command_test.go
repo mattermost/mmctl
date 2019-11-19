@@ -67,7 +67,7 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			CreateCommand(&mockCommand).	// still gives an error!
+			CreateCommand(&mockCommand).	
 			Return(&mockCommand, &model.Response{Error: nil}).
 			Times(1)
 
@@ -76,4 +76,30 @@ func (s *MmctlUnitTestSuite) TestCreateCommandCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Create slash command for a nonexistent team", func() {
+		printer.Clean()
+		teamArg := "example-team-id"
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", teamArg, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(teamArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := createCommandCmdF(s.client, cmd, []string{teamArg})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+		s.EqualError(err, "unable to find team '"+teamArg+"'")
+	})
+
+
 }
