@@ -555,14 +555,14 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateUserMfa("userId", "", false).
-			Return(false, &model.Response{Error: nil}).
+			GetUserByEmail("userId", "").
+			Return(&model.User{Id: "userId"}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail("userId", "").
-			Return(&model.User{Id: "userId"}, nil).
+			UpdateUserMfa("userId", "", false).
+			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
@@ -605,14 +605,14 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateUserMfa("userId", "", false).
-			Return(false, &model.Response{Error: &mockError}).
+			GetUserByEmail("userId", "").
+			Return(&model.User{Id: "userId"}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetUserByEmail("userId", "").
-			Return(&model.User{Id: "userId"}, nil).
+			UpdateUserMfa("userId", "", false).
+			Return(false, &model.Response{Error: &mockError}).
 			Times(1)
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
@@ -626,22 +626,6 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		printer.Clean()
 		users := []string{"user0", "error1", "user2", "unknown3", "user4"}
 		mockError := model.AppError{Message: "Mock error"}
-
-		for _, user := range users {
-			if user == "error1" {
-				s.client.
-					EXPECT().
-					UpdateUserMfa(user, "", false).
-					Return(false, &model.Response{Error: &mockError}).
-					Times(1)
-			} else if user != "unknown3" {
-				s.client.
-					EXPECT().
-					UpdateUserMfa(user, "", false).
-					Return(false, &model.Response{Error: nil}).
-					Times(1)
-			}
-		}
 
 		for _, user := range users {
 			if user != "unknown3" {
@@ -667,6 +651,22 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 					EXPECT().
 					GetUser(user, "").
 					Return(nil, nil).
+					Times(1)
+			}
+		}
+
+		for _, user := range users {
+			if user == "error1" {
+				s.client.
+					EXPECT().
+					UpdateUserMfa(user, "", false).
+					Return(false, &model.Response{Error: &mockError}).
+					Times(1)
+			} else if user != "unknown3" {
+				s.client.
+					EXPECT().
+					UpdateUserMfa(user, "", false).
+					Return(true, &model.Response{Error: nil}).
 					Times(1)
 			}
 		}
