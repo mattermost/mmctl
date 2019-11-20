@@ -1,8 +1,11 @@
 package commands
 
 import (
+	"errors"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/printer"
+
 	"github.com/spf13/cobra"
 )
 
@@ -199,6 +202,62 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 		s.EqualError(err, "a trigger word must not contain spaces")
+	})
+
+}
+func (s *MmctlUnitTestSuite) TestDeleteCommandCmd() {
+	s.Run("Delete without errors", func() {
+		printer.Clean()
+		arg := "cmd1"
+		outputMessage := map[string]interface{}{"status": "ok"}
+
+		s.client.
+			EXPECT().
+			DeleteCommand(arg).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := deleteCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], outputMessage)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Not able to delete", func() {
+		printer.Clean()
+		arg := "cmd1"
+		outputMessage := map[string]interface{}{"status": "error"}
+
+		s.client.
+			EXPECT().
+			DeleteCommand(arg).
+			Return(false, &model.Response{Error: nil}).
+			Times(1)
+
+		err := deleteCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], outputMessage)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Delete with response error", func() {
+		printer.Clean()
+		arg := "cmd1"
+		mockError := &model.AppError{Message: "Mock Error"}
+
+		s.client.
+			EXPECT().
+			DeleteCommand(arg).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := deleteCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().NotNil(err)
+		s.Require().Equal(err, errors.New("Unable to delete command '"+arg+"' error: "+mockError.Error()))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
 
