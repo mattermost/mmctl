@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (s *MmctlUnitTestSuite) TestCommandCmdF() {
+func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 	s.Run("Create a new custom slash command for a specified team", func() {
 		printer.Clean()
 		teamArg := "example-team-id"
@@ -67,13 +67,14 @@ func (s *MmctlUnitTestSuite) TestCommandCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			CreateCommand(&mockCommand).	
+			CreateCommand(&mockCommand).
 			Return(&mockCommand, &model.Response{Error: nil}).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
+		s.Equal(&mockCommand, printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -89,11 +90,11 @@ func (s *MmctlUnitTestSuite) TestCommandCmdF() {
 		mockTeam := model.Team{Id: teamArg}
 		mockUser := model.User{Id: creatorIdArg, Username: creatorUsernameArg}
 		mockCommand := model.Command{
-			TeamId:           teamArg,
-			Trigger:          triggerWordArg,
-			URL:              urlArg,
-			CreatorId:        creatorIdArg,
-			Method:           method,
+			TeamId:    teamArg,
+			Trigger:   triggerWordArg,
+			URL:       urlArg,
+			CreatorId: creatorIdArg,
+			Method:    method,
 		}
 
 		cmd := &cobra.Command{}
@@ -114,13 +115,14 @@ func (s *MmctlUnitTestSuite) TestCommandCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			CreateCommand(&mockCommand).	
+			CreateCommand(&mockCommand).
 			Return(&mockCommand, &model.Response{Error: nil}).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
+		s.Equal(&mockCommand, printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
@@ -198,7 +200,9 @@ func (s *MmctlUnitTestSuite) TestCommandCmdF() {
 		s.Len(printer.GetErrorLines(), 0)
 		s.EqualError(err, "a trigger word must not contain spaces")
 	})
+}
 
+func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 	s.Run("List all commands from all teams", func() {
 		printer.Clean()
 		team1ID := "team-id-1"
