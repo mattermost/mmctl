@@ -203,8 +203,8 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 		s.EqualError(err, "a trigger word must not contain spaces")
 	})
-
 }
+
 func (s *MmctlUnitTestSuite) TestDeleteCommandCmd() {
 	s.Run("Delete without errors", func() {
 		printer.Clean()
