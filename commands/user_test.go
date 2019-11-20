@@ -193,11 +193,13 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 
 func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 	s.Run("Two arguments are not provided", func() {
+		printer.Clean()
+
 		command := cobra.Command{}
 
 		error := updateUserEmailCmdF(s.client, &command, []string{})
 
-		s.Require().Equal("Expected two arguments. See help text for details.", error.Error())
+		s.Require().EqualError(error, "Expected two arguments. See help text for details.")
 	})
 
 	s.Run("Invalid email provided", func() {
@@ -209,7 +211,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().Equal("Invalid email: 'invalidEmail'", error.Error())
+		s.Require().EqualError(error, "Invalid email: 'invalidEmail'")
 	})
 
 	s.Run("User not found using email, username or id as identifier", func() {
@@ -239,17 +241,17 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().Equal("Unable to find user 'testUser'", error.Error())
+		s.Require().EqualError(error, "Unable to find user 'testUser'")
 	})
 
 	s.Run("Client returning error while updating user", func() {
 		printer.Clean()
 
-		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-
 		command := cobra.Command{}
 		userArg := "testUser"
 		emailArg := "example@example.com"
+
+		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
 
 		s.client.
 			EXPECT().
@@ -260,28 +262,29 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 		s.client.
 			EXPECT().
 			GetUserByUsername(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&currentUser, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(&mockUser).
+			UpdateUser(&currentUser).
 			Return(nil, &model.Response{Error: &model.AppError{Message: "Remote error"}}).
 			Times(1)
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().Equal(": Remote error, ", error.Error())
+		s.Require().EqualError(error, ": Remote error, ")
 	})
 
 	s.Run("User email is updated successfully using username as identifier", func() {
 		printer.Clean()
 
-		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-
 		command := cobra.Command{}
 		userArg := "testUser"
 		emailArg := "example@example.com"
+
+		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
 
 		s.client.
 			EXPECT().
@@ -292,58 +295,60 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 		s.client.
 			EXPECT().
 			GetUserByUsername(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&currentUser, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(&mockUser).
-			Return(&mockUser, &model.Response{Error: nil}).
+			UpdateUser(&currentUser).
+			Return(&updatedUser, &model.Response{Error: nil}).
 			Times(1)
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
 		s.Require().Nil(error)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Equal(&updatedUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("User email is updated successfully using email as identifier", func() {
 		printer.Clean()
 
-		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-
 		command := cobra.Command{}
 		userArg := "user@email.com"
 		emailArg := "example@example.com"
 
+		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
+
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&currentUser, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(&mockUser).
-			Return(&mockUser, &model.Response{Error: nil}).
+			UpdateUser(&currentUser).
+			Return(&updatedUser, &model.Response{Error: nil}).
 			Times(1)
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
 		s.Require().Nil(error)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Equal(&updatedUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("User email is updated successfully using id as identifier", func() {
 		printer.Clean()
 
-		mockUser := model.User{Username: "testUser", Password: "password", Email: "email"}
-
 		command := cobra.Command{}
 		userArg := "userId"
 		emailArg := "example@example.com"
+
+		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
+		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
 
 		s.client.
 			EXPECT().
@@ -360,19 +365,19 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 		s.client.
 			EXPECT().
 			GetUser(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&currentUser, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			UpdateUser(&mockUser).
-			Return(&mockUser, &model.Response{Error: nil}).
+			UpdateUser(&currentUser).
+			Return(&updatedUser, &model.Response{Error: nil}).
 			Times(1)
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
 		s.Require().Nil(error)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Equal(&updatedUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
