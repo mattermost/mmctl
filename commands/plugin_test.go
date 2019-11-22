@@ -1,13 +1,103 @@
 package commands
 
 import (
+	"io/ioutil"
+	"os"
 	"strings"
 
+	"github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
+
+func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
+	s.Run("Add without args", func() {
+		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+	})
+
+	s.Run("Add 1 plugin", func() {
+		printer.Clean()
+		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		s.Require().Nil(err)
+		defer os.Remove(tmpFile.Name())
+
+		pluginName := tmpFile.Name()
+
+		s.client.
+			EXPECT().
+			UploadPlugin(gomock.Any()).
+			Return(&model.Manifest{}, &model.Response{Error: nil}).
+			Times(1)
+
+		err = pluginAddCmdF(s.client, &cobra.Command{}, []string{pluginName})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
+	})
+
+	s.Run("Add 1 plugin no file", func() {
+		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{"non_existent_plugin"})
+		s.Require().EqualError(err, "open non_existent_plugin: no such file or directory")
+	})
+
+	s.Run("Add 1 plugin with error", func() {
+		printer.Clean()
+		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		s.Require().Nil(err)
+		defer os.Remove(tmpFile.Name())
+
+		pluginName := tmpFile.Name()
+		mockError := &model.AppError{Message: "Plugin Add Error"}
+
+		s.client.
+			EXPECT().
+			UploadPlugin(gomock.Any()).
+			Return(&model.Manifest{}, &model.Response{Error: mockError}).
+			Times(1)
+
+		err = pluginAddCmdF(s.client, &cobra.Command{}, []string{pluginName})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to add plugin: "+pluginName+". Error: "+mockError.Error())
+	})
+
+	s.Run("Add several plugins with some error", func() {
+		printer.Clean()
+		args := []string{"fail", "ok", "fail"}
+		mockError := &model.AppError{Message: "Plugin Add Error"}
+
+		for idx, arg := range args {
+			tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+			s.Require().Nil(err)
+			defer os.Remove(tmpFile.Name())
+			if arg == "fail" {
+				s.client.
+					EXPECT().
+					UploadPlugin(gomock.Any()).
+					Return(nil, &model.Response{Error: mockError}).
+					Times(1)
+			} else {
+				s.client.
+					EXPECT().
+					UploadPlugin(gomock.Any()).
+					Return(&model.Manifest{}, &model.Response{Error: nil}).
+					Times(1)
+			}
+			args[idx] = tmpFile.Name()
+		}
+
+		err := pluginAddCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+args[1])
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to add plugin: "+args[0]+". Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[1], "Unable to add plugin: "+args[2]+". Error: "+mockError.Error())
+	})
+}
 
 func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 	s.Run("Disable 1 plugin", func() {
