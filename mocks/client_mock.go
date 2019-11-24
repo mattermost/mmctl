@@ -739,6 +739,21 @@ func (mr *MockClientMockRecorder) SendPasswordResetEmail(arg0 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPasswordResetEmail", reflect.TypeOf((*MockClient)(nil).SendPasswordResetEmail), arg0)
 }
 
+// SoftDeleteTeam mocks base method
+func (m *MockClient) SoftDeleteTeam(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SoftDeleteTeam", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// SoftDeleteTeam indicates an expected call of SoftDeleteTeam
+func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteTeam", reflect.TypeOf((*MockClient)(nil).SoftDeleteTeam), arg0)
+}
+
 // SyncLdap mocks base method
 func (m *MockClient) SyncLdap() (bool, *model.Response) {
 	m.ctrl.T.Helper()
