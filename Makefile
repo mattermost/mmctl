@@ -1,4 +1,4 @@
-.PHONY: vendor docs
+.PHONY: vendor docs mocks
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
 BUILD_HASH = $(shell git rev-parse HEAD)
