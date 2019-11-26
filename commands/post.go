@@ -66,10 +66,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channelArg, _ := cmd.Flags().GetString("channel")
-	channel := getChannelFromChannelArg(c, channelArg)
+	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.New("unable to find channel '" + channelArg + "'")
+		return errors.New("unable to find channel '" + args[0] + "'")
 	}
 
 	post := &model.Post{

@@ -9,9 +9,8 @@ import (
 func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 	s.Run("create a post with empty text", func() {
 		cmd := &cobra.Command{}
-		cmd.Flags().String("message", "", "")
 
-		err := postCreateCmdF(s.client, cmd, nil)
+		err := postCreateCmdF(s.client, cmd, []string{"some-channel", ""})
 		s.Require().NotNil(err)
 	})
 
@@ -21,7 +20,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
 
-		err := postCreateCmdF(s.client, cmd, []string{msgArg})
+		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
 		s.Require().NotNil(err)
 	})
 
@@ -50,7 +49,6 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		mockPost := model.Post{Message: msgArg}
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("channel", channelArg, "")
 		cmd.Flags().String("message", msgArg, "")
 
 		s.client.
@@ -80,7 +78,6 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		mockPost := model.Post{Message: msgArg, RootId: rootID}
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("channel", channelArg, "")
 		cmd.Flags().String("reply-to", replyToArg, "")
 		cmd.Flags().String("message", msgArg, "")
 
