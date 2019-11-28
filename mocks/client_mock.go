@@ -741,6 +741,20 @@ func (mr *MockClientMockRecorder) SendPasswordResetEmail(arg0 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPasswordResetEmail", reflect.TypeOf((*MockClient)(nil).SendPasswordResetEmail), arg0)
 }
 
+// SetConfig mocks base method
+func (m *MockClient) SetConfig(arg0 *model.Config) *model.Response {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetConfig", arg0)
+	ret0, _ := ret[0].(*model.Response)
+	return ret0
+}
+
+// SetConfig indicates an expected call of SetConfig
+func (mr *MockClientMockRecorder) SetConfig(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetConfig", reflect.TypeOf((*MockClient)(nil).SetConfig), arg0)
+}
+
 // SyncLdap mocks base method
 func (m *MockClient) SyncLdap() (bool, *model.Response) {
 	m.ctrl.T.Helper()
