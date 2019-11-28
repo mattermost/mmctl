@@ -1,4 +1,4 @@
-.PHONY: vendor docs
+.PHONY: vendor docs mocks
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
 BUILD_HASH = $(shell git rev-parse HEAD)
@@ -48,7 +48,7 @@ gofmt:
 
 govet:
 	@echo Running govet
-	$(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GO_PACKAGES)
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
 	@echo Govet success

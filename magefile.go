@@ -120,7 +120,9 @@ func Govet() error {
 		return err
 	}
 
-	sh.RunV("go", "get", "golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow")
+	if err := sh.RunWith(map[string]string{"GO111MODULE": "off"}, "go", "get", "golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow"); err != nil {
+		return err
+	}
 
 	args := append([]string{"vet"}, packages...)
 	sh.RunV("go", args...)
