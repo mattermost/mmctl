@@ -81,7 +81,12 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 }
 
 func setValue(path []string, obj reflect.Value, newValue interface{}) error {
-	val := obj.FieldByName(path[0])
+	var val reflect.Value
+	if obj.Kind() == reflect.Struct {
+		val = obj.FieldByName(path[0])
+	} else {
+		val = obj
+	}
 
 	if val.Kind() == reflect.Invalid {
 		return errors.New("Selected path object is not valid")
@@ -90,44 +95,43 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	if len(path) > 1 && val.Kind() == reflect.Struct {
 		return setValue(path[1:], val, newValue)
 	} else if len(path) == 1 {
-		if val.Kind() != reflect.Ptr && val.Kind() != reflect.Slice && val.Kind() != reflect.Struct {
-			return errors.New("Value is not modifiable")
-		} else if val.Kind() == reflect.Ptr {
-			switch val.Elem().Kind() {
+		if val.Kind() == reflect.Ptr {
+			return setValue(path, val.Elem(), newValue)
+		} else if val.Kind() == reflect.Struct {
+			val.Set(reflect.ValueOf(newValue))
+			return nil
+		} else if val.Kind() == reflect.Slice {
+			if val.Type().Elem().Kind() != reflect.String {
+				return errors.New("Unsupported type of slice")
+			}
+			val.Set(reflect.ValueOf(newValue))
+			return nil
+		} else {
+			switch val.Kind() {
 			case reflect.Int:
 				v, err := strconv.ParseInt(newValue.(string), 10, 64)
 				if err != nil {
 					return errors.New("Target value is of type Int and provided value is not")
 				}
-				val.Elem().SetInt(v)
+				val.SetInt(v)
 				return nil
 			case reflect.String:
-				val.Elem().SetString(newValue.(string))
+				val.SetString(newValue.(string))
 				return nil
 			case reflect.Bool:
 				v, err := strconv.ParseBool(newValue.(string))
 				if err != nil {
 					return errors.New("Target value is of type Bool and provided value is not")
 				}
-				val.Elem().SetBool(v)
+				val.SetBool(v)
 				return nil
 			default:
 				return errors.New("Target value type is not supported")
 			}
-		} else if val.Kind() == reflect.Struct {
-			val.Set(reflect.ValueOf(newValue))
-			return nil
-		} else if val.Type().Elem().Kind() == reflect.String {
-			val.Set(reflect.ValueOf(newValue))
-			return nil
-		} else {
-			return errors.New("Unsupported type of slice")
 		}
 	} else {
 		return errors.New("Path object type is not supported")
 	}
-
-	return nil
 }
 
 func setConfigValue(path []string, config *model.Config, newValue []string) error {
