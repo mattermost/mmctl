@@ -3,7 +3,7 @@ executors:
   default:
     working_directory: ~/go/src/github.com/mattermost/mmctl
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
 
 jobs:
   lint:
