@@ -50,7 +50,7 @@ var PluginDisableCmd = &cobra.Command{
 var PluginListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List plugins",
-	Long:    "List all active and inactive plugins installed on your Mattermost server.",
+	Long:    "List all enabled and disabled plugins installed on your Mattermost server.",
 	Example: `  plugin list`,
 	RunE:    withClient(pluginListCmdF),
 }
@@ -146,12 +146,12 @@ func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if format == printer.FORMAT_JSON {
 		printer.Print(pluginsResp)
 	} else {
-		printer.Print("Listing active plugins")
+		printer.Print("Listing enabled plugins")
 		for _, plugin := range pluginsResp.Active {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
 		}
 
-		printer.Print("Listing inactive plugins")
+		printer.Print("Listing disabled plugins")
 		for _, plugin := range pluginsResp.Inactive {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
 		}
