@@ -138,12 +138,12 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 8)
-		s.Require().Equal("Listing active plugins", printer.GetLines()[0])
 		for i, plugin := range mockList.Active {
+		s.Require().Equal("Listing enabled plugins", printer.GetLines()[0])
 			s.Require().Equal(plugin, printer.GetLines()[i+1])
 		}
-		s.Require().Equal("Listing inactive plugins", printer.GetLines()[4])
 		for i, plugin := range mockList.Inactive {
+		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
 			s.Require().Equal(plugin, printer.GetLines()[i+5])
 		}
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -211,12 +211,12 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 8)
-		s.Require().Equal("Listing active plugins", printer.GetLines()[0])
 		for i, plugin := range mockList.Active {
+		s.Require().Equal("Listing enabled plugins", printer.GetLines()[0])
 			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+1])
 		}
-		s.Require().Equal("Listing inactive plugins", printer.GetLines()[4])
 		for i, plugin := range mockList.Inactive {
+		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
 			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+5])
 		}
 		s.Require().Len(printer.GetErrorLines(), 0)
