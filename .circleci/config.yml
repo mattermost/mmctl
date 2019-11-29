@@ -68,7 +68,7 @@ jobs:
               --env MM_CONFIG='mysql://mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8' \
               --env MM_TEAMSETTINGS_MAXUSERSPERTEAM=500 \
               -d \
-              mattermost/mattermost-enterprise-edition:5.14.0-rc4
+              mattermost/mattermost-enterprise-edition:master
 
             sleep 5
             docker logs mattermost_circleci
