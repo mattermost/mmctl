@@ -8,7 +8,7 @@ github.com/davecgh/go-spew/spew
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/go-ldap/ldap v3.0.2+incompatible
 github.com/go-ldap/ldap
-# github.com/golang/mock v1.2.0
+# github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
@@ -18,7 +18,7 @@ github.com/gorilla/websocket
 github.com/inconshreveable/mousetrap
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
-# github.com/magefile/mage v1.8.0
+# github.com/magefile/mage v1.9.0
 github.com/magefile/mage/mg
 github.com/magefile/mage/sh
 # github.com/mattermost/mattermost-server v0.0.0-20190417144445-84a59ddb3928
@@ -45,7 +45,7 @@ github.com/pmezard/go-difflib/difflib
 github.com/russross/blackfriday
 # github.com/sirupsen/logrus v1.4.0
 github.com/sirupsen/logrus
-# github.com/spf13/cobra v0.0.3
+# github.com/spf13/cobra v0.0.5
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.3
@@ -69,7 +69,7 @@ go.uber.org/zap/zapcore
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+# golang.org/x/net v0.0.0-20190326090315-15845e8f865b
 golang.org/x/net/html
 golang.org/x/net/html/atom
 # golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
