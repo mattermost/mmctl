@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"errors"
 	"reflect"
 	"strconv"
@@ -31,10 +30,18 @@ var ConfigGetCmd = &cobra.Command{
 var ConfigSetCmd = &cobra.Command{
 	Use:     "set",
 	Short:   "Set config setting",
-	Long:    "Adds or updates a config setting by its name in dot notation.",
-	Example: `config set SqlSettings.DriverName postgresql`,
-	Args:    cobra.ExactArgs(2),
+	Long:    "Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings",
+	Example: "config set SqlSettings.DriverName mysql",
+	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(configSetCmdF),
+}
+
+var ConfigResetCmd = &cobra.Command{
+	Use:     "reset",
+	Short:   "Reset config setting",
+	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
+	Example: "config reset SqlSettings.DriverName LogSettings",
+	RunE:    withClient(configResetCmdF),
 }
 
 var ConfigShowCmd = &cobra.Command{
@@ -50,6 +57,7 @@ func init() {
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
 		ConfigSetCmd,
+		ConfigResetCmd,
 		ConfigShowCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
@@ -72,34 +80,32 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 	}
 }
 
-func setValue(path []string, obj reflect.Value, newValue string) error {
+func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	val := obj.FieldByName(path[0])
 
 	if val.Kind() == reflect.Invalid {
 		return errors.New("Selected path object is not valid")
 	}
 
-	if val.Kind() == reflect.Struct {
+	if len(path) > 1 && val.Kind() == reflect.Struct {
 		return setValue(path[1:], val, newValue)
 	} else if len(path) == 1 {
-		// All the updatable values should be pointers so can be modified
-		// using reflection
-		if val.Kind() != reflect.Ptr && val.Kind() != reflect.Slice {
+		if val.Kind() != reflect.Ptr && val.Kind() != reflect.Slice && val.Kind() != reflect.Struct {
 			return errors.New("Value is not modifiable")
 		} else if val.Kind() == reflect.Ptr {
 			switch val.Elem().Kind() {
 			case reflect.Int:
-				v, err := strconv.ParseInt(newValue, 10, 64)
+				v, err := strconv.ParseInt(newValue.(string), 10, 64)
 				if err != nil {
 					return errors.New("Target value is of type Int and provided value is not")
 				}
 				val.Elem().SetInt(v)
 				return nil
 			case reflect.String:
-				val.Elem().SetString(newValue)
+				val.Elem().SetString(newValue.(string))
 				return nil
 			case reflect.Bool:
-				v, err := strconv.ParseBool(newValue)
+				v, err := strconv.ParseBool(newValue.(string))
 				if err != nil {
 					return errors.New("Target value is of type Bool and provided value is not")
 				}
@@ -108,14 +114,14 @@ func setValue(path []string, obj reflect.Value, newValue string) error {
 			default:
 				return errors.New("Target value type is not supported")
 			}
-		} else {
-			var newSlice []string
-			err := json.Unmarshal([]byte(newValue), &newSlice)
-			if err != nil {
-				return errors.New("Target value is of type array of strings and provided value is not")
-			}
-			val.Set(reflect.ValueOf(newSlice))
+		} else if val.Kind() == reflect.Struct {
+			val.Set(reflect.ValueOf(newValue))
 			return nil
+		} else if val.Type().Elem().Kind() == reflect.String {
+			val.Set(reflect.ValueOf(newValue))
+			return nil
+		} else {
+			return errors.New("Unsupported type of slice")
 		}
 	} else {
 		return errors.New("Path object type is not supported")
@@ -124,8 +130,26 @@ func setValue(path []string, obj reflect.Value, newValue string) error {
 	return nil
 }
 
-func setConfigValue(path []string, config *model.Config, newValue string) error {
-	return setValue(path, reflect.ValueOf(config).Elem(), newValue)
+func setConfigValue(path []string, config *model.Config, newValue []string) error {
+	if len(newValue) > 1 {
+		return setValue(path, reflect.ValueOf(config).Elem(), newValue)
+	}
+	return setValue(path, reflect.ValueOf(config).Elem(), newValue[0])
+}
+
+func resetConfigValue(path []string, config *model.Config, newValue interface{}) error {
+	nv := reflect.ValueOf(newValue)
+	if nv.Kind() == reflect.Ptr {
+		if nv.Elem().Kind() == reflect.Int {
+			return setValue(path, reflect.ValueOf(config).Elem(), strconv.Itoa(*newValue.(*int)))
+		} else if nv.Elem().Kind() == reflect.Bool {
+			return setValue(path, reflect.ValueOf(config).Elem(), strconv.FormatBool(*newValue.(*bool)))
+		} else {
+			return setValue(path, reflect.ValueOf(config).Elem(), *newValue.(*string))
+		}
+	} else {
+		return setValue(path, reflect.ValueOf(config).Elem(), newValue)
+	}
 }
 
 func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -157,8 +181,36 @@ func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if err := setConfigValue(path, config, args[1]); err != nil {
+	if err := setConfigValue(path, config, args[1:]); err != nil {
 		return err
+	}
+	if res := c.SetConfig(config); res.Error != nil {
+		return res.Error
+	}
+
+	return nil
+}
+
+func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	// TODO Confirmation dialog
+
+	defaultConfig := &model.Config{}
+	defaultConfig.SetDefaults()
+	config, resp := c.GetConfig()
+	if resp.Error != nil {
+		return errors.New("")
+	}
+
+	for _, arg := range args {
+		path, err := parseConfigPath(arg)
+		if err != nil {
+			return errors.New("")
+		}
+		defaultValue, ok := getValue(path, *defaultConfig)
+		if !ok {
+			return errors.New("")
+		}
+		resetConfigValue(path, config, defaultValue)
 	}
 	if res := c.SetConfig(config); res.Error != nil {
 		return res.Error
