@@ -6,7 +6,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/model"
+	model "github.com/mattermost/mattermost-server/v5/model"
 	io "io"
 	reflect "reflect"
 )
