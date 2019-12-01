@@ -142,7 +142,14 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByChannel(channel.Id, 0, 10)
+	groupOpts := &model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+
+	groups, _, res := c.GetGroupsByChannel(channel.Id, *groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -194,7 +201,13 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByChannel(channel.Id, 0, 9999)
+	groupOpts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+	groups, _, res := c.GetGroupsByChannel(channel.Id, groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -212,7 +225,13 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByTeam(team.Id, 0, 10)
+	groupOpts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -264,7 +283,13 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByTeam(team.Id, 0, 9999)
+	groupOpts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}

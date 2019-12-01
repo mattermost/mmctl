@@ -335,33 +335,35 @@ func (mr *MockClientMockRecorder) GetDeletedChannelsForTeam(arg0, arg1, arg2, ar
 }
 
 // GetGroupsByChannel mocks base method
-func (m *MockClient) GetGroupsByChannel(arg0 string, arg1, arg2 int) ([]*model.Group, *model.Response) {
+func (m *MockClient) GetGroupsByChannel(arg0 string, arg1 model.GroupSearchOpts) ([]*model.Group, int, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupsByChannel", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetGroupsByChannel", arg0, arg1)
 	ret0, _ := ret[0].([]*model.Group)
-	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret1, _ := ret[1].(int)
+	ret2, _ := ret[2].(*model.Response)
+	return ret0, ret1, ret2
 }
 
 // GetGroupsByChannel indicates an expected call of GetGroupsByChannel
-func (mr *MockClientMockRecorder) GetGroupsByChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetGroupsByChannel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByChannel", reflect.TypeOf((*MockClient)(nil).GetGroupsByChannel), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByChannel", reflect.TypeOf((*MockClient)(nil).GetGroupsByChannel), arg0, arg1)
 }
 
 // GetGroupsByTeam mocks base method
-func (m *MockClient) GetGroupsByTeam(arg0 string, arg1, arg2 int) ([]*model.Group, *model.Response) {
+func (m *MockClient) GetGroupsByTeam(arg0 string, arg1 model.GroupSearchOpts) ([]*model.Group, int, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupsByTeam", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetGroupsByTeam", arg0, arg1)
 	ret0, _ := ret[0].([]*model.Group)
-	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret1, _ := ret[1].(int)
+	ret2, _ := ret[2].(*model.Response)
+	return ret0, ret1, ret2
 }
 
 // GetGroupsByTeam indicates an expected call of GetGroupsByTeam
-func (mr *MockClientMockRecorder) GetGroupsByTeam(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetGroupsByTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByTeam", reflect.TypeOf((*MockClient)(nil).GetGroupsByTeam), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupsByTeam", reflect.TypeOf((*MockClient)(nil).GetGroupsByTeam), arg0, arg1)
 }
 
 // GetLdapGroups mocks base method
