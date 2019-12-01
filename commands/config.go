@@ -184,7 +184,7 @@ func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err := setConfigValue(path, config, args[1:]); err != nil {
 		return err
 	}
-	if res := c.SetConfig(config); res.Error != nil {
+	if _, res := c.UpdateConfig(config); res.Error != nil {
 		return res.Error
 	}
 
@@ -212,7 +212,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 		resetConfigValue(path, config, defaultValue)
 	}
-	if res := c.SetConfig(config); res.Error != nil {
+	if _, res := c.UpdateConfig(config); res.Error != nil {
 		return res.Error
 	}
 
