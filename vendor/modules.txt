@@ -6,13 +6,11 @@ github.com/cpuguy83/go-md2man/md2man
 github.com/davecgh/go-spew/spew
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 github.com/dyatlov/go-opengraph/opengraph
-# github.com/go-ldap/ldap v3.0.2+incompatible
-github.com/go-ldap/ldap
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
-# github.com/gorilla/websocket v1.4.0
+# github.com/gorilla/websocket v1.4.1
 github.com/gorilla/websocket
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
@@ -21,21 +19,23 @@ github.com/konsorten/go-windows-terminal-sequences
 # github.com/magefile/mage v1.9.0
 github.com/magefile/mage/mg
 github.com/magefile/mage/sh
-# github.com/mattermost/mattermost-server v0.0.0-20190417144445-84a59ddb3928
-github.com/mattermost/mattermost-server/mlog
-github.com/mattermost/mattermost-server/mlog/human
-github.com/mattermost/mattermost-server/model
-github.com/mattermost/mattermost-server/services/timezones
-github.com/mattermost/mattermost-server/utils/jsonutils
-github.com/mattermost/mattermost-server/utils/markdown
-# github.com/nicksnyder/go-i18n v1.10.0
-github.com/nicksnyder/go-i18n/i18n
-github.com/nicksnyder/go-i18n/i18n/bundle
-github.com/nicksnyder/go-i18n/i18n/language
-github.com/nicksnyder/go-i18n/i18n/translation
+# github.com/mattermost/go-i18n v1.11.0
+github.com/mattermost/go-i18n/i18n
+github.com/mattermost/go-i18n/i18n/bundle
+github.com/mattermost/go-i18n/i18n/language
+github.com/mattermost/go-i18n/i18n/translation
+# github.com/mattermost/ldap v3.0.4+incompatible
+github.com/mattermost/ldap
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20191129165124-8dda3d06b7a2
+github.com/mattermost/mattermost-server/v5/mlog
+github.com/mattermost/mattermost-server/v5/mlog/human
+github.com/mattermost/mattermost-server/v5/model
+github.com/mattermost/mattermost-server/v5/services/timezones
+github.com/mattermost/mattermost-server/v5/utils/jsonutils
+github.com/mattermost/mattermost-server/v5/utils/markdown
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
-# github.com/pelletier/go-toml v1.2.0
+# github.com/pelletier/go-toml v1.4.0
 github.com/pelletier/go-toml
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
@@ -43,39 +43,39 @@ github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
 # github.com/russross/blackfriday v1.5.2
 github.com/russross/blackfriday
-# github.com/sirupsen/logrus v1.4.0
+# github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/cobra v0.0.5
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
-# github.com/spf13/pflag v1.0.3
+# github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
 # github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
-# go.uber.org/atomic v1.3.2
+# go.uber.org/atomic v1.4.0
 go.uber.org/atomic
-# go.uber.org/multierr v1.1.0
+# go.uber.org/multierr v1.2.0
 go.uber.org/multierr
-# go.uber.org/zap v1.9.1
+# go.uber.org/zap v1.10.0
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
+# golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20190326090315-15845e8f865b
+# golang.org/x/net v0.0.0-20191119073136-fc4aabc6c914
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc
+# golang.org/x/sys v0.0.0-20191002091554-b397fe3ad8ed
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2
+# golang.org/x/text v0.3.2
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
@@ -84,5 +84,5 @@ golang.org/x/text/language
 gopkg.in/asn1-ber.v1
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
-# gopkg.in/yaml.v2 v2.2.2
+# gopkg.in/yaml.v2 v2.2.3
 gopkg.in/yaml.v2
