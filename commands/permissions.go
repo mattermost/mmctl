@@ -112,7 +112,7 @@ Permissions: {{.Permissions}}
 {{range .Permissions}}
   - {{.}}
 {{end}}
-{{if .BuildIn}}
+{{if .BuiltIn}}
 Built in: yes
 {{else}}
 Built in: no
