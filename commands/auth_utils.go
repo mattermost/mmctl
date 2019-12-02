@@ -128,7 +128,7 @@ func SetCurrent(name string) error {
 	}
 
 	if !found {
-		return errors.Errorf("cannot find credentials for server %s", name)
+		return errors.Errorf("cannot find credentials for server %q", name)
 	}
 
 	return SaveCredentialsList(credentialsList)
