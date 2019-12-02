@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -41,6 +42,7 @@ var ConfigResetCmd = &cobra.Command{
 	Short:   "Reset config setting",
 	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
 	Example: "config reset SqlSettings.DriverName LogSettings",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(configResetCmdF),
 }
 
@@ -54,6 +56,7 @@ var ConfigShowCmd = &cobra.Command{
 }
 
 func init() {
+	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
 		ConfigSetCmd,
@@ -192,27 +195,41 @@ func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return res.Error
 	}
 
+	printer.Print("Value changed successfully")
 	return nil
 }
 
 func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	// TODO Confirmation dialog
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+
+	if !confirmFlag && len(args) > 0 {
+		var confirmResetAll string
+		confirmationMsg := fmt.Sprintf(
+			"Are you sure you want to reset %s to their default value? (YES/NO): ",
+			args[0])
+		printer.Print(confirmationMsg)
+		fmt.Scanln(&confirmResetAll)
+		if confirmResetAll != "YES" {
+			printer.Print("Reset operation aborted")
+			return nil
+		}
+	}
 
 	defaultConfig := &model.Config{}
 	defaultConfig.SetDefaults()
-	config, resp := c.GetConfig()
-	if resp.Error != nil {
-		return errors.New("")
+	config, response := c.GetConfig()
+	if response.Error != nil {
+		return response.Error
 	}
 
 	for _, arg := range args {
 		path, err := parseConfigPath(arg)
 		if err != nil {
-			return errors.New("")
+			return err
 		}
 		defaultValue, ok := getValue(path, *defaultConfig)
 		if !ok {
-			return errors.New("")
+			return errors.New("Invalid key")
 		}
 		resetConfigValue(path, config, defaultValue)
 	}
@@ -220,6 +237,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return res.Error
 	}
 
+	printer.Print("Value/s reset successfully")
 	return nil
 }
 
