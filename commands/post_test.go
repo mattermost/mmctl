@@ -11,7 +11,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd := &cobra.Command{}
 
 		err := postCreateCmdF(s.client, cmd, []string{"some-channel", ""})
-		s.Require().NotNil(err)
+		s.Require().EqualError(err, "Message cannot be empty")
 	})
 
 	s.Run("no channel specified", func() {
@@ -21,7 +21,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd.Flags().String("message", msgArg, "")
 
 		err := postCreateCmdF(s.client, cmd, []string{"", msgArg})
-		s.Require().NotNil(err)
+		s.Require().EqualError(err, "Unable to find channel ''")
 	})
 
 	s.Run("wrong reply msg", func() {
@@ -39,7 +39,31 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 			Times(1)
 
 		err := postCreateCmdF(s.client, cmd, []string{msgArg})
-		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "some-error")
+	})
+
+	s.Run("error when creating a post", func() {
+		msgArg := "some text"
+		channelArg := "example-channel"
+		mockChannel := model.Channel{Name: channelArg}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("message", msgArg, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(channelArg, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreatePost(&model.Post{Message: msgArg}).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		s.Require().Contains(err.Error(), "some-error")
 	})
 
 	s.Run("create a post", func() {

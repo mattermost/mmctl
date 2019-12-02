@@ -52,7 +52,7 @@ func init() {
 func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	message, _ := cmd.Flags().GetString("message")
 	if message == "" {
-		return errors.New("message cannot be empty")
+		return errors.New("Message cannot be empty")
 	}
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
@@ -68,7 +68,7 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.New("unable to find channel '" + args[0] + "'")
+		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
 	post := &model.Post{
