@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -144,7 +145,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if accessToken != "" && username != "" {
-		return fmt.Errorf("you must use --access-token or --username, but not both")
+		return errors.New("you must use --access-token or --username, but not both")
 	}
 
 	if accessToken == "" && username == "" {
@@ -160,7 +161,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	if username != "" && password == "" {
 		stdinPassword, err := getPasswordFromStdin()
 		if err != nil {
-			return fmt.Errorf("couldn't read password: %v", err)
+			return errors.WithMessage(err, "couldn't read password")
 		}
 		password = stdinPassword
 	}
@@ -254,7 +255,7 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(*credentialsList) == 0 {
-		return fmt.Errorf("there are no registered credentials, maybe you need to use login first")
+		return errors.New("there are no registered credentials, maybe you need to use login first")
 	}
 
 	serverNames := []string{}
@@ -304,7 +305,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		if password == "" {
 			stdinPassword, err := getPasswordFromStdin()
 			if err != nil {
-				return fmt.Errorf("couldn't read password: %v", err)
+				return errors.WithMessage(err, "couldn't read password")
 			}
 			password = stdinPassword
 		}
@@ -321,7 +322,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 
 	case METHOD_TOKEN:
 		if accessToken == "" {
-			return fmt.Errorf("requires the --access-token parameter to be set")
+			return errors.New("requires the --access-token parameter to be set")
 		}
 
 		credentials.AuthToken = accessToken
@@ -331,7 +332,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 
 	case METHOD_MFA:
 		if mfaToken == "" {
-			return fmt.Errorf("requires the --mfa-token parameter to be set")
+			return errors.New("requires the --mfa-token parameter to be set")
 		}
 
 		c, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceUrl)
@@ -341,7 +342,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		credentials.AuthToken = c.AuthToken
 
 	default:
-		return fmt.Errorf("invalid auth method %q", credentials.AuthMethod)
+		return errors.Errorf("invalid auth method %q", credentials.AuthMethod)
 	}
 
 	if err := SaveCredentials(*credentials); err != nil {
@@ -362,7 +363,7 @@ func deleteCmdF(cmd *cobra.Command, args []string) error {
 	name := args[0]
 	credentials := (*credentialsList)[name]
 	if credentials == nil {
-		return fmt.Errorf("cannot find credentials for server name %v", name)
+		return errors.Errorf("cannot find credentials for server name %q", name)
 	}
 
 	delete(*credentialsList, name)

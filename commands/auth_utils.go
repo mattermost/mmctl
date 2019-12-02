@@ -2,10 +2,11 @@ package commands
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -40,17 +41,17 @@ func ReadCredentialsList() (*CredentialsList, error) {
 	}
 
 	if _, errStat := os.Stat(configFilePath); err != nil {
-		return nil, fmt.Errorf("cannot read user credentials, maybe you need to use login first: %v", errStat)
+		return nil, errors.WithMessage(errStat, "cannot read user credentials, maybe you need to use login first")
 	}
 
 	fileContents, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("there was a problem reading the credentials file: %v", err)
+		return nil, errors.WithMessage(err, "there was a problem reading the credentials file")
 	}
 
 	var credentialsList CredentialsList
 	if err := json.Unmarshal(fileContents, &credentialsList); err != nil {
-		return nil, fmt.Errorf("there was a problem parsing the credentials file: %v", err)
+		return nil, errors.WithMessage(err, "there was a problem parsing the credentials file")
 	}
 
 	return &credentialsList, nil
@@ -67,7 +68,7 @@ func GetCurrentCredentials() (*Credentials, error) {
 			return c, nil
 		}
 	}
-	return nil, fmt.Errorf("no current context available. please use the %q command", "auth set")
+	return nil, errors.Errorf("no current context available. please use the %q command", "auth set")
 }
 
 func GetCredentials(name string) (*Credentials, error) {
@@ -81,7 +82,7 @@ func GetCredentials(name string) (*Credentials, error) {
 			return c, nil
 		}
 	}
-	return nil, fmt.Errorf("couldn't find credentials for connection %q", name)
+	return nil, errors.Errorf("couldn't find credentials for connection %q", name)
 }
 
 func SaveCredentials(credentials Credentials) error {
@@ -104,7 +105,7 @@ func SaveCredentialsList(credentialsList *CredentialsList) error {
 	marshaledCredentialsList, _ := json.MarshalIndent(credentialsList, "", "    ")
 
 	if err := ioutil.WriteFile(configFilePath, marshaledCredentialsList, 0600); err != nil {
-		return fmt.Errorf("cannot save the credentials: %v", err)
+		return errors.WithMessage(err, "cannot save the credentials")
 	}
 
 	return nil
@@ -127,7 +128,7 @@ func SetCurrent(name string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("cannot find credentials for server %s", name)
+		return errors.Errorf("cannot find credentials for server %s", name)
 	}
 
 	return SaveCredentialsList(credentialsList)
