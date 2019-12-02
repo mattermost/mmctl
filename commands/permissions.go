@@ -1,10 +1,9 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -106,23 +105,26 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return response.Error
 	}
 
-	fmt.Printf("Name: %s\n", role.Name)
-	fmt.Printf("Display Name: %s\n", role.DisplayName)
-	fmt.Printf("Description: %s\n", role.Description)
-	fmt.Printf("Permissions:\n")
-	for _, permission := range role.Permissions {
-		fmt.Printf("  - %s\n", permission)
-	}
-	if role.BuiltIn {
-		fmt.Printf("Built in: yes\n")
-	} else {
-		fmt.Printf("Built in: no\n")
-	}
-	if role.SchemeManaged {
-		fmt.Printf("Scheme Managed: yes\n")
-	} else {
-		fmt.Printf("Scheme Managed: no\n")
-	}
+	tpl := `Name: {{.Name}}
+Display Name: {{.DisplayName}}
+Description: {{.Description}}
+Permissions: {{.Permissions}}
+{{range .Permissions}}
+  - {{.}}
+{{end}}
+{{if .BuildIn}}
+Built in: yes
+{{else}}
+Built in: no
+{{end}}
+{{if .SchemeManaged}}
+Scheme Managed: yes
+{{else}}
+Scheme Managed: no
+{{end}}
+`
+
+	printer.PrintT(tpl, role)
 
 	return nil
 }
