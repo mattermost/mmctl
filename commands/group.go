@@ -204,7 +204,7 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 	groupOpts := model.GroupSearchOpts{
 		PageOpts: &model.PageOpts{
 			Page:    0,
-			PerPage: 10,
+			PerPage: 9999,
 		},
 	}
 	groups, _, res := c.GetGroupsByChannel(channel.Id, groupOpts)
@@ -286,7 +286,7 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	groupOpts := model.GroupSearchOpts{
 		PageOpts: &model.PageOpts{
 			Page:    0,
-			PerPage: 10,
+			PerPage: 9999,
 		},
 	}
 	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
