@@ -14,6 +14,7 @@ import (
 
 func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 	s.Run("Add without args", func() {
+		printer.Clean()
 		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Error(err)
 	})
@@ -28,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(gomock.Any()).
+			UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{Error: nil}).
 			Times(1)
 
@@ -39,6 +40,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 	})
 
 	s.Run("Add 1 plugin no file", func() {
+		printer.Clean()
 		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{"non_existent_plugin"})
 		s.Require().EqualError(err, "open non_existent_plugin: no such file or directory")
 	})
@@ -54,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 
 		s.client.
 			EXPECT().
-			UploadPlugin(gomock.Any()).
+			UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
 			Return(&model.Manifest{}, &model.Response{Error: mockError}).
 			Times(1)
 
@@ -76,13 +78,13 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 			if arg == "fail" {
 				s.client.
 					EXPECT().
-					UploadPlugin(gomock.Any()).
+					UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
 					Return(nil, &model.Response{Error: mockError}).
 					Times(1)
 			} else {
 				s.client.
 					EXPECT().
-					UploadPlugin(gomock.Any()).
+					UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
 					Return(&model.Manifest{}, &model.Response{Error: nil}).
 					Times(1)
 			}
