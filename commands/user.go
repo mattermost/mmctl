@@ -16,6 +16,15 @@ var UserCmd = &cobra.Command{
 	Short: "Management of users",
 }
 
+var UserActivateCmd = &cobra.Command{
+	Use:   "activate [emails, usernames, userIds]",
+	Short: "Activate users",
+	Long:  "Activate users that have been deactivated.",
+	Example: `  user activate user@example.com
+  user activate username`,
+	RunE: withClient(userActivateCmdF),
+}
+
 var UserDeactivateCmd = &cobra.Command{
 	Use:   "deactivate [emails, usernames, userIds]",
 	Short: "Deactivate users",
@@ -92,6 +101,7 @@ func init() {
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
 	UserCmd.AddCommand(
+		UserActivateCmd,
 		UserDeactivateCmd,
 		UserCreateCmd,
 		UserInviteCmd,
@@ -104,17 +114,39 @@ func init() {
 	RootCmd.AddCommand(UserCmd)
 }
 
-func deactivateUsers(c client.Client, userArgs []string) {
+func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	changeUsersActiveStatus(c, args, true)
+
+	return nil
+}
+
+func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
-		if user.IsSSOUser() {
-			printer.Print("You must also deactivate user " + userArgs[i] + " in the SSO provider or they will be reactivated on next login or sync.")
-		}
+		err := changeUserActiveStatus(c, user, userArgs[i], active)
 
-		if _, response := c.DeleteUser(user.Id); response.Error != nil {
-			printer.PrintError("Unable to deactivate user " + userArgs[i] + ". Error: " + response.Error.Error())
+		if err != nil {
+			printer.PrintError(err.Error())
 		}
 	}
+}
+
+func changeUserActiveStatus(c client.Client, user *model.User, userArg string, activate bool) error {
+	if user == nil {
+		return fmt.Errorf("Can't find user '%v'", userArg)
+	}
+	if !activate && user.IsSSOUser() {
+		printer.Print("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
+	}
+	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
+		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
+	}
+
+	return nil
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -122,7 +154,7 @@ func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	deactivateUsers(c, args)
+	changeUsersActiveStatus(c, args, false)
 
 	return nil
 }

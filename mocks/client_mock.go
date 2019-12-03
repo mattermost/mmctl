@@ -769,6 +769,21 @@ func (mr *MockClientMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockClient)(nil).UpdateUser), arg0)
 }
 
+// UpdateUserActive mocks base method
+func (m *MockClient) UpdateUserActive(arg0 string, arg1 bool) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserActive", arg0, arg1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateUserActive indicates an expected call of UpdateUserActive
+func (mr *MockClientMockRecorder) UpdateUserActive(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserActive", reflect.TypeOf((*MockClient)(nil).UpdateUserActive), arg0, arg1)
+}
+
 // UpdateUserMfa mocks base method
 func (m *MockClient) UpdateUserMfa(arg0, arg1 string, arg2 bool) (bool, *model.Response) {
 	m.ctrl.T.Helper()
