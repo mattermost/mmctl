@@ -1,10 +1,9 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -130,7 +129,7 @@ func listLdapGroupsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	for _, group := range groups {
-		fmt.Println(group)
+		printer.PrintT("{{.DisplayName}}", group)
 	}
 
 	return nil
@@ -181,15 +180,17 @@ func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string)
 }
 
 func channelGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
 	if channel.GroupConstrained != nil && *channel.GroupConstrained {
-		fmt.Println("Enabled")
+		printer.Print("Enabled")
 	} else {
-		fmt.Println("Disabled")
+		printer.Print("Disabled")
 	}
 
 	return nil
@@ -213,7 +214,7 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 	}
 
 	for _, group := range groups {
-		fmt.Println(group.DisplayName)
+		printer.PrintT("{{.DisplayName}}", group)
 	}
 
 	return nil
@@ -263,15 +264,17 @@ func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) er
 }
 
 func teamGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
 	if team.GroupConstrained != nil && *team.GroupConstrained {
-		fmt.Println("Enabled")
+		printer.Print("Enabled")
 	} else {
-		fmt.Println("Disabled")
+		printer.Print("Disabled")
 	}
 
 	return nil
@@ -295,7 +298,7 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	for _, group := range groups {
-		fmt.Println(group.DisplayName)
+		printer.PrintT("{{.DisplayName}}", group)
 	}
 
 	return nil
