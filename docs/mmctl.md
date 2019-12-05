@@ -30,5 +30,6 @@ Mattermost offers workplace messaging across web, PC and phones with archiving, 
 * [mmctl post](mmctl_post.md)	 - Management of posts
 * [mmctl team](mmctl_team.md)	 - Management of teams
 * [mmctl user](mmctl_user.md)	 - Management of users
+* [mmctl version](mmctl_version.md)	 - Prints the version of mmctl.
 * [mmctl websocket](mmctl_websocket.md)	 - Display websocket in a human-readable format
 

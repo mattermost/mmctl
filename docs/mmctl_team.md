@@ -26,5 +26,6 @@ Management of teams
 * [mmctl team delete](mmctl_team_delete.md)	 - Delete teams
 * [mmctl team list](mmctl_team_list.md)	 - List all teams.
 * [mmctl team remove](mmctl_team_remove.md)	 - Remove users from team
+* [mmctl team rename](mmctl_team_rename.md)	 - Rename team
 * [mmctl team search](mmctl_team_search.md)	 - Search for teams
 
