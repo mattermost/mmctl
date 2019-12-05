@@ -1,9 +1,9 @@
 version: 2.1
 executors:
   default:
-    working_directory: /go/src/github.com/mattermost/mmctl
+    working_directory: ~/go/src/github.com/mattermost/mmctl
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
 
 jobs:
   lint:
@@ -13,12 +13,92 @@ jobs:
       - checkout
       - run: make check
 
+  setup:
+    docker:
+      - image: mattermost/mattermost-build-webapp:oct-2-2018
+    working_directory: ~/go/src/github.com/mattermost/
+    steps:
+      - run:
+          name: Checkout mattermost-server
+          command: |
+            mkdir -p ~/.ssh/
+            echo -e "Host github.com\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+            git clone git@github.com:mattermost/mattermost-server.git
+
+            cd mattermost-server
+            git checkout $CIRCLE_BRANCH || git checkout master
+      - persist_to_workspace:
+          root: ~/go/src/github.com/mattermost
+          paths:
+            - mattermost-server
+
   test:
-    executor:
-      name: default
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/go/src/github.com/mattermost/mmctl
+    environment:
+      COMPOSE_PROJECT_NAME: "circleci"
     steps:
       - checkout
-      - run: make test
+      - attach_workspace:
+          at: ~/go/src/github.com/mattermost/
+      - run:
+          name: Run Docker compose
+          command: |
+            cd ../mattermost-server/build
+            docker-compose --no-ansi run --rm start_dependencies
+            cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+            docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+            docker-compose --no-ansi ps
+          background: true
+      - run:
+          name: Wait for docker compose
+          command: |
+              sleep 5
+              docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+              docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+      - run:
+          name: Start Mattermost
+          command: |
+            ulimit -n 8096
+            cd ~/go/src/github.com/mattermost/mattermost-server
+
+            docker run --net circleci_mm-test \
+              --name mattermost_circleci \
+              --env MM_CONFIG='mysql://mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8' \
+              --env MM_TEAMSETTINGS_MAXUSERSPERTEAM=500 \
+              -d \
+              mattermost/mattermost-enterprise-edition:master
+
+            sleep 5
+            docker logs mattermost_circleci
+
+            docker exec mattermost_circleci ./bin/mattermost sampledata -w 4 -u 60
+      - run:
+          name: Run Tests
+          command: |
+            ulimit -n 8096
+
+            docker run -it --net circleci_mm-test \
+              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
+              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
+              --env CI_INBUCKET_HOST=inbucket \
+              --env CI_MINIO_HOST=minio \
+              --env CI_INBUCKET_PORT=10080 \
+              --env CI_MINIO_PORT=9000 \
+              --env CI_INBUCKET_SMTP_PORT=10025 \
+              --env CI_LDAP_HOST=openldap \
+              --env IS_CI="true" \
+              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
+              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
+              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
+              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env MMCTL_INSTANCE_URL=http://mattermost_circleci:8065 \
+              -v ~/go/src:/go/src \
+              -w /go/src/github.com/mattermost/mmctl \
+              mattermost/mattermost-build-server:oct-18-2019 \
+              bash -c 'ulimit -n 8096 && make test-all'
 
   build:
     executor:
@@ -49,10 +129,19 @@ workflows:
   untagged-build:
     jobs:
       - lint
-      - test
+      - setup
+      - test:
+          requires:
+            - setup
   tagged-build:
     jobs:
       - lint:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - setup:
           filters:
             tags:
               only: /^v.*/
