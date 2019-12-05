@@ -60,4 +60,5 @@ type Client interface {
 	DeleteCommand(commandId string) (bool, *model.Response)
 	GetConfig() (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
+	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 }

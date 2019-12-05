@@ -68,6 +68,17 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    withClient(searchTeamCmdF),
 }
 
+// RenameTeamCmd is the command to rename team along with its display name
+var RenameTeamCmd = &cobra.Command{
+	Use:   "rename [team]",
+	Short: "Rename team",
+	Long:  "Rename an existing team",
+	Example: ` team rename myoldteam newteamname --display_name 'New Team Name'
+	team rename myoldteam - --display_name 'New Team Name'`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: withClient(renameTeamCmdF),
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -76,6 +87,8 @@ func init() {
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
 
+	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
+
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		RemoveUsersCmd,
@@ -83,6 +96,7 @@ func init() {
 		DeleteTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		RenameTeamCmd,
 	)
 
 	RootCmd.AddCommand(TeamCmd)
@@ -273,4 +287,45 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 		return result[i].Name < result[j].Name
 	})
 	return result
+}
+
+// Wrapper around UpdateTeam, so it can be used by others too
+func updateTeam(c client.Client, teamToUpdate *model.Team) error {
+	_, response := c.UpdateTeam(teamToUpdate)
+	if response.Error != nil {
+		return response.Error
+	}
+	return nil
+}
+
+func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	oldTeamName := args[0]
+
+	team := getTeamFromTeamArg(c, oldTeamName)
+	if team == nil {
+		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
+	}
+
+	newTeamName := args[1]
+	// If new name entered is same as old, then only display name will change
+	if newTeamName == team.Name {
+		newTeamName = "-"
+	}
+
+	newDisplayName, err := cmd.Flags().GetString("display_name")
+	if err != nil || newDisplayName == "" {
+		return errors.New("missing display name, append '--display_name' flag to your command")
+	}
+
+	// Create a update team with existing team obj only changes can be name or display name
+	team.Name = newTeamName
+	team.DisplayName = newDisplayName
+
+	// Using updateTeam to rename team
+	err = updateTeam(c, team)
+	if err != nil {
+		return errors.New("Cannot rename team'" + oldTeamName + "', error:" + err.Error())
+	}
+
+	return nil
 }
