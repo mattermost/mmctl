@@ -107,6 +107,11 @@ func init() {
 func deactivateUsers(c client.Client, userArgs []string) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
+		if user == nil {
+			printer.PrintError("Unable to find user '" + userArgs[i] + "'")
+			continue
+		}
+
 		if user.IsSSOUser() {
 			printer.Print("You must also deactivate user " + userArgs[i] + " in the SSO provider or they will be reactivated on next login or sync.")
 		}
