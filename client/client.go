@@ -3,7 +3,7 @@ package client
 import (
 	"io"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type Client interface {
@@ -33,8 +33,8 @@ type Client interface {
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
 	GetPostsForChannel(channelId string, page, perPage int, etag string) (*model.PostList, *model.Response)
 	GetLdapGroups() ([]*model.Group, *model.Response)
-	GetGroupsByChannel(channelId string, page, perPage int) ([]*model.Group, *model.Response)
-	GetGroupsByTeam(teamId string, page, perPage int) ([]*model.Group, *model.Response)
+	GetGroupsByChannel(channelId string, groupOpts model.GroupSearchOpts) ([]*model.Group, int, *model.Response)
+	GetGroupsByTeam(teamId string, groupOpts model.GroupSearchOpts) ([]*model.Group, int, *model.Response)
 	UploadLicenseFile(data []byte) (bool, *model.Response)
 	RemoveLicenseFile() (bool, *model.Response)
 	GetLogs(page, perPage int) ([]string, *model.Response)

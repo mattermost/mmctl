@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/mlog/human"
+	"github.com/mattermost/mattermost-server/v5/mlog/human"
 	"github.com/mattermost/mmctl/client"
 	"github.com/spf13/cobra"
 )
