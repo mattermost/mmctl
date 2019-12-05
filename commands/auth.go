@@ -214,7 +214,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Printf("\n  credentials for %s: %s@%s stored\n\n", name, username, url)
+	fmt.Printf("\n  credentials for %q: \"%s@%s\" stored\n\n", name, username, url)
 	return nil
 }
 
@@ -234,7 +234,7 @@ func currentCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\n  found credentials for %s: %s @ %s\n\n", credentials.Name, credentials.Username, credentials.InstanceUrl)
+	fmt.Printf("\n  found credentials for %q: \"%s@%s\"\n\n", credentials.Name, credentials.Username, credentials.InstanceUrl)
 	return nil
 }
 
