@@ -3,7 +3,7 @@ package commands
 import (
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
