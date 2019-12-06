@@ -21,6 +21,5 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 	if team == nil {
 		team, _ = c.GetTeamByName(teamArg, "")
 	}
-	
 	return team
 }
