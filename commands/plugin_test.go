@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -229,16 +229,18 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 8)
+
 		s.Require().Equal("Listing enabled plugins", printer.GetLines()[0])
 		for i, plugin := range mockList.Active {
 			s.Require().Equal(plugin, printer.GetLines()[i+1])
 		}
+
 		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
 		for i, plugin := range mockList.Inactive {
 			s.Require().Equal(plugin, printer.GetLines()[i+5])
 		}
-		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("List Plain Plugins", func() {
@@ -302,16 +304,18 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 8)
+
 		s.Require().Equal("Listing enabled plugins", printer.GetLines()[0])
 		for i, plugin := range mockList.Active {
 			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+1])
 		}
+
 		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
 		for i, plugin := range mockList.Inactive {
 			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+5])
 		}
-		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("GetPlugins returns error", func() {
