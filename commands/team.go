@@ -299,11 +299,19 @@ func updateTeam(c client.Client, teamToUpdate *model.Team) error {
 }
 
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if len(args) == 0 || args[0] == "" {
+		return errors.New("Error: requires at least 2 arg(s), only received 0")
+	}
+
 	oldTeamName := args[0]
 
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
+	}
+
+	if args[1] == "" {
+		return errors.New("Error: required at least 2 arg(s), only received 1, If you like to change only display name; pass '-' after existing team name")
 	}
 
 	newTeamName := args[1]
@@ -324,8 +332,10 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	// Using updateTeam to rename team
 	err = updateTeam(c, team)
 	if err != nil {
-		return errors.New("Cannot rename team'" + oldTeamName + "', error:" + err.Error())
+		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
+
+	// printer.PrintT("Team" + oldTeamName user {{.Username}}", ruser)
 
 	return nil
 }
