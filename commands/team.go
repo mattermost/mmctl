@@ -57,6 +57,7 @@ var ArchiveTeamsCmd = &cobra.Command{
 	Long: `Archive some teams.
 Archives a team along with all related information including posts from the database.`,
 	Example: "  team archive myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(archiveTeamsCmdF),
 }
 
@@ -234,10 +235,6 @@ func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
 }
 
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Not enough arguments.")
-	}
-
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		var confirm string
@@ -247,7 +244,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
 		}
-		fmt.Println("Are you sure you want to archive the teams specified?  All data will be deleted? (YES/NO): ")
+		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
 			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
