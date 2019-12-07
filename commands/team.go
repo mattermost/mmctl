@@ -290,12 +290,13 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 }
 
 // Wrapper around UpdateTeam, so it can be used by others too
-func updateTeam(c client.Client, teamToUpdate *model.Team) error {
-	_, response := c.UpdateTeam(teamToUpdate)
+func updateTeam(c client.Client, teamToUpdate *model.Team) (*model.Team, error) {
+	updatedTeam, response := c.UpdateTeam(teamToUpdate)
 	if response.Error != nil {
-		return response.Error
+		return nil, response.Error
 	}
-	return nil
+
+	return updatedTeam, nil
 }
 
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -305,8 +306,8 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	oldTeamName := args[0]
 
-	team := getTeamFromTeamArg(c, oldTeamName)
-	if team == nil {
+	foundTeam := getTeamFromTeamArg(c, oldTeamName)
+	if foundTeam == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
@@ -315,8 +316,9 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	newTeamName := args[1]
-	// If new name entered is same as old, then only display name will change
-	if newTeamName == team.Name {
+
+	// If new name entered is same as old, then to not update team name pass (-) to API
+	if newTeamName == foundTeam.Name {
 		newTeamName = "-"
 	}
 
@@ -325,17 +327,45 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("missing display name, append '--display_name' flag to your command")
 	}
 
-	// Create a update team with existing team obj only changes can be name or display name
-	team.Name = newTeamName
-	team.DisplayName = newDisplayName
+	renamedTeam := &model.Team{
+		Id:                 foundTeam.Id,
+		CreateAt:           foundTeam.CreateAt,
+		UpdateAt:           foundTeam.UpdateAt,
+		DeleteAt:           foundTeam.DeleteAt,
+		DisplayName:        newDisplayName,
+		Name:               newTeamName,
+		Description:        foundTeam.Description,
+		Email:              foundTeam.Email,
+		Type:               foundTeam.Type,
+		CompanyName:        foundTeam.CompanyName,
+		AllowedDomains:     foundTeam.AllowedDomains,
+		InviteId:           foundTeam.InviteId,
+		AllowOpenInvite:    foundTeam.AllowOpenInvite,
+		LastTeamIconUpdate: foundTeam.LastTeamIconUpdate,
+		SchemeId:           foundTeam.SchemeId,
+		GroupConstrained:   foundTeam.GroupConstrained,
+	}
 
 	// Using updateTeam to rename team
-	err = updateTeam(c, team)
+	updatedTeam, err := updateTeam(c, renamedTeam)
 	if err != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
 
-	// printer.PrintT("Team" + oldTeamName user {{.Username}}", ruser)
-
-	return nil
+	if newTeamName == "-" {
+		// Only display name was suppose to renamed
+		if (updatedTeam.DisplayName == newDisplayName) && (oldTeamName == updatedTeam.Name) {
+			printer.Print("Display name of '" + oldTeamName + "' was renamed to '" + updatedTeam.DisplayName + "'")
+			return nil
+		}
+		return errors.New("Failed to rename display name of '" + oldTeamName + "'")
+	}
+	if newTeamName == updatedTeam.Name {
+		if newDisplayName == updatedTeam.DisplayName {
+			printer.Print("'" + oldTeamName + "' team renamed to '" + updatedTeam.Name + "' with display name as '" + updatedTeam.DisplayName + "'")
+			return nil
+		}
+		return errors.New("Failed to rename display name of '" + oldTeamName + "'")
+	}
+	return errors.New("Failed to rename team '" + oldTeamName + "'")
 }
