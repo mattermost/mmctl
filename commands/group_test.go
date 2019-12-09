@@ -59,7 +59,8 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
-		errResponse := "PatchTeam Error"
+		errMessage := "PatchTeam Error"
+		mockError := &model.AppError{Message: errMessage}
 
 		s.client.
 			EXPECT().
@@ -70,13 +71,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 		s.client.
 			EXPECT().
 			PatchTeam(teamArg, &teamPatch).
-			Return(nil, &model.Response{Error: &model.AppError{Message: errResponse}}).
+			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		s.Contains(err.Error(), errResponse)
+		s.EqualError(err, mockError.Error())
 	})
 }
