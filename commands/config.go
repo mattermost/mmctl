@@ -191,11 +191,12 @@ func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err := setConfigValue(path, config, args[1:]); err != nil {
 		return err
 	}
-	if _, res := c.UpdateConfig(config); res.Error != nil {
+	newConfig, res := c.UpdateConfig(config)
+	if res.Error != nil {
 		return res.Error
 	}
 
-	printer.Print("Value changed successfully")
+	printer.PrintT("Value changed successfully", newConfig)
 	return nil
 }
 
