@@ -270,11 +270,6 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			GetConfig().
 			Return(defaultConfig, &model.Response{Error: nil}).
 			Times(1)
-		s.client.
-			EXPECT().
-			UpdateConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
-			Times(0)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().NotNil(err)
@@ -375,11 +370,6 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 			GetConfig().
 			Return(defaultConfig, &model.Response{Error: nil}).
 			Times(1)
-		s.client.
-			EXPECT().
-			UpdateConfig(defaultConfig).
-			Return(defaultConfig, &model.Response{Error: nil}).
-			Times(0)
 
 		resetCmd := &cobra.Command{}
 		resetCmd.Flags().Bool("confirm", true, "")
