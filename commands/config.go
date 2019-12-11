@@ -232,7 +232,10 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		if !ok {
 			return errors.New("Invalid key")
 		}
-		resetConfigValue(path, config, defaultValue)
+		err = resetConfigValue(path, config, defaultValue)
+		if err != nil {
+			return err
+		}
 	}
 	if _, res := c.UpdateConfig(config); res.Error != nil {
 		return res.Error
