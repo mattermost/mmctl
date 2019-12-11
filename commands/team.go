@@ -360,40 +360,25 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
 	newTeamName := args[1]
 
-	foundTeam := getTeamFromTeamArg(c, oldTeamName)
-	if foundTeam == nil {
+	team := getTeamFromTeamArg(c, oldTeamName)
+	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	if newTeamName == foundTeam.Name {
-		if newDisplayName == foundTeam.DisplayName {
+	if newTeamName == team.Name {
+		if newDisplayName == team.DisplayName {
 			return errors.New("Failed to rename, entered display name and name are same for team")
 		}
 		// If new name entered is same as old, then to not update team name pass (-) to API
 		newTeamName = "-"
 	}
 
-	renamedTeam := &model.Team{
-		Id:                 foundTeam.Id,
-		CreateAt:           foundTeam.CreateAt,
-		UpdateAt:           foundTeam.UpdateAt,
-		DeleteAt:           foundTeam.DeleteAt,
-		DisplayName:        newDisplayName,
-		Name:               newTeamName,
-		Description:        foundTeam.Description,
-		Email:              foundTeam.Email,
-		Type:               foundTeam.Type,
-		CompanyName:        foundTeam.CompanyName,
-		AllowedDomains:     foundTeam.AllowedDomains,
-		InviteId:           foundTeam.InviteId,
-		AllowOpenInvite:    foundTeam.AllowOpenInvite,
-		LastTeamIconUpdate: foundTeam.LastTeamIconUpdate,
-		SchemeId:           foundTeam.SchemeId,
-		GroupConstrained:   foundTeam.GroupConstrained,
-	}
+	// Update the team obj with new values
+	team.Name = newTeamName
+	team.DisplayName = newDisplayName
 
 	// Using updateTeam to rename team
-	updatedTeam, err := updateTeam(c, renamedTeam)
+	updatedTeam, err := updateTeam(c, team)
 	if err != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
