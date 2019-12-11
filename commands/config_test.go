@@ -384,7 +384,6 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 	s.Run("Should show config", func() {
 		printer.Clean()
-		configShowArg := "config-show"
 		mockConfig := &model.Config{}
 
 		s.client.
@@ -393,7 +392,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 			Return(mockConfig, &model.Response{Error: nil}).
 			Times(1)
 
-		err := configShowCmdF(s.client, &cobra.Command{}, []string{configShowArg})
+		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Equal(mockConfig, printer.GetLines()[0])
