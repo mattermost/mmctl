@@ -237,11 +237,12 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	if _, res := c.UpdateConfig(config); res.Error != nil {
+	newConfig, res := c.UpdateConfig(config)
+	if res.Error != nil {
 		return res.Error
 	}
 
-	printer.Print("Value/s reset successfully")
+	printer.PrintT("Value/s reset successfully", newConfig)
 	return nil
 }
 

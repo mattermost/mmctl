@@ -328,7 +328,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(string), "Value/s reset successfully")
+		s.Require().Equal(printer.GetLines()[0].(*model.Config), defaultConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -355,7 +355,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(string), "Value/s reset successfully")
+		s.Require().Equal(printer.GetLines()[0].(*model.Config), defaultConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
