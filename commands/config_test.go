@@ -79,7 +79,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].([]string), []string{})
+		s.Require().Equal(printer.GetLines()[0], []string{})
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -100,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(model.SqlSettings), sqlSettings)
+		s.Require().Equal(printer.GetLines()[0], sqlSettings)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -170,7 +170,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(*model.Config), inputConfig)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -198,7 +198,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(*model.Config), inputConfig)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -226,7 +226,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(*model.Config), inputConfig)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -253,7 +253,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(*model.Config), inputConfig)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -328,7 +328,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(*model.Config), defaultConfig)
+		s.Require().Equal(printer.GetLines()[0], defaultConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -355,7 +355,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0].(*model.Config), defaultConfig)
+		s.Require().Equal(printer.GetLines()[0], defaultConfig)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
