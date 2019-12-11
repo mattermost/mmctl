@@ -2,9 +2,12 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -25,6 +28,24 @@ var ConfigGetCmd = &cobra.Command{
 	RunE:    withClient(configGetCmdF),
 }
 
+var ConfigSetCmd = &cobra.Command{
+	Use:     "set",
+	Short:   "Set config setting",
+	Long:    "Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings",
+	Example: "config set SqlSettings.DriverName mysql",
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    withClient(configSetCmdF),
+}
+
+var ConfigResetCmd = &cobra.Command{
+	Use:     "reset",
+	Short:   "Reset config setting",
+	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
+	Example: "config reset SqlSettings.DriverName LogSettings",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(configResetCmdF),
+}
+
 var ConfigShowCmd = &cobra.Command{
 	Use:     "show",
 	Short:   "Writes the server configuration to STDOUT",
@@ -35,8 +56,11 @@ var ConfigShowCmd = &cobra.Command{
 }
 
 func init() {
+	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
+		ConfigSetCmd,
+		ConfigResetCmd,
 		ConfigShowCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
@@ -59,6 +83,82 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 	}
 }
 
+func setValue(path []string, obj reflect.Value, newValue interface{}) error {
+	var val reflect.Value
+	if obj.Kind() == reflect.Struct {
+		val = obj.FieldByName(path[0])
+	} else {
+		val = obj
+	}
+
+	if val.Kind() == reflect.Invalid {
+		return errors.New("Selected path object is not valid")
+	}
+
+	if len(path) > 1 && val.Kind() == reflect.Struct {
+		return setValue(path[1:], val, newValue)
+	} else if len(path) == 1 {
+		if val.Kind() == reflect.Ptr {
+			return setValue(path, val.Elem(), newValue)
+		} else if val.Kind() == reflect.Struct {
+			val.Set(reflect.ValueOf(newValue))
+			return nil
+		} else if val.Kind() == reflect.Slice {
+			if val.Type().Elem().Kind() != reflect.String {
+				return errors.New("Unsupported type of slice")
+			}
+			val.Set(reflect.ValueOf(newValue))
+			return nil
+		} else {
+			switch val.Kind() {
+			case reflect.Int:
+				v, err := strconv.ParseInt(newValue.(string), 10, 64)
+				if err != nil {
+					return errors.New("Target value is of type Int and provided value is not")
+				}
+				val.SetInt(v)
+				return nil
+			case reflect.String:
+				val.SetString(newValue.(string))
+				return nil
+			case reflect.Bool:
+				v, err := strconv.ParseBool(newValue.(string))
+				if err != nil {
+					return errors.New("Target value is of type Bool and provided value is not")
+				}
+				val.SetBool(v)
+				return nil
+			default:
+				return errors.New("Target value type is not supported")
+			}
+		}
+	} else {
+		return errors.New("Path object type is not supported")
+	}
+}
+
+func setConfigValue(path []string, config *model.Config, newValue []string) error {
+	if len(newValue) > 1 {
+		return setValue(path, reflect.ValueOf(config).Elem(), newValue)
+	}
+	return setValue(path, reflect.ValueOf(config).Elem(), newValue[0])
+}
+
+func resetConfigValue(path []string, config *model.Config, newValue interface{}) error {
+	nv := reflect.ValueOf(newValue)
+	if nv.Kind() == reflect.Ptr {
+		if nv.Elem().Kind() == reflect.Int {
+			return setValue(path, reflect.ValueOf(config).Elem(), strconv.Itoa(*newValue.(*int)))
+		} else if nv.Elem().Kind() == reflect.Bool {
+			return setValue(path, reflect.ValueOf(config).Elem(), strconv.FormatBool(*newValue.(*bool)))
+		} else {
+			return setValue(path, reflect.ValueOf(config).Elem(), *newValue.(*string))
+		}
+	} else {
+		return setValue(path, reflect.ValueOf(config).Elem(), newValue)
+	}
+}
+
 func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FORMAT_JSON)
@@ -78,6 +178,74 @@ func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	config, response := c.GetConfig()
+	if response.Error != nil {
+		return response.Error
+	}
+
+	path, err := parseConfigPath(args[0])
+	if err != nil {
+		return err
+	}
+	if err := setConfigValue(path, config, args[1:]); err != nil {
+		return err
+	}
+	newConfig, res := c.UpdateConfig(config)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	printer.PrintT("Value changed successfully", newConfig)
+	return nil
+}
+
+func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+
+	if !confirmFlag && len(args) > 0 {
+		var confirmResetAll string
+		confirmationMsg := fmt.Sprintf(
+			"Are you sure you want to reset %s to their default value? (YES/NO): ",
+			args[0])
+		fmt.Println(confirmationMsg)
+		fmt.Scanln(&confirmResetAll)
+		if confirmResetAll != "YES" {
+			fmt.Println("Reset operation aborted")
+			return nil
+		}
+	}
+
+	defaultConfig := &model.Config{}
+	defaultConfig.SetDefaults()
+	config, response := c.GetConfig()
+	if response.Error != nil {
+		return response.Error
+	}
+
+	for _, arg := range args {
+		path, err := parseConfigPath(arg)
+		if err != nil {
+			return err
+		}
+		defaultValue, ok := getValue(path, *defaultConfig)
+		if !ok {
+			return errors.New("Invalid key")
+		}
+		err = resetConfigValue(path, config, defaultValue)
+		if err != nil {
+			return err
+		}
+	}
+	newConfig, res := c.UpdateConfig(config)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	printer.PrintT("Value/s reset successfully", newConfig)
+	return nil
+}
+
 func configShowCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FORMAT_JSON)
@@ -89,4 +257,8 @@ func configShowCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.Print(config)
 
 	return nil
+}
+
+func parseConfigPath(configPath string) ([]string, error) {
+	return strings.Split(configPath, "."), nil
 }

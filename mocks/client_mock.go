@@ -771,6 +771,21 @@ func (mr *MockClientMockRecorder) SyncLdap() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap))
 }
 
+// UpdateConfig mocks base method
+func (m *MockClient) UpdateConfig(arg0 *model.Config) (*model.Config, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfig", arg0)
+	ret0, _ := ret[0].(*model.Config)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateConfig indicates an expected call of UpdateConfig
+func (mr *MockClientMockRecorder) UpdateConfig(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockClient)(nil).UpdateConfig), arg0)
+}
+
 // UpdateUser mocks base method
 func (m *MockClient) UpdateUser(arg0 *model.User) (*model.User, *model.Response) {
 	m.ctrl.T.Helper()
