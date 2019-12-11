@@ -27,6 +27,7 @@ type Client interface {
 	PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.Response)
 	AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Response)
 	RemoveTeamMember(teamId, userId string) (bool, *model.Response)
+	SoftDeleteTeam(teamId string) (bool, *model.Response)
 	PermanentDeleteTeam(teamId string) (bool, *model.Response)
 	SearchTeams(search *model.TeamSearch) ([]*model.Team, *model.Response)
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
@@ -59,6 +60,7 @@ type Client interface {
 	ListCommands(teamId string, customOnly bool) ([]*model.Command, *model.Response)
 	DeleteCommand(commandId string) (bool, *model.Response)
 	GetConfig() (*model.Config, *model.Response)
+	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 }
