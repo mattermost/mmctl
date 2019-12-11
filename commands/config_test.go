@@ -400,4 +400,18 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Should return an error", func() {
+		printer.Clean()
+		configError := &model.AppError{Message: "Config Error"}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(nil, &model.Response{Error: configError}).
+			Times(1)
+
+		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NotNil(err)
+		s.EqualError(err, configError.Error())
+	})
 }
