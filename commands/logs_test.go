@@ -13,8 +13,8 @@ import (
 
 const (
 	testLogInfo       = `{"level":"info","ts":1573516747,"caller":"app/server.go:490","msg":"Server is listening on [::]:8065"}`
-	testLogInfoStdout = "2019-11-11T23:59:07Z info app/server.go:490 Server is listening on [::]:8065"
-	testLogrusStdout  = "time=\"2019-11-11T23:59:07Z\" level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
+	testLogInfoStdout = "info app/server.go:490 Server is listening on [::]:8065"
+	testLogrusStdout  = "level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
 )
 
 func (s *MmctlUnitTestSuite) TestLogsCmd() {
@@ -33,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
-		s.EqualValues(testLogInfoStdout, data[0])
+		s.Contains(data[0], testLogInfoStdout)
 	})
 
 	s.Run("Display logs", func() {
@@ -50,7 +50,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
-		s.EqualValues(testLogInfoStdout, data[0])
+		s.Contains(data[0], testLogInfoStdout)
 	})
 
 	s.Run("Display logs logrus format", func() {
@@ -69,7 +69,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
-		s.EqualValues(testLogrusStdout, data[0])
+		s.Contains(data[0], testLogrusStdout)
 	})
 }
 
