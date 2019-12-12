@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -51,6 +51,16 @@ Permanently deletes a team along with all related information including posts fr
 	RunE:    withClient(deleteTeamsCmdF),
 }
 
+var ArchiveTeamsCmd = &cobra.Command{
+	Use:   "archive [teams]",
+	Short: "Archive teams",
+	Long: `Archive some teams.
+Archives a team along with all related information including posts from the database.`,
+	Example: "  team archive myteam",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(archiveTeamsCmdF),
+}
+
 var ListTeamsCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List all teams.",
@@ -75,12 +85,14 @@ func init() {
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
+	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		RemoveUsersCmd,
 		AddUsersCmd,
 		DeleteTeamsCmd,
+		ArchiveTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
 	)
@@ -220,6 +232,39 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
 	return c.PermanentDeleteTeam(team.Id)
+}
+
+func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		fmt.Println("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirm)
+
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+	}
+
+	teams := getTeamsFromTeamArgs(c, args)
+	for i, team := range teams {
+		if team == nil {
+			printer.PrintError("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if _, response := c.SoftDeleteTeam(team.Id); response.Error != nil {
+			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Archived team '{{.Name}}'", team)
+		}
+	}
+
+	return nil
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
