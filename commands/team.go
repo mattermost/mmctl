@@ -337,16 +337,6 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 	return result
 }
 
-// Wrapper around UpdateTeam, so it can be used by others too
-func updateTeam(c client.Client, teamToUpdate *model.Team) (*model.Team, error) {
-	updatedTeam, response := c.UpdateTeam(teamToUpdate)
-	if response.Error != nil {
-		return nil, response.Error
-	}
-
-	return updatedTeam, nil
-}
-
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) == 0 || args[0] == "" {
 		return errors.New("Error: requires at least 1 arg(s), only received 0")
