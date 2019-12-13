@@ -83,9 +83,10 @@ var RenameTeamCmd = &cobra.Command{
 	Use:   "rename [team]",
 	Short: "Rename team",
 	Long:  "Rename an existing team",
-	Example: ` team rename myoldteam newteamname --display_name 'New Team Name'
-	team rename myoldteam - --display_name 'New Team Name'`,
-	Args: cobra.MinimumNArgs(2),
+	Example: `  team rename old-team --name 'new-team' --display_name 'New Display Name'
+  team rename old-team --name 'new-team'
+  team rename old-team --display_name 'New Display Name'`,
+	Args: cobra.MinimumNArgs(1),
 	RunE: withClient(renameTeamCmdF),
 }
 
@@ -98,6 +99,8 @@ func init() {
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
 	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
 
+	// Add flag declaration for RenameTeam
+	RenameTeamCmd.Flags().String("name", "", "Old Team Name")
 	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
 
 	TeamCmd.AddCommand(
@@ -346,58 +349,79 @@ func updateTeam(c client.Client, teamToUpdate *model.Team) (*model.Team, error) 
 
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) == 0 || args[0] == "" {
-		return errors.New("Error: requires at least 2 arg(s), only received 0")
+		return errors.New("Error: requires at least 1 arg(s), only received 0")
 	}
 
-	if args[1] == "" {
-		return errors.New("Error: required at least 2 arg(s), only received 1, If you like to change only display name; pass '-' after existing team name")
-	}
-
-	newDisplayName, err := cmd.Flags().GetString("display_name")
-	if err != nil || newDisplayName == "" {
-		return errors.New("Missing display name, append '--display_name' flag to your command")
-	}
 	oldTeamName := args[0]
-	newTeamName := args[1]
+	newDisplayName, _ := cmd.Flags().GetString("display_name")
+	newTeamName, _ := cmd.Flags().GetString("name")
+
+	// If both flags are absent, abort!
+	if newTeamName == "" && newDisplayName == "" {
+		return errors.New("Require atleast one flag to rename team, either 'name' or 'display_name'")
+	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	if newTeamName == team.Name {
-		if newDisplayName == team.DisplayName {
-			return errors.New("Failed to rename, entered display name and name are same for team")
-		}
-		// If new name entered is same as old, then to not update team name pass (-) to API
-		newTeamName = "-"
+	// Check for name uniqueness
+	if newTeamName != "" && newTeamName == team.Name {
+		return errors.New("Entered name is the current name for " + team.Name + " , either remove the flag or updage to new value")
 	}
 
-	// Update the team obj with new values
-	team.Name = newTeamName
-	team.DisplayName = newDisplayName
+	// Check for display name uniqueness
+	if newDisplayName != "" && newDisplayName == team.DisplayName {
+		return errors.New("Entered display name is the current display name for " + team.Name + " , either remove the flag or updage to new value")
+	}
+
+	if newTeamName != "" {
+		team.Name = newTeamName
+	}
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
 
 	// Using updateTeam to rename team
-	updatedTeam, err := updateTeam(c, team)
-	if err != nil {
-		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
+	updatedTeam, response := c.UpdateTeam(team)
+	if response.Error != nil {
+		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
+	}
+	fmt.Println(team)
+	fmt.Println(updatedTeam)
+
+	// Checking if update from API did actually occur
+	isTeamNameEmpty := newTeamName == ""
+	isDisplayNameEmpty := newDisplayName == ""
+	wasTeamNameUpdated := newTeamName == updatedTeam.Name
+	wasDisplayNameUpdated := newDisplayName == updatedTeam.DisplayName
+
+	if isTeamNameEmpty && wasDisplayNameUpdated {
+		printer.Print("Successfully renamed team '" + oldTeamName + "'")
+		return nil
+	}
+	if isTeamNameEmpty && !wasDisplayNameUpdated {
+		return errors.New("Failed to update display name of team '" + oldTeamName + "'")
 	}
 
-	// Only display name was suppose to renamed
-	if newTeamName == "-" {
-		if (updatedTeam.DisplayName == newDisplayName) && (oldTeamName == updatedTeam.Name) {
-			printer.Print("Successfully renamed team '" + oldTeamName + "'")
-			return nil
-		}
-		return errors.New("Failed to rename display name of '" + oldTeamName + "'")
+	if isDisplayNameEmpty && wasTeamNameUpdated {
+		printer.Print("Successfully renamed team '" + oldTeamName + "'")
+		return nil
 	}
-	// New name was provided to rename
-	if newTeamName == updatedTeam.Name {
-		if newDisplayName == updatedTeam.DisplayName {
-			printer.Print("Successfully renamed team '" + oldTeamName + "'")
-			return nil
-		}
-		return errors.New("Failed to rename display name of '" + oldTeamName + "'")
+	if isDisplayNameEmpty && !wasTeamNameUpdated {
+		return errors.New("Failed to update name of team '" + oldTeamName + "'")
+	}
+
+	if !isTeamNameEmpty && !isDisplayNameEmpty && wasTeamNameUpdated && wasDisplayNameUpdated {
+		printer.Print("Successfully renamed team '" + oldTeamName + "'")
+		return nil
+	}
+	if !isTeamNameEmpty && !isDisplayNameEmpty && !wasTeamNameUpdated && wasDisplayNameUpdated {
+		return errors.New("Partially successfull, could not update name of team '" + oldTeamName + "'")
+	}
+	if !isTeamNameEmpty && !isDisplayNameEmpty && wasTeamNameUpdated && !wasDisplayNameUpdated {
+		return errors.New("Partially successfull, could not update display name of team '" + oldTeamName + "'")
 	}
 	return errors.New("Failed to rename team '" + oldTeamName + "'")
 }
