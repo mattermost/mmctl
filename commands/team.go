@@ -378,8 +378,6 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if response.Error != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
 	}
-	fmt.Println(team)
-	fmt.Println(updatedTeam)
 
 	// Checking if update from API did actually occur
 	isTeamNameEmpty := newTeamName == ""
