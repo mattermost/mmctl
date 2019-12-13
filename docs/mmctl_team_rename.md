@@ -13,8 +13,9 @@ mmctl team rename [team] [flags]
 ### Examples
 
 ```
- team rename myoldteam newteamname --display_name 'New Team Name'
-	team rename myoldteam - --display_name 'New Team Name'
+  team rename old-team --name 'new-team' --display_name 'New Display Name'
+  team rename old-team --name 'new-team'
+  team rename old-team --display_name 'New Display Name'
 ```
 
 ### Options
@@ -22,6 +23,7 @@ mmctl team rename [team] [flags]
 ```
       --display_name string   Team Display Name
   -h, --help                  help for rename
+      --name string           Old Team Name
 ```
 
 ### Options inherited from parent commands
