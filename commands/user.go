@@ -140,7 +140,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, userArg string, a
 		return fmt.Errorf("Can't find user '%v'", userArg)
 	}
 	if !activate && user.IsSSOUser() {
-		printer.Print("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
+		printer.Print("You must also deactivate user " + userArg + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)

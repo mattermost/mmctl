@@ -267,7 +267,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
+		s.Require().Equal("You must also deactivate user "+emailArg+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -348,7 +348,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, emailArgs)
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
+		s.Require().Equal("You must also deactivate user "+emailArgs[2]+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
 		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
@@ -1230,7 +1230,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteUser(mockUser.Id).
+			UpdateUserActive(mockUser.Id, false).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
@@ -1260,7 +1260,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteUser(mockUser.Id).
+			UpdateUserActive(mockUser.Id, false).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
@@ -1294,7 +1294,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteUser(mockUser.Id).
+			UpdateUserActive(mockUser.Id, false).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
@@ -1317,7 +1317,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteUser(mockUser.Id).
+			UpdateUserActive(mockUser.Id, false).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
@@ -1354,7 +1354,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find user '"+arg+"'", printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", arg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete multiple users", func() {
@@ -1377,7 +1377,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		for i := 0; i < len(argEmails); i++ {
 			s.client.
 				EXPECT().
-				DeleteUser(argUsers[i].Id).
+				UpdateUserActive(argUsers[i].Id, false).
 				Return(true, &model.Response{Error: nil}).
 				Times(1)
 		}
@@ -1439,7 +1439,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		for _, user := range argUsers {
 			s.client.
 				EXPECT().
-				DeleteUser(user.Id).
+				UpdateUserActive(user.Id, false).
 				Return(true, &model.Response{Error: nil}).
 				Times(1)
 		}
@@ -1484,7 +1484,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 
 		s.client.
 			EXPECT().
-			DeleteUser(mockUser1.Id).
+			UpdateUserActive(mockUser1.Id, false).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
@@ -1492,6 +1492,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find user '"+nonexistentEmail+"'", printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
 	})
 }
