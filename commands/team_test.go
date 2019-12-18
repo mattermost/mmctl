@@ -112,7 +112,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 	teamArg := "example-team-id"
 	userArg := "example-user-id"
-	s.Run("Remove users from team, no args", func() {
+	s.Run("Remove users from team, without args returns an error", func() {
 		printer.Clean()
 
 		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{})
@@ -120,7 +120,15 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Remove users from team, no team", func() {
+	s.Run("Remove users from team, with one arg returns an error", func() {
+		printer.Clean()
+
+		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		s.Require().Equal(err, errors.New("Not enough arguments."))
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Remove users from team, team not found, returns an error", func() {
 		printer.Clean()
 
 		s.client.
@@ -140,15 +148,15 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Remove users from team, no such user", func() {
+	s.Run("Remove users from team, user not found error", func() {
 		printer.Clean()
-		mockTeam := model.Team{Id: teamArg}
+		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
 
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -176,15 +184,21 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user '"+userArg+"'")
 	})
 
-	s.Run("Remove users from team by email", func() {
+	s.Run("Remove user by email get team by name, no error", func() {
 		printer.Clean()
-		mockTeam := model.Team{Id: teamArg}
+		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
 
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(nil, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamArg, "").
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -205,15 +219,44 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team by username", func() {
+	s.Run("Remove users from team by email, no error", func() {
 		printer.Clean()
-		mockTeam := model.Team{Id: teamArg}
+		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
 
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(mockUser.Id, "").
+			Return(mockUser, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemoveTeamMember(mockTeam.Id, mockUser.Id).
+			Return(false, &model.Response{Error: nil}).
+			Times(1)
+
+		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Remove users from team by username, no error", func() {
+		printer.Clean()
+		mockTeam := &model.Team{Id: teamArg}
+		mockUser := &model.User{Id: userArg}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -240,14 +283,14 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team", func() {
+	s.Run("Remove users from team by user no error", func() {
 		printer.Clean()
-		mockTeam := model.Team{Id: teamArg}
+		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -280,16 +323,16 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team error", func() {
+	s.Run("Remove users from team unable to remove error", func() {
 		printer.Clean()
-		mockTeam := model.Team{Id: teamArg, Name: "example-name"}
+		mockTeam := &model.Team{Id: teamArg, Name: "example-name"}
 		mockUser := &model.User{Id: userArg}
 		mockError := model.AppError{Message: "Mock error"}
 
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
