@@ -182,33 +182,15 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("name", newName, "Display Name")
 		cmd.Flags().String("display_name", newDisplayName, "Display Name")
 
+		// Only reduced model.Team struct for testing per say
+		// as we are interested in updating only name and display name
 		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: existingDisplayName,
+			Name:        existingName,
 		}
 		renamedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: newDisplayName,
+			Name:        newName,
 		}
 
 		s.client.
@@ -253,32 +235,12 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("display_name", newDisplayName, "Display Name")
 
 		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: existingDisplayName,
+			Name:        existingName,
 		}
 		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: newDisplayName,
+			Name:        newName,
 		}
 
 		s.client.
@@ -321,33 +283,13 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("display_name", newDisplayName, "Display Name")
 
 		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: existingDisplayName,
+			Name:        existingName,
 		}
 
 		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: newDisplayName,
+			Name:        existingName,
 		}
 
 		s.client.
@@ -390,33 +332,13 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("name", newName, "Display Name")
 
 		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: existingDisplayName,
+			Name:        existingName,
 		}
 
 		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
+			DisplayName: existingDisplayName,
+			Name:        newName,
 		}
 
 		s.client.
