@@ -86,7 +86,7 @@ var RenameTeamCmd = &cobra.Command{
 	Example: `  team rename old-team --name 'new-team' --display_name 'New Display Name'
   team rename old-team --name 'new-team'
   team rename old-team --display_name 'New Display Name'`,
-	Args: cobra.MinimumNArgs(1),
+	Args: cobra.ExactArgs(1),
 	RunE: withClient(renameTeamCmdF),
 }
 
@@ -338,10 +338,6 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 }
 
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) == 0 || args[0] == "" {
-		return errors.New("Error: requires at least 1 arg(s), only received 0")
-	}
-
 	oldTeamName := args[0]
 	newDisplayName, _ := cmd.Flags().GetString("display_name")
 	newTeamName, _ := cmd.Flags().GetString("name")
