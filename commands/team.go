@@ -352,16 +352,6 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	// Check for name uniqueness
-	if newTeamName != "" && newTeamName == team.Name {
-		return errors.New("Entered name is the current name for " + team.Name + " , either remove the flag or updage to new value")
-	}
-
-	// Check for display name uniqueness
-	if newDisplayName != "" && newDisplayName == team.DisplayName {
-		return errors.New("Entered display name is the current display name for " + team.Name + " , either remove the flag or updage to new value")
-	}
-
 	if newTeamName != "" {
 		team.Name = newTeamName
 	}
@@ -369,43 +359,12 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		team.DisplayName = newDisplayName
 	}
 
-	// Using updateTeam to rename team
-	updatedTeam, response := c.UpdateTeam(team)
+	// Using UpdateTeam API Method to rename team
+	_, response := c.UpdateTeam(team)
 	if response.Error != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
 	}
 
-	// Checking if update from API did actually occur
-	isTeamNameEmpty := newTeamName == ""
-	isDisplayNameEmpty := newDisplayName == ""
-	wasTeamNameUpdated := newTeamName == updatedTeam.Name
-	wasDisplayNameUpdated := newDisplayName == updatedTeam.DisplayName
-
-	if isTeamNameEmpty && wasDisplayNameUpdated {
-		printer.Print("Successfully renamed team '" + oldTeamName + "'")
-		return nil
-	}
-	if isTeamNameEmpty && !wasDisplayNameUpdated {
-		return errors.New("Failed to update display name of team '" + oldTeamName + "'")
-	}
-
-	if isDisplayNameEmpty && wasTeamNameUpdated {
-		printer.Print("Successfully renamed team '" + oldTeamName + "'")
-		return nil
-	}
-	if isDisplayNameEmpty && !wasTeamNameUpdated {
-		return errors.New("Failed to update name of team '" + oldTeamName + "'")
-	}
-
-	if !isTeamNameEmpty && !isDisplayNameEmpty && wasTeamNameUpdated && wasDisplayNameUpdated {
-		printer.Print("Successfully renamed team '" + oldTeamName + "'")
-		return nil
-	}
-	if !isTeamNameEmpty && !isDisplayNameEmpty && !wasTeamNameUpdated && wasDisplayNameUpdated {
-		return errors.New("Partially successfull, could not update name of team '" + oldTeamName + "'")
-	}
-	if !isTeamNameEmpty && !isDisplayNameEmpty && wasTeamNameUpdated && !wasDisplayNameUpdated {
-		return errors.New("Partially successfull, could not update display name of team '" + oldTeamName + "'")
-	}
-	return errors.New("Failed to rename team '" + oldTeamName + "'")
+	printer.Print("'" + oldTeamName + "' team renamed")
+	return nil
 }

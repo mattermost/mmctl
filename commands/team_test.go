@@ -110,24 +110,12 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
-
-	s.Run("Team rename should fail with missing old name argument", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		args := make([]string, 1)
-		args[0] = ""
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Error: requires at least 1 arg(s), only received 0")
-	})
-
 	s.Run("Team rename should fail with missing name and display name flag", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
 
-		args := make([]string, 1)
+		args := []string{""}
 		args[0] = "existingName"
 
 		err := renameTeamCmdF(s.client, cmd, args)
@@ -139,7 +127,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 
-		args := make([]string, 1)
+		args := []string{""}
 		args[0] = "existingName"
 
 		// Setting incorrect name flag
@@ -157,7 +145,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 
-		args := make([]string, 1)
+		args := []string{""}
 		args[0] = "existingName"
 		cmd.Flags().String("name", "newName", "Team Name")
 		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
@@ -180,88 +168,6 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.Require().EqualError(err, "Unable to find team 'existingName', to see the all teams try 'team list' command")
 	})
 
-	s.Run("Team rename should fail when same new team name is passed", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-
-		args := make([]string, 1)
-		sameTeamName := "existingTeamName"
-
-		args[0] = sameTeamName
-		cmd.Flags().String("name", sameTeamName, "Team Name")
-
-		sameTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    "existingDisplayName",
-			Name:           sameTeamName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(sameTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Entered name is the current name for "+sameTeamName+" , either remove the flag or updage to new value")
-	})
-
-	s.Run("Team rename should fail when same display team name is passed", func() {
-		printer.Clean()
-		cmd := &cobra.Command{}
-
-		args := make([]string, 1)
-		sameTeamName := "existingTeamName"
-
-		args[0] = sameTeamName
-		cmd.Flags().String("name", sameTeamName, "Display Name")
-
-		sameTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    "existingDisplayName",
-			Name:           sameTeamName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(sameTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Entered name is the current name for "+sameTeamName+" , either remove the flag or updage to new value")
-	})
-
 	s.Run("Team rename should fail when api fails to rename", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
@@ -270,7 +176,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		existingDisplayName := "existingDisplayName"
 		newDisplayName := "NewDisplayName"
 		newName := "newTeamName"
-		args := make([]string, 1)
+		args := []string{""}
 
 		args[0] = existingName
 		cmd.Flags().String("name", newName, "Display Name")
@@ -331,413 +237,6 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.Require().EqualError(err, "Cannot rename team '"+existingName+"', error : at-random-location.go: Mock Error, mocking a random error")
 	})
 
-	s.Run("Team rename should fail when api couldnt update display name, name is empty", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newDisplayName := "NewDisplayName"
-
-		args := make([]string, 1)
-		args[0] = existingName
-
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
-
-		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		renamedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           existingName, // Since name is empty
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName, // Display name not changed
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(renamedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}). // No error from API
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Failed to update display name of team '"+existingName+"'")
-	})
-
-	s.Run("Team rename should fail when api couldnt update display name, name is non empty", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newDisplayName := "NewDisplayName"
-		newName := "newTeamName"
-		args := make([]string, 1)
-
-		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
-
-		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		renamedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName, // Display name not changed
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(renamedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}). // No error from API
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Partially successfull, could not update display name of team '"+existingName+"'")
-	})
-
-	s.Run("Team rename should fail when api couldnt update name, display name is empty", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newName := "newTeamName"
-		args := make([]string, 1)
-
-		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
-
-		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		renamedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName, // name not changed
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(renamedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}). // No error from API
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Failed to update name of team '"+existingName+"'")
-	})
-
-	s.Run("Team rename should fail when api couldnt update name, display name is non empty", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newDisplayName := "NewDisplayName"
-		newName := "newTeamName"
-		args := make([]string, 1)
-
-		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
-
-		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		renamedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           existingName, // name not changed
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(renamedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}). // No error from API
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Partially successfull, could not update name of team '"+existingName+"'")
-	})
-
-	s.Run("Team rename should fail when api couldnt update name and display name", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newDisplayName := "NewDisplayName"
-		newName := "newTeamName"
-		args := make([]string, 1)
-
-		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
-
-		foundTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		renamedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    newDisplayName,
-			Name:           newName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		updatedTeam := &model.Team{
-			Id:             "pm695ajd5pdotqs46144rcejnc",
-			CreateAt:       1574191499747,
-			UpdateAt:       1575551058238,
-			DeleteAt:       0,
-			DisplayName:    existingDisplayName,
-			Name:           existingName,
-			Description:    "",
-			Email:          "sampleemail@emailhost.com",
-			Type:           "O",
-			CompanyName:    "pk1qtd1hnbyhbbk79cwshxc6se",
-			AllowedDomains: "",
-			InviteId:       "",
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(renamedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}). // No error from API
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Failed to rename team '"+existingName+"'")
-	})
-
 	s.Run("Team rename should work as expected", func() {
 		printer.Clean()
 
@@ -747,7 +246,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		existingDisplayName := "existingDisplayName"
 		newDisplayName := "NewDisplayName"
 		newName := "newTeamName"
-		args := make([]string, 1)
+		args := []string{""}
 
 		args[0] = existingName
 		cmd.Flags().String("name", newName, "Display Name")
@@ -805,7 +304,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "Successfully renamed team '"+existingName+"'")
+		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
 	})
 
 	s.Run("Team rename should work as expected even if only display name is supplied", func() {
@@ -816,7 +315,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		existingName := "existingTeamName"
 		existingDisplayName := "existingDisplayName"
 		newDisplayName := "NewDisplayName"
-		args := make([]string, 1)
+		args := []string{""}
 
 		args[0] = existingName
 		cmd.Flags().String("display_name", newDisplayName, "Display Name")
@@ -874,7 +373,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "Successfully renamed team '"+existingName+"'")
+		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
 	})
 
 	s.Run("Team rename should work as expected even if only name is supplied", func() {
@@ -885,7 +384,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		existingName := "existingTeamName"
 		existingDisplayName := "existingDisplayName"
 		newName := "newTeamName"
-		args := make([]string, 1)
+		args := []string{""}
 
 		args[0] = existingName
 		cmd.Flags().String("name", newName, "Display Name")
@@ -943,6 +442,6 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "Successfully renamed team '"+existingName+"'")
+		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
 	})
 }
