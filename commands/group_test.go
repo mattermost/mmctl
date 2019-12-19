@@ -11,7 +11,6 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		printer.Clean()
 
 		arg := "teamId"
-		//mockTeam := model.Team{Id: teamArg}
 
 		s.client.
 			EXPECT().
@@ -67,7 +66,6 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		arg := "teamId"
 		mockTeam := model.Team{Id: arg}
-		mockGroupList := []*model.Group{}
 		groupOpts := model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -84,7 +82,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return(mockGroupList, 0, &model.Response{Error: nil}).
+			Return([]*model.Group{}, 0, &model.Response{Error: nil}).
 			Times(1)
 
 		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
@@ -99,7 +97,6 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		arg := "teamId"
 		mockTeam := model.Team{Id: arg}
 		mockError := model.AppError{Message: "Mock error"}
-		mockGroupList := []*model.Group{&model.Group{}}
 		groupOpts := model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -117,7 +114,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return(mockGroupList, 1, &model.Response{Error: nil}).
+			Return([]*model.Group{&model.Group{}}, 1, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -137,7 +134,6 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 
 		arg := "teamId"
 		mockTeam := model.Team{Id: arg}
-		mockGroupList := []*model.Group{&model.Group{}}
 		groupOpts := model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -155,7 +151,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return(mockGroupList, 1, &model.Response{Error: nil}).
+			Return([]*model.Group{&model.Group{}}, 1, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
