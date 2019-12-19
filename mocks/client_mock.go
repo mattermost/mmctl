@@ -184,21 +184,6 @@ func (mr *MockClientMockRecorder) DeleteCommand(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCommand", reflect.TypeOf((*MockClient)(nil).DeleteCommand), arg0)
 }
 
-// DeleteUser mocks base method
-func (m *MockClient) DeleteUser(arg0 string) (bool, *model.Response) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUser", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
-}
-
-// DeleteUser indicates an expected call of DeleteUser
-func (mr *MockClientMockRecorder) DeleteUser(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockClient)(nil).DeleteUser), arg0)
-}
-
 // DisablePlugin mocks base method
 func (m *MockClient) DisablePlugin(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()

@@ -23,6 +23,7 @@ var UserActivateCmd = &cobra.Command{
 	Example: `  user activate user@example.com
   user activate username`,
 	RunE: withClient(userActivateCmdF),
+	Args: cobra.MinimumNArgs(1),
 }
 
 var UserDeactivateCmd = &cobra.Command{
@@ -32,6 +33,7 @@ var UserDeactivateCmd = &cobra.Command{
 	Example: `  user deactivate user@example.com
   user deactivate username`,
 	RunE: withClient(userDeactivateCmdF),
+	Args: cobra.MinimumNArgs(1),
 }
 
 var UserCreateCmd = &cobra.Command{
@@ -115,10 +117,6 @@ func init() {
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	changeUsersActiveStatus(c, args, true)
 
 	return nil
@@ -127,6 +125,11 @@ func userActivateCmdF(c client.Client, command *cobra.Command, args []string) er
 func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("Can't find user '%v'", userArgs[i]))
+			continue
+		}
+
 		err := changeUserActiveStatus(c, user, userArgs[i], active)
 
 		if err != nil {
@@ -136,9 +139,6 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 }
 
 func changeUserActiveStatus(c client.Client, user *model.User, userArg string, activate bool) error {
-	if user == nil {
-		return fmt.Errorf("Can't find user '%v'", userArg)
-	}
 	if !activate && user.IsSSOUser() {
 		printer.Print("You must also deactivate user " + userArg + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
@@ -150,10 +150,6 @@ func changeUserActiveStatus(c client.Client, user *model.User, userArg string, a
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	changeUsersActiveStatus(c, args, false)
 
 	return nil

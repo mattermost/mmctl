@@ -87,7 +87,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
-	s.Run("Activate several users with unexistent ones and failure ones", func() {
+	s.Run("Activate several users with unexistent ones and failed ones", func() {
 		printer.Clean()
 		emailArgs := []string{"example0@example0.com", "null", "example2@example2.com", "failure@failure.com", "example4@example4.com"}
 		mockUser0 := model.User{Id: "example0", Username: "ExampleUser0", Email: emailArgs[0]}
@@ -271,7 +271,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Deactivate several users with unexistent ones, SSO ones and failure ones", func() {
+	s.Run("Deactivate several users with unexistent ones, SSO ones and failed ones", func() {
 		printer.Clean()
 		emailArgs := []string{"example0@example0.com", "null", "example2@example2.com", "failure@failure.com", "example4@example4.com"}
 		mockUser0 := model.User{Id: "example0", Username: "ExampleUser0", Email: emailArgs[0]}
