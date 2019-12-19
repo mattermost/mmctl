@@ -112,7 +112,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 	teamArg := "example-team-id"
 	userArg := "example-user-id"
-	s.Run("Remove users from team, without args returns an error", func() {
+	s.Run("Remove users from team without args returns an error", func() {
 		printer.Clean()
 
 		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{})
@@ -120,7 +120,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Remove users from team, with one arg returns an error", func() {
+	s.Run("Remove users from team with one arg returns an error", func() {
 		printer.Clean()
 
 		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{teamArg})
@@ -128,7 +128,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Remove users from team, team not found, returns an error", func() {
+	s.Run("Remove users from team with a non-existent team returns an error", func() {
 		printer.Clean()
 
 		s.client.
@@ -148,7 +148,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Remove users from team, user not found error", func() {
+	s.Run("Remove users from team with a non-existent user returns an error", func() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
@@ -184,7 +184,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user '"+userArg+"'")
 	})
 
-	s.Run("Remove user by email get team by name, no error", func() {
+	s.Run("Remove users from team by email and get team by name should not return an error", func() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
@@ -219,7 +219,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team by email, no error", func() {
+	s.Run("Remove users from team by email and get team should not return an error", func() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
@@ -248,7 +248,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team by username, no error", func() {
+	s.Run("Remove users from team by username and get team should not return an error", func() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
@@ -283,7 +283,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team by user no error", func() {
+	s.Run("Remove users from team by user and get team should not return an error", func() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg}
 		mockUser := &model.User{Id: userArg}
@@ -323,7 +323,7 @@ func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Remove users from team unable to remove error", func() {
+	s.Run("Remove users from team with an erroneous RemoveTeamMember should return an error", func() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg, Name: "example-name"}
 		mockUser := &model.User{Id: userArg}
