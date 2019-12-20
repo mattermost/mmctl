@@ -110,6 +110,17 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
+	mockTeam := model.Team{
+		Id:          "TeamId",
+		Name:        "team1",
+		DisplayName: "DisplayName",
+	}
+	mockUser := model.User{
+		Id:       "UserID",
+		Username: "ExampleUser",
+		Email:    "example@example.com",
+	}
+
 	s.Run("Add users with not enough arguments returns error", func() {
 
 		cmd := &cobra.Command{}
@@ -119,7 +130,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Add users with no team in arguments returns error", func() {
+	s.Run("Add users with a team that cannot be found returns error", func() {
 
 		cmd := &cobra.Command{}
 
@@ -140,14 +151,9 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Add users with no existed user in arguments prints error", func() {
+	s.Run("Add users with nonexistent user in arguments prints error", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		mockTeam := model.Team{
-			Id:          "TeamId",
-			Name:        "team1",
-			DisplayName: "DisplayName",
-		}
 
 		s.client.
 			EXPECT().
@@ -182,17 +188,7 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 	s.Run("Add users should print error when cannot add team member", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		mockTeam := model.Team{
-			Id:          "TeamId",
-			Name:        "team1",
-			DisplayName: "DisplayName",
-		}
 
-		mockUser := model.User{
-			Id:       "UserID",
-			Username: "ExampleUser",
-			Email:    "example@example.com",
-		}
 		s.client.
 			EXPECT().
 			GetTeam("team1", "").
@@ -223,17 +219,6 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		mockTeam := model.Team{
-			Id:          "TeamId",
-			Name:        "team1",
-			DisplayName: "DisplayName",
-		}
-
-		mockUser := model.User{
-			Id:       "UserID",
-			Username: "ExampleUser",
-			Email:    "example@example.com",
-		}
 		s.client.
 			EXPECT().
 			GetTeam("team1", "").
