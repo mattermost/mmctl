@@ -9,7 +9,7 @@ import (
 
 func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 
-	s.Run("Team group list with no existed user returns error", func() {
+	s.Run("Team group list returns error when passing a nonexistent team", func() {
 		printer.Clean()
 
 		s.client.
