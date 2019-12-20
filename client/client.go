@@ -62,4 +62,5 @@ type Client interface {
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
+	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 }
