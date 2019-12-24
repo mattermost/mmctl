@@ -741,6 +741,21 @@ func (mr *MockClientMockRecorder) SendPasswordResetEmail(arg0 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPasswordResetEmail", reflect.TypeOf((*MockClient)(nil).SendPasswordResetEmail), arg0)
 }
 
+// SoftDeleteTeam mocks base method
+func (m *MockClient) SoftDeleteTeam(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SoftDeleteTeam", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// SoftDeleteTeam indicates an expected call of SoftDeleteTeam
+func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteTeam", reflect.TypeOf((*MockClient)(nil).SoftDeleteTeam), arg0)
+}
+
 // SyncLdap mocks base method
 func (m *MockClient) SyncLdap() (bool, *model.Response) {
 	m.ctrl.T.Helper()
@@ -754,6 +769,36 @@ func (m *MockClient) SyncLdap() (bool, *model.Response) {
 func (mr *MockClientMockRecorder) SyncLdap() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap))
+}
+
+// UpdateConfig mocks base method
+func (m *MockClient) UpdateConfig(arg0 *model.Config) (*model.Config, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateConfig", arg0)
+	ret0, _ := ret[0].(*model.Config)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateConfig indicates an expected call of UpdateConfig
+func (mr *MockClientMockRecorder) UpdateConfig(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateConfig", reflect.TypeOf((*MockClient)(nil).UpdateConfig), arg0)
+}
+
+// UpdateTeam mocks base method
+func (m *MockClient) UpdateTeam(arg0 *model.Team) (*model.Team, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTeam", arg0)
+	ret0, _ := ret[0].(*model.Team)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateTeam indicates an expected call of UpdateTeam
+func (mr *MockClientMockRecorder) UpdateTeam(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTeam", reflect.TypeOf((*MockClient)(nil).UpdateTeam), arg0)
 }
 
 // UpdateUser mocks base method
