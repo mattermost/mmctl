@@ -143,6 +143,49 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Get value if the key points to a map element", func() {
+		printer.Clean()
+		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin"}
+		outputConfig := &model.Config{}
+		pluginState := &model.PluginState{Enable: true}
+		outputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
+			"com.mattermost.testplugin": pluginState,
+		}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(outputConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], pluginState)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get error value if the key points to a missing map element", func() {
+		printer.Clean()
+		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin.x"}
+		outputConfig := &model.Config{}
+		pluginState := &model.PluginState{Enable: true}
+		outputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
+			"com.mattermost.testplugin": pluginState,
+		}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(outputConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
@@ -303,6 +346,58 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Set a field inside a map", func() {
+		printer.Clean()
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		defaultConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
+			"com.mattermost.testplugin": &model.PluginState{Enable: false},
+		}
+		inputConfig := &model.Config{}
+		inputConfig.SetDefaults()
+		inputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
+			"com.mattermost.testplugin": &model.PluginState{Enable: true},
+		}
+		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateConfig(inputConfig).
+			Return(inputConfig, &model.Response{Error: nil}).
+			Times(1)
+		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to set a field inside a map for incorrect field, get error", func() {
+		printer.Clean()
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		defaultConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
+			"com.mattermost.testplugin": &model.PluginState{Enable: true},
+		}
+		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin.x", "true"}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
@@ -351,7 +446,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		resetCmd := &cobra.Command{}
 		resetCmd.Flags().Bool("confirm", true, "")
-		resetCmd.ParseFlags([]string{"confirm"})
+		_ = resetCmd.ParseFlags([]string{"confirm"})
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
@@ -373,10 +468,11 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 
 		resetCmd := &cobra.Command{}
 		resetCmd.Flags().Bool("confirm", true, "")
-		resetCmd.ParseFlags([]string{"confirm"})
+		_ = resetCmd.ParseFlags([]string{"confirm"})
 		err := configResetCmdF(s.client, resetCmd, args)
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
 }

@@ -78,6 +78,31 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 		return val.Interface(), true
 	} else if val.Kind() == reflect.Struct {
 		return getValue(path[1:], val.Interface())
+	} else if val.Kind() == reflect.Map {
+
+		for i := len(path); i >= 1; i-- {
+			remainingPath := strings.Join(path[1:i], ".")
+
+			mapIter := val.MapRange()
+
+			for mapIter.Next() {
+				if mapIter.Key().String() == remainingPath {
+					mapVal := mapIter.Value()
+					// if no sub field path specified, return the object
+					if len(path[i:]) == 0 {
+						return mapVal.Interface(), true
+					}
+					if mapVal.Kind() == reflect.Ptr {
+						mapVal = mapVal.Elem() // if value is a pointer, dereference it
+					}
+					// pass subpath
+					return getValue(path[i:], mapVal.Interface())
+				}
+			}
+		}
+
+		return nil, false
+
 	} else {
 		return nil, false
 	}
@@ -95,9 +120,7 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 		return errors.New("Selected path object is not valid")
 	}
 
-	if len(path) > 1 && val.Kind() == reflect.Struct {
-		return setValue(path[1:], val, newValue)
-	} else if len(path) == 1 {
+	if len(path) == 1 {
 		if val.Kind() == reflect.Ptr {
 			return setValue(path, val.Elem(), newValue)
 		} else if val.Kind() == reflect.Struct {
@@ -132,9 +155,33 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 				return errors.New("Target value type is not supported")
 			}
 		}
-	} else {
-		return errors.New("Path object type is not supported")
+	} else if len(path) > 1 {
+		if val.Kind() == reflect.Struct {
+			return setValue(path[1:], val, newValue)
+		} else if val.Kind() == reflect.Map {
+
+			for i := len(path); i >= 1; i-- {
+				remainingPath := strings.Join(path[1:i], ".")
+
+				mapIter := val.MapRange()
+				for mapIter.Next() {
+					if mapIter.Key().String() == remainingPath {
+						mapVal := mapIter.Value()
+						// if no sub field path specified, return the object
+						if len(path[i:]) > 0 {
+							if mapVal.Kind() == reflect.Ptr {
+								mapVal = mapVal.Elem() // if value is a pointer, dereference it
+							}
+							// pass subpath
+							return setValue(path[i:], mapVal, newValue)
+						}
+					}
+				}
+			}
+		}
 	}
+	return errors.New("Path object type is not supported")
+
 }
 
 func setConfigValue(path []string, config *model.Config, newValue []string) error {
