@@ -169,7 +169,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmdF() {
+func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 	s.Run("Should fail to get group constrain status of a channel when team is not found", func() {
 		printer.Clean()
 
