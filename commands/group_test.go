@@ -293,4 +293,36 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Disabled")
 	})
+
+	s.Run("Should get valid response when channel's group constrain status is not present", func() {
+		printer.Clean()
+
+		teamID := "teamId"
+		channelID := "channelId"
+		arg := strings.Join([]string{teamID, channelID}, ":")
+		args := []string{arg}
+		cmd := &cobra.Command{}
+
+		team := &model.Team{Id: teamID}
+		channel := &model.Channel{Id: channelID}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(team, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
+			Return(channel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := channelGroupStatusCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Disabled")
+	})
 }
