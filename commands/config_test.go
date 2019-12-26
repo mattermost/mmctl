@@ -145,25 +145,68 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 	})
 
 	s.Run("Get value if the key points to a map element", func() {
-		printer.Clean()
-		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin"}
 		outputConfig := &model.Config{}
 		pluginState := &model.PluginState{Enable: true}
+		pluginSettings := map[string]interface{}{
+			"test1": 1,
+			"test2": []string{"a", "b"},
+			"test3": map[string]string{"a": "b"},
+		}
 		outputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
 			"com.mattermost.testplugin": pluginState,
+		}
+		outputConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+			"com.mattermost.testplugin": pluginSettings,
 		}
 
 		s.client.
 			EXPECT().
 			GetConfig().
 			Return(outputConfig, &model.Response{Error: nil}).
-			Times(1)
+			Times(7)
 
-		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		printer.Clean()
+		err := configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.PluginStates.com.mattermost.testplugin"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], pluginState)
 		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], pluginSettings)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test2"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], []string{"a", "b"})
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"a": "b"})
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configGetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "b")
+		s.Require().Len(printer.GetErrorLines(), 0)
+
 	})
 
 	s.Run("Get error value if the key points to a missing map element", func() {
@@ -179,7 +222,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			EXPECT().
 			GetConfig().
 			Return(outputConfig, &model.Response{Error: nil}).
-			Times(1)
+			Times(0)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().NotNil(err)
@@ -348,34 +391,58 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 	})
 
 	s.Run("Set a field inside a map", func() {
-		printer.Clean()
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
 		defaultConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
-			"com.mattermost.testplugin": &model.PluginState{Enable: false},
+			"com.mattermost.testplugin": {Enable: false},
 		}
+		pluginSettings := map[string]interface{}{
+			"test1": 1,
+			"test2": []string{"a", "b"},
+			"test3": map[string]interface{}{"a": "b"},
+		}
+		defaultConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+			"com.mattermost.testplugin": pluginSettings,
+		}
+
 		inputConfig := &model.Config{}
 		inputConfig.SetDefaults()
 		inputConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
-			"com.mattermost.testplugin": &model.PluginState{Enable: true},
+			"com.mattermost.testplugin": {Enable: true},
 		}
-		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"}
-
+		inputConfig.PluginSettings.Plugins = map[string]map[string]interface{}{
+			"com.mattermost.testplugin": pluginSettings,
+		}
 		s.client.
 			EXPECT().
 			GetConfig().
 			Return(defaultConfig, &model.Response{Error: nil}).
-			Times(1)
+			Times(3)
 
 		s.client.
 			EXPECT().
 			UpdateConfig(inputConfig).
 			Return(inputConfig, &model.Response{Error: nil}).
-			Times(1)
-		err := configSetCmdF(s.client, &cobra.Command{}, args)
+			Times(3)
+
+		printer.Clean()
+		err := configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.PluginStates.com.mattermost.testplugin.Enable", "true"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test1", "123"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		err = configSetCmdF(s.client, &cobra.Command{}, []string{"PluginSettings.Plugins.com.mattermost.testplugin.test3.a", "123"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
 	})
 
 	s.Run("Try to set a field inside a map for incorrect field, get error", func() {
@@ -383,7 +450,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
 		defaultConfig.PluginSettings.PluginStates = map[string]*model.PluginState{
-			"com.mattermost.testplugin": &model.PluginState{Enable: true},
+			"com.mattermost.testplugin": {Enable: true},
 		}
 		args := []string{"PluginSettings.PluginStates.com.mattermost.testplugin.x", "true"}
 

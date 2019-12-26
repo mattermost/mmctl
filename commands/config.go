@@ -68,9 +68,17 @@ func init() {
 
 func getValue(path []string, obj interface{}) (interface{}, bool) {
 	r := reflect.ValueOf(obj)
-	val := r.FieldByName(path[0])
+	var val reflect.Value
+	if r.Kind() == reflect.Map {
+		val = r.MapIndex(reflect.ValueOf(path[0]))
+		if val.IsValid() {
+			val = val.Elem()
+		}
+	} else {
+		val = r.FieldByName(path[0])
+	}
 
-	if val.Kind() == reflect.Invalid {
+	if !val.IsValid() {
 		return nil, false
 	}
 
@@ -80,38 +88,74 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 		return getValue(path[1:], val.Interface())
 	} else if val.Kind() == reflect.Map {
 
-		for i := len(path); i >= 1; i-- {
-			remainingPath := strings.Join(path[1:i], ".")
+		remainingPath := strings.Join(path[1:], ".")
 
-			mapIter := val.MapRange()
+		mapIter := val.MapRange()
 
-			for mapIter.Next() {
-				if mapIter.Key().String() == remainingPath {
-					mapVal := mapIter.Value()
-					// if no sub field path specified, return the object
-					if len(path[i:]) == 0 {
-						return mapVal.Interface(), true
-					}
-					if mapVal.Kind() == reflect.Ptr {
-						mapVal = mapVal.Elem() // if value is a pointer, dereference it
-					}
-					// pass subpath
-					return getValue(path[i:], mapVal.Interface())
+		for mapIter.Next() {
+			key := mapIter.Key().String()
+			if strings.HasPrefix(remainingPath, key) {
+				i := strings.Count(key, ".") + 2 // number of dots + a dot on each side
+				mapVal := mapIter.Value()
+				// if no sub field path specified, return the object
+				if len(path[i:]) == 0 {
+					return mapVal.Interface(), true
 				}
+				data := mapVal.Interface()
+				if mapVal.Kind() == reflect.Ptr {
+					data = mapVal.Elem().Interface() // if value is a pointer, dereference it
+				}
+				// pass subpath
+				return getValue(path[i:], data)
 			}
 		}
-
-		return nil, false
-
-	} else {
-		return nil, false
 	}
+	return nil, false
+}
+
+func setValueWithConversion(val reflect.Value, newValue interface{}) error {
+	switch val.Kind() {
+	case reflect.Struct:
+		val.Set(reflect.ValueOf(newValue))
+		return nil
+	case reflect.Slice:
+		if val.Type().Elem().Kind() != reflect.String {
+			return errors.New("Unsupported type of slice")
+		}
+		val.Set(reflect.ValueOf(newValue))
+		return nil
+	case reflect.Int:
+		v, err := strconv.ParseInt(newValue.(string), 10, 64)
+		if err != nil {
+			return errors.New("Target value is of type Int and provided value is not")
+		}
+		val.SetInt(v)
+		return nil
+	case reflect.String:
+		val.SetString(newValue.(string))
+		return nil
+	case reflect.Bool:
+		v, err := strconv.ParseBool(newValue.(string))
+		if err != nil {
+			return errors.New("Target value is of type Bool and provided value is not")
+		}
+		val.SetBool(v)
+		return nil
+	default:
+		return errors.New("Target value type is not supported")
+	}
+
 }
 
 func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	var val reflect.Value
 	if obj.Kind() == reflect.Struct {
 		val = obj.FieldByName(path[0])
+	} else if obj.Kind() == reflect.Map {
+		val = obj.MapIndex(reflect.ValueOf(path[0]))
+		if val.IsValid() {
+			val = val.Elem()
+		}
 	} else {
 		val = obj
 	}
@@ -123,60 +167,45 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	if len(path) == 1 {
 		if val.Kind() == reflect.Ptr {
 			return setValue(path, val.Elem(), newValue)
-		} else if val.Kind() == reflect.Struct {
-			val.Set(reflect.ValueOf(newValue))
-			return nil
-		} else if val.Kind() == reflect.Slice {
-			if val.Type().Elem().Kind() != reflect.String {
-				return errors.New("Unsupported type of slice")
-			}
-			val.Set(reflect.ValueOf(newValue))
-			return nil
-		} else {
-			switch val.Kind() {
-			case reflect.Int:
-				v, err := strconv.ParseInt(newValue.(string), 10, 64)
-				if err != nil {
-					return errors.New("Target value is of type Int and provided value is not")
+		} else if obj.Kind() == reflect.Map {
+			// since we cannot set map elements directly, we clone the value, set it, and then put it back in the map
+			mapKey := reflect.ValueOf(path[0])
+			subVal := obj.MapIndex(mapKey)
+			if subVal.IsValid() {
+				tmpVal := reflect.New(subVal.Elem().Type())
+				if err := setValueWithConversion(tmpVal.Elem(), newValue); err != nil {
+					return err
 				}
-				val.SetInt(v)
+				obj.SetMapIndex(mapKey, tmpVal)
 				return nil
-			case reflect.String:
-				val.SetString(newValue.(string))
-				return nil
-			case reflect.Bool:
-				v, err := strconv.ParseBool(newValue.(string))
-				if err != nil {
-					return errors.New("Target value is of type Bool and provided value is not")
-				}
-				val.SetBool(v)
-				return nil
-			default:
-				return errors.New("Target value type is not supported")
 			}
 		}
-	} else if len(path) > 1 {
-		if val.Kind() == reflect.Struct {
-			return setValue(path[1:], val, newValue)
-		} else if val.Kind() == reflect.Map {
+		return setValueWithConversion(val, newValue)
+	}
 
-			for i := len(path); i >= 1; i-- {
-				remainingPath := strings.Join(path[1:i], ".")
+	if val.Kind() == reflect.Struct {
+		return setValue(path[1:], val, newValue)
+	} else if val.Kind() == reflect.Map {
 
-				mapIter := val.MapRange()
-				for mapIter.Next() {
-					if mapIter.Key().String() == remainingPath {
-						mapVal := mapIter.Value()
-						// if no sub field path specified, return the object
-						if len(path[i:]) > 0 {
-							if mapVal.Kind() == reflect.Ptr {
-								mapVal = mapVal.Elem() // if value is a pointer, dereference it
-							}
-							// pass subpath
-							return setValue(path[i:], mapVal, newValue)
-						}
-					}
+		remainingPath := strings.Join(path[1:], ".")
+
+		mapIter := val.MapRange()
+		for mapIter.Next() {
+			key := mapIter.Key().String()
+			if strings.HasPrefix(remainingPath, key) {
+				mapVal := mapIter.Value()
+
+				if mapVal.Kind() == reflect.Ptr {
+					mapVal = mapVal.Elem() // if value is a pointer, dereference it
 				}
+				i := len(strings.Split(key, ".")) + 1
+
+				if i > len(path)-1 { // leaf element
+					i = 1
+					mapVal = val
+				}
+				// pass subpath
+				return setValue(path[i:], mapVal, newValue)
 			}
 		}
 	}
@@ -206,7 +235,7 @@ func resetConfigValue(path []string, config *model.Config, newValue interface{})
 	}
 }
 
-func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FORMAT_JSON)
 
@@ -225,7 +254,7 @@ func configGetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func configSetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	config, response := c.GetConfig()
 	if response.Error != nil {
 		return response.Error
@@ -256,7 +285,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			"Are you sure you want to reset %s to their default value? (YES/NO): ",
 			args[0])
 		fmt.Println(confirmationMsg)
-		fmt.Scanln(&confirmResetAll)
+		_, _ = fmt.Scanln(&confirmResetAll)
 		if confirmResetAll != "YES" {
 			fmt.Println("Reset operation aborted")
 			return nil
@@ -293,7 +322,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func configShowCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FORMAT_JSON)
 	config, response := c.GetConfig()
