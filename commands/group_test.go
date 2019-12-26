@@ -166,3 +166,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
+
+}
