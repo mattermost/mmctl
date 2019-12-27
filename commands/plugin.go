@@ -29,6 +29,7 @@ var PluginDeleteCmd = &cobra.Command{
 	Long:    "Delete previously uploaded plugins from your Mattermost server.",
 	Example: `  plugin delete hovercardexample pluginexample`,
 	RunE:    withClient(pluginDeleteCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginEnableCmd = &cobra.Command{
@@ -89,10 +90,6 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for _, plugin := range args {
 		if _, response := c.RemovePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + response.Error.Error())

@@ -425,3 +425,87 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 		s.Require().Equal(err, errors.New("Unable to list plugins. Error: "+mockError.Error()))
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
+	s.Run("Delete one plugin with error", func() {
+		printer.Clean()
+		args := "plugin"
+		mockError := &model.AppError{Message: "Mock Error"}
+
+		s.client.
+			EXPECT().
+			RemovePlugin(args).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := pluginDeleteCmdF(s.client, &cobra.Command{}, []string{args})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to delete plugin: "+args+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete one plugin with no error", func() {
+		printer.Clean()
+		args := "plugin"
+
+		s.client.
+			EXPECT().
+			RemovePlugin(args).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := pluginDeleteCmdF(s.client, &cobra.Command{}, []string{args})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("Deleted plugin: "+args, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Delete several plugins", func() {
+		printer.Clean()
+		args := []string{
+			"plugin0",
+			"error1",
+			"error2",
+			"plugin3",
+		}
+		mockErrors := []*model.AppError{
+			&model.AppError{Message: "Mock Error1"},
+			&model.AppError{Message: "Mock Error2"},
+		}
+
+		s.client.
+			EXPECT().
+			RemovePlugin(args[0]).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemovePlugin(args[1]).
+			Return(false, &model.Response{Error: mockErrors[0]}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemovePlugin(args[2]).
+			Return(false, &model.Response{Error: mockErrors[1]}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemovePlugin(args[3]).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := pluginDeleteCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal("Deleted plugin: "+args[0], printer.GetLines()[0])
+		s.Require().Equal("Deleted plugin: "+args[3], printer.GetLines()[1])
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Require().Equal("Unable to delete plugin: "+args[1]+". Error: "+mockErrors[0].Error(), printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to delete plugin: "+args[2]+". Error: "+mockErrors[1].Error(), printer.GetErrorLines()[1])
+	})
+}
