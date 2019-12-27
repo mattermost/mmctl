@@ -323,7 +323,6 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printer.PrintError("could not find any teams with these terms: " + strings.Join(args, ","))
 	}
 
-
 	return nil
 }
 
