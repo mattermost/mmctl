@@ -168,7 +168,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
-	s.Run("Enable group constrains with existing team and channel", func() {
+	s.Run("Enable group constraints with existing team and channel", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -215,7 +215,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Enable group constrains with GetTeam error", func() {
+	s.Run("Enable group constraints with GetTeam error", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -242,7 +242,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
 	})
 
-	s.Run("Enable group constrains with GetChannelByNameIncludeDeleted error", func() {
+	s.Run("Enable group constraints with GetChannelByNameIncludeDeleted error", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -276,7 +276,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
 	})
 
-	s.Run("Enable group constrains with GetGroupsByChannel error", func() {
+	s.Run("Enable group constraints with GetGroupsByChannel error", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -317,7 +317,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.EqualError(err, mockError.Error())
 	})
 
-	s.Run("Enable group constrains with PatchChannel error", func() {
+	s.Run("Enable group constraints with PatchChannel error", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -366,7 +366,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.EqualError(err, mockError.Error())
 	})
 
-	s.Run("Enable group constrains with no associated groups", func() {
+	s.Run("Enable group constraints with no associated groups", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -407,7 +407,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.EqualError(err, "Channel '"+channelArg+"' has no groups associated. It cannot be group-constrained")
 	})
 
-	s.Run("Enable group constrains with nonexistant team", func() {
+	s.Run("Enable group constraints with nonexistent team", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
@@ -433,7 +433,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
 	})
 
-	s.Run("Enable group constrains with nonexistant channel", func() {
+	s.Run("Enable group constraints with nonexistent channel", func() {
 		printer.Clean()
 
 		teamArg := "team-id"
