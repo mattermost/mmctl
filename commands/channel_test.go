@@ -12,6 +12,7 @@ import (
 
 func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	s.Run("Search for an existing channel on an existing team", func() {
+		defer printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "example-channel"
@@ -40,7 +41,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 
 	s.Run("Search for an existing channel without specifying team", func() {
-		printer.Clean()
+		defer printer.Clean()
 		teamId := "example-team-id"
 		otherTeamId := "example-team-id-2"
 		mockTeams := []*model.Team{
@@ -78,7 +79,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 
 	s.Run("Search for a nonexistent channel", func() {
-		printer.Clean()
+		defer printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "example-channel"
@@ -106,7 +107,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 
 	s.Run("Search for a channel in a nonexistent team", func() {
-		printer.Clean()
+		defer printer.Clean()
 		teamArg := "example-team-id"
 		channelArg := "example-channel"
 
@@ -686,5 +687,192 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Equal(printer.GetLines()[3], publicChannel1)
 		s.Require().Equal(printer.GetLines()[4], publicChannel2)
 		s.Require().Equal(printer.GetLines()[5], archivedChannel1)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
+	team := "example-team-id"
+	channel := "example-channel"
+	channelArg := team + ":" + channel
+	mockTeam := model.Team{Id: team}
+	mockChannel := model.Channel{Id: channel, Name: channel}
+	userArg := "user@example.com"
+	userId := "example-user-id"
+	mockUser := model.User{Id: userId, Email: userArg}
+
+	s.Run("Not enough command line parameters", func() {
+		defer printer.Clean()
+		cmd := &cobra.Command{}
+
+		// One argument provided.
+		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg})
+		s.EqualError(err, "Not enough arguments.")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// No arguments provided.
+		err = addChannelUsersCmdF(s.client, cmd, []string{})
+		s.EqualError(err, "Not enough arguments.")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+	s.Run("Add existing user to existing channel", func() {
+		defer printer.Clean()
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(team, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channel, team, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddChannelMember(channel, userId).
+			Return(&model.ChannelMember{}, &model.Response{Error: nil}).
+			Times(1)
+		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+	s.Run("Add existing user to nonexistent channel", func() {
+		defer printer.Clean()
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(team, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		// No channel is returned by client.
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channel, team, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetChannel(channel, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
+		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+	s.Run("Add existing user to channel owned by nonexistent team", func() {
+		defer printer.Clean()
+		cmd := &cobra.Command{}
+
+		// No team is returned by client.
+		s.client.
+			EXPECT().
+			GetTeam(team, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(team, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
+		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+	s.Run("Add nonexistent user to existing channel", func() {
+		defer printer.Clean()
+		nilUserArg := "nonexistent-user"
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(team, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channel, team, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(nilUserArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByUsername(nilUserArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUser(nilUserArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			AddChannelMember(channel, userId).
+			Return(&model.ChannelMember{}, &model.Response{Error: nil}).
+			Times(1)
+		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, nilUserArg, userArg})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Equal("Can't find user '"+nilUserArg+"'", printer.GetErrorLines()[0])
+	})
+	s.Run("Error adding existing user to existing channel", func() {
+		defer printer.Clean()
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(team, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channel, team, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddChannelMember(channel, userId).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
+			Times(1)
+		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Equal("Unable to add '"+userArg+"' to "+channel+". Error: : Mock error, ",
+			printer.GetErrorLines()[0])
 	})
 }
