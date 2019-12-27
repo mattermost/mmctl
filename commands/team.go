@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
@@ -314,9 +315,14 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	sortedTeams := removeDuplicatesAndSortTeams(teams)
 
-	for _, team := range sortedTeams {
-		printer.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
+	if len(sortedTeams) > 0 {
+		for _, team := range sortedTeams {
+			printer.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
+		}
+	} else {
+		printer.PrintError("could not find any teams with these terms: " + strings.Join(args, ","))
 	}
+
 
 	return nil
 }
