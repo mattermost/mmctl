@@ -193,7 +193,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		s.Require().EqualError(err, "Unable to find team '"+args[0]+"'")
 	})
 
-	s.Run("Should show valid response when status of team group status is not present", func() {
+	s.Run("Should show valid response when group constraints status for a team is not present", func() {
 		printer.Clean()
 
 		teamID := "teamId"
@@ -216,7 +216,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		s.Require().Equal(printer.GetLines()[0], "Disabled")
 	})
 
-	s.Run("Should show valid response when status of team group status is enabled", func() {
+	s.Run("Should show valid response when group constraints status for a team is enabled", func() {
 		printer.Clean()
 
 		teamID := "teamId"
@@ -239,7 +239,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 		s.Require().Equal(printer.GetLines()[0], "Enabled")
 	})
 
-	s.Run("Should show valid response when status of team group status is disabled", func() {
+	s.Run("Should show valid response when group constraints status for a team is disabled", func() {
 		printer.Clean()
 
 		teamID := "teamId"
