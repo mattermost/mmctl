@@ -4,16 +4,18 @@ Rename a channel
 
 ### Synopsis
 
-Rename a channel.
+Rename an existing channel.
 
 ```
-mmctl channel rename [flags]
+mmctl channel rename [channel] [flags]
 ```
 
 ### Examples
 
 ```
-  channel rename myteam:mychannel newchannelname --display_name "New Display Name"
+  channel rename myteam:oldchannel --name 'new-channel' --display_name 'New Display Name'
+  channel rename myteam:oldchannel --name 'new-channel'
+  channel rename myteam:oldchannel --display_name 'New Display Name'
 ```
 
 ### Options
@@ -21,6 +23,7 @@ mmctl channel rename [flags]
 ```
       --display_name string   Channel Display Name
   -h, --help                  help for rename
+      --name string           Channel Name
 ```
 
 ### Options inherited from parent commands

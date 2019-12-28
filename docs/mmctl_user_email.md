@@ -13,8 +13,7 @@ mmctl user email [user] [new email] [flags]
 ### Examples
 
 ```
-  user email test user@example.com
-  user activate username
+  user email testuser user@example.com
 ```
 
 ### Options
