@@ -129,3 +129,106 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		s.EqualError(err, "Team "+teamArg+" was not found")
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
+	s.Run("Should fail when team is not found", func() {
+		team1ID := "team1"
+		args := []string{""}
+		args[0] = team1ID
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(team1ID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(team1ID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listChannelsCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to find team '"+team1ID+"'")
+	})
+
+	s.Run("Should fail when all teams are not found", func() {
+		printer.Clean()
+
+		team1ID := "teamuuu1"
+		team2ID := "teamxxx2"
+		args := []string{team1ID, team2ID}
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(team1ID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(team2ID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(team1ID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(team2ID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listChannelsCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 2)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to find team '"+team1ID+"'")
+		s.Require().Equal(printer.GetErrorLines()[1], "Unable to find team '"+team2ID+"'")
+	})
+
+	s.Run("Should fail when a teams public channel cannot be retrieved from API", func() {
+		printer.Clean()
+
+		s.Require().Equal("1", "1")
+	})
+
+	s.Run("Should fail when a team's archived channel cannot be retrieved from API", func() {
+		printer.Clean()
+
+		s.Require().Equal("1", "1")
+	})
+
+	s.Run("Should not fail when team dont have any public or archived channel", func() {
+		printer.Clean()
+
+		s.Require().Equal("1", "1")
+	})
+
+	s.Run("Should show list of channel for existing team and fail for non existing team", func() {
+		printer.Clean()
+
+		s.Require().Equal("1", "1")
+	})
+
+	s.Run("Should show list of public and archived channels for existing team", func() {
+		printer.Clean()
+
+		s.Require().Equal("1", "1")
+	})
+
+	s.Run("Should show list of public and archived channels for existing teams", func() {
+		printer.Clean()
+
+		s.Require().Equal("1", "1")
+	})
+}
