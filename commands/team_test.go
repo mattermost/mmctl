@@ -2,8 +2,10 @@ package commands
 
 import (
 	"errors"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/printer"
+
 	"github.com/spf13/cobra"
 )
 
@@ -664,7 +666,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("could not find any teams with these terms: " + teamName, printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find team '" + teamName + "'", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -682,7 +684,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Equal("could not find any teams with these terms: " + displayName, printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find team '" + displayName + "'", printer.GetErrorLines()[0])
 
 	})
 
@@ -713,7 +715,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Equal(mockTeam1, printer.GetLines()[0])
 		s.Require().Equal(mockTeam2, printer.GetLines()[1])
 	})
-	//
+
 	s.Run("Test get multiple results when search term matches name and displayName of different teams", func() {
 		printer.Clean()
 		teamVariableName := "Name"
@@ -737,7 +739,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 
 	})
 
-	s.Run("Test duplicates removed from search results", func() {
+	s.Run("Test duplicates are removed from search results", func() {
 		printer.Clean()
 		teamVariableName := "Name"
 
