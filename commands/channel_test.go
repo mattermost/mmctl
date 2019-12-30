@@ -195,13 +195,13 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmdF(){
 		s.client.
 			EXPECT().
 			GetTeam(teamNameArg, "").
-			Return(nil, &model.Response{}).
+			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeamByName(teamNameArg, "").
-			Return(nil, &model.Response{}).
+			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		err := createChannelCmdF(s.client, cmd, []string{})
@@ -228,7 +228,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmdF(){
 		s.client.
 			EXPECT().
 			GetTeam(mockTeam.Name, "").
-			Return(mockTeam, &model.Response{}).
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -261,7 +261,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmdF(){
 		s.client.
 			EXPECT().
 			GetTeam(mockTeam.Name, "").
-			Return(mockTeam, &model.Response{}).
+			Return(mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
