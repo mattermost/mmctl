@@ -632,10 +632,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("One archived team, plain format", func() {
+	s.Run("One archived team", func() {
 		printer.Clean()
-		printer.SetFormat(printer.FORMAT_PLAIN)
-		defer printer.SetFormat(printer.FORMAT_JSON)
 
 		mockTeam := model.Team{
 			Name:     "Team1",
@@ -646,41 +644,27 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			EXPECT().
 			GetAllTeams("", 0, 10000).
 			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
-			Times(1)
+			Times(2)
 
 		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		printer.SetFormat(printer.FORMAT_PLAIN)
+		defer printer.SetFormat(printer.FORMAT_JSON)
+
+		err = listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(mockTeam.Name+" (archived)", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("One archived team, json format", func() {
+	s.Run("One non-archived team", func() {
 		printer.Clean()
-
-		mockTeam := model.Team{
-			Name:     "Team1",
-			DeleteAt: 1,
-		}
-
-		s.client.
-			EXPECT().
-			GetAllTeams("", 0, 10000).
-			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
-			Times(1)
-
-		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(&mockTeam, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("One non-archived team, plain format", func() {
-		printer.Clean()
-		printer.SetFormat(printer.FORMAT_PLAIN)
-		defer printer.SetFormat(printer.FORMAT_JSON)
-
 		mockTeam := model.Team{
 			Name: "Team1",
 		}
@@ -689,73 +673,26 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			EXPECT().
 			GetAllTeams("", 0, 10000).
 			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
-			Times(1)
+			Times(2)
 
 		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		printer.SetFormat(printer.FORMAT_PLAIN)
+		defer printer.SetFormat(printer.FORMAT_JSON)
+
+		err = listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(mockTeam.Name, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("One non-archived team, json format", func() {
-		printer.Clean()
-		mockTeam := model.Team{
-			Name: "Team1",
-		}
-
-		s.client.
-			EXPECT().
-			GetAllTeams("", 0, 10000).
-			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
-			Times(1)
-
-		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(&mockTeam, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Several teams, plain format", func() {
-		printer.Clean()
-		printer.SetFormat(printer.FORMAT_PLAIN)
-		defer printer.SetFormat(printer.FORMAT_JSON)
-
-		mockTeams := []*model.Team{
-			&model.Team{
-				Name: "Team1",
-			},
-			&model.Team{
-				Name:     "Team2",
-				DeleteAt: 1,
-			},
-			&model.Team{
-				Name:     "Team3",
-				DeleteAt: 1,
-			},
-			&model.Team{
-				Name: "Team4",
-			},
-		}
-
-		s.client.
-			EXPECT().
-			GetAllTeams("", 0, 10000).
-			Return(mockTeams, &model.Response{Error: nil}).
-			Times(1)
-
-		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 4)
-		s.Require().Equal(mockTeams[0].Name, printer.GetLines()[0])
-		s.Require().Equal(mockTeams[1].Name+" (archived)", printer.GetLines()[1])
-		s.Require().Equal(mockTeams[2].Name+" (archived)", printer.GetLines()[2])
-		s.Require().Equal(mockTeams[3].Name, printer.GetLines()[3])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Several teams, json format", func() {
+	s.Run("Several teams", func() {
 		printer.Clean()
 		mockTeams := []*model.Team{
 			&model.Team{
@@ -778,7 +715,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			EXPECT().
 			GetAllTeams("", 0, 10000).
 			Return(mockTeams, &model.Response{Error: nil}).
-			Times(1)
+			Times(2)
 
 		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().NoError(err)
@@ -787,6 +724,19 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 		s.Require().Equal(mockTeams[1], printer.GetLines()[1])
 		s.Require().Equal(mockTeams[2], printer.GetLines()[2])
 		s.Require().Equal(mockTeams[3], printer.GetLines()[3])
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		printer.Clean()
+		printer.SetFormat(printer.FORMAT_PLAIN)
+		defer printer.SetFormat(printer.FORMAT_JSON)
+
+		err = listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 4)
+		s.Require().Equal(mockTeams[0].Name, printer.GetLines()[0])
+		s.Require().Equal(mockTeams[1].Name+" (archived)", printer.GetLines()[1])
+		s.Require().Equal(mockTeams[2].Name+" (archived)", printer.GetLines()[2])
+		s.Require().Equal(mockTeams[3].Name, printer.GetLines()[3])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
