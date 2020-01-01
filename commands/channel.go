@@ -255,7 +255,7 @@ func addUserToChannel(c client.Client, channel *model.Channel, user *model.User,
 
 func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Enter at least one channel to archive.")
+		return errors.New("Enter at least one channel to archive")
 	}
 
 	channels := getChannelsFromChannelArgs(c, args)
