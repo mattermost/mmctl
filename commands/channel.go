@@ -26,7 +26,7 @@ var ChannelCreateCmd = &cobra.Command{
 // ChannelRenameCmd is used to change name and/or display name of an existing channel.
 var ChannelRenameCmd = &cobra.Command{
 	Use:   "rename [channel]",
-	Short: "Rename a channel",
+	Short: "Rename channel",
 	Long:  `Rename an existing channel.`,
 	Example: `  channel rename myteam:oldchannel --name 'new-channel' --display_name 'New Display Name'
   channel rename myteam:oldchannel --name 'new-channel'
@@ -351,8 +351,16 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	existingTeamChannel := args[0]
-	newChannelName, _ := cmd.Flags().GetString("name")
-	newDisplayName, _ := cmd.Flags().GetString("display_name")
+
+	newChannelName, err := cmd.Flags().GetString("name")
+	if err != nil {
+		return errors.New("Cannot get name flag, error : " + err.Error())
+	}
+
+	newDisplayName, err := cmd.Flags().GetString("display_name")
+	if err != nil {
+		return errors.New("Cannot get display_name flag, error : " + err.Error())
+	}
 
 	// Atleast one of display name or name flag must be present
 	if newDisplayName == "" && newChannelName == "" {

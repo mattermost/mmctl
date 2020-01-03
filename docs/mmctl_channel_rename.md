@@ -1,6 +1,6 @@
 ## mmctl channel rename
 
-Rename a channel
+Rename channel
 
 ### Synopsis
 
