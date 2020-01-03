@@ -354,12 +354,12 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	newChannelName, err := cmd.Flags().GetString("name")
 	if err != nil {
-		return errors.New("Cannot get name flag, error : " + err.Error())
+		return err
 	}
 
 	newDisplayName, err := cmd.Flags().GetString("display_name")
 	if err != nil {
-		return errors.New("Cannot get display_name flag, error : " + err.Error())
+		return err
 	}
 
 	// Atleast one of display name or name flag must be present
