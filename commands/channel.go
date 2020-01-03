@@ -23,7 +23,7 @@ var ChannelCreateCmd = &cobra.Command{
 	RunE: withClient(createChannelCmdF),
 }
 
-// ChannelRenameCmd is the command in mmctl to change name and/or display name of existing channel.
+// ChannelRenameCmd is used to change name and/or display name of an existing channel.
 var ChannelRenameCmd = &cobra.Command{
 	Use:   "rename [channel]",
 	Short: "Rename a channel",
@@ -354,31 +354,31 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	newChannelName, _ := cmd.Flags().GetString("name")
 	newDisplayName, _ := cmd.Flags().GetString("display_name")
 
-	// Both Display and name flags are not entered
+	// Atleast one of display name or name flag must be present
 	if newDisplayName == "" && newChannelName == "" {
-		return errors.New("Require atleast one flag to rename team, either 'name' or 'display_name'")
+		return errors.New("Require atleast one flag to rename channel, either 'name' or 'display_name'")
 	}
 
 	channel := getChannelFromChannelArg(c, existingTeamChannel)
 	if channel == nil {
-		return errors.New("Unable to find channel '" + existingTeamChannel + "'")
+		return errors.New("Unable to find channel from '" + existingTeamChannel + "'")
 	}
 
-	patchedChannel := &model.ChannelPatch{}
+	channelPatch := &model.ChannelPatch{}
 	if newChannelName != "" {
-		patchedChannel.Name = &newChannelName
+		channelPatch.Name = &newChannelName
 	}
 	if newDisplayName != "" {
-		patchedChannel.DisplayName = &newDisplayName
+		channelPatch.DisplayName = &newDisplayName
 	}
 
 	// Using PatchChannel API to rename channel
-	_, response := c.PatchChannel(channel.Id, patchedChannel)
+	_, response := c.PatchChannel(channel.Id, channelPatch)
 	if response.Error != nil {
-		return errors.New("Cannot rename team '" + existingTeamChannel + "', error : " + response.Error.Error())
+		return errors.New("Cannot rename channel '" + channel.Name + "', error : " + response.Error.Error())
 	}
 
-	printer.Print("'" + existingTeamChannel + "' channel renamed")
+	printer.Print("'" + channel.Name + "' channel renamed")
 	return nil
 }
 
