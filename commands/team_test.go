@@ -184,8 +184,11 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			Name: teamName,
 		}
 
-		mockError := &model.AppError{Message: "Permanent Delete Team Error"}
-
+		mockError := &model.AppError{
+			Message:       "An error occurred on deleting a team",
+			DetailedError: "Team cannot be deleted",
+			Where:         "Team.deleteTeam",
+		}
 		s.client.
 			EXPECT().
 			PermanentDeleteTeam(teamId).
@@ -203,6 +206,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
 		s.Require().Nil(err)
-		s.Require().Equal("Unable to delete team 'team1' error: : Permanent Delete Team Error, ", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to delete team 'team1' error: Team.deleteTeam: An error occurred on deleting a team, Team cannot be deleted",
+			printer.GetErrorLines()[0])
 	})
 }
