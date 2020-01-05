@@ -201,7 +201,11 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 			Return(&mockUser, &model.Response{Error: nil}).
 			Times(1)
 
-		mockError := &model.AppError{Message: "Cannot add team member"}
+		mockError := &model.AppError{
+			Message:       "Cannot add team member",
+			DetailedError: "This user was banned in this team",
+			Where:         "Team.AddTeamMember",
+		}
 
 		s.client.
 			EXPECT().
@@ -212,7 +216,8 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		err := addUsersCmdF(s.client, cmd, []string{"team1", "user1"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to add 'user1' to team1. Error: : Cannot add team member, ")
+		s.Require().Equal(printer.GetErrorLines()[0],
+			"Unable to add 'user1' to team1. Error: Team.AddTeamMember: Cannot add team member, This user was banned in this team")
 	})
 
 	s.Run("Add users should not print in console anything on success", func() {
