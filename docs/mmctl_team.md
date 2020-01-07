@@ -22,9 +22,11 @@ Management of teams
 
 * [mmctl](mmctl.md)	 - Remote client for the Open Source, self-hosted Slack-alternative
 * [mmctl team add](mmctl_team_add.md)	 - Add users to team
+* [mmctl team archive](mmctl_team_archive.md)	 - Archive teams
 * [mmctl team create](mmctl_team_create.md)	 - Create a team
 * [mmctl team delete](mmctl_team_delete.md)	 - Delete teams
 * [mmctl team list](mmctl_team_list.md)	 - List all teams.
 * [mmctl team remove](mmctl_team_remove.md)	 - Remove users from team
+* [mmctl team rename](mmctl_team_rename.md)	 - Rename team
 * [mmctl team search](mmctl_team_search.md)	 - Search for teams
 

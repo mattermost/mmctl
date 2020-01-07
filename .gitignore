@@ -1,3 +1,6 @@
 mmctl
 bin
 build
+
+# Editor files
+.vscode
