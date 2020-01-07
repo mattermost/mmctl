@@ -26,7 +26,7 @@ source <(mmctl completion zsh)
 
 ## Compile
 
-First we have to install the dependencies of the project. `mmctl` depends on go version 1.13 or greater.
+First we have to install the dependencies of the project. `mmctl` depends on go version 1.13.3 or greater.
 
 We can compile the binary with:
 
