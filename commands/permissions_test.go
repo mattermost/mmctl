@@ -84,11 +84,11 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		s.Require().Nil(err)
 	})
 
-	s.Run("Removing an existing permission from an existing role", func() {
+	s.Run("Removing multiple permissions from an existing role", func() {
 		mockRole := &model.Role{
 			Id:          "mock-id",
 			Name:        "mock-role",
-			Permissions: []string{"view", "edit"},
+			Permissions: []string{"view", "edit", "delete"},
 		}
 
 		expectedPatch := &model.RolePatch{
@@ -105,7 +105,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 			Return(&model.Role{}, &model.Response{Error: nil}).
 			Times(1)
 
-		args := []string{mockRole.Name, "view"}
+		args := []string{mockRole.Name, "view", "delete"}
 		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 	})
