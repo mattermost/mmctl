@@ -894,3 +894,105 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
+	teamName := "team1"
+	teamId := "teamId"
+
+	s.Run("Delete teams with no arguments returns an error", func() {
+		cmd := &cobra.Command{}
+		err := deleteTeamsCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "Not enough arguments.")
+	})
+
+	s.Run("Delete teams with confirm false returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "ABORTED: You did not answer YES exactly, in all capitals.")
+	})
+
+	s.Run("Delete teams with team not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete teams should delete team", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamId,
+			Name: teamName,
+		}
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamId).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Delete teams with error on PermanentDeleteTeam returns an error", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamId,
+			Name: teamName,
+		}
+
+		mockError := &model.AppError{
+			Message:       "An error occurred on deleting a team",
+			DetailedError: "Team cannot be deleted",
+			Where:         "Team.deleteTeam",
+		}
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamId).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to delete team 'team1' error: Team.deleteTeam: An error occurred on deleting a team, Team cannot be deleted",
+			printer.GetErrorLines()[0])
+	})
+}
