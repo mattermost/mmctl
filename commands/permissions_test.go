@@ -55,8 +55,6 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 	})
 }
 
-//---------------------------------------------------
-
 func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 	s.Run("Removing a permission from an existing role", func() {
 		mockRole := &model.Role{
@@ -151,6 +149,6 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 
 		args := []string{mockRole.Name, "delete"}
 		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NotNil(err)
+		s.Require().EqualError(err, "Role: role_not_found, ")
 	})
 }
