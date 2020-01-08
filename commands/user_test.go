@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -872,17 +873,23 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestListUserCmdF() {
+	cmd := &cobra.Command{}
+	cmd.Flags().Int("page", 0, "")
+	cmd.Flags().Int("per-page", 200, "")
+	cmd.Flags().Bool("all", false, "")
+
 	s.Run("Listing users with paging", func() {
 		printer.Clean()
 
-		emailArg := "example@example.com"
-		mockUser := model.User{Username: "ExampleUser", Email: emailArg}
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email}
+
 		page := 0
 		perPage := 1
-
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Int("page", page, "")
+		showAll := false
+		cmd.Flags().Set("page", strconv.Itoa(page))
+		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
@@ -899,30 +906,41 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	s.Run("Listing all the users", func() {
 		printer.Clean()
 
-		emailArg := "example2@example.com"
-		mockUser := model.User{Username: "ExampleUser2", Email: emailArg}
-		perPage := 200
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2}
 
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("all", true, "")
-		cmd.Flags().Int("per-page", perPage, "")
+		page := 0
+		perPage := 1
+		showAll := true
+		cmd.Flags().Set("page", strconv.Itoa(page))
+		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
 			GetUsers(0, perPage, "").
-			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Return([]*model.User{&mockUser1}, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUsers(1, perPage, "").
+			Return([]*model.User{&mockUser2}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsers(2, perPage, "").
 			Return([]*model.User{}, &model.Response{Error: nil}).
 			Times(1)
 
 		err := listUsersCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
 	})
 
 	s.Run("Try to list all the users when there are no uses in store", func() {
@@ -930,10 +948,10 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		page := 0
 		perPage := 1
-
-		cmd := &cobra.Command{}
-		cmd.Flags().Int("per-page", perPage, "")
-		cmd.Flags().Int("page", page, "")
+		showAll := false
+		cmd.Flags().Set("page", strconv.Itoa(page))
+		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
