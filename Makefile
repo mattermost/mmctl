@@ -2,7 +2,7 @@
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
 BUILD_HASH ?= $(shell git rev-parse HEAD)
-BUILD_VERSION ?= 0.2.0
+BUILD_VERSION ?= $(shell git ls-remote --tags --refs --sort="v:refname" git://github.com/mattermost/mmctl | tail -n1 | sed 's/.*\///')
 
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.Version=$(BUILD_VERSION)"
