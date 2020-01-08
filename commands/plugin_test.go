@@ -14,12 +14,6 @@ import (
 )
 
 func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
-	s.Run("Add without args", func() {
-		printer.Clean()
-		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Error(err)
-	})
-
 	s.Run("Add 1 plugin", func() {
 		printer.Clean()
 		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
