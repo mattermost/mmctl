@@ -1,9 +1,11 @@
 .PHONY: vendor docs mocks
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
-BUILD_HASH = $(shell git rev-parse HEAD)
+BUILD_HASH ?= $(shell git rev-parse HEAD)
+BUILD_VERSION ?= 0.2.0
 
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mmctl/commands.Version=$(BUILD_VERSION)"
 
 all: build
 
