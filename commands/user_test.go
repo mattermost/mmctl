@@ -925,7 +925,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 	})
 
-	s.Run("Try to listing all the users when there are no uses in store", func() {
+	s.Run("Try to list all the users when there are no uses in store", func() {
 		printer.Clean()
 
 		page := 0
