@@ -63,7 +63,7 @@ Archives a team along with all related information including posts from the data
 
 var ListTeamsCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List all teams.",
+	Short:   "List all teams",
 	Long:    `List all teams on the server.`,
 	Example: "  team list",
 	RunE:    withClient(listTeamsCmdF),
