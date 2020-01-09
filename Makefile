@@ -80,7 +80,7 @@ vendor:
 	go mod tidy
 
 mocks:
-	mockgen -destination=mocks/client_mock.go -package=mocks github.com/mattermost/mmctl/client Client
+	mockgen -destination=mocks/client_mock.go -copyright_file=mocks/copyright.txt -package=mocks github.com/mattermost/mmctl/client Client
 
 docs:
 	rm -rf docs
