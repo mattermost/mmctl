@@ -53,10 +53,10 @@ gofmt:
 govet:
 	@echo Running govet
 	$(GO) vet $(GO_PACKAGES)
-       ifeq ($(ADVANCED_VET), TRUE)
-		env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
-		$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
-       endif
+ifeq ($(ADVANCED_VET), TRUE)
+	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
+endif
 	@echo Govet success
 
 test: test-unit
