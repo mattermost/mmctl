@@ -170,7 +170,6 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
-
 	s.Run("Team group list returns error when passing a nonexistent team", func() {
 		printer.Clean()
 
@@ -272,6 +271,102 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], &group1)
 		s.Require().Equal(printer.GetLines()[1], &group2)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
+	s.Run("Should fail when team is not found", func() {
+		printer.Clean()
+
+		teamID := "teamId"
+		arg := teamID
+		args := []string{arg}
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := teamGroupStatusCmdF(s.client, cmd, args)
+
+		s.Require().EqualError(err, "Unable to find team '"+args[0]+"'")
+	})
+
+	s.Run("Should show valid response when group constraints status for a team is not present", func() {
+		printer.Clean()
+
+		teamID := "teamId"
+		arg := teamID
+		args := []string{arg}
+		cmd := &cobra.Command{}
+		team := &model.Team{Id: teamID}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(team, &model.Response{Error: nil}).
+			Times(1)
+
+		err := teamGroupStatusCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Disabled")
+	})
+
+	s.Run("Should show valid response when group constraints status for a team is enabled", func() {
+		printer.Clean()
+
+		teamID := "teamId"
+		arg := teamID
+		args := []string{arg}
+		cmd := &cobra.Command{}
+		team := &model.Team{Id: teamID, GroupConstrained: model.NewBool(true)}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(team, &model.Response{Error: nil}).
+			Times(1)
+
+		err := teamGroupStatusCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Enabled")
+	})
+
+	s.Run("Should show valid response when group constraints status for a team is disabled", func() {
+		printer.Clean()
+
+		teamID := "teamId"
+		arg := teamID
+		args := []string{arg}
+		cmd := &cobra.Command{}
+		team := &model.Team{Id: teamID, GroupConstrained: model.NewBool(false)}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(team, &model.Response{Error: nil}).
+			Times(1)
+
+		err := teamGroupStatusCmdF(s.client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Disabled")
 	})
 }
 
