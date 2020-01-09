@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 
@@ -962,5 +963,29 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		err := listUsersCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return an error from GetUsers call. And verify that error is properly returned.", func() {
+		printer.Clean()
+
+		page := 0
+		perPage := 1
+		showAll := false
+		cmd.Flags().Set("page", strconv.Itoa(page))
+		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		mockError := model.AppError{Id: "Mock Error"}
+		mockErrorW := errors.Wrap(&mockError, "Failed to fetch users")
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Equal(mockErrorW.Error(), err.Error())
 	})
 }
