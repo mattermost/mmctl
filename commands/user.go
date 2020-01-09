@@ -81,7 +81,7 @@ var SearchUserCmd = &cobra.Command{
 var ListUsersCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List users",
-	Long:    "List all the users",
+	Long:    "List all users",
 	Example: "  user list",
 	RunE:    withClient(listUsersCmdF),
 	Args:    cobra.NoArgs,
@@ -102,7 +102,7 @@ func init() {
 
 	ListUsersCmd.Flags().Int("page", 0, "Start page for list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
-	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. Will ignore --page and --per-page")
+	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will ignore if provided")
 
 	UserCmd.AddCommand(
 		UserDeactivateCmd,
