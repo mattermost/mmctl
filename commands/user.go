@@ -331,12 +331,29 @@ auth_service: {{.AuthService}}`
 }
 
 func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
-	page, _ := command.Flags().GetInt("page")
-	perPage, _ := command.Flags().GetInt("per-page")
-	showAll, _ := command.Flags().GetBool("all")
+	// TODO What to do with err?
+	page, errp := command.Flags().GetInt("page")
+	if errp != nil {
+		return errors.Wrap(errp, "Could not parse --page")
+	}
+	perPage, errpp := command.Flags().GetInt("per-page")
+	if errpp != nil {
+		return errors.Wrap(errp, "Could not parse --per-page")
+	}
+	showAll, errs := command.Flags().GetBool("all")
+	if errs != nil {
+		return errors.Wrap(errs, "Could not parse --all")
+	}
+
+	if showAll {
+		page = 0
+	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
-	for users, _ := c.GetUsers(page, perPage, ""); users != nil && len(users) > 0; users, _ = c.GetUsers(page, perPage, "") {
+	for users, response := c.GetUsers(page, perPage, ""); users != nil && len(users) > 0; users, response = c.GetUsers(page, perPage, "") {
+		if response.Error != nil {
+			return errors.Wrap(response.Error, "Failed to fetch users")
+		}
 		for _, user := range users {
 			printer.PrintT(tpl, user)
 		}
