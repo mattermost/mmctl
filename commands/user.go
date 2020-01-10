@@ -331,18 +331,17 @@ auth_service: {{.AuthService}}`
 }
 
 func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
-	// TODO What to do with err?
-	page, errp := command.Flags().GetInt("page")
-	if errp != nil {
-		return errors.Wrap(errp, "Could not parse --page")
+	page, err := command.Flags().GetInt("page")
+	if err != nil {
+		return err
 	}
-	perPage, errpp := command.Flags().GetInt("per-page")
-	if errpp != nil {
-		return errors.Wrap(errp, "Could not parse --per-page")
+	perPage, err := command.Flags().GetInt("per-page")
+	if err != nil {
+		return err
 	}
-	showAll, errs := command.Flags().GetBool("all")
-	if errs != nil {
-		return errors.Wrap(errs, "Could not parse --all")
+	showAll, err := command.Flags().GetBool("all")
+	if err != nil {
+		return err
 	}
 
 	if showAll {
