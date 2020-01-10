@@ -4,7 +4,7 @@ List plugins
 
 ### Synopsis
 
-List all active and inactive plugins installed on your Mattermost server.
+List all enabled and disabled plugins installed on your Mattermost server.
 
 ```
 mmctl plugin list [flags]

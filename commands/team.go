@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -51,6 +54,16 @@ Permanently deletes a team along with all related information including posts fr
 	RunE:    withClient(deleteTeamsCmdF),
 }
 
+var ArchiveTeamsCmd = &cobra.Command{
+	Use:   "archive [teams]",
+	Short: "Archive teams",
+	Long: `Archive some teams.
+Archives a team along with all related information including posts from the database.`,
+	Example: "  team archive myteam",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(archiveTeamsCmdF),
+}
+
 var ListTeamsCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List all teams.",
@@ -68,6 +81,18 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    withClient(searchTeamCmdF),
 }
 
+// RenameTeamCmd is the command to rename team along with its display name
+var RenameTeamCmd = &cobra.Command{
+	Use:   "rename [team]",
+	Short: "Rename team",
+	Long:  "Rename an existing team",
+	Example: `  team rename old-team --name 'new-team' --display_name 'New Display Name'
+  team rename old-team --name 'new-team'
+  team rename old-team --display_name 'New Display Name'`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(renameTeamCmdF),
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -75,14 +100,21 @@ func init() {
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
+	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
+
+	// Add flag declaration for RenameTeam
+	RenameTeamCmd.Flags().String("name", "", "Old Team Name")
+	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		RemoveUsersCmd,
 		AddUsersCmd,
 		DeleteTeamsCmd,
+		ArchiveTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		RenameTeamCmd,
 	)
 
 	RootCmd.AddCommand(TeamCmd)
@@ -222,6 +254,39 @@ func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
 	return c.PermanentDeleteTeam(team.Id)
 }
 
+func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		fmt.Println("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirm)
+
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+	}
+
+	teams := getTeamsFromTeamArgs(c, args)
+	for i, team := range teams {
+		if team == nil {
+			printer.PrintError("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if _, response := c.SoftDeleteTeam(team.Id); response.Error != nil {
+			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Archived team '{{.Name}}'", team)
+		}
+	}
+
+	return nil
+}
+
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams, response := c.GetAllTeams("", 0, 10000)
 	if response.Error != nil {
@@ -273,4 +338,36 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 		return result[i].Name < result[j].Name
 	})
 	return result
+}
+
+func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	oldTeamName := args[0]
+	newDisplayName, _ := cmd.Flags().GetString("display_name")
+	newTeamName, _ := cmd.Flags().GetString("name")
+
+	// If both flags are absent, abort!
+	if newTeamName == "" && newDisplayName == "" {
+		return errors.New("Require atleast one flag to rename team, either 'name' or 'display_name'")
+	}
+
+	team := getTeamFromTeamArg(c, oldTeamName)
+	if team == nil {
+		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
+	}
+
+	if newTeamName != "" {
+		team.Name = newTeamName
+	}
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	// Using UpdateTeam API Method to rename team
+	_, response := c.UpdateTeam(team)
+	if response.Error != nil {
+		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
+	}
+
+	printer.Print("'" + oldTeamName + "' team renamed")
+	return nil
 }
