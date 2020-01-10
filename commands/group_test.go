@@ -246,6 +246,313 @@ func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
+	s.Run("List groups for existing channel and team, when a single group exists", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+		groupName := "group-name"
+
+		mockTeam := model.Team{Id: teamId}
+		mockChannel := model.Channel{Id: channelId}
+		mockGroup := &model.Group{Name: groupName}
+		mockGroups := []*model.Group{mockGroup}
+
+		groupOpts := &model.GroupSearchOpts{
+			PageOpts: &model.PageOpts{
+				Page:    0,
+				PerPage: 9999,
+			},
+		}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetGroupsByChannel(channelId, *groupOpts).
+			Return(mockGroups, 0, &model.Response{Error: nil}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], mockGroup)
+	})
+
+	s.Run("List groups for existing channel and team, when multiple groups exist", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		mockTeam := model.Team{Id: teamId}
+		mockChannel := model.Channel{Id: channelId}
+		mockGroups := []*model.Group{
+			&model.Group{Name: "group1"},
+			&model.Group{Name: "group2"},
+		}
+
+		groupOpts := &model.GroupSearchOpts{
+			PageOpts: &model.PageOpts{
+				Page:    0,
+				PerPage: 9999,
+			},
+		}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetGroupsByChannel(channelId, *groupOpts).
+			Return(mockGroups, 0, &model.Response{Error: nil}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], mockGroups[0])
+		s.Require().Equal(printer.GetLines()[1], mockGroups[1])
+	})
+
+	s.Run("List groups for existing channel and team, when no groups exist", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		mockTeam := model.Team{Id: teamId}
+		mockChannel := model.Channel{Id: channelId}
+		mockGroups := []*model.Group{}
+
+		groupOpts := &model.GroupSearchOpts{
+			PageOpts: &model.PageOpts{
+				Page:    0,
+				PerPage: 9999,
+			},
+		}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetGroupsByChannel(channelId, *groupOpts).
+			Return(mockGroups, 0, &model.Response{Error: nil}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("List groups for a nonexistent channel", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		mockTeam := model.Team{Id: teamId}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelId, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.Require().NotNil(err)
+		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("List groups for a nonexistent team", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamId, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.Require().NotNil(err)
+		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when GetGroupsByChannel returns error", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		mockTeam := model.Team{Id: teamId}
+		mockChannel := model.Channel{Id: channelId}
+		mockError := model.AppError{Message: "Mock error"}
+
+		groupOpts := &model.GroupSearchOpts{
+			PageOpts: &model.PageOpts{
+				Page:    0,
+				PerPage: 9999,
+			},
+		}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetGroupsByChannel(channelId, *groupOpts).
+			Return(nil, 0, &model.Response{Error: &mockError}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.Require().Equal(err, &mockError)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when GetChannelByNameIncludeDeleted returns error", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		mockTeam := model.Team{Id: teamId}
+		mockError := model.AppError{Message: "Mock error"}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelId, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return error when GetTeam returns error", func() {
+		printer.Clean()
+
+		teamId := "team-id"
+		channelId := "channel-id"
+
+		mockError := model.AppError{Message: "Mock error"}
+
+		cmdArg := teamId + ":" + channelId
+
+		s.client.
+			EXPECT().
+			GetTeam(teamId, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamId, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		err := channelGroupListCmdF(s.client, &cobra.Command{}, []string{cmdArg})
+		s.EqualError(err, "Unable to find channel '"+cmdArg+"'")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 	s.Run("Team group list returns error when passing a nonexistent team", func() {
 		printer.Clean()
