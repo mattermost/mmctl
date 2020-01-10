@@ -102,7 +102,7 @@ func init() {
 
 	ListUsersCmd.Flags().Int("page", 0, "Start page for list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
-	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will ignore if provided")
+	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 
 	UserCmd.AddCommand(
 		UserDeactivateCmd,
