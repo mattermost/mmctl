@@ -1,13 +1,12 @@
 package commands
 
 import (
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/printer"
-
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -965,7 +964,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Return an error from GetUsers call. And verify that error is properly returned.", func() {
+	s.Run("Return an error from GetUsers call and verify that error is properly returned", func() {
 		printer.Clean()
 
 		page := 0
@@ -986,6 +985,32 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		err := listUsersCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
-		s.Require().Equal(mockErrorW.Error(), err.Error())
+		s.Require().EqualError(err, mockErrorW.Error())
 	})
+
+	s.Run("Start with page 2 where a server has total 3 pages", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email}
+
+		page := 2
+		perPage := 1
+		showAll := false
+		cmd.Flags().Set("page", strconv.Itoa(page))
+		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
 }
