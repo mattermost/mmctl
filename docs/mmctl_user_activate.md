@@ -1,25 +1,26 @@
-## mmctl user email
+## mmctl user activate
 
-Change email of the user
+Activate users
 
 ### Synopsis
 
-Change email of the user.
+Activate users that have been deactivated.
 
 ```
-mmctl user email [user] [new email] [flags]
+mmctl user activate [emails, usernames, userIds] [flags]
 ```
 
 ### Examples
 
 ```
-  user email testuser user@example.com
+  user activate user@example.com
+  user activate username
 ```
 
 ### Options
 
 ```
-  -h, --help   help for email
+  -h, --help   help for activate
 ```
 
 ### Options inherited from parent commands

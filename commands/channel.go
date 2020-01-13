@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -23,12 +26,16 @@ var ChannelCreateCmd = &cobra.Command{
 	RunE: withClient(createChannelCmdF),
 }
 
+// ChannelRenameCmd is used to change name and/or display name of an existing channel.
 var ChannelRenameCmd = &cobra.Command{
-	Use:     "rename",
-	Short:   "Rename a channel",
-	Long:    `Rename a channel.`,
-	Example: `  channel rename myteam:mychannel newchannelname --display_name "New Display Name"`,
-	RunE:    withClient(renameChannelCmdF),
+	Use:   "rename [channel]",
+	Short: "Rename channel",
+	Long:  `Rename an existing channel.`,
+	Example: `  channel rename myteam:oldchannel --name 'new-channel' --display_name 'New Display Name'
+  channel rename myteam:oldchannel --name 'new-channel'
+  channel rename myteam:oldchannel --display_name 'New Display Name'`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(renameChannelCmdF),
 }
 
 var RemoveChannelUsersCmd = &cobra.Command{
@@ -58,12 +65,14 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 	RunE:    withClient(archiveChannelsCmdF),
 }
 
+// ListChannelsCmd is a command which lists all the channels of team(s) in a server.
 var ListChannelsCmd = &cobra.Command{
 	Use:   "list [teams]",
 	Short: "List all channels on specified teams.",
 	Long: `List all channels on specified teams.
 Archived channels are appended with ' (archived)'.`,
 	Example: "  channel list myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(listChannelsCmdF),
 }
 
@@ -104,6 +113,7 @@ func init() {
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
+	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
@@ -273,10 +283,6 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 }
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Enter at least one team.")
-	}
-
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
@@ -345,32 +351,43 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 }
 
 func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	var newDisplayName, newChannelName string
+	existingTeamChannel := args[0]
 
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
+	newChannelName, err := cmd.Flags().GetString("name")
+	if err != nil {
+		return err
 	}
 
-	channel := getChannelFromChannelArg(c, args[0])
+	newDisplayName, err := cmd.Flags().GetString("display_name")
+	if err != nil {
+		return err
+	}
+
+	// At least one of display name or name flag must be present
+	if newDisplayName == "" && newChannelName == "" {
+		return errors.New("Require at least one flag to rename channel, either 'name' or 'display_name'")
+	}
+
+	channel := getChannelFromChannelArg(c, existingTeamChannel)
 	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+		return errors.New("Unable to find channel from '" + existingTeamChannel + "'")
 	}
 
-	newChannelName = args[1]
-	newDisplayName, errdn := cmd.Flags().GetString("display_name")
-	if errdn != nil {
-		return errdn
+	channelPatch := &model.ChannelPatch{}
+	if newChannelName != "" {
+		channelPatch.Name = &newChannelName
 	}
-
-	channelPatch := model.ChannelPatch{Name: &newChannelName}
 	if newDisplayName != "" {
 		channelPatch.DisplayName = &newDisplayName
 	}
 
-	if _, response := c.PatchChannel(channel.Id, &channelPatch); response.Error != nil {
-		return response.Error
+	// Using PatchChannel API to rename channel
+	updatedChannel, response := c.PatchChannel(channel.Id, channelPatch)
+	if response.Error != nil {
+		return errors.New("Cannot rename channel '" + channel.Name + "', error : " + response.Error.Error())
 	}
 
+	printer.PrintT("'{{.Name}}' channel renamed", updatedChannel)
 	return nil
 }
 

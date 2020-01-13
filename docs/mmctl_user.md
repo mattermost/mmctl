@@ -21,6 +21,7 @@ Management of users
 ### SEE ALSO
 
 * [mmctl](mmctl.md)	 - Remote client for the Open Source, self-hosted Slack-alternative
+* [mmctl user activate](mmctl_user_activate.md)	 - Activate users
 * [mmctl user create](mmctl_user_create.md)	 - Create a user
 * [mmctl user deactivate](mmctl_user_deactivate.md)	 - Deactivate users
 * [mmctl user email](mmctl_user_email.md)	 - Change email of the user
