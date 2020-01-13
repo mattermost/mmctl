@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -752,5 +755,247 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			s.Require().Equal(mockTeams[3].Name, printer.GetLines()[3])
 			s.Require().Len(printer.GetErrorLines(), 0)
 		})
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
+	mockTeam := model.Team{
+		Id:          "TeamId",
+		Name:        "team1",
+		DisplayName: "DisplayName",
+	}
+	mockUser := model.User{
+		Id:       "UserID",
+		Username: "ExampleUser",
+		Email:    "example@example.com",
+	}
+
+	s.Run("Add users with not enough arguments returns error", func() {
+
+		cmd := &cobra.Command{}
+		err := addUsersCmdF(s.client, cmd, []string{})
+
+		s.Require().Equal(err, errors.New("Not enough arguments."))
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Add users with a team that cannot be found returns error", func() {
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam("team1", "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName("team1", "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := addUsersCmdF(s.client, cmd, []string{"team1", "user1"})
+		s.Require().Equal(err, errors.New("Unable to find team 'team1'"))
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Add users with nonexistent user in arguments prints error", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam("team1", "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail("user1", "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername("user1", "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser("user1", "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := addUsersCmdF(s.client, cmd, []string{"team1", "user1"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user 'user1'")
+	})
+
+	s.Run("Add users should print error when cannot add team member", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam("team1", "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail("user1", "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		mockError := &model.AppError{
+			Message:       "Cannot add team member",
+			DetailedError: "This user was banned in this team",
+			Where:         "Team.AddTeamMember",
+		}
+
+		s.client.
+			EXPECT().
+			AddTeamMember("TeamId", "UserID").
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := addUsersCmdF(s.client, cmd, []string{"team1", "user1"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0],
+			"Unable to add 'user1' to team1. Error: Team.AddTeamMember: Cannot add team member, This user was banned in this team")
+	})
+
+	s.Run("Add users should not print in console anything on success", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		s.client.
+			EXPECT().
+			GetTeam("team1", "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail("user1", "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			AddTeamMember("TeamId", "UserID").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := addUsersCmdF(s.client, cmd, []string{"team1", "user1"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
+	teamName := "team1"
+	teamId := "teamId"
+
+	s.Run("Delete teams with no arguments returns an error", func() {
+		cmd := &cobra.Command{}
+		err := deleteTeamsCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "Not enough arguments.")
+	})
+
+	s.Run("Delete teams with confirm false returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "ABORTED: You did not answer YES exactly, in all capitals.")
+	})
+
+	s.Run("Delete teams with team not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete teams should delete team", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamId,
+			Name: teamName,
+		}
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamId).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Delete teams with error on PermanentDeleteTeam returns an error", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamId,
+			Name: teamName,
+		}
+
+		mockError := &model.AppError{
+			Message:       "An error occurred on deleting a team",
+			DetailedError: "Team cannot be deleted",
+			Where:         "Team.deleteTeam",
+		}
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamId).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to delete team 'team1' error: Team.deleteTeam: An error occurred on deleting a team, Team cannot be deleted",
+			printer.GetErrorLines()[0])
 	})
 }
