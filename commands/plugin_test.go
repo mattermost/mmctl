@@ -40,7 +40,8 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 	s.Run("Add 1 plugin no file", func() {
 		printer.Clean()
 		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{"non_existent_plugin"})
-		s.Require().EqualError(err, "open non_existent_plugin: no such file or directory")
+		s.Require().NotNil(err)
+		s.Require().True(err.Error() == "open non_existent_plugin: no such file or directory" || err.Error() == "open non_existent_plugin: The system cannot find the file specified.")
 	})
 
 	s.Run("Add 1 plugin with error", func() {
