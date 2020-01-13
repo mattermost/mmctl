@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -5,8 +8,50 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/printer"
+
 	"github.com/spf13/cobra"
 )
+
+func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
+	s.Run("Failure getting Ldap Groups", func() {
+		printer.Clean()
+		mockError := model.AppError{Id: "Mock Error"}
+
+		s.client.
+			EXPECT().
+			GetLdapGroups().
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		err := listLdapGroupsCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Equal(&mockError, err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("List several groups", func() {
+		printer.Clean()
+		mockList := []*model.Group{
+			&model.Group{DisplayName: "Group1"},
+			&model.Group{DisplayName: "Group2"},
+			&model.Group{DisplayName: "Group3"},
+		}
+
+		s.client.
+			EXPECT().
+			GetLdapGroups().
+			Return(mockList, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listLdapGroupsCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 3)
+		for i, v := range mockList {
+			s.Require().Equal(v, printer.GetLines()[i])
+		}
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
 
 func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	s.Run("Enable unexisting team", func() {
@@ -166,6 +211,81 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.Require().NoError(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestTeamGroupDisableCmd() {
+	s.Run("Disable existing team", func() {
+		printer.Clean()
+		teamArg := "example-team-id"
+		mockTeam := model.Team{Id: teamArg}
+		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchTeam(teamArg, &teamPatch).
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Disable nonexisting team", func() {
+		printer.Clean()
+		teamArg := "example-team-id"
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+		s.EqualError(err, "Unable to find team '"+teamArg+"'")
+	})
+
+	s.Run("Error response from PatchTeam", func() {
+		printer.Clean()
+		teamArg := "example-team-id"
+		mockTeam := model.Team{Id: teamArg}
+		teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
+		errMessage := "PatchTeam Error"
+		mockError := &model.AppError{Message: errMessage}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchTeam(teamArg, &teamPatch).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := teamGroupDisableCmdF(s.client, &cobra.Command{}, []string{teamArg})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+		s.EqualError(err, mockError.Error())
 	})
 }
 

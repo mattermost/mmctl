@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -378,5 +381,39 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
+	s.Run("Should show config", func() {
+		printer.Clean()
+		mockConfig := &model.Config{}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(mockConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal(mockConfig, printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should return an error", func() {
+		printer.Clean()
+		configError := &model.AppError{Message: "Config Error"}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(nil, &model.Response{Error: configError}).
+			Times(1)
+
+		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NotNil(err)
+		s.EqualError(err, configError.Error())
 	})
 }
