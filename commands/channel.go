@@ -363,9 +363,9 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return err
 	}
 
-	// Atleast one of display name or name flag must be present
+	// At least one of display name or name flag must be present
 	if newDisplayName == "" && newChannelName == "" {
-		return errors.New("Require atleast one flag to rename channel, either 'name' or 'display_name'")
+		return errors.New("Require at least one flag to rename channel, either 'name' or 'display_name'")
 	}
 
 	channel := getChannelFromChannelArg(c, existingTeamChannel)
@@ -382,12 +382,12 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	// Using PatchChannel API to rename channel
-	_, response := c.PatchChannel(channel.Id, channelPatch)
+	updatedChannel, response := c.PatchChannel(channel.Id, channelPatch)
 	if response.Error != nil {
 		return errors.New("Cannot rename channel '" + channel.Name + "', error : " + response.Error.Error())
 	}
 
-	printer.Print("'" + channel.Name + "' channel renamed")
+	printer.PrintT("'{{.Name}}' channel renamed", updatedChannel)
 	return nil
 }
 
