@@ -27,7 +27,7 @@ Management of channels
 * [mmctl channel list](mmctl_channel_list.md)	 - List all channels on specified teams.
 * [mmctl channel make_private](mmctl_channel_make_private.md)	 - Set a channel's type to private
 * [mmctl channel remove](mmctl_channel_remove.md)	 - Remove users from channel
-* [mmctl channel rename](mmctl_channel_rename.md)	 - Rename a channel
+* [mmctl channel rename](mmctl_channel_rename.md)	 - Rename channel
 * [mmctl channel restore](mmctl_channel_restore.md)	 - Restore some channels
 * [mmctl channel search](mmctl_channel_search.md)	 - Search a channel
 
