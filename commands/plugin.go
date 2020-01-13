@@ -24,6 +24,7 @@ var PluginAddCmd = &cobra.Command{
 	Long:    "Add plugins to your Mattermost server.",
 	Example: `  plugin add hovercardexample.tar.gz pluginexample.tar.gz`,
 	RunE:    withClient(pluginAddCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginDeleteCmd = &cobra.Command{
@@ -32,6 +33,7 @@ var PluginDeleteCmd = &cobra.Command{
 	Long:    "Delete previously uploaded plugins from your Mattermost server.",
 	Example: `  plugin delete hovercardexample pluginexample`,
 	RunE:    withClient(pluginDeleteCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginEnableCmd = &cobra.Command{
@@ -40,6 +42,7 @@ var PluginEnableCmd = &cobra.Command{
 	Long:    "Enable plugins for use on your Mattermost server.",
 	Example: `  plugin enable hovercardexample pluginexample`,
 	RunE:    withClient(pluginEnableCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginDisableCmd = &cobra.Command{
@@ -48,6 +51,7 @@ var PluginDisableCmd = &cobra.Command{
 	Long:    "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
 	Example: `  plugin disable hovercardexample pluginexample`,
 	RunE:    withClient(pluginDisableCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginListCmd = &cobra.Command{
@@ -70,10 +74,6 @@ func init() {
 }
 
 func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for i, plugin := range args {
 		fileReader, err := os.Open(plugin)
 		if err != nil {
@@ -92,10 +92,6 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for _, plugin := range args {
 		if _, response := c.RemovePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + response.Error.Error())
@@ -108,10 +104,6 @@ func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for _, plugin := range args {
 		if _, response := c.EnablePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to enable plugin: " + plugin + ". Error: " + response.Error.Error())
@@ -124,10 +116,6 @@ func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func pluginDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for _, plugin := range args {
 		if _, response := c.DisablePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to disable plugin: " + plugin + ". Error: " + response.Error.Error())
