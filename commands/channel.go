@@ -61,12 +61,14 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 	RunE:    withClient(archiveChannelsCmdF),
 }
 
+// ListChannelsCmd is a command which lists all the channels of team(s) in a server.
 var ListChannelsCmd = &cobra.Command{
 	Use:   "list [teams]",
 	Short: "List all channels on specified teams.",
 	Long: `List all channels on specified teams.
 Archived channels are appended with ' (archived)'.`,
 	Example: "  channel list myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(listChannelsCmdF),
 }
 
@@ -276,10 +278,6 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 }
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Enter at least one team.")
-	}
-
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
