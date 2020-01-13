@@ -57,3 +57,101 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		s.Require().Equal(expectedError, err)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
+	s.Run("Removing a permission from an existing role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit", "delete"},
+		}
+
+		expectedPatch := &model.RolePatch{
+			Permissions: &[]string{"view", "edit"},
+		}
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchRole(mockRole.Id, expectedPatch).
+			Return(&model.Role{}, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, "delete"}
+		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Removing multiple permissions from an existing role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit", "delete"},
+		}
+
+		expectedPatch := &model.RolePatch{
+			Permissions: &[]string{"edit"},
+		}
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchRole(mockRole.Id, expectedPatch).
+			Return(&model.Role{}, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, "view", "delete"}
+		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Removing a non-existing permission from an existing role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit"},
+		}
+
+		expectedPatch := &model.RolePatch{
+			Permissions: &[]string{"view", "edit"},
+		}
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchRole(mockRole.Id, expectedPatch).
+			Return(&model.Role{}, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, "delete"}
+		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Removing a permission from a non-existing role", func() {
+		mockRole := model.Role{
+			Name:        "exampleName",
+			Permissions: []string{"view", "edit", "delete"},
+		}
+
+		mockError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		args := []string{mockRole.Name, "delete"}
+		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "Role: role_not_found, ")
+	})
+}
