@@ -46,9 +46,9 @@ var TeamUsersAddCmd = &cobra.Command{
 
 func init() {
 	TeamUsersCmd.AddCommand(
-		RemoveUsersCmd,
-		ArchiveUsersCmd,
-		AddUsersCmd,
+		TeamUsersRemoveCmd,
+		TeamUsersArchiveCmd,
+		TeamUsersAddCmd,
 	)
 
 	TeamCmd.AddCommand(TeamUsersCmd)
