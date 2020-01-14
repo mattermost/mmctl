@@ -1264,6 +1264,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelArg := teamArg + ":" + channelPart
 		group := &model.Group{Name: "group-name"}
 		mockGroups := []*model.Group{group}
+		mockError := model.AppError{Id: "Mock Error"}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -1280,7 +1281,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelPart, teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{Error: &mockError}).
 			Times(1)
 
 		s.client.
