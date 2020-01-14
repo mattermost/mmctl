@@ -26,7 +26,7 @@ var TeamUsersRemoveCmd = &cobra.Command{
 	RunE:       withClient(archiveUsersCmdF),
 }
 
-var ArchiveUsersCmd = &cobra.Command{
+var TeamUsersArchiveCmd = &cobra.Command{
 	Use:     "archive [team] [users]",
 	Short:   "Archive users from team",
 	Long:    "Archive some users from team",
