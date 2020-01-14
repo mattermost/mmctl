@@ -16,7 +16,7 @@ var TeamUsersCmd = &cobra.Command{
 	Short: "Management of team users",
 }
 
-var RemoveUsersCmd = &cobra.Command{
+var TeamUsersRemoveCmd = &cobra.Command{
 	Use:        "remove [team] [users]",
 	Short:      "Remove users from team",
 	Long:       "Remove some users from team",
