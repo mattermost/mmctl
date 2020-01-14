@@ -12,6 +12,7 @@ import (
 
 func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	s.Run("Search for an existing channel on an existing team", func() {
+		printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "example-channel"
@@ -135,6 +136,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 	s.Run("Team is not found", func() {
+		printer.Clean()
 		team1ID := "team1"
 		args := []string{""}
 		args[0] = team1ID
@@ -700,6 +702,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 	mockUser := model.User{Id: userId, Email: userArg}
 
 	s.Run("Not enough command line parameters", func() {
+		printer.Clean()
 		cmd := &cobra.Command{}
 
 		// One argument provided.
