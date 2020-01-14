@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -21,6 +24,5 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 	if team == nil {
 		team, _ = c.GetTeamByName(teamArg, "")
 	}
-
 	return team
 }

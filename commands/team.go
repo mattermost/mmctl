@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -78,6 +81,18 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    withClient(searchTeamCmdF),
 }
 
+// RenameTeamCmd is the command to rename team along with its display name
+var RenameTeamCmd = &cobra.Command{
+	Use:   "rename [team]",
+	Short: "Rename team",
+	Long:  "Rename an existing team",
+	Example: `  team rename old-team --name 'new-team' --display_name 'New Display Name'
+  team rename old-team --name 'new-team'
+  team rename old-team --display_name 'New Display Name'`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(renameTeamCmdF),
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -87,6 +102,10 @@ func init() {
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
 	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
 
+	// Add flag declaration for RenameTeam
+	RenameTeamCmd.Flags().String("name", "", "Old Team Name")
+	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
+
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
 		RemoveUsersCmd,
@@ -95,6 +114,7 @@ func init() {
 		ArchiveTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		RenameTeamCmd,
 	)
 
 	RootCmd.AddCommand(TeamCmd)
@@ -318,4 +338,36 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 		return result[i].Name < result[j].Name
 	})
 	return result
+}
+
+func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	oldTeamName := args[0]
+	newDisplayName, _ := cmd.Flags().GetString("display_name")
+	newTeamName, _ := cmd.Flags().GetString("name")
+
+	// If both flags are absent, abort!
+	if newTeamName == "" && newDisplayName == "" {
+		return errors.New("Require atleast one flag to rename team, either 'name' or 'display_name'")
+	}
+
+	team := getTeamFromTeamArg(c, oldTeamName)
+	if team == nil {
+		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
+	}
+
+	if newTeamName != "" {
+		team.Name = newTeamName
+	}
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	// Using UpdateTeam API Method to rename team
+	_, response := c.UpdateTeam(team)
+	if response.Error != nil {
+		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
+	}
+
+	printer.Print("'" + oldTeamName + "' team renamed")
+	return nil
 }
