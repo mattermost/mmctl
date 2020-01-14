@@ -161,7 +161,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		mockChannel := model.Channel{Id: channelID, Name: channelArg}
 
 		cmd := &cobra.Command{}
-		args := fmt.Sprintf("%s:%s", teamArg, channelArg)
+		args := teamArg + ":" + channelArg
 
 		s.client.
 			EXPECT().
@@ -269,7 +269,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		channelArg := "some-channel"
 
 		cmd := &cobra.Command{}
-		args := []string{fmt.Sprintf("%s:%s", teamArg, channelArg)}
+		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
 			EXPECT().
@@ -301,7 +301,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		channelArg := "some-non-existing-channel"
 
 		cmd := &cobra.Command{}
-		args := []string{fmt.Sprintf("%s:%s", teamArg, channelArg)}
+		args := []string{teamArg + ":" + channelArg}
 
 		s.client.
 			EXPECT().
@@ -403,8 +403,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		expected := printer.GetErrorLines()[0]
 		actual := fmt.Sprintf("Unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
-	})
-	
+	})	
 }
 
 func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
