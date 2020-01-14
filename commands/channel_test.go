@@ -12,7 +12,6 @@ import (
 
 func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	s.Run("Search for an existing channel on an existing team", func() {
-		defer printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "example-channel"
@@ -41,7 +40,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 
 	s.Run("Search for an existing channel without specifying team", func() {
-		defer printer.Clean()
+		printer.Clean()
 		teamId := "example-team-id"
 		otherTeamId := "example-team-id-2"
 		mockTeams := []*model.Team{
@@ -79,7 +78,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 
 	s.Run("Search for a nonexistent channel", func() {
-		defer printer.Clean()
+		printer.Clean()
 		teamArg := "example-team-id"
 		mockTeam := model.Team{Id: teamArg}
 		channelArg := "example-channel"
@@ -107,7 +106,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 
 	s.Run("Search for a channel in a nonexistent team", func() {
-		defer printer.Clean()
+		printer.Clean()
 		teamArg := "example-team-id"
 		channelArg := "example-channel"
 
@@ -714,9 +713,9 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.EqualError(err, "Not enough arguments.")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		printer.Clean()
 	})
 	s.Run("Add existing user to existing channel", func() {
+		printer.Clean()
 		cmd := &cobra.Command{}
 
 		s.client.
@@ -745,9 +744,9 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		printer.Clean()
 	})
 	s.Run("Add existing user to nonexistent channel", func() {
+		printer.Clean()
 		cmd := &cobra.Command{}
 
 		s.client.
@@ -772,9 +771,9 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		printer.Clean()
 	})
 	s.Run("Add existing user to channel owned by nonexistent team", func() {
+		printer.Clean()
 		cmd := &cobra.Command{}
 
 		// No team is returned by client.
@@ -793,9 +792,9 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		printer.Clean()
 	})
 	s.Run("Add multiple users, some nonexistent to existing channel", func() {
+		printer.Clean()
 		nilUserArg := "nonexistent-user"
 		cmd := &cobra.Command{}
 
@@ -840,9 +839,9 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Can't find user '"+nilUserArg+"'", printer.GetErrorLines()[0])
-		printer.Clean()
 	})
 	s.Run("Error adding existing user to existing channel", func() {
+		printer.Clean()
 		cmd := &cobra.Command{}
 
 		s.client.
@@ -873,6 +872,5 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to add '"+userArg+"' to "+channel+". Error: : Mock error, ",
 			printer.GetErrorLines()[0])
-		printer.Clean()
 	})
 }
