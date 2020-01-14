@@ -1,4 +1,4 @@
-## mmctl team add
+## mmctl team users add
 
 Add users to team
 
@@ -7,7 +7,7 @@ Add users to team
 Add some users to team
 
 ```
-mmctl team add [team] [users] [flags]
+mmctl team users add [team] [users] [flags]
 ```
 
 ### Examples
@@ -30,5 +30,5 @@ mmctl team add [team] [users] [flags]
 
 ### SEE ALSO
 
-* [mmctl team](mmctl_team.md)	 - Management of teams
+* [mmctl team users](mmctl_team_users.md)	 - Management of team users
 
