@@ -23,7 +23,7 @@ var TeamUsersRemoveCmd = &cobra.Command{
 	Example:    "  team remove myteam user@example.com username",
 	Deprecated: "please use \"archive\" instead",
 	Args:       cobra.MinimumNArgs(2),
-	RunE:       withClient(archiveUsersCmdF),
+	RunE:       withClient(teamUsersArchiveCmdF),
 }
 
 var TeamUsersArchiveCmd = &cobra.Command{
@@ -32,7 +32,7 @@ var TeamUsersArchiveCmd = &cobra.Command{
 	Long:    "Archive some users from team",
 	Example: "  team archive myteam user@example.com username",
 	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(archiveUsersCmdF),
+	RunE:    withClient(teamUsersArchiveCmdF),
 }
 
 var TeamUsersAddCmd = &cobra.Command{
@@ -41,7 +41,7 @@ var TeamUsersAddCmd = &cobra.Command{
 	Long:    "Add some users to team",
 	Example: "  team add myteam user@example.com username",
 	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(addUsersCmdF),
+	RunE:    withClient(teamUsersAddCmdF),
 }
 
 func init() {
@@ -54,7 +54,7 @@ func init() {
 	TeamCmd.AddCommand(TeamUsersCmd)
 }
 
-func archiveUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func teamUsersArchiveCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -78,7 +78,7 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 	}
 }
 
-func addUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
