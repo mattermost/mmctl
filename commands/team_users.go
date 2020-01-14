@@ -35,7 +35,7 @@ var TeamUsersArchiveCmd = &cobra.Command{
 	RunE:    withClient(archiveUsersCmdF),
 }
 
-var AddUsersCmd = &cobra.Command{
+var TeamUsersAddCmd = &cobra.Command{
 	Use:     "add [team] [users]",
 	Short:   "Add users to team",
 	Long:    "Add some users to team",
