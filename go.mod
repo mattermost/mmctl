@@ -2,8 +2,6 @@ module github.com/mattermost/mmctl
 
 go 1.13
 
-replace github.com/mattermost/mattermost-server/v5 => ../mattermost-server
-
 require (
 	github.com/golang/mock v1.3.1
 	github.com/magefile/mage v1.9.0
