@@ -27,7 +27,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{teamArg, userArg})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, userArg})
 		s.Require().Equal(err.Error(), "Unable to find team '"+teamArg+"'")
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -61,7 +61,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(nil, nil).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -97,7 +97,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -126,7 +126,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -161,7 +161,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -201,7 +201,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -231,7 +231,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Return(false, &model.Response{Error: &mockError}).
 			Times(1)
 
-		err := teamUsersArchiveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
+		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
