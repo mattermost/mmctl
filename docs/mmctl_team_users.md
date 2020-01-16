@@ -22,5 +22,5 @@ Management of team users
 
 * [mmctl team](mmctl_team.md)	 - Management of teams
 * [mmctl team users add](mmctl_team_users_add.md)	 - Add users to team
-* [mmctl team users archive](mmctl_team_users_archive.md)	 - Archive users from team
+* [mmctl team users remove](mmctl_team_users_remove.md)	 - Remove users from team
 
