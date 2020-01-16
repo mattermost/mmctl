@@ -1,25 +1,25 @@
-## mmctl team users archive
+## mmctl team users remove
 
-Archive users from team
+Remove users from team
 
 ### Synopsis
 
-Archive some users from team
+Remove some users from team
 
 ```
-mmctl team users archive [team] [users] [flags]
+mmctl team users remove [team] [users] [flags]
 ```
 
 ### Examples
 
 ```
-  team archive myteam user@example.com username
+  team remove myteam user@example.com username
 ```
 
 ### Options
 
 ```
-  -h, --help   help for archive
+  -h, --help   help for remove
 ```
 
 ### Options inherited from parent commands
