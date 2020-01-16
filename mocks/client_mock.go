@@ -756,6 +756,21 @@ func (mr *MockClientMockRecorder) SyncLdap() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap))
 }
 
+// UpdateChannelPrivacy mocks base method
+func (m *MockClient) UpdateChannelPrivacy(arg0, arg1 string) (*model.Channel, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateChannelPrivacy", arg0, arg1)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateChannelPrivacy indicates an expected call of UpdateChannelPrivacy
+func (mr *MockClientMockRecorder) UpdateChannelPrivacy(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChannelPrivacy", reflect.TypeOf((*MockClient)(nil).UpdateChannelPrivacy), arg0, arg1)
+}
+
 // UpdateConfig mocks base method
 func (m *MockClient) UpdateConfig(arg0 *model.Config) (*model.Config, *model.Response) {
 	m.ctrl.T.Helper()
