@@ -148,6 +148,7 @@ workflows:
   version: 2
   untagged-build:
     jobs:
+      - docs
       - lint
       - setup
       - test:
@@ -155,6 +156,12 @@ workflows:
             - setup
   tagged-build:
     jobs:
+      - docs:
+        filters:
+          tags:
+            only: /^v.*/
+          branches:
+            ignore: /.*/
       - lint:
           filters:
             tags:
