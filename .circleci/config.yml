@@ -157,11 +157,11 @@ workflows:
   tagged-build:
     jobs:
       - docs:
-        filters:
-          tags:
-            only: /^v.*/
-          branches:
-            ignore: /.*/
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
       - lint:
           filters:
             tags:
