@@ -769,14 +769,14 @@ func copyCommand(cmd *model.Command) *model.Command {
 func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 	commandArg := "cmd1"
 	commandArgBogus := "bogus-command-id"
-	teamArg := "example-team-id"
+	teamArg := "dest-team-id"
 	teamArgBogus := "bogus-team-id"
 
-	mockTeam := model.Team{Id: "orig-team-id"}
+	mockTeamDest := model.Team{Id: teamArg}
 
 	mockCommand := model.Command{
 		Id:          commandArg,
-		TeamId:      mockTeam.Id,
+		TeamId:      "orig-team-id",
 		DisplayName: "example-title",
 		Trigger:     "example-trigger",
 	}
@@ -790,7 +790,6 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		mockCommandModified := copyCommand(&mockCommand)
 		mockCommandModified.TeamId = teamArg
 
-		// moveCommandCmdF will look up team by id then name, call getCommandById and UpdateCommand
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
@@ -799,7 +798,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeamByName(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
 			EXPECT().
@@ -808,11 +807,11 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateCommand(&mockCommand).
-			Return(mockCommandModified, &model.Response{Error: nil}).
+			MoveCommand(teamArg, mockCommand.Id).
+			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
+		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, mockCommand.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessageOK)
@@ -821,7 +820,6 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 
 	s.Run("Move custom slash command to invalid team by id", func() {
 		printer.Clean()
-		// moveCommandCmdF will look up team by id then name
 		s.client.
 			EXPECT().
 			GetTeam(teamArgBogus, "").
@@ -842,11 +840,10 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 
 	s.Run("Move custom slash command to different team by invalid id", func() {
 		printer.Clean()
-		// moveCommandCmdF will look up team by id, then call GetCommandById
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
 			EXPECT().
@@ -863,37 +860,10 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 
 	s.Run("Unable to move custom slash command", func() {
 		printer.Clean()
-		// moveCommandCmdF will look up team by id, then call GetCommandById
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
-			Times(1)
-		s.client.
-			EXPECT().
-			GetCommandById(commandArgBogus).
-			Return(&mockCommand, &model.Response{Error: nil}).
-			Times(1)
-		s.client.
-			EXPECT().
-			UpdateCommand(&mockCommand).
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArgBogus})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], outputMessageError)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Move custom slash command with response error", func() {
-		printer.Clean()
-		// moveCommandCmdF will look up team by id, then call GetCommandById
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
 			EXPECT().
@@ -902,8 +872,33 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateCommand(&mockCommand).
-			Return(nil, &model.Response{Error: mockError}).
+			MoveCommand(teamArg, commandArg).
+			Return(false, &model.Response{Error: nil}).
+			Times(1)
+
+		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], outputMessageError)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Move custom slash command with response error", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(&mockTeamDest, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetCommandById(commandArg).
+			Return(&mockCommand, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			MoveCommand(teamArg, commandArg).
+			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
