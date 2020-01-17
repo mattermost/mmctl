@@ -6,12 +6,29 @@ executors:
       - image: circleci/golang:1.13
 
 jobs:
+  docs:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - run:
+          command: |
+            echo "Making sure docs are updated"
+            make docs
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+
   lint:
     executor:
       name: default
     steps:
       - checkout
-      - run: make check
+      - run:
+          command: |
+            echo "Installing mattermost-govet"
+            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+            echo "Installing shadow"
+            GO111MODULE=off go get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+            make check
 
   setup:
     docker:
@@ -128,6 +145,7 @@ workflows:
   version: 2
   untagged-build:
     jobs:
+      - docs
       - lint
       - setup
       - test:
@@ -135,6 +153,12 @@ workflows:
             - setup
   tagged-build:
     jobs:
+      - docs:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
       - lint:
           filters:
             tags:
