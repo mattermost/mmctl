@@ -64,7 +64,7 @@ var CommandShowCmd = &cobra.Command{
 	Use:     "show [commandID]",
 	Short:   "Show a custom slash command",
 	Long:    `Show a custom slash command. Commands can be specified by command ID. Returns command ID, team ID, trigger word, display name and creator username.`,
-	Args:    cobra.MinimumNArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Example: `  command show commandID`,
 	RunE:    withClient(showCommandCmdF),
 }
