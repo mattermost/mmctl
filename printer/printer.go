@@ -46,7 +46,7 @@ func PrintT(templateString string, v interface{}) {
 	case FormatPlain:
 		t := template.Must(template.New("").Parse(templateString))
 		var tpl bytes.Buffer
-		t.Execute(&tpl, v)
+		_ = t.Execute(&tpl, v)
 		tplString := tpl.String()
 		printer.Lines = append(printer.Lines, tplString)
 		fmt.Println(tplString)

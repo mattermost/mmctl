@@ -93,11 +93,11 @@ var SearchUserCmd = &cobra.Command{
 
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
-	UserCreateCmd.MarkFlagRequired("username")
+	_ = UserCreateCmd.MarkFlagRequired("username")
 	UserCreateCmd.Flags().String("email", "", "Required. The email address for the new user account.")
-	UserCreateCmd.MarkFlagRequired("email")
+	_ = UserCreateCmd.MarkFlagRequired("email")
 	UserCreateCmd.Flags().String("password", "", "Required. The password for the new user account.")
-	UserCreateCmd.MarkFlagRequired("password")
+	_ = UserCreateCmd.MarkFlagRequired("password")
 	UserCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account.")
 	UserCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account.")
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account.")

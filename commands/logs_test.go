@@ -86,6 +86,9 @@ func testLogsCmdF(client client.Client, cmd *cobra.Command, args []string) ([]st
 
 	// Call logsCmdF
 	err := logsCmdF(client, cmd, args)
+	if err != nil {
+		return nil, err
+	}
 
 	// Stop capturing, set stdout back
 	w.Close()
@@ -93,7 +96,10 @@ func testLogsCmdF(client client.Client, cmd *cobra.Command, args []string) ([]st
 
 	// Copy to buffer
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	_, err = io.Copy(&buf, r)
+	if err != nil {
+		return nil, err
+	}
 
 	// Split for individual lines, removing last as it is an empty string
 	data := strings.Split(buf.String(), "\n")

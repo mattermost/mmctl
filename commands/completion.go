@@ -48,7 +48,7 @@ func init() {
 }
 
 func bashCmdF(cmd *cobra.Command, args []string) {
-	RootCmd.GenBashCompletion(os.Stdout)
+	_ = RootCmd.GenBashCompletion(os.Stdout)
 }
 
 func zshCmdF(cmd *cobra.Command, args []string) {
@@ -191,6 +191,6 @@ __mmctl_bash_source <(__mmctl_convert_bash_to_zsh)
 `
 
 	os.Stdout.Write([]byte(zshInitialization))
-	RootCmd.GenBashCompletion(os.Stdout)
+	_ = RootCmd.GenBashCompletion(os.Stdout)
 	os.Stdout.Write([]byte(zshTail))
 }
