@@ -46,7 +46,7 @@ var CommandModifyCmd = &cobra.Command{
 	Use:     "modify [commandID]",
 	Short:   "Modify a slash command",
 	Long:    `Modify a slash command. Commands can be specified by command ID.`,
-	Args:    cobra.MinimumNArgs(1),
+	Args:    cobra.ExactArgs(1),
 	Example: `  command modify commandID --title MyModifiedCommand --description "My Modified Command Description" --trigger-word mycommand --url http://localhost:8000/my-slash-handler --creator myusername --response-username my-bot-username --icon http://localhost:8000/my-slash-handler-bot-icon.png --autocomplete --post`,
 	RunE:    withClient(modifyCommandCmdF),
 }
