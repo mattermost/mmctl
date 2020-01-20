@@ -32,9 +32,9 @@ func (s *MmctlUnitTestSuite) TestListLdapGroupsCmd() {
 	s.Run("List several groups", func() {
 		printer.Clean()
 		mockList := []*model.Group{
-			&model.Group{DisplayName: "Group1"},
-			&model.Group{DisplayName: "Group2"},
-			&model.Group{DisplayName: "Group3"},
+			{DisplayName: "Group1"},
+			{DisplayName: "Group2"},
+			{DisplayName: "Group3"},
 		}
 
 		s.client.
@@ -161,7 +161,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return([]*model.Group{&model.Group{}}, 1, &model.Response{Error: nil}).
+			Return([]*model.Group{{}}, 1, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -198,7 +198,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return([]*model.Group{&model.Group{}}, 1, &model.Response{Error: nil}).
+			Return([]*model.Group{{}}, 1, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -345,8 +345,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
 		mockGroups := []*model.Group{
-			&model.Group{Name: "group1"},
-			&model.Group{Name: "group2"},
+			{Name: "group1"},
+			{Name: "group2"},
 		}
 
 		groupOpts := &model.GroupSearchOpts{

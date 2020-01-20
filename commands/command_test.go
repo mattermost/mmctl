@@ -395,17 +395,17 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		commandTeam1ID := "command-team1-id"
 		commandTeam2Id := "command-team2-id"
 		teams := []*model.Team{
-			&model.Team{Id: team1ID},
-			&model.Team{Id: team2Id},
+			{Id: team1ID},
+			{Id: team2Id},
 		}
 
 		team1Commands := []*model.Command{
-			&model.Command{
+			{
 				Id: commandTeam1ID,
 			},
 		}
 		team2Commands := []*model.Command{
-			&model.Command{
+			{
 				Id: commandTeam2Id,
 			},
 		}
@@ -428,7 +428,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		commandID := "command-id"
 		team := &model.Team{Id: teamID}
 		teamCommand := []*model.Command{
-			&model.Command{
+			{
 				Id: commandID,
 			},
 		}

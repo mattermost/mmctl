@@ -535,10 +535,10 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		argUser := "example@example.com"
 		argTeam := []string{"teamName1", "teamId2", "teamId3", "teamName4"}
 		resultTeamModels := [4]*model.Team{
-			&model.Team{Id: "teamId1"},
-			&model.Team{Id: "teamId2"},
-			&model.Team{Id: "teamId3"},
-			&model.Team{Id: "teamId4"},
+			{Id: "teamId1"},
+			{Id: "teamId2"},
+			{Id: "teamId3"},
+			{Id: "teamId4"},
 		}
 
 		// Setup GetTeam
@@ -652,12 +652,12 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		argUser := "example@example.com"
 		argTeam := []string{"teamName1", "unexistent", "teamId3", "teamName4", "reject", "teamId6"}
 		resultTeamModels := [6]*model.Team{
-			&model.Team{Id: "teamId1", Name: "teamName1"},
+			{Id: "teamId1", Name: "teamName1"},
 			nil,
-			&model.Team{Id: "teamId3", Name: "teamName3"},
-			&model.Team{Id: "teamId4", Name: "teamName4"},
-			&model.Team{Id: "reject", Name: "rejectName"},
-			&model.Team{Id: "teamId6", Name: "teamName6"},
+			{Id: "teamId3", Name: "teamName3"},
+			{Id: "teamId4", Name: "teamName4"},
+			{Id: "reject", Name: "rejectName"},
+			{Id: "teamId6", Name: "teamName6"},
 		}
 		mockError := model.NewAppError("", "Mock Error", nil, "", 0)
 

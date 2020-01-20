@@ -459,18 +459,18 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 	s.Run("Several teams", func() {
 		mockTeams := []*model.Team{
-			&model.Team{
+			{
 				Name: "Team1",
 			},
-			&model.Team{
+			{
 				Name:     "Team2",
 				DeleteAt: 1,
 			},
-			&model.Team{
+			{
 				Name:     "Team3",
 				DeleteAt: 1,
 			},
-			&model.Team{
+			{
 				Name: "Team4",
 			},
 		}

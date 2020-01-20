@@ -44,8 +44,8 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		teamID := "example-team-id"
 		otherTeamID := "example-team-id-2"
 		mockTeams := []*model.Team{
-			&model.Team{Id: otherTeamID},
-			&model.Team{Id: teamID},
+			{Id: otherTeamID},
+			{Id: teamID},
 		}
 		channelArg := "example-channel"
 		mockChannel := model.Channel{Name: channelArg}

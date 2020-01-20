@@ -265,21 +265,21 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 		printer.Clean()
 		mockList := &model.PluginsResponse{
 			Active: []*model.PluginInfo{
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id1",
 						Name:    "name1",
 						Version: "v1",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id2",
 						Name:    "name2",
 						Version: "v2",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id3",
 						Name:    "name3",
@@ -287,21 +287,21 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 					},
 				},
 			}, Inactive: []*model.PluginInfo{
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id4",
 						Name:    "name4",
 						Version: "v4",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id5",
 						Name:    "name5",
 						Version: "v5",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id6",
 						Name:    "name6",
@@ -340,21 +340,21 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		mockList := &model.PluginsResponse{
 			Active: []*model.PluginInfo{
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id1",
 						Name:    "name1",
 						Version: "v1",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id2",
 						Name:    "name2",
 						Version: "v2",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id3",
 						Name:    "name3",
@@ -362,21 +362,21 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 					},
 				},
 			}, Inactive: []*model.PluginInfo{
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id4",
 						Name:    "name4",
 						Version: "v4",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id5",
 						Name:    "name5",
 						Version: "v5",
 					},
 				},
-				&model.PluginInfo{
+				{
 					Manifest: model.Manifest{
 						Id:      "id6",
 						Name:    "name6",
@@ -469,8 +469,8 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 			"plugin3",
 		}
 		mockErrors := []*model.AppError{
-			&model.AppError{Message: "Mock Error1"},
-			&model.AppError{Message: "Mock Error2"},
+			{Message: "Mock Error1"},
+			{Message: "Mock Error2"},
 		}
 
 		s.client.
