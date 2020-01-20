@@ -906,7 +906,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{})
 
-		s.Require().EqualError(error, "Expected two arguments. See help text for details.")
+		s.Require().EqualError(error, "Expected two arguments. See help text for details")
 	})
 
 	s.Run("Invalid email provided", func() {
