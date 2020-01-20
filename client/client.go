@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package client
 
 import (
@@ -50,7 +53,6 @@ type Client interface {
 	GetUserByUsername(userName, etag string) (*model.User, *model.Response)
 	GetUserByEmail(email, etag string) (*model.User, *model.Response)
 	CreateUser(user *model.User) (*model.User, *model.Response)
-	DeleteUser(userId string) (bool, *model.Response)
 	UpdateUserRoles(userId, roles string) (bool, *model.Response)
 	InviteUsersToTeam(teamId string, userEmails []string) (bool, *model.Response)
 	SendPasswordResetEmail(email string) (bool, *model.Response)
@@ -62,5 +64,6 @@ type Client interface {
 	GetConfig() (*model.Config, *model.Response)
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
+	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 }

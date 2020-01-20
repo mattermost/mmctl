@@ -1,25 +1,25 @@
-## mmctl command delete
+## mmctl command archive
 
-Delete a slash command
+Archive a slash command
 
 ### Synopsis
 
-Delete a slash command. Commands can be specified by command ID.
+Archive a slash command. Commands can be specified by command ID.
 
 ```
-mmctl command delete [flags]
+mmctl command archive [flags]
 ```
 
 ### Examples
 
 ```
-  command delete commandID
+  command archive commandID
 ```
 
 ### Options
 
 ```
-  -h, --help   help for delete
+  -h, --help   help for archive
 ```
 
 ### Options inherited from parent commands

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -327,7 +330,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestDeleteCommandCmd() {
+func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 	s.Run("Delete without errors", func() {
 		printer.Clean()
 		arg := "cmd1"
@@ -339,7 +342,7 @@ func (s *MmctlUnitTestSuite) TestDeleteCommandCmd() {
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
-		err := deleteCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -357,7 +360,7 @@ func (s *MmctlUnitTestSuite) TestDeleteCommandCmd() {
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
-		err := deleteCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -375,7 +378,7 @@ func (s *MmctlUnitTestSuite) TestDeleteCommandCmd() {
 			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
-		err := deleteCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().NotNil(err)
 		s.Require().Equal(err, errors.New("Unable to delete command '"+arg+"' error: "+mockError.Error()))
 		s.Require().Len(printer.GetLines(), 0)
