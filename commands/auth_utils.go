@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	METHOD_PASSWORD = "P"
-	METHOD_TOKEN    = "T"
-	METHOD_MFA      = "M"
+	MethodPassword = "P"
+	MethodToken    = "T"
+	MethodMFA      = "M"
 )
 
 type Credentials struct {
@@ -23,7 +23,7 @@ type Credentials struct {
 	Username    string `json:"username"`
 	AuthToken   string `json:"authToken"`
 	AuthMethod  string `json:"authMethod"`
-	InstanceUrl string `json:"instanceUrl"`
+	InstanceURL string `json:"instanceUrl"`
 	Active      bool   `json:"active"`
 }
 

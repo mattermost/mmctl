@@ -412,8 +412,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.Run("Plain Format", func() {
 			printer.Clean()
-			printer.SetFormat(printer.FORMAT_PLAIN)
-			defer printer.SetFormat(printer.FORMAT_JSON)
+			printer.SetFormat(printer.FormatPlain)
+			defer printer.SetFormat(printer.FormatJSON)
 
 			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 			s.Require().NoError(err)
@@ -446,8 +446,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.Run("Plain Format", func() {
 			printer.Clean()
-			printer.SetFormat(printer.FORMAT_PLAIN)
-			defer printer.SetFormat(printer.FORMAT_JSON)
+			printer.SetFormat(printer.FormatPlain)
+			defer printer.SetFormat(printer.FormatJSON)
 
 			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 			s.Require().NoError(err)
@@ -496,8 +496,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.Run("Plain Format", func() {
 			printer.Clean()
-			printer.SetFormat(printer.FORMAT_PLAIN)
-			defer printer.SetFormat(printer.FORMAT_JSON)
+			printer.SetFormat(printer.FormatPlain)
+			defer printer.SetFormat(printer.FormatJSON)
 
 			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 			s.Require().NoError(err)
@@ -513,7 +513,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	teamName := "team1"
-	teamId := "teamId"
+	teamID := "teamId"
 
 	s.Run("Delete teams with confirm false returns an error", func() {
 		cmd := &cobra.Command{}
@@ -549,13 +549,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	s.Run("Delete teams should delete team", func() {
 		printer.Clean()
 		mockTeam := model.Team{
-			Id:   teamId,
+			Id:   teamID,
 			Name: teamName,
 		}
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamId).
+			PermanentDeleteTeam(teamID).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
@@ -575,7 +575,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	s.Run("Delete teams with error on PermanentDeleteTeam returns an error", func() {
 		printer.Clean()
 		mockTeam := model.Team{
-			Id:   teamId,
+			Id:   teamID,
 			Name: teamName,
 		}
 
@@ -586,7 +586,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		}
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamId).
+			PermanentDeleteTeam(teamID).
 			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
@@ -657,7 +657,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find team '" + teamName + "'", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find team '"+teamName+"'", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -675,7 +675,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Equal("Unable to find team '" + displayName + "'", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find team '"+displayName+"'", printer.GetErrorLines()[0])
 
 	})
 
@@ -719,7 +719,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{Error: nil}).
 			Times(1)
-
 
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
 		s.Require().Nil(err)
@@ -772,7 +771,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{Error: nil}).
 			Times(1)
-
 
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
 		s.Require().Nil(err)

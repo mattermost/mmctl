@@ -240,7 +240,7 @@ func resetConfigValue(path []string, config *model.Config, newValue interface{})
 
 func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	printer.SetSingle(true)
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 
 	config, response := c.GetConfig()
 	if response.Error != nil {
@@ -248,12 +248,12 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	}
 
 	path := strings.Split(args[0], ".")
-	if val, ok := getValue(path, *config); !ok {
+	val, ok := getValue(path, *config)
+	if !ok {
 		return errors.New("Invalid key")
-	} else {
-		printer.Print(val)
 	}
 
+	printer.Print(val)
 	return nil
 }
 
@@ -327,7 +327,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 	config, response := c.GetConfig()
 	if response.Error != nil {
 		return response.Error

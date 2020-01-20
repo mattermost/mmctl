@@ -57,7 +57,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	s.Run("Enable unexisting team", func() {
 		printer.Clean()
 
-		arg := "teamId"
+		arg := "teamID"
 
 		s.client.
 			EXPECT().
@@ -80,7 +80,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	s.Run("Error while getting the team groups", func() {
 		printer.Clean()
 
-		arg := "teamId"
+		arg := "teamID"
 		mockTeam := model.Team{Id: arg}
 		mockError := model.AppError{Message: "Mock error"}
 		groupOpts := model.GroupSearchOpts{
@@ -111,7 +111,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	s.Run("No groups on team", func() {
 		printer.Clean()
 
-		arg := "teamId"
+		arg := "teamID"
 		mockTeam := model.Team{Id: arg}
 		groupOpts := model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -141,7 +141,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	s.Run("Error patching the team", func() {
 		printer.Clean()
 
-		arg := "teamId"
+		arg := "teamID"
 		mockTeam := model.Team{Id: arg}
 		mockError := model.AppError{Message: "Mock error"}
 		groupOpts := model.GroupSearchOpts{
@@ -179,7 +179,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 	s.Run("Successfully enable group", func() {
 		printer.Clean()
 
-		arg := "teamId"
+		arg := "teamID"
 		mockTeam := model.Team{Id: arg}
 		groupOpts := model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -293,12 +293,12 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("List groups for existing channel and team, when a single group exists", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 		groupName := "group-name"
 
-		mockTeam := model.Team{Id: teamId}
-		mockChannel := model.Channel{Id: channelId}
+		mockTeam := model.Team{Id: teamID}
+		mockChannel := model.Channel{Id: channelID}
 		mockGroup := &model.Group{Name: groupName}
 		mockGroups := []*model.Group{mockGroup}
 
@@ -309,23 +309,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			},
 		}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(channelId, *groupOpts).
+			GetGroupsByChannel(channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{Error: nil}).
 			Times(1)
 
@@ -339,11 +339,11 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("List groups for existing channel and team, when multiple groups exist", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
-		mockTeam := model.Team{Id: teamId}
-		mockChannel := model.Channel{Id: channelId}
+		mockTeam := model.Team{Id: teamID}
+		mockChannel := model.Channel{Id: channelID}
 		mockGroups := []*model.Group{
 			&model.Group{Name: "group1"},
 			&model.Group{Name: "group2"},
@@ -356,23 +356,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			},
 		}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(channelId, *groupOpts).
+			GetGroupsByChannel(channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{Error: nil}).
 			Times(1)
 
@@ -387,11 +387,11 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("List groups for existing channel and team, when no groups exist", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
-		mockTeam := model.Team{Id: teamId}
-		mockChannel := model.Channel{Id: channelId}
+		mockTeam := model.Team{Id: teamID}
+		mockChannel := model.Channel{Id: channelID}
 		mockGroups := []*model.Group{}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -401,23 +401,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			},
 		}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(channelId, *groupOpts).
+			GetGroupsByChannel(channelID, *groupOpts).
 			Return(mockGroups, 0, &model.Response{Error: nil}).
 			Times(1)
 
@@ -430,28 +430,28 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("List groups for a nonexistent channel", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
-		mockTeam := model.Team{Id: teamId}
+		mockTeam := model.Team{Id: teamID}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelId, "").
+			GetChannel(channelID, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
@@ -465,20 +465,20 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("List groups for a nonexistent team", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamId, "").
+			GetTeamByName(teamID, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
@@ -492,11 +492,11 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("Return error when GetGroupsByChannel returns error", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
-		mockTeam := model.Team{Id: teamId}
-		mockChannel := model.Channel{Id: channelId}
+		mockTeam := model.Team{Id: teamID}
+		mockChannel := model.Channel{Id: channelID}
 		mockError := model.AppError{Message: "Mock error"}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -506,23 +506,23 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 			},
 		}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetGroupsByChannel(channelId, *groupOpts).
+			GetGroupsByChannel(channelID, *groupOpts).
 			Return(nil, 0, &model.Response{Error: &mockError}).
 			Times(1)
 
@@ -535,29 +535,29 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("Return error when GetChannelByNameIncludeDeleted returns error", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
-		mockTeam := model.Team{Id: teamId}
+		mockTeam := model.Team{Id: teamID}
 		mockError := model.AppError{Message: "Mock error"}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannelByNameIncludeDeleted(channelId, teamId, "").
+			GetChannelByNameIncludeDeleted(channelID, teamID, "").
 			Return(nil, &model.Response{Error: &mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetChannel(channelId, "").
+			GetChannel(channelID, "").
 			Return(nil, &model.Response{Error: &mockError}).
 			Times(1)
 
@@ -570,22 +570,22 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 	s.Run("Return error when GetTeam returns error", func() {
 		printer.Clean()
 
-		teamId := "team-id"
-		channelId := "channel-id"
+		teamID := "team-id"
+		channelID := "channel-id"
 
 		mockError := model.AppError{Message: "Mock error"}
 
-		cmdArg := teamId + ":" + channelId
+		cmdArg := teamID + ":" + channelID
 
 		s.client.
 			EXPECT().
-			GetTeam(teamId, "").
+			GetTeam(teamID, "").
 			Return(nil, &model.Response{Error: &mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeamByName(teamId, "").
+			GetTeamByName(teamID, "").
 			Return(nil, &model.Response{Error: &mockError}).
 			Times(1)
 
@@ -705,7 +705,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 	s.Run("Should fail when team is not found", func() {
 		printer.Clean()
 
-		teamID := "teamId"
+		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -730,7 +730,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 	s.Run("Should show valid response when group constraints status for a team is not present", func() {
 		printer.Clean()
 
-		teamID := "teamId"
+		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -753,7 +753,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 	s.Run("Should show valid response when group constraints status for a team is enabled", func() {
 		printer.Clean()
 
-		teamID := "teamId"
+		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -776,7 +776,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupStatusCmd() {
 	s.Run("Should show valid response when group constraints status for a team is disabled", func() {
 		printer.Clean()
 
-		teamID := "teamId"
+		teamID := "teamID"
 		arg := teamID
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -801,8 +801,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 	s.Run("Should fail to get group constrain status of a channel when team is not found", func() {
 		printer.Clean()
 
-		teamID := "teamId"
-		channelID := "channelId"
+		teamID := "teamID"
+		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -827,8 +827,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 	s.Run("Should fail to get group constrain status of a channel when channel is not found", func() {
 		printer.Clean()
 
-		teamID := "teamId"
-		channelID := "channelId"
+		teamID := "teamID"
+		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -861,8 +861,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 	s.Run("Should get valid response when channel's group constrain status is enabled", func() {
 		printer.Clean()
 
-		teamID := "teamId"
-		channelID := "channelId"
+		teamID := "teamID"
+		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -893,8 +893,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 	s.Run("Should get valid response when channel's group constrain status is disabled", func() {
 		printer.Clean()
 
-		teamID := "teamId"
-		channelID := "channelId"
+		teamID := "teamID"
+		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}
@@ -925,8 +925,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 	s.Run("Should get valid response when channel's group constrain status is not present", func() {
 		printer.Clean()
 
-		teamID := "teamId"
-		channelID := "channelId"
+		teamID := "teamID"
+		channelID := "channelID"
 		arg := strings.Join([]string{teamID, channelID}, ":")
 		args := []string{arg}
 		cmd := &cobra.Command{}

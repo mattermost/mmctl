@@ -335,8 +335,8 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 	s.Run("List Plain Plugins", func() {
 		printer.Clean()
-		printer.SetFormat(printer.FORMAT_PLAIN)
-		defer printer.SetFormat(printer.FORMAT_JSON)
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
 
 		mockList := &model.PluginsResponse{
 			Active: []*model.PluginInfo{

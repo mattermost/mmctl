@@ -237,7 +237,7 @@ func removeAllUsersFromChannel(c client.Client, channel *model.Channel) {
 
 func addChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
+		return errors.New("Not enough arguments")
 	}
 
 	channel := getChannelFromChannelArg(c, args[0])
@@ -265,7 +265,7 @@ func addUserToChannel(c client.Client, channel *model.Channel, user *model.User,
 
 func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Enter at least one channel to archive.")
+		return errors.New("Enter at least one channel to archive")
 	}
 
 	channels := getChannelsFromChannelArgs(c, args)
@@ -312,7 +312,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 func restoreChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Enter at least one channel.")
+		return errors.New("Enter at least one channel")
 	}
 
 	channels := getChannelsFromChannelArgs(c, args)
@@ -331,7 +331,7 @@ func restoreChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
-		return errors.New("Enter one channel to modify.")
+		return errors.New("Enter one channel to modify")
 	}
 
 	channel := getChannelFromChannelArg(c, args[0])
@@ -340,7 +340,7 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	if !(channel.Type == model.CHANNEL_OPEN) {
-		return errors.New("You can only change the type of public channels.")
+		return errors.New("You can only change the type of public channels")
 	}
 
 	if _, response := c.ConvertChannelToPrivate(channel.Id); response.Error != nil {

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -35,7 +34,7 @@ func docsCmdF(cmd *cobra.Command, args []string) error {
 	} else if err != nil {
 		return err
 	} else if !fileInfo.IsDir() {
-		return errors.New(fmt.Sprintf("File \"%s\" is not a directory", outDir))
+		return fmt.Errorf("File \"%s\" is not a directory", outDir)
 	}
 
 	err := doc.GenMarkdownTree(RootCmd, outDir)

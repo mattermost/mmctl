@@ -21,7 +21,7 @@ type MmctlUnitTestSuite struct {
 }
 
 func (s *MmctlUnitTestSuite) SetupSuite() {
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 }
 
 func (s *MmctlUnitTestSuite) SetupTest() {
@@ -40,7 +40,7 @@ type MmctlE2ETestSuite struct {
 }
 
 func (s *MmctlE2ETestSuite) SetupSuite() {
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 
 	var err error
 	if s.th, err = setupTestHelper(); err != nil {

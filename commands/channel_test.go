@@ -41,11 +41,11 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 	s.Run("Search for an existing channel without specifying team", func() {
 		printer.Clean()
-		teamId := "example-team-id"
-		otherTeamId := "example-team-id-2"
+		teamID := "example-team-id"
+		otherTeamID := "example-team-id-2"
 		mockTeams := []*model.Team{
-			&model.Team{Id: otherTeamId},
-			&model.Team{Id: teamId},
+			&model.Team{Id: otherTeamID},
+			&model.Team{Id: teamID},
 		}
 		channelArg := "example-channel"
 		mockChannel := model.Channel{Name: channelArg}
@@ -59,14 +59,14 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		// first call is for the other team, that doesn't have the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(channelArg, otherTeamId, "").
+			GetChannelByName(channelArg, otherTeamID, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		// second call is for the team that contains the channel
 		s.client.
 			EXPECT().
-			GetChannelByName(channelArg, teamId, "").
+			GetChannelByName(channelArg, teamID, "").
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 

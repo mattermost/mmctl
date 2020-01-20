@@ -207,7 +207,7 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
-		return errors.New("Expected at least two arguments. See help text for details.")
+		return errors.New("Expected at least two arguments. See help text for details")
 	}
 
 	email := args[0]
@@ -244,7 +244,7 @@ func inviteUser(c client.Client, email string, team *model.Team, teamArg string)
 
 func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+		return errors.New("Expected at least one argument. See help text for details")
 	}
 
 	for _, email := range args {
@@ -264,7 +264,7 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	printer.SetSingle(true)
 
 	if len(args) != 2 {
-		return errors.New("Expected two arguments. See help text for details.")
+		return errors.New("Expected two arguments. See help text for details")
 	}
 
 	newEmail := args[1]
@@ -274,7 +274,7 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	if len(args) != 2 {
-		return errors.New("Expected two arguments. See help text for details.")
+		return errors.New("Expected two arguments. See help text for details")
 	}
 
 	user := getUserFromUserArg(c, args[0])
@@ -296,7 +296,7 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+		return errors.New("Expected at least one argument. See help text for details")
 	}
 
 	users := getUsersFromUserArgs(c, args)
@@ -318,7 +318,7 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+		return errors.New("Expected at least one argument. See help text for details")
 	}
 
 	users := getUsersFromUserArgs(c, args)
