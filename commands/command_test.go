@@ -473,11 +473,6 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) helperCreateCommand(*model.Command) {
-	s.T().Helper()
-
-}
-
 func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	arg := "cmd1"
 	teamId := "example-team-id"
