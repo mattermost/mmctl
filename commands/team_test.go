@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -368,253 +371,6 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestRemoveUserCmd() {
-	teamArg := "example-team-id"
-	userArg := "example-user-id"
-	s.Run("Remove users from team without args returns an error", func() {
-		printer.Clean()
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Equal(err, errors.New("Not enough arguments."))
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
-	s.Run("Remove users from team with one arg returns an error", func() {
-		printer.Clean()
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{teamArg})
-		s.Require().Equal(err, errors.New("Not enough arguments."))
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
-	s.Run("Remove users from team with a non-existent team returns an error", func() {
-		printer.Clean()
-
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{teamArg, userArg})
-		s.Require().Equal(err, errors.New("Unable to find team '"+teamArg+"'"))
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
-	s.Run("Remove users from team with a non-existent user returns an error", func() {
-		printer.Clean()
-		mockTeam := &model.Team{Id: teamArg}
-		mockUser := &model.User{Id: userArg}
-
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(mockUser.Id, "").
-			Return(nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(mockUser.Id, "").
-			Return(nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(mockUser.Id, "").
-			Return(nil, nil).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user '"+userArg+"'")
-	})
-
-	s.Run("Remove users from team by email and get team by name should not return an error", func() {
-		printer.Clean()
-		mockTeam := &model.Team{Id: teamArg}
-		mockUser := &model.User{Id: userArg}
-
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(mockUser.Id, "").
-			Return(mockUser, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Remove users from team by email and get team should not return an error", func() {
-		printer.Clean()
-		mockTeam := &model.Team{Id: teamArg}
-		mockUser := &model.User{Id: userArg}
-
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(mockUser.Id, "").
-			Return(mockUser, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Remove users from team by username and get team should not return an error", func() {
-		printer.Clean()
-		mockTeam := &model.Team{Id: teamArg}
-		mockUser := &model.User{Id: userArg}
-
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(mockUser.Id, "").
-			Return(nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(mockUser.Id, "").
-			Return(mockUser, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Remove users from team by user and get team should not return an error", func() {
-		printer.Clean()
-		mockTeam := &model.Team{Id: teamArg}
-		mockUser := &model.User{Id: userArg}
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(mockUser.Id, "").
-			Return(nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(mockUser.Id, "").
-			Return(nil, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(mockUser.Id, "").
-			Return(mockUser, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Remove users from team with an erroneous RemoveTeamMember should return an error", func() {
-		printer.Clean()
-		mockTeam := &model.Team{Id: teamArg, Name: "example-name"}
-		mockUser := &model.User{Id: userArg}
-		mockError := model.AppError{Message: "Mock error"}
-
-		s.client.
-			EXPECT().
-			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(mockUser.Id, "").
-			Return(mockUser, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: &mockError}).
-			Times(1)
-
-		err := removeUsersCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to remove '"+mockUser.Id+"' from "+mockTeam.Name+". Error: "+mockError.Error())
-	})
-
-}
-
 func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 	s.Run("Error retrieving teams", func() {
 		printer.Clean()
@@ -752,5 +508,295 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			s.Require().Equal(mockTeams[3].Name, printer.GetLines()[3])
 			s.Require().Len(printer.GetErrorLines(), 0)
 		})
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
+	teamName := "team1"
+	teamId := "teamId"
+
+	s.Run("Delete teams with confirm false returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "ABORTED: You did not answer YES exactly, in all capitals.")
+	})
+
+	s.Run("Delete teams with team not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete teams should delete team", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamId,
+			Name: teamName,
+		}
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamId).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Delete teams with error on PermanentDeleteTeam returns an error", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamId,
+			Name: teamName,
+		}
+
+		mockError := &model.AppError{
+			Message:       "An error occurred on deleting a team",
+			DetailedError: "Team cannot be deleted",
+			Where:         "Team.deleteTeam",
+		}
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamId).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to delete team 'team1' error: Team.deleteTeam: An error occurred on deleting a team, Team cannot be deleted",
+			printer.GetErrorLines()[0])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
+	s.Run("Search for an existing team by Name", func() {
+		printer.Clean()
+		teamName := "teamName"
+		mockTeam := &model.Team{Name: teamName, DisplayName: "DisplayName"}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return([]*model.Team{mockTeam}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockTeam, printer.GetLines()[0])
+
+	})
+
+	s.Run("Search for an existing team by DisplayName", func() {
+		printer.Clean()
+		displayName := "displayName"
+		mockTeam := &model.Team{Name: "teamName", DisplayName: displayName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: displayName}).
+			Return([]*model.Team{mockTeam}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{displayName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Search nonexistent team by name", func() {
+		printer.Clean()
+		teamName := "teamName"
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to find team '" + teamName + "'", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Search nonexistent team by displayName", func() {
+		printer.Clean()
+		displayName := "displayName"
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: displayName}).
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{displayName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("Unable to find team '" + displayName + "'", printer.GetErrorLines()[0])
+
+	})
+
+	s.Run("Test search with multiple arguments", func() {
+		printer.Clean()
+		mockTeam1Name := "Mock Team 1 Name"
+		mockTeam2DisplayName := "Mock Team 2 displayName"
+
+		mockTeam1 := &model.Team{Name: mockTeam1Name, DisplayName: "displayName"}
+		mockTeam2 := &model.Team{Name: "teamName", DisplayName: mockTeam2DisplayName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: mockTeam1Name}).
+			Return([]*model.Team{mockTeam1}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: mockTeam2DisplayName}).
+			Return([]*model.Team{mockTeam2}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{mockTeam1Name, mockTeam2DisplayName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(mockTeam1, printer.GetLines()[0])
+		s.Require().Equal(mockTeam2, printer.GetLines()[1])
+	})
+
+	s.Run("Test get multiple results when search term matches name and displayName of different teams", func() {
+		printer.Clean()
+		teamVariableName := "Name"
+
+		mockTeam1 := &model.Team{Name: "A", DisplayName: teamVariableName}
+		mockTeam2 := &model.Team{Name: teamVariableName, DisplayName: "displayName"}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{Error: nil}).
+			Times(1)
+
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(mockTeam1, printer.GetLines()[0])
+		s.Require().Equal(mockTeam2, printer.GetLines()[1])
+
+	})
+
+	s.Run("Test duplicates are removed from search results", func() {
+		printer.Clean()
+		teamVariableName := "Name"
+
+		mockTeam1 := &model.Team{Name: "team1", DisplayName: teamVariableName}
+		mockTeam2 := &model.Team{Name: "team2", DisplayName: teamVariableName}
+		mockTeam3 := &model.Team{Name: "team3", DisplayName: teamVariableName}
+		mockTeam4 := &model.Team{Name: "team4", DisplayName: teamVariableName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: "team"}).
+			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{"team", teamVariableName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 4)
+	})
+
+	s.Run("Test search results are sorted", func() {
+		printer.Clean()
+		teamVariableName := "Name"
+
+		mockTeam1 := &model.Team{Name: "A", DisplayName: teamVariableName}
+		mockTeam2 := &model.Team{Name: "e", DisplayName: teamVariableName}
+		mockTeam3 := &model.Team{Name: "C", DisplayName: teamVariableName}
+		mockTeam4 := &model.Team{Name: "D", DisplayName: teamVariableName}
+		mockTeam5 := &model.Team{Name: "1", DisplayName: teamVariableName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{Error: nil}).
+			Times(1)
+
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 5)
+		s.Require().Equal(mockTeam5, printer.GetLines()[0]) // 1
+		s.Require().Equal(mockTeam1, printer.GetLines()[1]) // A
+		s.Require().Equal(mockTeam3, printer.GetLines()[2]) // C
+		s.Require().Equal(mockTeam4, printer.GetLines()[3]) // D
+		s.Require().Equal(mockTeam2, printer.GetLines()[4]) // e
+
+	})
+
+	s.Run("Search returns an error when the client returns an error", func() {
+		printer.Clean()
+		mockError := &model.AppError{Message: "Remote error"}
+		teamName := "teamName"
+		s.client.EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }

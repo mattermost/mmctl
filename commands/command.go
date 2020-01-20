@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -26,7 +29,7 @@ var CommandCreateCmd = &cobra.Command{
 }
 
 var CommandListCmd = &cobra.Command{
-	Use:     "list",
+	Use:     "list [teams]",
 	Short:   "List all commands on specified teams.",
 	Long:    `List all commands on specified teams.`,
 	Example: ` command list myteam`,
@@ -34,12 +37,22 @@ var CommandListCmd = &cobra.Command{
 }
 
 var CommandDeleteCmd = &cobra.Command{
-	Use:     "delete [commandID]",
-	Short:   "Delete a slash command",
-	Long:    `Delete a slash command. Commands can be specified by command ID.`,
-	Example: `  command delete commandID`,
+	Use:        "delete [commandID]",
+	Short:      "Delete a slash command",
+	Long:       `Delete a slash command. Commands can be specified by command ID.`,
+	Example:    `  command delete commandID`,
+	Deprecated: "please use \"archive\" instead",
+	Args:       cobra.ExactArgs(1),
+	RunE:       withClient(archiveCommandCmdF),
+}
+
+var CommandArchiveCmd = &cobra.Command{
+	Use:     "archive [commandID]",
+	Short:   "Archive a slash command",
+	Long:    `Archive a slash command. Commands can be specified by command ID.`,
+	Example: `  command archive commandID`,
 	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(deleteCommandCmdF),
+	RunE:    withClient(archiveCommandCmdF),
 }
 
 var CommandModifyCmd = &cobra.Command{
@@ -97,9 +110,13 @@ func init() {
 		CommandCreateCmd,
 		CommandListCmd,
 		CommandDeleteCmd,
+<<<<<<< HEAD
 		CommandModifyCmd,
 		CommandMoveCmd,
 		CommandShowCmd,
+=======
+		CommandArchiveCmd,
+>>>>>>> upstream/master
 	)
 	RootCmd.AddCommand(CommandCmd)
 }
@@ -196,7 +213,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	ok, response := c.DeleteCommand(args[0])
 	if response.Error != nil {
 		return errors.New("Unable to delete command '" + args[0] + "' error: " + response.Error.Error())

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -43,6 +46,7 @@ var ChannelGroupDisableCmd = &cobra.Command{
 	RunE:    withClient(channelGroupDisableCmdF),
 }
 
+// ChannelGroupStatusCmd is a command which outputs group constrain status for a channel
 var ChannelGroupStatusCmd = &cobra.Command{
 	Use:     "status [team]:[channel]",
 	Short:   "Show's the group constrain status for the specified channel",

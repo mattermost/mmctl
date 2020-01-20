@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -26,28 +29,13 @@ var TeamCreateCmd = &cobra.Command{
 	RunE: withClient(createTeamCmdF),
 }
 
-var RemoveUsersCmd = &cobra.Command{
-	Use:     "remove [team] [users]",
-	Short:   "Remove users from team",
-	Long:    "Remove some users from team",
-	Example: "  team remove myteam user@example.com username",
-	RunE:    withClient(removeUsersCmdF),
-}
-
-var AddUsersCmd = &cobra.Command{
-	Use:     "add [team] [users]",
-	Short:   "Add users to team",
-	Long:    "Add some users to team",
-	Example: "  team add myteam user@example.com username",
-	RunE:    withClient(addUsersCmdF),
-}
-
 var DeleteTeamsCmd = &cobra.Command{
 	Use:   "delete [teams]",
 	Short: "Delete teams",
 	Long: `Permanently delete some teams.
 Permanently deletes a team along with all related information including posts from the database.`,
 	Example: "  team delete myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteTeamsCmdF),
 }
 
@@ -105,8 +93,6 @@ func init() {
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
-		RemoveUsersCmd,
-		AddUsersCmd,
 		DeleteTeamsCmd,
 		ArchiveTeamsCmd,
 		ListTeamsCmd,
@@ -149,100 +135,6 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	printer.PrintT("New team {{.Name}} successfully created", newTeam)
-
-	return nil
-}
-
-func removeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
-	}
-
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	users := getUsersFromUserArgs(c, args[1:])
-	for i, user := range users {
-		removeUserFromTeam(c, team, user, args[i+1])
-	}
-
-	return nil
-}
-
-func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
-	}
-	if _, response := c.RemoveTeamMember(team.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + response.Error.Error())
-	}
-}
-
-func addUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
-	}
-
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	users := getUsersFromUserArgs(c, args[1:])
-	for i, user := range users {
-		addUserToTeam(c, team, user, args[i+1])
-	}
-
-	return nil
-}
-
-func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
-	}
-
-	if _, response := c.AddTeamMember(team.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + response.Error.Error())
-	}
-}
-
-func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Not enough arguments.")
-	}
-
-	confirmFlag, _ := cmd.Flags().GetBool("confirm")
-	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
-		}
-		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
-		}
-	}
-
-	teams := getTeamsFromTeamArgs(c, args)
-	for i, team := range teams {
-		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
-			continue
-		}
-		if _, response := deleteTeam(c, team); response.Error != nil {
-			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
-		} else {
-			printer.PrintT("Deleted team '{{.Name}}'", team)
-		}
-	}
 
 	return nil
 }
@@ -309,6 +201,12 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		if response.Error != nil {
 			return response.Error
 		}
+
+		if len(foundTeams) == 0 {
+			printer.PrintError("Unable to find team '" + searchTerm + "'")
+			continue
+		}
+
 		teams = append(teams, foundTeams...)
 	}
 
@@ -366,5 +264,38 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	printer.Print("'" + oldTeamName + "' team renamed")
+	return nil
+}
+
+func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		fmt.Println("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirm)
+
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+	}
+
+	teams := getTeamsFromTeamArgs(c, args)
+	for i, team := range teams {
+		if team == nil {
+			printer.PrintError("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if _, response := deleteTeam(c, team); response.Error != nil {
+			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Deleted team '{{.Name}}'", team)
+		}
+	}
+
 	return nil
 }
