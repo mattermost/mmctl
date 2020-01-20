@@ -798,7 +798,5 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
-
-
 	})
 }
