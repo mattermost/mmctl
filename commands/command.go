@@ -110,13 +110,10 @@ func init() {
 		CommandCreateCmd,
 		CommandListCmd,
 		CommandDeleteCmd,
-<<<<<<< HEAD
 		CommandModifyCmd,
 		CommandMoveCmd,
 		CommandShowCmd,
-=======
 		CommandArchiveCmd,
->>>>>>> upstream/master
 	)
 	RootCmd.AddCommand(CommandCmd)
 }
