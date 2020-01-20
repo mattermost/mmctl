@@ -785,4 +785,20 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Equal(mockTeam2, printer.GetLines()[4]) // e
 
 	})
+
+	s.Run("Search returns an error when the client returns an error", func() {
+		printer.Clean()
+		mockError := &model.AppError{Message: "Remote error"}
+		teamName := "teamName"
+		s.client.EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+
+
+	})
 }
