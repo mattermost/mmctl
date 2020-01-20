@@ -113,7 +113,7 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	autocompleteHint, _ := cmd.Flags().GetString("autocompleteHint")
 	post, errp := cmd.Flags().GetBool("post")
 	method := "P"
-	if errp != nil || post == false {
+	if errp != nil || !post {
 		method = "G"
 	}
 
