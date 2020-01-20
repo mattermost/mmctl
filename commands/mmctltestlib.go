@@ -28,8 +28,8 @@ type TestHelper struct {
 
 func setupTestHelper() (*TestHelper, error) {
 	instanceURL := InstanceURL
-	if os.Getenv("MMCTL_InstanceURL") != "" {
-		instanceURL = os.Getenv("MMCTL_InstanceURL")
+	if os.Getenv("MMCTL_INSTANCE_URL") != "" {
+		instanceURL = os.Getenv("MMCTL_INSTANCE_URL")
 	}
 
 	sysadminClient, err := InitClientWithUsernameAndPassword(SysadminUsername, SysadminPass, instanceURL)
