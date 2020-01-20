@@ -223,7 +223,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 func getPasswordFromStdin() (string, error) {
 	fmt.Printf("Password: ")
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 	fmt.Println("")
 	if err != nil {
 		return "", nil
