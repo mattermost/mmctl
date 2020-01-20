@@ -605,3 +605,198 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
+	s.Run("Search for an existing team by Name", func() {
+		printer.Clean()
+		teamName := "teamName"
+		mockTeam := &model.Team{Name: teamName, DisplayName: "DisplayName"}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return([]*model.Team{mockTeam}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockTeam, printer.GetLines()[0])
+
+	})
+
+	s.Run("Search for an existing team by DisplayName", func() {
+		printer.Clean()
+		displayName := "displayName"
+		mockTeam := &model.Team{Name: "teamName", DisplayName: displayName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: displayName}).
+			Return([]*model.Team{mockTeam}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{displayName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Search nonexistent team by name", func() {
+		printer.Clean()
+		teamName := "teamName"
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to find team '" + teamName + "'", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Search nonexistent team by displayName", func() {
+		printer.Clean()
+		displayName := "displayName"
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: displayName}).
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{displayName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("Unable to find team '" + displayName + "'", printer.GetErrorLines()[0])
+
+	})
+
+	s.Run("Test search with multiple arguments", func() {
+		printer.Clean()
+		mockTeam1Name := "Mock Team 1 Name"
+		mockTeam2DisplayName := "Mock Team 2 displayName"
+
+		mockTeam1 := &model.Team{Name: mockTeam1Name, DisplayName: "displayName"}
+		mockTeam2 := &model.Team{Name: "teamName", DisplayName: mockTeam2DisplayName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: mockTeam1Name}).
+			Return([]*model.Team{mockTeam1}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: mockTeam2DisplayName}).
+			Return([]*model.Team{mockTeam2}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{mockTeam1Name, mockTeam2DisplayName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(mockTeam1, printer.GetLines()[0])
+		s.Require().Equal(mockTeam2, printer.GetLines()[1])
+	})
+
+	s.Run("Test get multiple results when search term matches name and displayName of different teams", func() {
+		printer.Clean()
+		teamVariableName := "Name"
+
+		mockTeam1 := &model.Team{Name: "A", DisplayName: teamVariableName}
+		mockTeam2 := &model.Team{Name: teamVariableName, DisplayName: "displayName"}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{Error: nil}).
+			Times(1)
+
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(mockTeam1, printer.GetLines()[0])
+		s.Require().Equal(mockTeam2, printer.GetLines()[1])
+
+	})
+
+	s.Run("Test duplicates are removed from search results", func() {
+		printer.Clean()
+		teamVariableName := "Name"
+
+		mockTeam1 := &model.Team{Name: "team1", DisplayName: teamVariableName}
+		mockTeam2 := &model.Team{Name: "team2", DisplayName: teamVariableName}
+		mockTeam3 := &model.Team{Name: "team3", DisplayName: teamVariableName}
+		mockTeam4 := &model.Team{Name: "team4", DisplayName: teamVariableName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: "team"}).
+			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{"team", teamVariableName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 4)
+	})
+
+	s.Run("Test search results are sorted", func() {
+		printer.Clean()
+		teamVariableName := "Name"
+
+		mockTeam1 := &model.Team{Name: "A", DisplayName: teamVariableName}
+		mockTeam2 := &model.Team{Name: "e", DisplayName: teamVariableName}
+		mockTeam3 := &model.Team{Name: "C", DisplayName: teamVariableName}
+		mockTeam4 := &model.Team{Name: "D", DisplayName: teamVariableName}
+		mockTeam5 := &model.Team{Name: "1", DisplayName: teamVariableName}
+
+		s.client.
+			EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamVariableName}).
+			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{Error: nil}).
+			Times(1)
+
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 5)
+		s.Require().Equal(mockTeam5, printer.GetLines()[0]) // 1
+		s.Require().Equal(mockTeam1, printer.GetLines()[1]) // A
+		s.Require().Equal(mockTeam3, printer.GetLines()[2]) // C
+		s.Require().Equal(mockTeam4, printer.GetLines()[3]) // D
+		s.Require().Equal(mockTeam2, printer.GetLines()[4]) // e
+
+	})
+
+	s.Run("Search returns an error when the client returns an error", func() {
+		printer.Clean()
+		mockError := &model.AppError{Message: "Remote error"}
+		teamName := "teamName"
+		s.client.EXPECT().
+			SearchTeams(&model.TeamSearch{Term: teamName}).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
