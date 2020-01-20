@@ -1,0 +1,43 @@
+service:
+  golangci-lint-version: 1.21.0 # Keep this in sync with .circleci/config.yml
+
+run:
+  timeout: 5m
+  modules-download-mode: vendor
+  skip-dirs:
+    - mocks
+
+linters-settings:
+  gofmt:
+    simplify: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - gofmt
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - structcheck
+    - unconvert
+    - unused
+    - varcheck
+    - errcheck
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "RedisSupplier|LocalCacheSupplier|Enterprise"
+
+    - linters:
+      # ignore golint error for a lot of packages for now
+      - golint
+      path: "api4|app|cmd|einterface|enterprise|imports|jobs|manualtesting|migrations|mlog|model|testlib|services|store|utils|web|wsapi|plugin/plugintest/api.go|plugin/api.go|plugin/context.go|plugin/client.go|plugin/client_rpc.go|plugin/client_rpc_generated.go|plugin/environment.go|plugin/health_check.go|plugin/hooks.go|plugin/supervisor.go|plugin/valid.go"
