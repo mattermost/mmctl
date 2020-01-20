@@ -55,7 +55,7 @@ var CommandMoveCmd = &cobra.Command{
 	Use:     "move [team] [commandID]",
 	Short:   "Move a slash command to a different team",
 	Long:    `Move a slash command to a different team. Commands can be specified by command ID.`,
-	Args:    cobra.MinimumNArgs(2),
+	Args:    cobra.ExactArgs(2),
 	Example: `  command move newteam commandID`,
 	RunE:    withClient(moveCommandCmdF),
 }
@@ -69,7 +69,7 @@ var CommandShowCmd = &cobra.Command{
 	RunE:    withClient(showCommandCmdF),
 }
 
-func addFlags(cmd *cobra.Command) {
+func addCommandFieldsFlags(cmd *cobra.Command) {
 	cmd.Flags().String("title", "", "Command Title")
 	cmd.Flags().String("description", "", "Command Description")
 	cmd.Flags().String("trigger-word", "", "Command Trigger Word (required)")
@@ -86,7 +86,7 @@ func addFlags(cmd *cobra.Command) {
 func init() {
 	cmds := []*cobra.Command{CommandCreateCmd, CommandModifyCmd}
 	for _, cmd := range cmds {
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 	}
 
 	_ = CommandCreateCmd.MarkFlagRequired("trigger-word")
