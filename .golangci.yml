@@ -17,17 +17,17 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    # - deadcode
-    # - gofmt
+    - deadcode
+    - gofmt
     - golint
-    # - gosimple
-    # - govet
-    # - ineffassign
-    # - structcheck
-    # - unconvert
-    # - unused
-    # - varcheck
-    # - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - structcheck
+    - unconvert
+    - unused
+    - varcheck
+    - errcheck
 
 issues:
   exclude-rules:
@@ -35,7 +35,7 @@ issues:
       # ignore unused warnings from enterprise code
       # add more as required.
       - unused
-      text: "testLogsCmfF|MmctlE2ETestSuite|MmctlUnitTestSuite|setupTestHelper"
+      text: "testLogsCmdF|MmctlE2ETestSuite|MmctlUnitTestSuite|setupTestHelper"
 
     - linters:
       # ignore golint error for a lot of packages for now
