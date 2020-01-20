@@ -556,7 +556,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// Reset the cmd and parse to force Flag.Changed to be true.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 		err := cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
@@ -587,7 +587,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 		err := cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
@@ -635,7 +635,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 		err := cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
@@ -666,7 +666,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 		err := cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
@@ -697,7 +697,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 		err := cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
@@ -734,7 +734,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
-		addFlags(cmd)
+		addCommandFieldsFlags(cmd)
 		err := cmd.ParseFlags(cli)
 		s.Require().Nil(err)
 
