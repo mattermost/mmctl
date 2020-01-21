@@ -5,18 +5,17 @@ executors:
     docker:
       - image: circleci/golang:1.13
 
-jobs:
-  docs:
-    executor:
-      name: default
-    steps:
-      - checkout
-      - run:
-          command: |
-            echo "Making sure docs are updated"
-            make docs
-            if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+aliases:
+- &restore_cache
+  restore_cache:
+    key: go-mod-v1-{{ checksum "go.sum" }}
+- &save_cache
+  save_cache:
+    key: go-mod-v1-{{ checksum "go.sum" }}
+    paths:
+    - "/go/pkg/mod"
 
+commands:
   install-golangci-lint:
     description: Install golangci-lint
     parameters:
@@ -47,6 +46,18 @@ jobs:
           key: '<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>'
           paths: [<< parameters.gobin >>/golangci-lint]
 
+jobs:
+  docs:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - run:
+          command: |
+            echo "Making sure docs are updated"
+            make docs
+            if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+
   lint:
     executor:
       name: default
@@ -54,6 +65,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/go/mattermost/
+      - install-golangci-lint
       - run:
           name: "Validate lint"
           command: |
@@ -177,7 +189,6 @@ workflows:
   untagged-build:
     jobs:
       - docs
-      - install-golangci-lint
       - lint
       - setup
       - test:
