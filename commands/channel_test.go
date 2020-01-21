@@ -5,6 +5,7 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -294,7 +295,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Equal(printer.GetLines()[1], archivedChannel2)
 	})
 
-	s.Run("Team with both public and achived channels", func() {
+	s.Run("Team with both public and archived channels", func() {
 		printer.Clean()
 
 		teamID := "teamID"
@@ -382,13 +383,12 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to list public channels for '"+args[0]+"'. Error: "+mockError.Error())
 	})
 
-	s.Run("API fails to get team's archived channels", func() {
+	s.Run("API fails to get team's archived channels list", func() {
 		printer.Clean()
 
 		teamID := "teamID"
 		args := []string{teamID}
 		cmd := &cobra.Command{}
-
 		team := &model.Team{
 			Id: teamID,
 		}

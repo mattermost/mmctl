@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/client"
 )
 
@@ -34,20 +35,20 @@ func setupTestHelper() (*TestHelper, error) {
 
 	sysadminClient, err := InitClientWithUsernameAndPassword(SysadminUsername, SysadminPass, instanceURL)
 	if err != nil {
-		return nil, fmt.Errorf("SystemAdminClient client failed to connect: %s", err)
+		return nil, fmt.Errorf("system admin client failed to connect: %s", err)
 	}
 	sysadminUser, response := sysadminClient.GetUserByUsername(SysadminUsername, "")
 	if response.Error != nil {
-		return nil, fmt.Errorf("Couldn't retrieve system admin user with username %s: %s", SysadminUsername, response.Error)
+		return nil, fmt.Errorf("couldn't retrieve system admin user with username %s: %s", SysadminUsername, response.Error)
 	}
 
 	client, err := InitClientWithUsernameAndPassword(UserUsername, UserPass, instanceURL)
 	if err != nil {
-		return nil, fmt.Errorf("Basic client failed to connect: %s", err)
+		return nil, fmt.Errorf("basic client failed to connect: %s", err)
 	}
 	basicUser, response := client.GetUserByUsername(UserUsername, "")
 	if response.Error != nil {
-		return nil, fmt.Errorf("Couldn't retrieve basic user with username %s: %s", UserUsername, response.Error)
+		return nil, fmt.Errorf("couldn't retrieve basic user with username %s: %s", UserUsername, response.Error)
 	}
 
 	th := &TestHelper{

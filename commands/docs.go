@@ -27,17 +27,20 @@ func init() {
 func docsCmdF(cmd *cobra.Command, args []string) error {
 	outDir, _ := cmd.Flags().GetString("directory")
 
-	if fileInfo, err := os.Stat(outDir); os.IsNotExist(err) {
+	fileInfo, err := os.Stat(outDir)
+
+	switch {
+	case os.IsNotExist(err):
 		if createErr := os.Mkdir(outDir, 0755); createErr != nil {
 			return createErr
 		}
-	} else if err != nil {
+	case err != nil:
 		return err
-	} else if !fileInfo.IsDir() {
-		return fmt.Errorf("File \"%s\" is not a directory", outDir)
+	case !fileInfo.IsDir():
+		return fmt.Errorf("file \"%s\" is not a directory", outDir)
 	}
 
-	err := doc.GenMarkdownTree(RootCmd, outDir)
+	err = doc.GenMarkdownTree(RootCmd, outDir)
 	if err != nil {
 		return err
 	}

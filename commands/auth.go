@@ -16,6 +16,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 )
 
@@ -226,7 +227,7 @@ func getPasswordFromStdin() (string, error) {
 	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 	fmt.Println("")
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return string(bytePassword), nil
 }

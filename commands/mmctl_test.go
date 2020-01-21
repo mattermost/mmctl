@@ -44,7 +44,7 @@ func (s *MmctlE2ETestSuite) SetupSuite() {
 
 	var err error
 	if s.th, err = setupTestHelper(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error initialising E2E test helper. %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error initializing E2E test helper. %s\n", err)
 		fmt.Fprintln(os.Stderr, "Aborting E2E test execution")
 		os.Exit(1)
 	}

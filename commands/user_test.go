@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -63,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to activate user", func() {
@@ -87,7 +88,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Activate several users with unexistent ones and failed ones", func() {
@@ -168,8 +169,8 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
 	})
 }
 
@@ -223,7 +224,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to deactivate user", func() {
@@ -247,7 +248,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Deactivate SSO user", func() {
@@ -353,8 +354,8 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+emailArgs[2]+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
 	})
 }
 
@@ -1241,7 +1242,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 	s.Run("Deactivate an existing user by username", func() {
 		printer.Clean()
@@ -1357,7 +1357,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", arg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", arg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete multiple users", func() {
@@ -1432,7 +1432,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			GetUserByEmail(argsDelete[2], "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
-
 		s.client.
 			EXPECT().
 			GetUserByUsername(argsDelete[2], "").
@@ -1451,7 +1450,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 
 	s.Run("Delete multiple users with an non existent user", func() {
@@ -1495,6 +1493,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
 	})
 }

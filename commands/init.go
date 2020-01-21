@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/client"
 )
 
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {

@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd := &cobra.Command{}
 		err := createTeamCmdF(s.client, cmd, []string{})
 
-		s.Require().Equal(err, errors.New("Name is required"))
+		s.Require().Equal(err, errors.New("name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -32,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("name", mockTeamName, "")
 
 		err := createTeamCmdF(s.client, cmd, []string{})
-		s.Require().Equal(err, errors.New("Display Name is required"))
+		s.Require().Equal(err, errors.New("display Name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -623,7 +624,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(mockTeam, printer.GetLines()[0])
-
 	})
 
 	s.Run("Search for an existing team by DisplayName", func() {
@@ -676,7 +676,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("Unable to find team '"+displayName+"'", printer.GetErrorLines()[0])
-
 	})
 
 	s.Run("Test search with multiple arguments", func() {
@@ -726,7 +725,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(mockTeam1, printer.GetLines()[0])
 		s.Require().Equal(mockTeam2, printer.GetLines()[1])
-
 	})
 
 	s.Run("Test duplicates are removed from search results", func() {
@@ -781,7 +779,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Equal(mockTeam3, printer.GetLines()[2]) // C
 		s.Require().Equal(mockTeam4, printer.GetLines()[3]) // D
 		s.Require().Equal(mockTeam2, printer.GetLines()[4]) // e
-
 	})
 
 	s.Run("Search returns an error when the client returns an error", func() {

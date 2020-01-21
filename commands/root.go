@@ -4,8 +4,9 @@
 package commands
 
 import (
-	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/printer"
 )
 
 func Run(args []string) error {
