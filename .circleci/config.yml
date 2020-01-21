@@ -21,7 +21,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 1.21.0
+        default: 1.23.0
       gobin:
         type: string
         default: /go/bin
