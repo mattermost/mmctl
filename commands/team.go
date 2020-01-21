@@ -243,7 +243,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// If both flags are absent, abort!
 	if newTeamName == "" && newDisplayName == "" {
-		return errors.New("require atleast one flag to rename team, either 'name' or 'display_name'")
+		return errors.New("require at least one flag to rename team, either 'name' or 'display_name'")
 	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)

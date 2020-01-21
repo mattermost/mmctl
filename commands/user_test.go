@@ -619,7 +619,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
+		s.Require().Equal("can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Invite user to an existing team and fail invite", func() {
@@ -756,7 +756,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal("Can't find team '"+argTeam[1]+"'", printer.GetErrorLines()[0])
+		s.Require().Equal("can't find team '"+argTeam[1]+"'", printer.GetErrorLines()[0])
 		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultTeamModels[4].Name+". Error: "+mockError.Error(), printer.GetErrorLines()[1])
 	})
 }
@@ -907,7 +907,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{})
 
-		s.Require().EqualError(error, "Expected two arguments. See help text for details")
+		s.Require().EqualError(error, "expected two arguments. See help text for details")
 	})
 
 	s.Run("Invalid email provided", func() {
@@ -919,7 +919,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().EqualError(error, "Invalid email: 'invalidEmail'")
+		s.Require().EqualError(error, "invalid email: 'invalidEmail'")
 	})
 
 	s.Run("User not found using email, username or id as identifier", func() {
@@ -949,7 +949,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().EqualError(error, "Unable to find user 'testUser'")
+		s.Require().EqualError(error, "unable to find user 'testUser'")
 	})
 
 	s.Run("Client returning error while updating user", func() {

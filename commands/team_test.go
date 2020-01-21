@@ -123,7 +123,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args[0] = "existingName"
 
 		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Require atleast one flag to rename team, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
 	})
 
 	s.Run("Team rename should fail with invalid flags", func() {
@@ -138,11 +138,11 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("-name", "newName", "Team Name Name")
 		err := renameTeamCmdF(s.client, cmd, args)
 
-		s.Require().EqualError(err, "Require atleast one flag to rename team, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
 
 		// Setting flag as display-name instead of display_name
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		s.Require().EqualError(err, "Require atleast one flag to rename team, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
 	})
 
 	s.Run("Team rename should fail when unknown existing team name is entered", func() {
