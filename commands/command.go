@@ -28,9 +28,9 @@ var CommandCreateCmd = &cobra.Command{
 }
 
 var CommandListCmd = &cobra.Command{
-	Use:     "list [teamID]",
-	Short:   "List all commands on specified team.",
-	Long:    `List all commands on specified team.`,
+	Use:     "list [teams]",
+	Short:   "List all commands on specified teams.",
+	Long:    `List all commands on specified teams.`,
 	Example: ` command list myteam`,
 	RunE:    withClient(listCommandCmdF),
 }
