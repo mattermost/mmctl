@@ -13,6 +13,16 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  goimports:
+    local-prefixes: github.com/mattermost/mmctl
+  golint:
+    min-confidence: 0
+  misspell:
+    locale: US
+
 
 linters:
   disable-all: true
@@ -28,6 +38,22 @@ linters:
     - unused
     - varcheck
     - errcheck
+    - dogsled
+    - dupl
+    - goconst
+    - gocritic
+    - gocyclo
+    - goimports
+    - gosec
+    - interfacer
+    - misspell
+    - nakedret
+    - scopelint
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unparam
+    - whitespace
 
 issues:
   exclude-rules:
@@ -37,7 +63,16 @@ issues:
       - unused
       text: "testLogsCmdF|MmctlE2ETestSuite|MmctlUnitTestSuite|setupTestHelper"
 
+    - path: client
+      linters:
+        - golint
+        - stylecheck
+
+    - path: _test\.go
+      linters:
+        - dupl
+        - goconst
+
     - linters:
-      # ignore golint error for a lot of packages for now
-      - golint
-      path: "client"
+        - goconst
+      text: "YES"
