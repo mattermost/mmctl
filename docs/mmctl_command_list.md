@@ -1,13 +1,13 @@
 ## mmctl command list
 
-List all commands on specified teams.
+List all commands on specified team.
 
 ### Synopsis
 
-List all commands on specified teams.
+List all commands on specified team.
 
 ```
-mmctl command list [flags]
+mmctl command list [teamID] [flags]
 ```
 
 ### Examples
