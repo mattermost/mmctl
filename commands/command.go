@@ -28,15 +28,15 @@ var CommandCreateCmd = &cobra.Command{
 }
 
 var CommandListCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List all commands on specified teams.",
-	Long:    `List all commands on specified teams.`,
+	Use:     "list [teamID]",
+	Short:   "List all commands on specified team.",
+	Long:    `List all commands on specified team.`,
 	Example: ` command list myteam`,
 	RunE:    withClient(listCommandCmdF),
 }
 
 var CommandDeleteCmd = &cobra.Command{
-	Use:        "delete [command]",
+	Use:        "delete [commandID]",
 	Short:      "Delete a slash command",
 	Long:       `Delete a slash command. Commands can be specified by command ID.`,
 	Example:    `  command delete commandID`,
@@ -46,7 +46,7 @@ var CommandDeleteCmd = &cobra.Command{
 }
 
 var CommandArchiveCmd = &cobra.Command{
-	Use:     "archive [command]",
+	Use:     "archive [commandID]",
 	Short:   "Archive a slash command",
 	Long:    `Archive a slash command. Commands can be specified by command ID.`,
 	Example: `  command archive commandID`,
