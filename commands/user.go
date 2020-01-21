@@ -129,7 +129,7 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("Can't find user '%v'", userArgs[i]))
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
 			continue
 		}
 
