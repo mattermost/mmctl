@@ -17,6 +17,36 @@ jobs:
             make docs
             if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
 
+  install-golangci-lint:
+    description: Install golangci-lint
+    parameters:
+      version:
+        type: string
+        default: 1.21.0
+      gobin:
+        type: string
+        default: /go/bin
+      prefix:
+        type: string
+        default: v1
+        description: Prefix for cache key to store the binary.
+    steps:
+      - restore_cache:
+          name: Restore golangci-lint cache
+          keys: ['<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>']
+      - run:
+          name: Install golangci-lint
+          command: |
+            mkdir -p << parameters.gobin >>
+            command -v << parameters.gobin >>/golangci-lint && exit
+
+            download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+            wget -O- -q $download | sh -s -- -b << parameters.gobin >>/ v<< parameters.version >>
+      - save_cache:
+          name: Save golangci-lint cache
+          key: '<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>'
+          paths: [<< parameters.gobin >>/golangci-lint]
+
   lint:
     executor:
       name: default
@@ -27,8 +57,6 @@ jobs:
       - run:
           name: "Validate lint"
           command: |
-            echo "installing golangci-lint"
-            curl -sfl https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0 # keep this in sync with .golangci.yml
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             make check
@@ -149,6 +177,7 @@ workflows:
   untagged-build:
     jobs:
       - docs
+      - install-golangci-lint
       - lint
       - setup
       - test:
