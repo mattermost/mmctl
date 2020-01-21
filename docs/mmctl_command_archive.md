@@ -7,7 +7,7 @@ Archive a slash command
 Archive a slash command. Commands can be specified by command ID.
 
 ```
-mmctl command archive [command] [flags]
+mmctl command archive [commandID] [flags]
 ```
 
 ### Examples
