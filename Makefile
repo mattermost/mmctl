@@ -59,7 +59,7 @@ ifeq ($(ADVANCED_VET), TRUE)
 		exit 1; \
 	fi;
 	@echo Running mattermost-govet
-	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal -equalLenAsserts ./...
 	@if ! [ -x "$$(command -v shadow)" ]; then \
 		echo "shadow vet tool is not installed. Please install it executing \"GO111MODULE=off go get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow\""; \
 		exit 1; \
