@@ -350,14 +350,15 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 
-	users, response := c.GetUsers(page, perPage, "")
-	if response.Error != nil {
-		return errors.Wrap(response.Error, "Failed to fetch users")
-	}
-	for ; users != nil && len(users) > 0; users, response = c.GetUsers(page, perPage, "") {
-		if response.Error != nil {
-			return errors.Wrap(response.Error, "Failed to fetch users")
+	for {
+		users, res := c.GetUsers(page, perPage, "")
+		if res.Error != nil {
+			return errors.Wrap(res.Error, "Failed to fetch users")
 		}
+		if len(users) == 0 {
+			break
+		}
+
 		for _, user := range users {
 			printer.PrintT(tpl, user)
 		}
