@@ -168,7 +168,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmdF(){
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Create channel with a Name and Display Name but Team returns an error", func() {
+	s.Run("Create channel with a Name and Display Name but no Team returns an error", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
