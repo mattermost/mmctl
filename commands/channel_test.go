@@ -243,7 +243,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmdF(){
 		s.Require().Len(printer.GetLines(), 1)
 	})
 
-	s.Run("Create invite only channel", func() {
+	s.Run("Create private channel", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockChannelName, "")
