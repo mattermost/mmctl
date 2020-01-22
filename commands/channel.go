@@ -259,7 +259,7 @@ func addUserToChannel(c client.Client, channel *model.Channel, user *model.User,
 		return
 	}
 	if _, response := c.AddChannelMember(channel.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
+		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + response.Error.Error())
 	}
 }
 
