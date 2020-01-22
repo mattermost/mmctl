@@ -1,4 +1,4 @@
-## mmctl team remove
+## mmctl team users remove
 
 Remove users from team
 
@@ -7,7 +7,7 @@ Remove users from team
 Remove some users from team
 
 ```
-mmctl team remove [team] [users] [flags]
+mmctl team users remove [team] [users] [flags]
 ```
 
 ### Examples
@@ -30,5 +30,5 @@ mmctl team remove [team] [users] [flags]
 
 ### SEE ALSO
 
-* [mmctl team](mmctl_team.md)	 - Management of teams
+* [mmctl team users](mmctl_team_users.md)	 - Management of team users
 
