@@ -10,8 +10,8 @@ import (
 
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/spf13/cobra"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
@@ -143,11 +143,11 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		printer.Clean()
 
 		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{})
-		mockErr := errors.New("Enter at least one channel to archive")
+		mockErr := errors.New("enter at least one channel to archive")
 
 		expected := mockErr.Error()
 		actual := err.Error()
-		 
+
 		s.Require().Equal(expected, actual)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -182,7 +182,6 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			DeleteChannel(channelID).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
-		
 
 		err := archiveChannelsCmdF(s.client, cmd, []string{args})
 		s.Require().Nil(err)
@@ -211,7 +210,6 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			DeleteChannel(channelID).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
-		
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
@@ -256,7 +254,6 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			DeleteChannel(channelID2).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
-		
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
@@ -378,7 +375,6 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			DeleteChannel(channelID).
 			Return(false, &model.Response{Error: mockErr}).
 			Times(1)
-		
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
@@ -388,12 +384,10 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		expected := printer.GetErrorLines()[0]
 		actual := fmt.Sprintf("Unable to archive channel '%s' error: %s", channelArg, mockErr.Error())
 		s.Require().Equal(expected, actual)
-
 	})
 
 	s.Run("Fail to archive when team and channel not provided", func() {
 		printer.Clean()
-
 		cmd := &cobra.Command{}
 		args := []string{":"}
 
@@ -405,7 +399,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		expected := printer.GetErrorLines()[0]
 		actual := fmt.Sprintf("Unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
-	})	
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
@@ -971,8 +965,8 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 	mockTeam := model.Team{Id: team}
 	mockChannel := model.Channel{Id: channel, Name: channel}
 	userArg := "user@example.com"
-	userId := "example-user-id"
-	mockUser := model.User{Id: userId, Email: userArg}
+	userID := "example-user-id"
+	mockUser := model.User{Id: userID, Email: userArg}
 
 	s.Run("Not enough command line parameters", func() {
 		printer.Clean()
@@ -980,13 +974,13 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 
 		// One argument provided.
 		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg})
-		s.EqualError(err, "Not enough arguments.")
+		s.EqualError(err, "not enough arguments")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 
 		// No arguments provided.
 		err = addChannelUsersCmdF(s.client, cmd, []string{})
-		s.EqualError(err, "Not enough arguments.")
+		s.EqualError(err, "not enough arguments")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -1013,7 +1007,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 
 		s.client.
 			EXPECT().
-			AddChannelMember(channel, userId).
+			AddChannelMember(channel, userID).
 			Return(&model.ChannelMember{}, &model.Response{Error: nil}).
 			Times(1)
 		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
@@ -1107,7 +1101,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			AddChannelMember(channel, userId).
+			AddChannelMember(channel, userID).
 			Return(&model.ChannelMember{}, &model.Response{Error: nil}).
 			Times(1)
 		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, nilUserArg, userArg})
@@ -1139,7 +1133,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 
 		s.client.
 			EXPECT().
-			AddChannelMember(channel, userId).
+			AddChannelMember(channel, userID).
 			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
 			Times(1)
 		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
