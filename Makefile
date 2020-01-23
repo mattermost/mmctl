@@ -1,9 +1,13 @@
 .PHONY: vendor docs mocks
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
-BUILD_HASH = $(shell git rev-parse HEAD)
+BUILD_HASH ?= $(shell git rev-parse HEAD)
+BUILD_VERSION ?= $(shell git ls-remote --tags --refs --sort="v:refname" git://github.com/mattermost/mmctl | tail -n1 | sed 's/.*\///')
+# Needed to avoid install shadow in brew which is not permitted
+ADVANCED_VET ?= TRUE
 
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
+LDFLAGS += -X "github.com/mattermost/mmctl/commands.Version=$(BUILD_VERSION)"
 
 all: build
 
@@ -48,14 +52,36 @@ gofmt:
 
 govet:
 	@echo Running govet
-	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet $(GO_PACKAGES)
+ifeq ($(ADVANCED_VET), TRUE)
+	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
+		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
+		exit 1; \
+	fi;
+	@echo Running mattermost-govet
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal -equalLenAsserts ./...
+	@if ! [ -x "$$(command -v shadow)" ]; then \
+		echo "shadow vet tool is not installed. Please install it executing \"GO111MODULE=off go get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow\""; \
+		exit 1; \
+	fi;
+	@echo Running shadow analysis
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
+endif
 	@echo Govet success
 
-test:
-	@echo Running tests
-	$(GO) test -race -v $(GO_PACKAGES)
+test: test-unit
+
+test-unit:
+	@echo Running unit tests
+	$(GO) test -mod=vendor -race -v -tags unit $(GO_PACKAGES)
+
+test-e2e:
+	@echo Running e2e tests
+	$(GO) test -mod=vendor -race -v -tags e2e $(GO_PACKAGES)
+
+test-all:
+	@echo Running all tests
+	$(GO) test -mod=vendor -race -v -tags 'unit e2e' $(GO_PACKAGES)
 
 check: gofmt govet
 
@@ -64,7 +90,7 @@ vendor:
 	go mod tidy
 
 mocks:
-	mockgen -destination=mocks/client_mock.go -package=mocks github.com/mattermost/mmctl/client Client
+	mockgen -destination=mocks/client_mock.go -copyright_file=mocks/copyright.txt -package=mocks github.com/mattermost/mmctl/client Client
 
 docs:
 	rm -rf docs

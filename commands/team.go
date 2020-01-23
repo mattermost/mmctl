@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -5,7 +8,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -26,29 +29,24 @@ var TeamCreateCmd = &cobra.Command{
 	RunE: withClient(createTeamCmdF),
 }
 
-var RemoveUsersCmd = &cobra.Command{
-	Use:     "remove [team] [users]",
-	Short:   "Remove users from team",
-	Long:    "Remove some users from team",
-	Example: "  team remove myteam user@example.com username",
-	RunE:    withClient(removeUsersCmdF),
-}
-
-var AddUsersCmd = &cobra.Command{
-	Use:     "add [team] [users]",
-	Short:   "Add users to team",
-	Long:    "Add some users to team",
-	Example: "  team add myteam user@example.com username",
-	RunE:    withClient(addUsersCmdF),
-}
-
 var DeleteTeamsCmd = &cobra.Command{
 	Use:   "delete [teams]",
 	Short: "Delete teams",
 	Long: `Permanently delete some teams.
 Permanently deletes a team along with all related information including posts from the database.`,
 	Example: "  team delete myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteTeamsCmdF),
+}
+
+var ArchiveTeamsCmd = &cobra.Command{
+	Use:   "archive [teams]",
+	Short: "Archive teams",
+	Long: `Archive some teams.
+Archives a team along with all related information including posts from the database.`,
+	Example: "  team archive myteam",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(archiveTeamsCmdF),
 }
 
 var ListTeamsCmd = &cobra.Command{
@@ -68,6 +66,18 @@ var SearchTeamCmd = &cobra.Command{
 	RunE:    withClient(searchTeamCmdF),
 }
 
+// RenameTeamCmd is the command to rename team along with its display name
+var RenameTeamCmd = &cobra.Command{
+	Use:   "rename [team]",
+	Short: "Rename team",
+	Long:  "Rename an existing team",
+	Example: `  team rename old-team --name 'new-team' --display_name 'New Display Name'
+  team rename old-team --name 'new-team'
+  team rename old-team --display_name 'New Display Name'`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(renameTeamCmdF),
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -75,14 +85,19 @@ func init() {
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
+	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
+
+	// Add flag declaration for RenameTeam
+	RenameTeamCmd.Flags().String("name", "", "Old Team Name")
+	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
-		RemoveUsersCmd,
-		AddUsersCmd,
 		DeleteTeamsCmd,
+		ArchiveTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
+		RenameTeamCmd,
 	)
 
 	RootCmd.AddCommand(TeamCmd)
@@ -124,68 +139,135 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func removeUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
+func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
+	return c.PermanentDeleteTeam(team.Id)
+}
+
+func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		fmt.Println("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirm)
+
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
+		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+		}
 	}
 
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	users := getUsersFromUserArgs(c, args[1:])
-	for i, user := range users {
-		removeUserFromTeam(c, team, user, args[i+1])
+	teams := getTeamsFromTeamArgs(c, args)
+	for i, team := range teams {
+		if team == nil {
+			printer.PrintError("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if _, response := c.SoftDeleteTeam(team.Id); response.Error != nil {
+			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Archived team '{{.Name}}'", team)
+		}
 	}
 
 	return nil
 }
 
-func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
-	}
-	if _, response := c.RemoveTeamMember(team.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + response.Error.Error())
-	}
-}
-
-func addUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 2 {
-		return errors.New("Not enough arguments.")
+func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	teams, response := c.GetAllTeams("", 0, 10000)
+	if response.Error != nil {
+		return response.Error
 	}
 
-	team := getTeamFromTeamArg(c, args[0])
-	if team == nil {
-		return errors.New("Unable to find team '" + args[0] + "'")
-	}
-
-	users := getUsersFromUserArgs(c, args[1:])
-	for i, user := range users {
-		addUserToTeam(c, team, user, args[i+1])
+	for _, team := range teams {
+		if team.DeleteAt > 0 {
+			printer.PrintT("{{.Name}} (archived)", team)
+		} else {
+			printer.PrintT("{{.Name}}", team)
+		}
 	}
 
 	return nil
 }
 
-func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
+func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var teams []*model.Team
+
+	for _, searchTerm := range args {
+		foundTeams, response := c.SearchTeams(&model.TeamSearch{Term: searchTerm})
+		if response.Error != nil {
+			return response.Error
+		}
+
+		if len(foundTeams) == 0 {
+			printer.PrintError("Unable to find team '" + searchTerm + "'")
+			continue
+		}
+
+		teams = append(teams, foundTeams...)
 	}
 
-	if _, response := c.AddTeamMember(team.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + response.Error.Error())
+	sortedTeams := removeDuplicatesAndSortTeams(teams)
+
+	for _, team := range sortedTeams {
+		printer.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
 	}
+
+	return nil
+}
+
+// Removes duplicates and sorts teams by name
+func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
+	keys := make(map[string]bool)
+	result := []*model.Team{}
+	for _, team := range teams {
+		if _, value := keys[team.Name]; !value {
+			keys[team.Name] = true
+			result = append(result, team)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Name < result[j].Name
+	})
+	return result
+}
+
+func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	oldTeamName := args[0]
+	newDisplayName, _ := cmd.Flags().GetString("display_name")
+	newTeamName, _ := cmd.Flags().GetString("name")
+
+	// If both flags are absent, abort!
+	if newTeamName == "" && newDisplayName == "" {
+		return errors.New("Require atleast one flag to rename team, either 'name' or 'display_name'")
+	}
+
+	team := getTeamFromTeamArg(c, oldTeamName)
+	if team == nil {
+		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
+	}
+
+	if newTeamName != "" {
+		team.Name = newTeamName
+	}
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	// Using UpdateTeam API Method to rename team
+	_, response := c.UpdateTeam(team)
+	if response.Error != nil {
+		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
+	}
+
+	printer.Print("'" + oldTeamName + "' team renamed")
+	return nil
 }
 
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Not enough arguments.")
-	}
-
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		var confirm string
@@ -216,61 +298,4 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
-	return c.PermanentDeleteTeam(team.Id)
-}
-
-func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	teams, response := c.GetAllTeams("", 0, 10000)
-	if response.Error != nil {
-		return response.Error
-	}
-
-	for _, team := range teams {
-		if team.DeleteAt > 0 {
-			printer.PrintT("{{.Name}} (archived)", team)
-		} else {
-			printer.PrintT("{{.Name}}", team)
-		}
-	}
-
-	return nil
-}
-
-func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	var teams []*model.Team
-
-	for _, searchTerm := range args {
-		foundTeams, response := c.SearchTeams(&model.TeamSearch{Term: searchTerm})
-		if response.Error != nil {
-			return response.Error
-		}
-		teams = append(teams, foundTeams...)
-	}
-
-	sortedTeams := removeDuplicatesAndSortTeams(teams)
-
-	for _, team := range sortedTeams {
-		printer.PrintT("{{.Name}}: {{.DisplayName}} ({{.Id}})", team)
-	}
-
-	return nil
-}
-
-// Removes duplicates and sorts teams by name
-func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
-	keys := make(map[string]bool)
-	result := []*model.Team{}
-	for _, team := range teams {
-		if _, value := keys[team.Name]; !value {
-			keys[team.Name] = true
-			result = append(result, team)
-		}
-	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Name < result[j].Name
-	})
-	return result
 }

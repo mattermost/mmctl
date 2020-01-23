@@ -1,7 +1,11 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
-	"testing"
+	"fmt"
+	"os"
 
 	"github.com/mattermost/mmctl/mocks"
 	"github.com/mattermost/mmctl/printer"
@@ -30,6 +34,22 @@ func (s *MmctlUnitTestSuite) TearDownTest() {
 	printer.Clean()
 }
 
-func TestMmctlSuite(t *testing.T) {
-	suite.Run(t, new(MmctlUnitTestSuite))
+type MmctlE2ETestSuite struct {
+	suite.Suite
+	th *TestHelper
+}
+
+func (s *MmctlE2ETestSuite) SetupSuite() {
+	printer.SetFormat(printer.FORMAT_JSON)
+
+	var err error
+	if s.th, err = setupTestHelper(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error initialising E2E test helper. %s\n", err)
+		fmt.Fprintln(os.Stderr, "Aborting E2E test execution")
+		os.Exit(1)
+	}
+}
+
+func (s *MmctlE2ETestSuite) TearDownTest() {
+	printer.Clean()
 }

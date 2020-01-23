@@ -7,7 +7,7 @@ List all commands on specified teams.
 List all commands on specified teams.
 
 ```
-mmctl command list [flags]
+mmctl command list [teams] [flags]
 ```
 
 ### Examples

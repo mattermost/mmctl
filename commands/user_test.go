@@ -1,14 +1,363 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/printer"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
+
+func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
+	s.Run("Activate user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, true).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to activate unexistent user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(emailArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(emailArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Fail to activate user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, true).
+			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Activate several users with unexistent ones and failed ones", func() {
+		printer.Clean()
+		emailArgs := []string{"example0@example0.com", "null", "example2@example2.com", "failure@failure.com", "example4@example4.com"}
+		mockUser0 := model.User{Id: "example0", Username: "ExampleUser0", Email: emailArgs[0]}
+		mockUser2 := model.User{Id: "example2", AuthService: "other", Username: "ExampleUser2", Email: emailArgs[2]}
+		mockUser3 := model.User{Id: "failure", Username: "FailureUser", Email: emailArgs[3]}
+		mockUser4 := model.User{Id: "example4", Username: "ExampleUser4", Email: emailArgs[4]}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[0], "").
+			Return(&mockUser0, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[1], "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(emailArgs[1], "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(emailArgs[1], "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[2], "").
+			Return(&mockUser2, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[3], "").
+			Return(&mockUser3, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[4], "").
+			Return(&mockUser4, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser0.Id, true).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser2.Id, true).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser3.Id, true).
+			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser4.Id, true).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userActivateCmdF(s.client, &cobra.Command{}, emailArgs)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
+	s.Run("Deactivate user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to deactivate unexistent user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(emailArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(emailArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Fail to deactivate user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Deactivate SSO user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", AuthService: "other", Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("You must also deactivate user "+emailArg+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Deactivate several users with unexistent ones, SSO ones and failed ones", func() {
+		printer.Clean()
+		emailArgs := []string{"example0@example0.com", "null", "example2@example2.com", "failure@failure.com", "example4@example4.com"}
+		mockUser0 := model.User{Id: "example0", Username: "ExampleUser0", Email: emailArgs[0]}
+		mockUser2 := model.User{Id: "example2", AuthService: "other", Username: "ExampleUser2", Email: emailArgs[2]}
+		mockUser3 := model.User{Id: "failure", Username: "FailureUser", Email: emailArgs[3]}
+		mockUser4 := model.User{Id: "example4", Username: "ExampleUser4", Email: emailArgs[4]}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[0], "").
+			Return(&mockUser0, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[1], "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(emailArgs[1], "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(emailArgs[1], "").
+			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[2], "").
+			Return(&mockUser2, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[3], "").
+			Return(&mockUser3, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArgs[4], "").
+			Return(&mockUser4, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser0.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser2.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser3.Id, false).
+			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser4.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, emailArgs)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("You must also deactivate user "+emailArgs[2]+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
+	})
+}
 
 func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for an existing user", func() {
@@ -1013,4 +1362,284 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 	})
 
+}
+
+func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
+	s.Run("Deactivate an existing user using email", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+	})
+	s.Run("Deactivate an existing user by username", func() {
+		printer.Clean()
+		emailArg := "example@exam.com"
+		usernameArg := "ExampleUser"
+		mockUser := model.User{Username: usernameArg, Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(usernameArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(usernameArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser.Username})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Deactivate an existing user by id", func() {
+		printer.Clean()
+		mockUser := model.User{Id: "userId1", Username: "ExampleUser", Email: "example@exam.com"}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(mockUser.Id, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(mockUser.Id, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(mockUser.Id, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Deactivate SSO user", func() {
+		printer.Clean()
+		arg := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: arg, AuthService: "SSO"}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(arg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("You must also deactivate user "+arg+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Deactivate nonexistent user", func() {
+		printer.Clean()
+		arg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(arg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(arg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(arg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", arg).Error(), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete multiple users", func() {
+		printer.Clean()
+		mockUser1 := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
+		mockUser2 := model.User{Id: "userId2", Email: "user2@example.com", Username: "user2"}
+		mockUser3 := model.User{Id: "userId3", Email: "user3@example.com", Username: "user3"}
+
+		argEmails := []string{mockUser1.Email, mockUser2.Email, mockUser3.Email}
+		argUsers := []model.User{mockUser1, mockUser2, mockUser3}
+
+		for i := 0; i < len(argEmails); i++ {
+			s.client.
+				EXPECT().
+				GetUserByEmail(argEmails[i], "").
+				Return(&argUsers[i], &model.Response{Error: nil}).
+				Times(1)
+		}
+
+		for i := 0; i < len(argEmails); i++ {
+			s.client.
+				EXPECT().
+				UpdateUserActive(argUsers[i].Id, false).
+				Return(true, &model.Response{Error: nil}).
+				Times(1)
+		}
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, argEmails)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Delete multiple users with argument mixture of emails usernames and userIds", func() {
+		printer.Clean()
+		mockUser1 := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
+		mockUser2 := model.User{Id: "userId2", Email: "user2@example.com", Username: "user2"}
+		mockUser3 := model.User{Id: "userId3", Email: "user3@example.com", Username: "user3"}
+
+		argsDelete := []string{mockUser1.Id, mockUser2.Email, mockUser3.Username}
+		argUsers := []model.User{mockUser1, mockUser2, mockUser3}
+
+		// mockUser1
+		s.client.
+			EXPECT().
+			GetUserByEmail(argsDelete[0], "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(argsDelete[0], "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(argsDelete[0], "").
+			Return(&argUsers[0], &model.Response{Error: nil}).
+			Times(1)
+
+		// mockUser2
+		s.client.
+			EXPECT().
+			GetUserByEmail(argsDelete[1], "").
+			Return(&argUsers[1], &model.Response{Error: nil}).
+			Times(1)
+
+		// mockUser3
+		s.client.
+			EXPECT().
+			GetUserByEmail(argsDelete[2], "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(argsDelete[2], "").
+			Return(&argUsers[2], &model.Response{Error: nil}).
+			Times(1)
+
+		for _, user := range argUsers {
+			s.client.
+				EXPECT().
+				UpdateUserActive(user.Id, false).
+				Return(true, &model.Response{Error: nil}).
+				Times(1)
+		}
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, argsDelete)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+	})
+
+	s.Run("Delete multiple users with an non existent user", func() {
+		printer.Clean()
+		mockUser1 := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
+		nonexistentEmail := "example@example.com"
+
+		// mockUser1
+		s.client.
+			EXPECT().
+			GetUserByEmail(mockUser1.Email, "").
+			Return(&mockUser1, &model.Response{Error: nil}).
+			Times(1)
+
+		// nonexistent email
+		s.client.
+			EXPECT().
+			GetUserByEmail(nonexistentEmail, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(nonexistentEmail, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(nonexistentEmail, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserActive(mockUser1.Id, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser1.Email, nonexistentEmail})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Errorf("Can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
+	})
 }

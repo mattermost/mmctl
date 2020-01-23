@@ -1,9 +1,12 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -16,6 +19,16 @@ var UserCmd = &cobra.Command{
 	Short: "Management of users",
 }
 
+var UserActivateCmd = &cobra.Command{
+	Use:   "activate [emails, usernames, userIds]",
+	Short: "Activate users",
+	Long:  "Activate users that have been deactivated.",
+	Example: `  user activate user@example.com
+  user activate username`,
+	RunE: withClient(userActivateCmdF),
+	Args: cobra.MinimumNArgs(1),
+}
+
 var UserDeactivateCmd = &cobra.Command{
 	Use:   "deactivate [emails, usernames, userIds]",
 	Short: "Deactivate users",
@@ -23,6 +36,7 @@ var UserDeactivateCmd = &cobra.Command{
 	Example: `  user deactivate user@example.com
   user deactivate username`,
 	RunE: withClient(userDeactivateCmdF),
+	Args: cobra.MinimumNArgs(1),
 }
 
 var UserCreateCmd = &cobra.Command{
@@ -53,12 +67,11 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 }
 
 var updateUserEmailCmd = &cobra.Command{
-	Use:   "email [user] [new email]",
-	Short: "Change email of the user",
-	Long:  "Change email of the user.",
-	Example: `  user email test user@example.com
-  user activate username`,
-	RunE: withClient(updateUserEmailCmdF),
+	Use:     "email [user] [new email]",
+	Short:   "Change email of the user",
+	Long:    "Change email of the user.",
+	Example: "  user email testuser user@example.com",
+	RunE:    withClient(updateUserEmailCmdF),
 }
 
 var ResetUserMfaCmd = &cobra.Command{
@@ -105,6 +118,7 @@ func init() {
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 
 	UserCmd.AddCommand(
+		UserActivateCmd,
 		UserDeactivateCmd,
 		UserCreateCmd,
 		UserInviteCmd,
@@ -118,25 +132,41 @@ func init() {
 	RootCmd.AddCommand(UserCmd)
 }
 
-func deactivateUsers(c client.Client, userArgs []string) {
+func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
+	changeUsersActiveStatus(c, args, true)
+
+	return nil
+}
+
+func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
-		if user.IsSSOUser() {
-			printer.Print("You must also deactivate user " + userArgs[i] + " in the SSO provider or they will be reactivated on next login or sync.")
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("Can't find user '%v'", userArgs[i]))
+			continue
 		}
 
-		if _, response := c.DeleteUser(user.Id); response.Error != nil {
-			printer.PrintError("Unable to deactivate user " + userArgs[i] + ". Error: " + response.Error.Error())
+		err := changeUserActiveStatus(c, user, userArgs[i], active)
+
+		if err != nil {
+			printer.PrintError(err.Error())
 		}
 	}
 }
 
-func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+func changeUserActiveStatus(c client.Client, user *model.User, userArg string, activate bool) error {
+	if !activate && user.IsSSOUser() {
+		printer.Print("You must also deactivate user " + userArg + " in the SSO provider or they will be reactivated on next login or sync.")
+	}
+	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
+		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
 
-	deactivateUsers(c, args)
+	return nil
+}
+
+func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	changeUsersActiveStatus(c, args, false)
 
 	return nil
 }

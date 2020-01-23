@@ -1,9 +1,12 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package client
 
 import (
 	"io"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 type Client interface {
@@ -27,14 +30,15 @@ type Client interface {
 	PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.Response)
 	AddTeamMember(teamId, userId string) (*model.TeamMember, *model.Response)
 	RemoveTeamMember(teamId, userId string) (bool, *model.Response)
+	SoftDeleteTeam(teamId string) (bool, *model.Response)
 	PermanentDeleteTeam(teamId string) (bool, *model.Response)
 	SearchTeams(search *model.TeamSearch) ([]*model.Team, *model.Response)
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
 	GetPostsForChannel(channelId string, page, perPage int, etag string) (*model.PostList, *model.Response)
 	GetLdapGroups() ([]*model.Group, *model.Response)
-	GetGroupsByChannel(channelId string, page, perPage int) ([]*model.Group, *model.Response)
-	GetGroupsByTeam(teamId string, page, perPage int) ([]*model.Group, *model.Response)
+	GetGroupsByChannel(channelId string, groupOpts model.GroupSearchOpts) ([]*model.Group, int, *model.Response)
+	GetGroupsByTeam(teamId string, groupOpts model.GroupSearchOpts) ([]*model.Group, int, *model.Response)
 	UploadLicenseFile(data []byte) (bool, *model.Response)
 	RemoveLicenseFile() (bool, *model.Response)
 	GetLogs(page, perPage int) ([]string, *model.Response)
@@ -49,7 +53,6 @@ type Client interface {
 	GetUserByUsername(userName, etag string) (*model.User, *model.Response)
 	GetUserByEmail(email, etag string) (*model.User, *model.Response)
 	CreateUser(user *model.User) (*model.User, *model.Response)
-	DeleteUser(userId string) (bool, *model.Response)
 	UpdateUserRoles(userId, roles string) (bool, *model.Response)
 	InviteUsersToTeam(teamId string, userEmails []string) (bool, *model.Response)
 	SendPasswordResetEmail(email string) (bool, *model.Response)
@@ -59,6 +62,9 @@ type Client interface {
 	ListCommands(teamId string, customOnly bool) ([]*model.Command, *model.Response)
 	DeleteCommand(commandId string) (bool, *model.Response)
 	GetConfig() (*model.Config, *model.Response)
+	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
+	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
+	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 }
