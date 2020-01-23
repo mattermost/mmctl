@@ -312,7 +312,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 func restoreChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Enter at least one channel.")
+		return errors.New("Enter at least one channel")
 	}
 
 	channels := getChannelsFromChannelArgs(c, args)
