@@ -64,7 +64,7 @@ ifeq ($(ADVANCED_VET), TRUE)
 		exit 1; \
 	fi;
 	@echo Running mattermost-govet
-	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName ./...
+	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal -equalLenAsserts ./...
 endif
 	@echo Govet success
 
