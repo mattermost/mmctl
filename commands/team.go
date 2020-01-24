@@ -201,6 +201,12 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		if response.Error != nil {
 			return response.Error
 		}
+
+		if len(foundTeams) == 0 {
+			printer.PrintError("Unable to find team '" + searchTerm + "'")
+			continue
+		}
+
 		teams = append(teams, foundTeams...)
 	}
 

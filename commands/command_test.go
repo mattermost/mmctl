@@ -380,7 +380,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 
 		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().NotNil(err)
-		s.Require().Equal(err, errors.New("Unable to delete command '"+arg+"' error: "+mockError.Error()))
+		s.Require().Equal(err, errors.New("Unable to archive command '"+arg+"' error: "+mockError.Error()))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
