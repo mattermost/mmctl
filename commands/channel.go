@@ -81,9 +81,10 @@ var ModifyChannelCmd = &cobra.Command{
 	Short: "Modify a channel's public/private type",
 	Long: `Change the public/private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel modify myteam:mychannel --private",
-	Args:    cobra.MinimumNArgs(1),
-	RunE:    withClient(modifyChannelCmdF),
+	Example: `  channel modify myteam:mychannel --private
+  channel modify channelId --public`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(modifyChannelCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{

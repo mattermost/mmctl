@@ -138,7 +138,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
-	s.Run("Both public and private the same value", func() {
+	s.Run("Both public and private the same value (false)", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -150,13 +150,17 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		s.Require().EqualError(err, "You must specify only one of --public or --private")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
+	})
 
-		cmd = &cobra.Command{}
+	s.Run("Both public and private the same value (true)", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
 		cmd.Flags().String("username", "mockUser", "")
 		cmd.Flags().Bool("public", true, "")
 		cmd.Flags().Bool("private", true, "")
 
-		err = modifyChannelCmdF(s.client, cmd, []string{})
+		err := modifyChannelCmdF(s.client, cmd, []string{})
 		s.Require().EqualError(err, "You must specify only one of --public or --private")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
