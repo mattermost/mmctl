@@ -32,7 +32,7 @@ func setupTestHelper() (*TestHelper, error) {
 		instanceUrl = os.Getenv("MMCTL_INSTANCE_URL")
 	}
 
-	sysadminClient, err := InitClientWithUsernameAndPassword(SYSADMIN_USERNAME, SYSADMIN_PASS, instanceUrl)
+	sysadminClient, _, err := InitClientWithUsernameAndPassword(SYSADMIN_USERNAME, SYSADMIN_PASS, instanceUrl)
 	if err != nil {
 		return nil, fmt.Errorf("SystemAdminClient client failed to connect: %s", err)
 	}
@@ -41,7 +41,7 @@ func setupTestHelper() (*TestHelper, error) {
 		return nil, fmt.Errorf("Couldn't retrieve system admin user with username %s: %s", SYSADMIN_USERNAME, response.Error)
 	}
 
-	client, err := InitClientWithUsernameAndPassword(USER_USERNAME, USER_PASS, instanceUrl)
+	client, _, err := InitClientWithUsernameAndPassword(USER_USERNAME, USER_PASS, instanceUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Basic client failed to connect: %s", err)
 	}

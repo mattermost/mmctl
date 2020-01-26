@@ -7,7 +7,6 @@ BUILD_VERSION ?= $(shell git ls-remote --tags --refs --sort="v:refname" git://gi
 ADVANCED_VET ?= TRUE
 
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mmctl/commands.Version=$(BUILD_VERSION)"
 
 all: build
 

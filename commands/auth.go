@@ -173,10 +173,10 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		var c *model.Client4
 		var err error
 		if mfaToken != "" {
-			c, err = InitClientWithMFA(username, password, mfaToken, url)
+			c, _, err = InitClientWithMFA(username, password, mfaToken, url)
 			method = METHOD_MFA
 		} else {
-			c, err = InitClientWithUsernameAndPassword(username, password, url)
+			c, _, err = InitClientWithUsernameAndPassword(username, password, url)
 		}
 		if err != nil {
 			printer.PrintError(err.Error())
@@ -191,7 +191,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			InstanceUrl: url,
 			AuthToken:   accessToken,
 		}
-		if _, err := InitClientWithCredentials(&credentials); err != nil {
+		if _, _, err := InitClientWithCredentials(&credentials); err != nil {
 			printer.PrintError(err.Error())
 			// We don't want usage to be printed as the command was correctly built
 			return nil
@@ -316,7 +316,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 
 	switch credentials.AuthMethod {
 	case METHOD_PASSWORD:
-		c, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceUrl)
+		c, _, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceUrl)
 		if err != nil {
 			return err
 		}
@@ -329,7 +329,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		}
 
 		credentials.AuthToken = accessToken
-		if _, err := InitClientWithCredentials(credentials); err != nil {
+		if _, _, err := InitClientWithCredentials(credentials); err != nil {
 			return err
 		}
 
@@ -338,7 +338,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("requires the --mfa-token parameter to be set")
 		}
 
-		c, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceUrl)
+		c, _, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceUrl)
 		if err != nil {
 			return err
 		}
