@@ -15,6 +15,7 @@ mmctl channel modify [channel] [flags]
 
 ```
   channel modify myteam:mychannel --private
+  channel modify channelId --public
 ```
 
 ### Options
