@@ -169,7 +169,8 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./build/*.tar.gz
+            - ./build/*.tar
+            - ./build/*.md5.txt
             - ./build/*.zip
 
   publish-github-release:
@@ -181,7 +182,8 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./build/*.tar.gz
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./build/*.tar
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./build/*.md5.txt
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./build/*.zip
 
 workflows:
