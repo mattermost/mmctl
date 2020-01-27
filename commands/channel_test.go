@@ -138,6 +138,240 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
+	s.Run("Both public and private the same value (false)", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", false, "")
+		cmd.Flags().Bool("private", false, "")
+
+		err := modifyChannelCmdF(s.client, cmd, []string{})
+		s.Require().EqualError(err, "You must specify only one of --public or --private")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Both public and private the same value (true)", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", true, "")
+
+		err := modifyChannelCmdF(s.client, cmd, []string{})
+		s.Require().EqualError(err, "You must specify only one of --public or --private")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to modify non-existing channel", func() {
+		printer.Clean()
+		args := []string{"mockChannel"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", false, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(args[0], "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "Unable to find channel '"+args[0]+"'")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to modify a channel from a non-existing team", func() {
+		printer.Clean()
+		team := "mockTeam"
+		channel := "mockChannel"
+		args := []string{team + ":" + channel}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", false, "")
+
+		s.client.
+			EXPECT().
+			GetTeam(team, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(team, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "Unable to find channel '"+args[0]+"'")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to modify direct channel", func() {
+		printer.Clean()
+		channel := &model.Channel{
+			Id:   "mockChannel",
+			Type: model.CHANNEL_DIRECT,
+		}
+		args := []string{channel.Id}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", false, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(args[0], "").
+			Return(channel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "You can only change the type of public/private channels.")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to modify group channel", func() {
+		printer.Clean()
+		channel := &model.Channel{
+			Id:   "mockChannel",
+			Type: model.CHANNEL_GROUP,
+		}
+		args := []string{channel.Id}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", false, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(args[0], "").
+			Return(channel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "You can only change the type of public/private channels.")
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Try to modify channel privacy and get error", func() {
+		printer.Clean()
+		channel := &model.Channel{
+			Id:   "mockChannel",
+			Type: model.CHANNEL_PRIVATE,
+		}
+		mockError := &model.AppError{
+			Message: "mockError",
+		}
+		args := []string{channel.Id}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", false, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(args[0], "").
+			Return(channel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateChannelPrivacy(channel.Id, model.CHANNEL_OPEN).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "Failed to update channel ('"+channel.Id+"') privacy: "+mockError.Error())
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Modify channel privacy to public", func() {
+		printer.Clean()
+		channel := &model.Channel{
+			Id:   "mockChannel",
+			Type: model.CHANNEL_PRIVATE,
+		}
+		returnedChannel := &model.Channel{
+			Id:   channel.Id,
+			Type: model.CHANNEL_OPEN,
+		}
+		args := []string{channel.Id}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", true, "")
+		cmd.Flags().Bool("private", false, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(args[0], "").
+			Return(channel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateChannelPrivacy(channel.Id, model.CHANNEL_OPEN).
+			Return(returnedChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().NoError(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Modify channel privacy to private", func() {
+		printer.Clean()
+		channel := &model.Channel{
+			Id:   "mockChannel",
+			Type: model.CHANNEL_OPEN,
+		}
+		returnedChannel := &model.Channel{
+			Id:   channel.Id,
+			Type: model.CHANNEL_PRIVATE,
+		}
+		args := []string{channel.Id}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "mockUser", "")
+		cmd.Flags().Bool("public", false, "")
+		cmd.Flags().Bool("private", true, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(args[0], "").
+			Return(channel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateChannelPrivacy(channel.Id, model.CHANNEL_PRIVATE).
+			Return(returnedChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := modifyChannelCmdF(s.client, cmd, args)
+		s.Require().NoError(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 	s.Run("Archive channel without args returns an error", func() {
 		printer.Clean()
