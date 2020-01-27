@@ -16,6 +16,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 )
 
@@ -135,7 +136,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	url := args[0]
-	method := METHOD_PASSWORD
+	method := MethodPassword
 
 	if name == "" {
 		reader := bufio.NewReader(os.Stdin)
@@ -174,7 +175,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		var err error
 		if mfaToken != "" {
 			c, _, err = InitClientWithMFA(username, password, mfaToken, url)
-			method = METHOD_MFA
+			method = MethodMFA
 		} else {
 			c, _, err = InitClientWithUsernameAndPassword(username, password, url)
 		}
@@ -186,9 +187,9 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		accessToken = c.AuthToken
 	} else {
 		username = "Personal Access Token"
-		method = METHOD_TOKEN
+		method = MethodToken
 		credentials := Credentials{
-			InstanceUrl: url,
+			InstanceURL: url,
 			AuthToken:   accessToken,
 		}
 		if _, _, err := InitClientWithCredentials(&credentials); err != nil {
@@ -200,7 +201,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 	credentials := Credentials{
 		Name:        name,
-		InstanceUrl: url,
+		InstanceURL: url,
 		Username:    username,
 		AuthToken:   accessToken,
 		AuthMethod:  method,
@@ -223,10 +224,10 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 func getPasswordFromStdin() (string, error) {
 	fmt.Printf("Password: ")
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 	fmt.Println("")
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return string(bytePassword), nil
 }
@@ -237,7 +238,7 @@ func currentCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\n  found credentials for %q: \"%s@%s\"\n\n", credentials.Name, credentials.Username, credentials.InstanceUrl)
+	fmt.Printf("\n  found credentials for %q: \"%s@%s\"\n\n", credentials.Name, credentials.Username, credentials.InstanceURL)
 	return nil
 }
 
@@ -262,7 +263,7 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	serverNames := []string{}
-	var maxNameLen, maxUsernameLen, maxInstanceUrlLen int
+	var maxNameLen, maxUsernameLen, maxInstanceURLLen int
 	for _, c := range *credentialsList {
 		serverNames = append(serverNames, c.Name)
 		if maxNameLen <= len(c.Name) {
@@ -271,22 +272,22 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 		if maxUsernameLen <= len(c.Username) {
 			maxUsernameLen = len(c.Username)
 		}
-		if maxInstanceUrlLen <= len(c.InstanceUrl) {
-			maxInstanceUrlLen = len(c.InstanceUrl)
+		if maxInstanceURLLen <= len(c.InstanceURL) {
+			maxInstanceURLLen = len(c.InstanceURL)
 		}
 	}
 	sort.Slice(serverNames, func(i, j int) bool {
 		return serverNames[i] < serverNames[j]
 	})
 
-	fmt.Printf("\n    | Active | %*s | %*s | %*s |\n", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceUrlLen, "InstanceUrl")
-	fmt.Printf("    |%s|%s|%s|%s|\n", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceUrlLen+2))
+	fmt.Printf("\n    | Active | %*s | %*s | %*s |\n", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceURLLen, "InstanceURL")
+	fmt.Printf("    |%s|%s|%s|%s|\n", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2))
 	for _, name := range serverNames {
 		c := (*credentialsList)[name]
 		if c.Active {
-			fmt.Printf("    |      * | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceUrlLen, c.InstanceUrl)
+			fmt.Printf("    |      * | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL)
 		} else {
-			fmt.Printf("    |        | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceUrlLen, c.InstanceUrl)
+			fmt.Printf("    |        | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL)
 		}
 	}
 	fmt.Println("")
@@ -304,7 +305,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if (credentials.AuthMethod == METHOD_PASSWORD || credentials.AuthMethod == METHOD_MFA) && password == "" {
+	if (credentials.AuthMethod == MethodPassword || credentials.AuthMethod == MethodMFA) && password == "" {
 		if password == "" {
 			stdinPassword, err := getPasswordFromStdin()
 			if err != nil {
@@ -315,15 +316,15 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	switch credentials.AuthMethod {
-	case METHOD_PASSWORD:
-		c, _, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceUrl)
+	case MethodPassword:
+		c, _, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceURL)
 		if err != nil {
 			return err
 		}
 
 		credentials.AuthToken = c.AuthToken
 
-	case METHOD_TOKEN:
+	case MethodToken:
 		if accessToken == "" {
 			return errors.New("requires the --access-token parameter to be set")
 		}
@@ -333,12 +334,12 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-	case METHOD_MFA:
+	case MethodMFA:
 		if mfaToken == "" {
 			return errors.New("requires the --mfa-token parameter to be set")
 		}
 
-		c, _, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceUrl)
+		c, _, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceURL)
 		if err != nil {
 			return err
 		}

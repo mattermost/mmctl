@@ -8,11 +8,13 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 )
 
 func CheckVersionMatch(version, serverVersion string) bool {
@@ -32,18 +34,17 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 		valid := CheckVersionMatch(Version, serverVersion)
 		if !valid {
 			if viper.GetBool("strict") {
-				return fmt.Errorf("Server version %s doesn't match with mmctl version %s. Please update mmctl or use --skip-version-check to ignore", serverVersion, Version)
-			} else {
-				printer.PrintError("WARNING: server version " + serverVersion + " doesn't match mmctl version " + Version)
+				return fmt.Errorf("server version %s doesn't match with mmctl version %s. Please update mmctl or use --skip-version-check to ignore", serverVersion, Version)
 			}
+			printer.PrintError("WARNING: server version " + serverVersion + " doesn't match mmctl version " + Version)
 		}
 
 		return fn(c, cmd, args)
 	}
 }
 
-func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (*model.Client4, string, error) {
-	client := model.NewAPIv4Client(instanceUrl)
+func InitClientWithUsernameAndPassword(username, password, instanceURL string) (*model.Client4, string, error) {
+	client := model.NewAPIv4Client(instanceURL)
 	_, response := client.Login(username, password)
 	if response.Error != nil {
 		return nil, "", response.Error
@@ -51,8 +52,8 @@ func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (
 	return client, response.ServerVersion, nil
 }
 
-func InitClientWithMFA(username, password, mfaToken, instanceUrl string) (*model.Client4, string, error) {
-	client := model.NewAPIv4Client(instanceUrl)
+func InitClientWithMFA(username, password, mfaToken, instanceURL string) (*model.Client4, string, error) {
+	client := model.NewAPIv4Client(instanceURL)
 	_, response := client.LoginWithMFA(username, password, mfaToken)
 	if response.Error != nil {
 		return nil, "", response.Error
@@ -61,7 +62,7 @@ func InitClientWithMFA(username, password, mfaToken, instanceUrl string) (*model
 }
 
 func InitClientWithCredentials(credentials *Credentials) (*model.Client4, string, error) {
-	client := model.NewAPIv4Client(credentials.InstanceUrl)
+	client := model.NewAPIv4Client(credentials.InstanceURL)
 
 	client.AuthType = model.HEADER_BEARER
 	client.AuthToken = credentials.AuthToken
@@ -87,7 +88,7 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceUrl, "http", "ws", 1), credentials.AuthToken)
+	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceURL, "http", "ws", 1), credentials.AuthToken)
 	if appErr != nil {
 		return nil, errors.Wrap(appErr, "unable to create the websockets connection")
 	}

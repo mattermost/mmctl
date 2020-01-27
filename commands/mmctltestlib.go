@@ -8,15 +8,16 @@ import (
 	"os"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/client"
 )
 
 const (
-	INSTANCE_URL      = "http://localhost:8065"
-	SYSADMIN_USERNAME = "sysadmin"
-	SYSADMIN_PASS     = "Sys@dmin-sample1"
-	USER_USERNAME     = "user-1"
-	USER_PASS         = "SampleUs@r-1"
+	InstanceURL      = "http://localhost:8065"
+	SysadminUsername = "sysadmin"
+	SysadminPass     = "Sys@dmin-sample1"
+	UserUsername     = "user-1"
+	UserPass         = "SampleUs@r-1"
 )
 
 type TestHelper struct {
@@ -27,27 +28,27 @@ type TestHelper struct {
 }
 
 func setupTestHelper() (*TestHelper, error) {
-	instanceUrl := INSTANCE_URL
+	instanceURL := InstanceURL
 	if os.Getenv("MMCTL_INSTANCE_URL") != "" {
-		instanceUrl = os.Getenv("MMCTL_INSTANCE_URL")
+		instanceURL = os.Getenv("MMCTL_INSTANCE_URL")
 	}
 
-	sysadminClient, _, err := InitClientWithUsernameAndPassword(SYSADMIN_USERNAME, SYSADMIN_PASS, instanceUrl)
+	sysadminClient, _, err := InitClientWithUsernameAndPassword(SysadminUsername, SysadminPass, instanceURL)
 	if err != nil {
-		return nil, fmt.Errorf("SystemAdminClient client failed to connect: %s", err)
+		return nil, fmt.Errorf("system admin client failed to connect: %s", err)
 	}
-	sysadminUser, response := sysadminClient.GetUserByUsername(SYSADMIN_USERNAME, "")
+	sysadminUser, response := sysadminClient.GetUserByUsername(SysadminUsername, "")
 	if response.Error != nil {
-		return nil, fmt.Errorf("Couldn't retrieve system admin user with username %s: %s", SYSADMIN_USERNAME, response.Error)
+		return nil, fmt.Errorf("couldn't retrieve system admin user with username %s: %s", SysadminUsername, response.Error)
 	}
 
-	client, _, err := InitClientWithUsernameAndPassword(USER_USERNAME, USER_PASS, instanceUrl)
+	client, _, err := InitClientWithUsernameAndPassword(UserUsername, UserPass, instanceURL)
 	if err != nil {
-		return nil, fmt.Errorf("Basic client failed to connect: %s", err)
+		return nil, fmt.Errorf("basic client failed to connect: %s", err)
 	}
-	basicUser, response := client.GetUserByUsername(USER_USERNAME, "")
+	basicUser, response := client.GetUserByUsername(UserUsername, "")
 	if response.Error != nil {
-		return nil, fmt.Errorf("Couldn't retrieve basic user with username %s: %s", USER_USERNAME, response.Error)
+		return nil, fmt.Errorf("couldn't retrieve basic user with username %s: %s", UserUsername, response.Error)
 	}
 
 	th := &TestHelper{

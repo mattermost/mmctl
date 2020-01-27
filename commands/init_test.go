@@ -10,51 +10,52 @@ import (
 )
 
 func TestCheckVersionMatch(t *testing.T) {
-	testCases := []struct{
-		Name string
-		Version string
+	testCases := []struct {
+		Name          string
+		Version       string
 		ServerVersion string
-		Expected bool
+		Expected      bool
 	}{
 		{
-			Name: "Both versions are equal",
-			Version: "1.2.3",
+			Name:          "Both versions are equal",
+			Version:       "1.2.3",
 			ServerVersion: "1.2.3",
-			Expected: true,
+			Expected:      true,
 		},
 		{
-			Name: "Only patch version is different",
-			Version: "1.2.3",
+			Name:          "Only patch version is different",
+			Version:       "1.2.3",
 			ServerVersion: "1.2.7",
-			Expected: true,
+			Expected:      true,
 		},
 		{
-			Name: "Major version is greater",
-			Version: "1.2.3",
+			Name:          "Major version is greater",
+			Version:       "1.2.3",
 			ServerVersion: "2.2.3",
-			Expected: false,
+			Expected:      false,
 		},
 		{
-			Name: "Major version is less",
-			Version: "1.2.3",
+			Name:          "Major version is less",
+			Version:       "1.2.3",
 			ServerVersion: "0.2.3",
-			Expected: false,
+			Expected:      false,
 		},
 		{
-			Name: "Minor version is greater",
-			Version: "1.2.3",
+			Name:          "Minor version is greater",
+			Version:       "1.2.3",
 			ServerVersion: "1.3.3",
-			Expected: false,
+			Expected:      false,
 		},
 		{
-			Name: "Minor version is less",
-			Version: "1.2.3",
+			Name:          "Minor version is less",
+			Version:       "1.2.3",
 			ServerVersion: "1.1.3",
-			Expected: false,
+			Expected:      false,
 		},
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res := CheckVersionMatch(tc.Version, tc.ServerVersion)
 

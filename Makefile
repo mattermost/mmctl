@@ -50,21 +50,20 @@ gofmt:
 	@echo Gofmt success
 
 govet:
-	@echo Running govet
-	$(GO) vet $(GO_PACKAGES)
 ifeq ($(ADVANCED_VET), TRUE)
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+		exit 1; \
+	fi; \
+
+	@echo Running golangci-lint
+	golangci-lint run ./...
 	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
 	@echo Running mattermost-govet
 	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal -equalLenAsserts ./...
-	@if ! [ -x "$$(command -v shadow)" ]; then \
-		echo "shadow vet tool is not installed. Please install it executing \"GO111MODULE=off go get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow\""; \
-		exit 1; \
-	fi;
-	@echo Running shadow analysis
-	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
 endif
 	@echo Govet success
 

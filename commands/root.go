@@ -4,9 +4,10 @@
 package commands
 
 import (
-	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/mattermost/mmctl/printer"
 )
 
 func Run(args []string) error {
@@ -14,9 +15,9 @@ func Run(args []string) error {
 	viper.AutomaticEnv()
 
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
-	viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
+	_ = viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
 	RootCmd.PersistentFlags().Bool("strict", false, "will only run commands if the mmctl version matches the server one")
-	viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
+	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.SetArgs(args)
 
 	return RootCmd.Execute()

@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	FORMAT_PLAIN = "plain"
-	FORMAT_JSON  = "json"
+	FormatPlain = "plain"
+	FormatJSON  = "json"
 )
 
 type Printer struct {
@@ -43,14 +43,16 @@ func SetSingle(single bool) {
 // template
 func PrintT(templateString string, v interface{}) {
 	switch printer.Format {
-	case FORMAT_PLAIN:
+	case FormatPlain:
 		t := template.Must(template.New("").Parse(templateString))
 		var tpl bytes.Buffer
-		t.Execute(&tpl, v)
+		if err := t.Execute(&tpl, v); err != nil {
+			PrintError("Can't print the message using the provided template: " + templateString)
+		}
 		tplString := tpl.String()
 		printer.Lines = append(printer.Lines, tplString)
 		fmt.Println(tplString)
-	case FORMAT_JSON:
+	case FormatJSON:
 		printer.Lines = append(printer.Lines, v)
 	}
 }
@@ -64,7 +66,7 @@ func Print(v interface{}) {
 
 // Prints the elements accumulated in the printer
 func Flush() {
-	if printer.Format == FORMAT_JSON {
+	if printer.Format == FormatJSON {
 		var b []byte
 		if printer.Single && len(printer.Lines) == 1 {
 			b, _ = json.MarshalIndent(printer.Lines[0], "", "  ")
