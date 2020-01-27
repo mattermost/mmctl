@@ -1,0 +1,43 @@
+.. _mmctl_license_remove:
+
+mmctl license remove
+--------------------
+
+Remove the current license.
+
+Synopsis
+~~~~~~~~
+
+
+Remove the current license and leave mattermost in Team Edition.
+
+::
+
+  mmctl license remove [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    license remove
+
+Options
+~~~~~~~
+
+::
+
+  -h, --help   help for remove
+
+Options inherited from parent commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+      --format string   the format of the command output [plain, json] (default "plain")
+
+SEE ALSO
+~~~~~~~~
+
+* `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
+
