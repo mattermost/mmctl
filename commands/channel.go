@@ -370,7 +370,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	private, _ := cmd.Flags().GetBool("private")
 
 	if public == private {
-		return errors.New("You must specify only one of --public or --private")
+		return errors.New("you must specify only one of --public or --private")
 	}
 
 	channel := getChannelFromChannelArg(c, args[0])
@@ -379,7 +379,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
-		return errors.New("You can only change the type of public/private channels.")
+		return errors.New("you can only change the type of public/private channels")
 	}
 
 	privacy := model.CHANNEL_OPEN
