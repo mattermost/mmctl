@@ -5,9 +5,9 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/printer"
-
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestSearchUserCmd() {

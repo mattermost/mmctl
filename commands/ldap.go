@@ -4,9 +4,10 @@
 package commands
 
 import (
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
-	"github.com/spf13/cobra"
 )
 
 var LdapCmd = &cobra.Command{

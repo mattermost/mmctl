@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -85,16 +86,14 @@ func getValue(path []string, obj interface{}) (interface{}, bool) {
 		return nil, false
 	}
 
-	if len(path) == 1 {
+	switch {
+	case len(path) == 1:
 		return val.Interface(), true
-	} else if val.Kind() == reflect.Struct {
+	case val.Kind() == reflect.Struct:
 		return getValue(path[1:], val.Interface())
-	} else if val.Kind() == reflect.Map {
-
+	case val.Kind() == reflect.Map:
 		remainingPath := strings.Join(path[1:], ".")
-
 		mapIter := val.MapRange()
-
 		for mapIter.Next() {
 			key := mapIter.Key().String()
 			if strings.HasPrefix(remainingPath, key) {
@@ -123,14 +122,14 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		return nil
 	case reflect.Slice:
 		if val.Type().Elem().Kind() != reflect.String {
-			return errors.New("Unsupported type of slice")
+			return errors.New("unsupported type of slice")
 		}
 		val.Set(reflect.ValueOf(newValue))
 		return nil
 	case reflect.Int:
 		v, err := strconv.ParseInt(newValue.(string), 10, 64)
 		if err != nil {
-			return errors.New("Target value is of type Int and provided value is not")
+			return errors.New("target value is of type Int and provided value is not")
 		}
 		val.SetInt(v)
 		return nil
@@ -140,31 +139,31 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 	case reflect.Bool:
 		v, err := strconv.ParseBool(newValue.(string))
 		if err != nil {
-			return errors.New("Target value is of type Bool and provided value is not")
+			return errors.New("target value is of type Bool and provided value is not")
 		}
 		val.SetBool(v)
 		return nil
 	default:
-		return errors.New("Target value type is not supported")
+		return errors.New("target value type is not supported")
 	}
-
 }
 
 func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	var val reflect.Value
-	if obj.Kind() == reflect.Struct {
+	switch obj.Kind() {
+	case reflect.Struct:
 		val = obj.FieldByName(path[0])
-	} else if obj.Kind() == reflect.Map {
+	case reflect.Map:
 		val = obj.MapIndex(reflect.ValueOf(path[0]))
 		if val.IsValid() {
 			val = val.Elem()
 		}
-	} else {
+	default:
 		val = obj
 	}
 
 	if val.Kind() == reflect.Invalid {
-		return errors.New("Selected path object is not valid")
+		return errors.New("selected path object is not valid")
 	}
 
 	if len(path) == 1 {
@@ -189,9 +188,7 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	if val.Kind() == reflect.Struct {
 		return setValue(path[1:], val, newValue)
 	} else if val.Kind() == reflect.Map {
-
 		remainingPath := strings.Join(path[1:], ".")
-
 		mapIter := val.MapRange()
 		for mapIter.Next() {
 			key := mapIter.Key().String()
@@ -212,8 +209,7 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 			}
 		}
 	}
-	return errors.New("Path object type is not supported")
-
+	return errors.New("path object type is not supported")
 }
 
 func setConfigValue(path []string, config *model.Config, newValue []string) error {
@@ -226,11 +222,12 @@ func setConfigValue(path []string, config *model.Config, newValue []string) erro
 func resetConfigValue(path []string, config *model.Config, newValue interface{}) error {
 	nv := reflect.ValueOf(newValue)
 	if nv.Kind() == reflect.Ptr {
-		if nv.Elem().Kind() == reflect.Int {
+		switch nv.Elem().Kind() {
+		case reflect.Int:
 			return setValue(path, reflect.ValueOf(config).Elem(), strconv.Itoa(*newValue.(*int)))
-		} else if nv.Elem().Kind() == reflect.Bool {
+		case reflect.Bool:
 			return setValue(path, reflect.ValueOf(config).Elem(), strconv.FormatBool(*newValue.(*bool)))
-		} else {
+		default:
 			return setValue(path, reflect.ValueOf(config).Elem(), *newValue.(*string))
 		}
 	} else {
@@ -240,7 +237,7 @@ func resetConfigValue(path []string, config *model.Config, newValue interface{})
 
 func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	printer.SetSingle(true)
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 
 	config, response := c.GetConfig()
 	if response.Error != nil {
@@ -248,12 +245,12 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	}
 
 	path := strings.Split(args[0], ".")
-	if val, ok := getValue(path, *config); !ok {
-		return errors.New("Invalid key")
-	} else {
-		printer.Print(val)
+	val, ok := getValue(path, *config)
+	if !ok {
+		return errors.New("invalid key")
 	}
 
+	printer.Print(val)
 	return nil
 }
 
@@ -263,10 +260,7 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return response.Error
 	}
 
-	path, err := parseConfigPath(args[0])
-	if err != nil {
-		return err
-	}
+	path := parseConfigPath(args[0])
 	if err := setConfigValue(path, config, args[1:]); err != nil {
 		return err
 	}
@@ -303,15 +297,12 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	for _, arg := range args {
-		path, err := parseConfigPath(arg)
-		if err != nil {
-			return err
-		}
+		path := parseConfigPath(arg)
 		defaultValue, ok := getValue(path, *defaultConfig)
 		if !ok {
-			return errors.New("Invalid key")
+			return errors.New("invalid key")
 		}
-		err = resetConfigValue(path, config, defaultValue)
+		err := resetConfigValue(path, config, defaultValue)
 		if err != nil {
 			return err
 		}
@@ -327,7 +318,7 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 	config, response := c.GetConfig()
 	if response.Error != nil {
 		return response.Error
@@ -338,6 +329,6 @@ func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func parseConfigPath(configPath string) ([]string, error) {
-	return strings.Split(configPath, "."), nil
+func parseConfigPath(configPath string) []string {
+	return strings.Split(configPath, ".")
 }

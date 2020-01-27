@@ -5,6 +5,47 @@ executors:
     docker:
       - image: circleci/golang:1.13
 
+aliases:
+- &restore_cache
+  restore_cache:
+    key: go-mod-v1-{{ checksum "go.sum" }}
+- &save_cache
+  save_cache:
+    key: go-mod-v1-{{ checksum "go.sum" }}
+    paths:
+    - "/go/pkg/mod"
+
+commands:
+  install-golangci-lint:
+    description: Install golangci-lint
+    parameters:
+      version:
+        type: string
+        default: 1.23.0
+      gobin:
+        type: string
+        default: /go/bin
+      prefix:
+        type: string
+        default: v1
+        description: Prefix for cache key to store the binary.
+    steps:
+      - restore_cache:
+          name: Restore golangci-lint cache
+          keys: ['<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>']
+      - run:
+          name: Install golangci-lint
+          command: |
+            mkdir -p << parameters.gobin >>
+            command -v << parameters.gobin >>/golangci-lint && exit
+
+            download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+            wget -O- -q $download | sh -s -- -b << parameters.gobin >>/ v<< parameters.version >>
+      - save_cache:
+          name: Save golangci-lint cache
+          key: '<< parameters.prefix >>-golangci-lint-{{ arch }}-<< parameters.version >>'
+          paths: [<< parameters.gobin >>/golangci-lint]
+
 jobs:
   docs:
     executor:
@@ -22,12 +63,14 @@ jobs:
       name: default
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/go/mattermost/
+      - install-golangci-lint
       - run:
+          name: "Validate lint"
           command: |
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
-            echo "Installing shadow"
-            GO111MODULE=off go get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
             make check
 
   setup:

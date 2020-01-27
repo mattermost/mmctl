@@ -5,8 +5,9 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
@@ -14,7 +15,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		cmd := &cobra.Command{}
 
 		err := postCreateCmdF(s.client, cmd, []string{"some-channel", ""})
-		s.Require().EqualError(err, "Message cannot be empty")
+		s.Require().EqualError(err, "message cannot be empty")
 	})
 
 	s.Run("no channel specified", func() {

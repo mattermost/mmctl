@@ -4,8 +4,9 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
@@ -237,7 +238,6 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to remove '"+mockUser.Id+"' from "+mockTeam.Name+". Error: "+mockError.Error())
 	})
-
 }
 
 func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
@@ -253,7 +253,6 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 	}
 
 	s.Run("Add users with a team that cannot be found returns error", func() {
-
 		cmd := &cobra.Command{}
 
 		s.client.

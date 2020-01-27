@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/client"
 )
 
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
@@ -22,8 +23,8 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 }
 
-func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (*model.Client4, error) {
-	client := model.NewAPIv4Client(instanceUrl)
+func InitClientWithUsernameAndPassword(username, password, instanceURL string) (*model.Client4, error) {
+	client := model.NewAPIv4Client(instanceURL)
 	_, response := client.Login(username, password)
 	if response.Error != nil {
 		return nil, response.Error
@@ -31,8 +32,8 @@ func InitClientWithUsernameAndPassword(username, password, instanceUrl string) (
 	return client, nil
 }
 
-func InitClientWithMFA(username, password, mfaToken, instanceUrl string) (*model.Client4, error) {
-	client := model.NewAPIv4Client(instanceUrl)
+func InitClientWithMFA(username, password, mfaToken, instanceURL string) (*model.Client4, error) {
+	client := model.NewAPIv4Client(instanceURL)
 	_, response := client.LoginWithMFA(username, password, mfaToken)
 	if response.Error != nil {
 		return nil, response.Error
@@ -41,7 +42,7 @@ func InitClientWithMFA(username, password, mfaToken, instanceUrl string) (*model
 }
 
 func InitClientWithCredentials(credentials *Credentials) (*model.Client4, error) {
-	client := model.NewAPIv4Client(credentials.InstanceUrl)
+	client := model.NewAPIv4Client(credentials.InstanceURL)
 
 	client.AuthType = model.HEADER_BEARER
 	client.AuthToken = credentials.AuthToken
@@ -65,7 +66,7 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceUrl, "http", "ws", 1), credentials.AuthToken)
+	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceURL, "http", "ws", 1), credentials.AuthToken)
 	if appErr != nil {
 		return nil, errors.Wrap(appErr, "unable to create the websockets connection")
 	}
