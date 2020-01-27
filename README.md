@@ -121,7 +121,7 @@ email: john.doe@example.com
 auth_service:
 ```
 
-**NOTE:** `mmctl` is design to run against a specific version of the `mattermost-server` and its API. If run against a server with a different version, `mmctl` will show a warning and will try to execute the commands. To ensure that the commands won't run if the server version is not supported, please use the `--strict` flag or set the `MMCTL_STRICT=true` environment variable.
+**NOTE:** `mmctl` is designed to run against a specific version of the `mattermost-server` and its API. If run against a server with a different version, `mmctl` will show a warning and will try to execute the commands. To ensure that the commands won't run if the server version is not supported, please use the `--strict` flag or set the `MMCTL_STRICT=true` environment variable.
 
 ## Login methods
 
