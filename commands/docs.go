@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 )
@@ -26,18 +27,17 @@ func init() {
 
 func docsCmdF(cmd *cobra.Command, args []string) error {
 	outDir, _ := cmd.Flags().GetString("directory")
-
 	fileInfo, err := os.Stat(outDir)
 
-	switch {
-	case os.IsNotExist(err):
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
 		if createErr := os.Mkdir(outDir, 0755); createErr != nil {
 			return createErr
 		}
-	case err != nil:
-		return err
-	case !fileInfo.IsDir():
-		return fmt.Errorf("file \"%s\" is not a directory", outDir)
+	} else if !fileInfo.IsDir() {
+		return errors.New(fmt.Sprintf("File \"%s\" is not a directory", outDir))
 	}
 
 	err = doc.GenMarkdownTree(RootCmd, outDir)

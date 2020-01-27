@@ -23,7 +23,7 @@ var BashCmd = &cobra.Command{
 
 To configure your bash shell to load completions for each session, add the above line to your ~/.bashrc
 `,
-	Run: bashCmdF,
+	RunE: bashCmdF,
 }
 
 var ZshCmd = &cobra.Command{
@@ -35,7 +35,7 @@ var ZshCmd = &cobra.Command{
 
 To configure your zsh shell to load completions for each session, add the above line to your ~/.zshrc
 `,
-	Run: zshCmdF,
+	RunE: zshCmdF,
 }
 
 func init() {
@@ -47,14 +47,11 @@ func init() {
 	RootCmd.AddCommand(CompletionCmd)
 }
 
-func bashCmdF(cmd *cobra.Command, args []string) {
-	err := RootCmd.GenBashCompletion(os.Stdout)
-	if err != nil {
-		cmd.PrintErr("there was an error generating the bash completion script" + " error: " + err.Error())
-	}
+func bashCmdF(cmd *cobra.Command, args []string) error {
+	return RootCmd.GenBashCompletion(os.Stdout)
 }
 
-func zshCmdF(cmd *cobra.Command, args []string) {
+func zshCmdF(cmd *cobra.Command, args []string) error {
 	zshInitialization := `
 __mmctl_bash_source() {
 	alias shopt=':'
@@ -194,9 +191,13 @@ __mmctl_bash_source <(__mmctl_convert_bash_to_zsh)
 `
 
 	os.Stdout.Write([]byte(zshInitialization))
-	err := RootCmd.GenBashCompletion(os.Stdout)
-	if err != nil {
-		cmd.PrintErr("there was an error generating the zsh completion script" + " error: " + err.Error())
+	if err := RootCmd.GenBashCompletion(os.Stdout); err != nil {
+		return err
 	}
-	os.Stdout.Write([]byte(zshTail))
+	_, err := os.Stdout.Write([]byte(zshTail))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
