@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
-	"github.com/spf13/cobra"
 )
 
 var CommandCmd = &cobra.Command{
@@ -152,7 +153,7 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	autocompleteHint, _ := cmd.Flags().GetString("autocompleteHint")
 	post, errp := cmd.Flags().GetBool("post")
 	method := "P"
-	if errp != nil || post == false {
+	if errp != nil || !post {
 		method = "G"
 	}
 
@@ -213,7 +214,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	ok, response := c.DeleteCommand(args[0])
 	if response.Error != nil {
-		return errors.New("Unable to delete command '" + args[0] + "' error: " + response.Error.Error())
+		return errors.New("Unable to archive command '" + args[0] + "' error: " + response.Error.Error())
 	}
 
 	if ok {

@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -108,11 +109,11 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	name, errn := cmd.Flags().GetString("name")
 	if errn != nil || name == "" {
-		return errors.New("Name is required")
+		return errors.New("name is required")
 	}
 	displayname, errdn := cmd.Flags().GetString("display_name")
 	if errdn != nil || displayname == "" {
-		return errors.New("Display Name is required")
+		return errors.New("display Name is required")
 	}
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")
@@ -151,12 +152,12 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
 		}
 		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
 		}
 	}
 
@@ -242,7 +243,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// If both flags are absent, abort!
 	if newTeamName == "" && newDisplayName == "" {
-		return errors.New("Require atleast one flag to rename team, either 'name' or 'display_name'")
+		return errors.New("require at least one flag to rename team, either 'name' or 'display_name'")
 	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)
@@ -275,12 +276,12 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
 		}
 		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
+			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
 		}
 	}
 
