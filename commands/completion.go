@@ -190,12 +190,13 @@ BASH_COMPLETION_EOF
 __mmctl_bash_source <(__mmctl_convert_bash_to_zsh)
 `
 
-	os.Stdout.Write([]byte(zshInitialization))
+	if _, err := os.Stdout.Write([]byte(zshInitialization)); err != nil {
+		return err
+	}
 	if err := RootCmd.GenBashCompletion(os.Stdout); err != nil {
 		return err
 	}
-	_, err := os.Stdout.Write([]byte(zshTail))
-	if err != nil {
+	if _, err := os.Stdout.Write([]byte(zshTail)); err != nil {
 		return err
 	}
 
