@@ -148,7 +148,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		cmd.Flags().Bool("private", false, "")
 
 		err := modifyChannelCmdF(s.client, cmd, []string{})
-		s.Require().EqualError(err, "You must specify only one of --public or --private")
+		s.Require().EqualError(err, "you must specify only one of --public or --private")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -162,7 +162,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		cmd.Flags().Bool("private", true, "")
 
 		err := modifyChannelCmdF(s.client, cmd, []string{})
-		s.Require().EqualError(err, "You must specify only one of --public or --private")
+		s.Require().EqualError(err, "you must specify only one of --public or --private")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -237,7 +237,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			Times(1)
 
 		err := modifyChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "You can only change the type of public/private channels.")
+		s.Require().EqualError(err, "you can only change the type of public/private channels")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -262,7 +262,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			Times(1)
 
 		err := modifyChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "You can only change the type of public/private channels.")
+		s.Require().EqualError(err, "you can only change the type of public/private channels")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
