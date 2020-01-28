@@ -1893,5 +1893,4 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], updatedChannel)
 	})
-
 }
