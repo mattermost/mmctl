@@ -161,17 +161,16 @@ jobs:
               bash -c 'ulimit -n 8096 && make test-all'
 
   build:
+    working_directory: ~/go/src/github.com/mattermost/mmctl
     executor:
       name: default
     steps:
-      - attach_workspace:
-          at: .
       - run:
           name: "Validate lint"
           command: |
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
-      - run: make package
+      - run: ls -la && make package
       - persist_to_workspace:
           root: .
           paths:
