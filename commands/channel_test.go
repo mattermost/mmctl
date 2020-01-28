@@ -1384,11 +1384,10 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		printer.Clean()
 
 		err := restoreChannelsCmdF(s.client, &cobra.Command{}, []string{})
-		mockErr := errors.New("Enter at least one channel")
+		mockErr := errors.New("enter at least one channel")
 
 		expected := mockErr.Error()
 		actual := err.Error()
-		 
 		s.Require().Equal(expected, actual)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -1423,7 +1422,6 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			RestoreChannel(channelID).
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
-		
 
 		err := restoreChannelsCmdF(s.client, cmd, []string{args})
 		s.Require().Nil(err)
@@ -1452,7 +1450,6 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			RestoreChannel(channelID).
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
-		
 
 		err := restoreChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
@@ -1497,7 +1494,6 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			RestoreChannel(channelID2).
 			Return(&mockChannel2, &model.Response{Error: nil}).
 			Times(1)
-		
 
 		err := restoreChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
@@ -1619,7 +1615,6 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			RestoreChannel(channelID).
 			Return(nil, &model.Response{Error: mockErr}).
 			Times(1)
-		
 
 		err := restoreChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
@@ -1629,7 +1624,6 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		actual := printer.GetErrorLines()[0]
 		expected := fmt.Sprintf("Unable to restore channel '%s'. Error: %s", channelArg, mockErr.Error())
 		s.Require().Equal(expected, actual)
-
 	})
 
 	s.Run("Fail to restore when team and channel not provided", func() {
@@ -1646,5 +1640,5 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		actual := printer.GetErrorLines()[0]
 		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
-	})	
+	})
 }
