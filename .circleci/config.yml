@@ -161,10 +161,12 @@ jobs:
               bash -c 'ulimit -n 8096 && make test-all'
 
   build:
-    working_directory: ~/go/src/github.com/mattermost/mmctl
     executor:
       name: default
     steps:
+      - attach_workspace:
+          at: .
+      - checkout
       - run:
           name: "Validate lint"
           command: |
