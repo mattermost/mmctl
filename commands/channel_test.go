@@ -1602,5 +1602,4 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		err := renameChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, "Cannot rename channel '"+foundChannel.Name+"', error : "+mockError.Error())
 	})
-
 }
