@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -93,11 +94,11 @@ var SearchUserCmd = &cobra.Command{
 
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
-	UserCreateCmd.MarkFlagRequired("username")
+	_ = UserCreateCmd.MarkFlagRequired("username")
 	UserCreateCmd.Flags().String("email", "", "Required. The email address for the new user account.")
-	UserCreateCmd.MarkFlagRequired("email")
+	_ = UserCreateCmd.MarkFlagRequired("email")
 	UserCreateCmd.Flags().String("password", "", "Required. The password for the new user account.")
-	UserCreateCmd.MarkFlagRequired("password")
+	_ = UserCreateCmd.MarkFlagRequired("password")
 	UserCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account.")
 	UserCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account.")
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account.")
@@ -128,7 +129,7 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("Can't find user '%v'", userArgs[i]))
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
 			continue
 		}
 
@@ -145,7 +146,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, userArg string, a
 		printer.Print("You must also deactivate user " + userArg + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
-		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
+		return fmt.Errorf("unable to change activation status of user: %v", userArg)
 	}
 
 	return nil
@@ -207,12 +208,12 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 2 {
-		return errors.New("Expected at least two arguments. See help text for details.")
+		return errors.New("expected at least two arguments. See help text for details")
 	}
 
 	email := args[0]
 	if !model.IsValidEmail(email) {
-		return errors.New("Invalid email")
+		return errors.New("invalid email")
 	}
 
 	teams := getTeamsFromTeamArgs(c, args[1:])
@@ -230,7 +231,7 @@ func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func inviteUser(c client.Client, email string, team *model.Team, teamArg string) error {
 	invites := []string{email}
 	if team == nil {
-		return fmt.Errorf("Can't find team '%v'", teamArg)
+		return fmt.Errorf("can't find team '%v'", teamArg)
 	}
 
 	if _, response := c.InviteUsersToTeam(team.Id, invites); response.Error != nil {
@@ -244,7 +245,7 @@ func inviteUser(c client.Client, email string, team *model.Team, teamArg string)
 
 func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+		return errors.New("expected at least one argument. See help text for details")
 	}
 
 	for _, email := range args {
@@ -264,22 +265,22 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	printer.SetSingle(true)
 
 	if len(args) != 2 {
-		return errors.New("Expected two arguments. See help text for details.")
+		return errors.New("expected two arguments. See help text for details")
 	}
 
 	newEmail := args[1]
 
 	if !model.IsValidEmail(newEmail) {
-		return errors.New("Invalid email: '" + newEmail + "'")
+		return errors.New("invalid email: '" + newEmail + "'")
 	}
 
 	if len(args) != 2 {
-		return errors.New("Expected two arguments. See help text for details.")
+		return errors.New("expected two arguments. See help text for details")
 	}
 
 	user := getUserFromUserArg(c, args[0])
 	if user == nil {
-		return errors.New("Unable to find user '" + args[0] + "'")
+		return errors.New("unable to find user '" + args[0] + "'")
 	}
 
 	user.Email = newEmail
@@ -296,7 +297,7 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+		return errors.New("expected at least one argument. See help text for details")
 	}
 
 	users := getUsersFromUserArgs(c, args)
@@ -318,7 +319,7 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+		return errors.New("expected at least one argument. See help text for details")
 	}
 
 	users := getUsersFromUserArgs(c, args)

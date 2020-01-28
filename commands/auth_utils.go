@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	METHOD_PASSWORD = "P"
-	METHOD_TOKEN    = "T"
-	METHOD_MFA      = "M"
+	MethodPassword = "P"
+	MethodToken    = "T"
+	MethodMFA      = "M"
 )
 
 type Credentials struct {
@@ -23,7 +23,7 @@ type Credentials struct {
 	Username    string `json:"username"`
 	AuthToken   string `json:"authToken"`
 	AuthMethod  string `json:"authMethod"`
-	InstanceUrl string `json:"instanceUrl"`
+	InstanceURL string `json:"instanceUrl"`
 	Active      bool   `json:"active"`
 }
 
@@ -43,8 +43,8 @@ func ReadCredentialsList() (*CredentialsList, error) {
 		return nil, err
 	}
 
-	if _, errStat := os.Stat(configFilePath); err != nil {
-		return nil, errors.WithMessage(errStat, "cannot read user credentials, maybe you need to use login first")
+	if _, err = os.Stat(configFilePath); err != nil {
+		return nil, errors.WithMessage(err, "cannot read user credentials, maybe you need to use login first")
 	}
 
 	fileContents, err := ioutil.ReadFile(configFilePath)

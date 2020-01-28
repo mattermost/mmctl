@@ -8,9 +8,10 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
-	"github.com/spf13/cobra"
 )
 
 var CommandCmd = &cobra.Command{
@@ -58,11 +59,11 @@ func init() {
 	CommandCreateCmd.Flags().String("title", "", "Command Title")
 	CommandCreateCmd.Flags().String("description", "", "Command Description")
 	CommandCreateCmd.Flags().String("trigger-word", "", "Command Trigger Word (required)")
-	CommandCreateCmd.MarkFlagRequired("trigger-word")
+	_ = CommandCreateCmd.MarkFlagRequired("trigger-word")
 	CommandCreateCmd.Flags().String("url", "", "Command Callback URL (required)")
-	CommandCreateCmd.MarkFlagRequired("url")
+	_ = CommandCreateCmd.MarkFlagRequired("url")
 	CommandCreateCmd.Flags().String("creator", "", "Command Creator's Username (required)")
-	CommandCreateCmd.MarkFlagRequired("creator")
+	_ = CommandCreateCmd.MarkFlagRequired("creator")
 	CommandCreateCmd.Flags().String("response-username", "", "Command Response Username")
 	CommandCreateCmd.Flags().String("icon", "", "Command Icon URL")
 	CommandCreateCmd.Flags().Bool("autocomplete", false, "Show Command in autocomplete list")
@@ -113,7 +114,7 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	autocompleteHint, _ := cmd.Flags().GetString("autocompleteHint")
 	post, errp := cmd.Flags().GetBool("post")
 	method := "P"
-	if errp != nil || post == false {
+	if errp != nil || !post {
 		method = "G"
 	}
 

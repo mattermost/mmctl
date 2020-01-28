@@ -21,7 +21,7 @@ type MmctlUnitTestSuite struct {
 }
 
 func (s *MmctlUnitTestSuite) SetupSuite() {
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 }
 
 func (s *MmctlUnitTestSuite) SetupTest() {
@@ -40,11 +40,11 @@ type MmctlE2ETestSuite struct {
 }
 
 func (s *MmctlE2ETestSuite) SetupSuite() {
-	printer.SetFormat(printer.FORMAT_JSON)
+	printer.SetFormat(printer.FormatJSON)
 
 	var err error
 	if s.th, err = setupTestHelper(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error initialising E2E test helper. %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error initializing E2E test helper. %s\n", err)
 		fmt.Fprintln(os.Stderr, "Aborting E2E test execution")
 		os.Exit(1)
 	}

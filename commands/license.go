@@ -42,7 +42,7 @@ func init() {
 
 func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
-		return errors.New("Enter one license file to upload")
+		return errors.New("enter one license file to upload")
 	}
 
 	fileBytes, err := ioutil.ReadFile(args[0])

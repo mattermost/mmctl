@@ -1,0 +1,78 @@
+service:
+  golangci-lint-version: 1.23.0 # Keep this in sync with .circleci/config.yml
+
+run:
+  timeout: 5m
+  modules-download-mode: vendor
+  skip-dirs:
+    - mocks
+
+linters-settings:
+  gofmt:
+    simplify: true
+  govet:
+    check-shadowing: true
+    enable-all: true
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  goimports:
+    local-prefixes: github.com/mattermost/mmctl
+  golint:
+    min-confidence: 0
+  misspell:
+    locale: US
+
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - gofmt
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - structcheck
+    - unconvert
+    - unused
+    - varcheck
+    - errcheck
+    - dogsled
+    - dupl
+    - goconst
+    - gocritic
+    - gocyclo
+    - goimports
+    - gosec
+    - interfacer
+    - misspell
+    - nakedret
+    - scopelint
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unparam
+    - whitespace
+
+issues:
+  exclude-rules:
+    - linters:
+      # ignore unused warnings from enterprise code
+      # add more as required.
+      - unused
+      text: "testLogsCmdF|MmctlE2ETestSuite|MmctlUnitTestSuite|setupTestHelper"
+
+    - path: client
+      linters:
+        - golint
+        - stylecheck
+
+    - path: _test\.go
+      linters:
+        - dupl
+        - goconst
+
+    - linters:
+        - goconst
+      text: "YES"
