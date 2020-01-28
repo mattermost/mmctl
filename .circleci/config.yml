@@ -171,13 +171,11 @@ jobs:
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
       - install-golangci-lint
-      - run: ls -la && make package
+      - run: ls -la && make package && ls -la
       - persist_to_workspace:
           root: .
           paths:
-            - ./build/*.tar
-            - ./build/*.md5.txt
-            - ./build/*.zip
+            - build
 
   publish-github-release:
     docker:
@@ -188,6 +186,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
+            ls -la
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} "./build/*.tar"
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} "./build/*.md5.txt"
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} "./build/*.zip"
