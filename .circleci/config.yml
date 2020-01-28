@@ -164,8 +164,7 @@ jobs:
     executor:
       name: default
     steps:
-      - checkout
-      - install-golangci-lint
+      - lint
       - run: make package
       - persist_to_workspace:
           root: .
