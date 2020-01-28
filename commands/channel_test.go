@@ -1583,14 +1583,14 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetChannel(channelName, "").
 			Return(foundChannel, &model.Response{Error: nil}).
 			Times(1)
+
+		// s.client.
+		// 	EXPECT().
+		// 	GetChannel(channelName, "").
+		// 	Return(foundChannel, &model.Response{Error: nil}).
+		// 	Times(1)
 
 		mockError := model.NewAppError("at-random-location.go", "Mock Error", nil, "mocking a random error", 0)
 		s.client.
