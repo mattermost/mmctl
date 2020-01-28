@@ -34,7 +34,7 @@ package: vendor check
 	@echo Build Windows amd64
 	env GOOS=windows GOARCH=amd64 go build -mod=vendor
 	zip build/windows_amd64.zip mmctl.exe
-	md5sum < build/darwin_amd64.tar | cut -d ' ' -f 1 > build/darwin_amd64.tar.md5.txt
+	md5sum < build/windows_amd64.zip | cut -d ' ' -f 1 > build/windows_amd64.zip.md5.txt
 
 	rm mmctl mmctl.exe
 
