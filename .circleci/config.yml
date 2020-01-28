@@ -170,6 +170,7 @@ jobs:
           command: |
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+      - install-golangci-lint
       - run: ls -la && make package
       - persist_to_workspace:
           root: .
