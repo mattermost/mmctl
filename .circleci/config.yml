@@ -75,7 +75,7 @@ jobs:
       - persist_to_workspace:
           root: ~/go/src/github.com/mattermost
           paths:
-            - mattermost-server
+            - mattermost-govet
 
   setup:
     docker:
