@@ -165,6 +165,7 @@ jobs:
       name: default
     steps:
       - checkout
+      - install-golangci-lint
       - run: make package
       - persist_to_workspace:
           root: .
@@ -228,7 +229,6 @@ workflows:
           requires:
             - lint
             - test
-            - install-golangci-lint
           filters:
             tags:
               only: /^v.*/
