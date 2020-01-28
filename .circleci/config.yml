@@ -164,8 +164,6 @@ jobs:
     executor:
       name: default
     steps:
-      - attach_workspace:
-          at: .
       - checkout
       - run:
           name: "Validate lint"
