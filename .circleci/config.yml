@@ -228,6 +228,7 @@ workflows:
           requires:
             - lint
             - test
+            - install-golangci-lint
           filters:
             tags:
               only: /^v.*/
