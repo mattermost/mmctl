@@ -72,6 +72,10 @@ jobs:
             echo "Installing mattermost-govet"
             GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
             make check
+      - persist_to_workspace:
+          root: ~/go/src/github.com/mattermost
+          paths:
+            - mattermost-server
 
   setup:
     docker:
@@ -164,7 +168,6 @@ jobs:
     executor:
       name: default
     steps:
-      - lint
       - run: make package
       - persist_to_workspace:
           root: .
