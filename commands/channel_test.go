@@ -1535,13 +1535,13 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
 	})
 
-	s.Run("It should fail with empty team and non existing channel is supplied", func() {
+	s.Run("It should fail when api fails to rename", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
 
-		teamName := ""
-		channelName := "nonExistingChannelName"
+		teamName := "teamName"
+		channelName := "ChannelName"
 		argsTeamChannel := teamName + ":" + channelName
 		args := []string{""}
 		args[0] = argsTeamChannel
@@ -1551,13 +1551,56 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		cmd.Flags().String("name", newChannelName, "Channel Name")
 		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
 
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        channelName,
+			DisplayName: "Channel Display Name",
+		}
+
+		channelPatch := &model.ChannelPatch{
+			DisplayName: &newChannelDisplayName,
+			Name:        &newChannelName,
+		}
+
 		s.client.
 			EXPECT().
-			GetChannel(channelName, "").
+			GetTeam(teamName, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelName, "").
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		mockError := model.NewAppError("at-random-location.go", "Mock Error", nil, "mocking a random error", 0)
+		s.client.
+			EXPECT().
+			PatchChannel(foundChannel.Id, channelPatch).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+		s.Require().EqualError(err, "Cannot rename channel '"+foundChannel.Name+"', error : "+mockError.Error())
 	})
+
 }
