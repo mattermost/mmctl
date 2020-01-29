@@ -1641,6 +1641,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
 	})
+}
 
 func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	s.Run("It should fail when no name and display name is supplied", func() {

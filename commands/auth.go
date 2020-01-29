@@ -224,7 +224,10 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 func getPasswordFromStdin() (string, error) {
 	fmt.Printf("Password: ")
-	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
+	// syscall.Stdin is of type int in all architectures but in
+	// windows, so we have to cast it to ensure cross compatibility
+	//nolint:unconvert
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Println("")
 	if err != nil {
 		return "", err
