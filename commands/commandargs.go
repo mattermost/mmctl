@@ -4,8 +4,9 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // getCommandFromCommandArg retrieves a Command by command id. Future versions

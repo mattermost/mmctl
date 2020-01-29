@@ -479,12 +479,12 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 
 func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	arg := "cmd1"
-	teamId := "example-team-id"
+	teamID := "example-team-id"
 	titleArg := "example-command-name"
 	descriptionArg := "example-description-text"
 	triggerWordArg := "example-trigger-word"
 	urlArg := "http://localhost:8000/example"
-	creatorIdArg := "example-user-id"
+	creatorIDArg := "example-user-id"
 	responseUsernameArg := "example-username2"
 	iconArg := "icon-url"
 	method := "G"
@@ -493,12 +493,12 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	autocompleteHint := "autocompleteHint"
 
 	mockCommand := model.Command{
-		TeamId:           teamId,
+		TeamId:           teamID,
 		DisplayName:      titleArg,
 		Description:      descriptionArg,
 		Trigger:          triggerWordArg,
 		URL:              urlArg,
-		CreatorId:        creatorIdArg,
+		CreatorId:        creatorIDArg,
 		Username:         responseUsernameArg,
 		IconURL:          iconArg,
 		Method:           method,
@@ -514,7 +514,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		mockCommandModified.Description = descriptionArg + "_modified"
 		mockCommandModified.Trigger = triggerWordArg + "_modified"
 		mockCommandModified.URL = urlArg + "_modified"
-		mockCommandModified.CreatorId = creatorIdArg + "_modified"
+		mockCommandModified.CreatorId = creatorIDArg + "_modified"
 		mockCommandModified.Username = responseUsernameArg + "_modified"
 		mockCommandModified.IconURL = iconArg + "_modified"
 		mockCommandModified.Method = method
@@ -602,7 +602,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	s.Run("Modify slash command with invalid user name", func() {
 		printer.Clean()
 		mockCommandModified := copyCommand(&mockCommand)
-		mockCommandModified.CreatorId = creatorIdArg + "_modified"
+		mockCommandModified.CreatorId = creatorIDArg + "_modified"
 
 		bogusUsername := "bogus"
 		cli := []string{
@@ -650,7 +650,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	s.Run("Modify slash command with a space in trigger word", func() {
 		printer.Clean()
 		mockCommandModified := copyCommand(&mockCommand)
-		mockCommandModified.Trigger = creatorIdArg + " modified with space"
+		mockCommandModified.Trigger = creatorIDArg + " modified with space"
 
 		cli := []string{
 			arg,
@@ -712,7 +712,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	s.Run("Create slash command fail", func() {
 		printer.Clean()
 		mockCommandModified := copyCommand(&mockCommand)
-		mockCommandModified.Trigger = creatorIdArg + "_modified"
+		mockCommandModified.Trigger = creatorIDArg + "_modified"
 
 		cli := []string{
 			arg,
@@ -747,6 +747,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 	})
 }
 
+//nolint:golint,unused
 func method2Bool(method string) bool {
 	switch strings.ToUpper(method) {
 	case "P":
@@ -758,6 +759,7 @@ func method2Bool(method string) bool {
 	}
 }
 
+//nolint:golint,unused
 func copyCommand(cmd *model.Command) *model.Command {
 	json := cmd.ToJson()
 	r := strings.NewReader(json)

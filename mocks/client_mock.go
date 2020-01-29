@@ -338,10 +338,10 @@ func (mr *MockClientMockRecorder) GetDeletedChannelsForTeam(arg0, arg1, arg2, ar
 }
 
 // GetGroupsByChannel mocks base method
-func (m *MockClient) GetGroupsByChannel(arg0 string, arg1 model.GroupSearchOpts) ([]*model.Group, int, *model.Response) {
+func (m *MockClient) GetGroupsByChannel(arg0 string, arg1 model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGroupsByChannel", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Group)
+	ret0, _ := ret[0].([]*model.GroupWithSchemeAdmin)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(*model.Response)
 	return ret0, ret1, ret2
@@ -354,10 +354,10 @@ func (mr *MockClientMockRecorder) GetGroupsByChannel(arg0, arg1 interface{}) *go
 }
 
 // GetGroupsByTeam mocks base method
-func (m *MockClient) GetGroupsByTeam(arg0 string, arg1 model.GroupSearchOpts) ([]*model.Group, int, *model.Response) {
+func (m *MockClient) GetGroupsByTeam(arg0 string, arg1 model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGroupsByTeam", arg0, arg1)
-	ret0, _ := ret[0].([]*model.Group)
+	ret0, _ := ret[0].([]*model.GroupWithSchemeAdmin)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(*model.Response)
 	return ret0, ret1, ret2
