@@ -76,6 +76,17 @@ Archived channels are appended with ' (archived)'.`,
 	RunE:    withClient(listChannelsCmdF),
 }
 
+var ModifyChannelCmd = &cobra.Command{
+	Use:   "modify [channel] [flags]",
+	Short: "Modify a channel's public/private type",
+	Long: `Change the public/private type of a channel.
+Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: `  channel modify myteam:mychannel --private
+  channel modify channelId --public`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(modifyChannelCmdF),
+}
+
 var RestoreChannelsCmd = &cobra.Command{
 	Use:   "restore [channels]",
 	Short: "Restore some channels",
@@ -113,6 +124,9 @@ func init() {
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
+	ModifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
+	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
+
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
 
@@ -128,6 +142,7 @@ func init() {
 		ListChannelsCmd,
 		RestoreChannelsCmd,
 		MakeChannelPrivateCmd,
+		ModifyChannelCmd,
 		ChannelRenameCmd,
 		SearchChannelCmd,
 	)
@@ -345,6 +360,35 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	if _, response := c.ConvertChannelToPrivate(channel.Id); response.Error != nil {
 		return response.Error
+	}
+
+	return nil
+}
+
+func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	public, _ := cmd.Flags().GetBool("public")
+	private, _ := cmd.Flags().GetBool("private")
+
+	if public == private {
+		return errors.New("you must specify only one of --public or --private")
+	}
+
+	channel := getChannelFromChannelArg(c, args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+		return errors.New("you can only change the type of public/private channels")
+	}
+
+	privacy := model.CHANNEL_OPEN
+	if private {
+		privacy = model.CHANNEL_PRIVATE
+	}
+
+	if _, response := c.UpdateChannelPrivacy(channel.Id, privacy); response.Error != nil {
+		return errors.Wrapf(response.Error, "Failed to update channel ('%s') privacy", args[0])
 	}
 
 	return nil

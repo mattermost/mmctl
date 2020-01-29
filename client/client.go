@@ -69,4 +69,5 @@ type Client interface {
 	SyncLdap() (bool, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
+	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
 }
