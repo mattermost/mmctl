@@ -24,6 +24,7 @@ Options inherited from parent commands
 ::
 
       --format string   the format of the command output [plain, json] (default "plain")
+      --strict          will only run commands if the mmctl version matches the server one
 
 SEE ALSO
 ~~~~~~~~
@@ -32,4 +33,7 @@ SEE ALSO
 * `mmctl command archive <mmctl_command_archive.rst>`_ 	 - Archive a slash command
 * `mmctl command create <mmctl_command_create.rst>`_ 	 - Create a custom slash command
 * `mmctl command list <mmctl_command_list.rst>`_ 	 - List all commands on specified teams.
+* `mmctl command modify <mmctl_command_modify.rst>`_ 	 - Modify a slash command
+* `mmctl command move <mmctl_command_move.rst>`_ 	 - Move a slash command to a different team
+* `mmctl command show <mmctl_command_show.rst>`_ 	 - Show a custom slash command
 

@@ -30,7 +30,7 @@ Options
       --autocomplete               Show Command in autocomplete list
       --autocompleteDesc string    Short Command Description for autocomplete list
       --autocompleteHint string    Command Arguments displayed as help in autocomplete list
-      --creator string             Command Creator's Username (required)
+      --creator string             Command Creator's username, email or id (required)
       --description string         Command Description
   -h, --help                       help for create
       --icon string                Command Icon URL
@@ -46,6 +46,7 @@ Options inherited from parent commands
 ::
 
       --format string   the format of the command output [plain, json] (default "plain")
+      --strict          will only run commands if the mmctl version matches the server one
 
 SEE ALSO
 ~~~~~~~~
