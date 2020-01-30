@@ -165,12 +165,17 @@ jobs:
       name: default
     steps:
       - checkout
+      - run:
+          name: "Validate lint"
+          command: |
+            echo "Installing mattermost-govet"
+            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+      - install-golangci-lint
       - run: make package
       - persist_to_workspace:
           root: .
           paths:
-            - ./build/*.tar.gz
-            - ./build/*.zip
+            - build
 
   publish-github-release:
     docker:
@@ -181,8 +186,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./build/*.tar.gz
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./build/*.zip
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
 
 workflows:
   version: 2
@@ -215,6 +219,8 @@ workflows:
             branches:
               ignore: /.*/
       - test:
+          requires:
+              - setup
           filters:
             tags:
               only: /^v.*/
