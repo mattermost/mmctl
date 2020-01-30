@@ -8,6 +8,7 @@ require (
 	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20191129114437-fabce613d3ba
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.5
+	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/crypto v0.0.0-20191119213627-4f8c1d86b1ba
 )
