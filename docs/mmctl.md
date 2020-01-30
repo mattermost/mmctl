@@ -11,6 +11,7 @@ Mattermost offers workplace messaging across web, PC and phones with archiving, 
 ```
       --format string   the format of the command output [plain, json] (default "plain")
   -h, --help            help for mmctl
+      --strict          will only run commands if the mmctl version matches the server one
 ```
 
 ### SEE ALSO
