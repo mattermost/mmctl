@@ -58,7 +58,7 @@ make test-e2e
 
 ## Usage
 
-For the usage of all the commands, use the `--help` flag or check [the tool's documentation](./docs/mmctl.md).
+For the usage of all the commands, use the `--help` flag or check [the tool's documentation](./docs/mmctl.rst).
 
 ```sh
 Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com

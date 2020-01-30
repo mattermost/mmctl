@@ -130,7 +130,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return([]*model.Group{}, 0, &model.Response{Error: nil}).
+			Return([]*model.GroupWithSchemeAdmin{}, 0, &model.Response{Error: nil}).
 			Times(1)
 
 		err := teamGroupEnableCmdF(s.client, &cobra.Command{}, []string{arg})
@@ -162,7 +162,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return([]*model.Group{{}}, 1, &model.Response{Error: nil}).
+			Return([]*model.GroupWithSchemeAdmin{{}}, 1, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -199,7 +199,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupEnableCmd() {
 		s.client.
 			EXPECT().
 			GetGroupsByTeam(mockTeam.Id, groupOpts).
-			Return([]*model.Group{{}}, 1, &model.Response{Error: nil}).
+			Return([]*model.GroupWithSchemeAdmin{{}}, 1, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
@@ -300,8 +300,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
-		mockGroup := &model.Group{Name: groupName}
-		mockGroups := []*model.Group{mockGroup}
+		mockGroup := &model.GroupWithSchemeAdmin{Group: model.Group{Name: groupName}}
+		mockGroups := []*model.GroupWithSchemeAdmin{mockGroup}
 
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -345,9 +345,9 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
-		mockGroups := []*model.Group{
-			{Name: "group1"},
-			{Name: "group2"},
+		mockGroups := []*model.GroupWithSchemeAdmin{
+			{Group: model.Group{Name: "group1"}},
+			{Group: model.Group{Name: "group2"}},
 		}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -393,7 +393,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
-		mockGroups := []*model.Group{}
+		mockGroups := []*model.GroupWithSchemeAdmin{}
 
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -625,10 +625,13 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 		groupID := "group1"
 		groupID2 := "group2"
 		mockError := &model.AppError{Message: "Get groups by team error"}
-		group1 := model.Group{Id: groupID, DisplayName: "DisplayName1"}
-		group2 := model.Group{Id: groupID2, DisplayName: "DisplayName2"}
 
-		groups := []*model.Group{
+		//grp1 := model.GroupWithSchemeAdmin{}
+
+		group1 := model.GroupWithSchemeAdmin{Group: model.Group{Id: groupID, DisplayName: "DisplayName1"}}
+		group2 := model.GroupWithSchemeAdmin{Group: model.Group{Id: groupID2, DisplayName: "DisplayName2"}}
+
+		groups := []*model.GroupWithSchemeAdmin{
 			&group1,
 			&group2,
 		}
@@ -664,10 +667,10 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 		printer.Clean()
 		groupID := "group1"
 		groupID2 := "group2"
-		group1 := model.Group{Id: groupID, DisplayName: "DisplayName1"}
-		group2 := model.Group{Id: groupID2, DisplayName: "DisplayName2"}
+		group1 := model.GroupWithSchemeAdmin{Group: model.Group{Id: groupID, DisplayName: "DisplayName1"}}
+		group2 := model.GroupWithSchemeAdmin{Group: model.Group{Id: groupID2, DisplayName: "DisplayName2"}}
 
-		groups := []*model.Group{
+		groups := []*model.GroupWithSchemeAdmin{
 			&group1,
 			&group2,
 		}
@@ -965,8 +968,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.Group{Name: "group-name"}
-		mockGroups := []*model.Group{group}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: "group-name"}}
+		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -1114,8 +1117,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.Group{Name: "group-name"}
-		mockGroups := []*model.Group{group}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: "group-name"}}
+		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		mockError := model.AppError{Id: "Mock Error"}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -1163,7 +1166,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		mockGroups := []*model.Group{}
+		mockGroups := []*model.GroupWithSchemeAdmin{}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
 				Page:    0,
@@ -1263,8 +1266,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.Group{Name: "group-name"}
-		mockGroups := []*model.Group{group}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: "group-name"}}
+		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		mockError := model.AppError{Id: "Mock Error"}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
