@@ -1,6 +1,6 @@
 ## mmctl team list
 
-List all teams.
+List all teams
 
 ### Synopsis
 

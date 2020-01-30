@@ -7,7 +7,7 @@ Modify a slash command
 Modify a slash command. Commands can be specified by command ID.
 
 ```
-mmctl command modify commandID [flags]
+mmctl command modify [commandID] [flags]
 ```
 
 ### Examples
@@ -18,13 +18,11 @@ mmctl command modify commandID [flags]
 
 ### Options
 
-Only fields that you want to modify need to be specified. Also, when modifying the command’s creator, the new creator specified must have the permission to create commands.
-
 ```
       --autocomplete               Show Command in autocomplete list
       --autocompleteDesc string    Short Command Description for autocomplete list
       --autocompleteHint string    Command Arguments displayed as help in autocomplete list
-      --creator string             Command Creator's Username (required)
+      --creator string             Command Creator's username, email or id (required)
       --description string         Command Description
   -h, --help                       help for modify
       --icon string                Command Icon URL
@@ -43,4 +41,5 @@ Only fields that you want to modify need to be specified. Also, when modifying t
 
 ### SEE ALSO
 
-* [mmctl command](mmctl_command.md)  - Management of slash commands
+* [mmctl command](mmctl_command.md)	 - Management of slash commands
+

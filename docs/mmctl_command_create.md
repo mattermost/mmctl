@@ -22,7 +22,7 @@ mmctl command create [team] [flags]
       --autocomplete               Show Command in autocomplete list
       --autocompleteDesc string    Short Command Description for autocomplete list
       --autocompleteHint string    Command Arguments displayed as help in autocomplete list
-      --creator string             Command Creator's Username (required)
+      --creator string             Command Creator's username, email or id (required)
       --description string         Command Description
   -h, --help                       help for create
       --icon string                Command Icon URL

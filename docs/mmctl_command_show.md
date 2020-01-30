@@ -1,13 +1,13 @@
 ## mmctl command show
 
-Show a slash command.
+Show a custom slash command
 
 ### Synopsis
 
-Show a slash command. Commands can be specified by command ID.
+Show a custom slash command. Commands can be specified by command ID. Returns command ID, team ID, trigger word, display name and creator username.
 
 ```
-mmctl command show commandID [flags]
+mmctl command show [commandID] [flags]
 ```
 
 ### Examples
@@ -30,4 +30,5 @@ mmctl command show commandID [flags]
 
 ### SEE ALSO
 
-* [mmctl command](mmctl_command.md)  - Management of slash commands
+* [mmctl command](mmctl_command.md)	 - Management of slash commands
+

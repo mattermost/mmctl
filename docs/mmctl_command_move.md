@@ -1,13 +1,13 @@
 ## mmctl command move
 
-Move a slash command to a different team.
+Move a slash command to a different team
 
 ### Synopsis
 
 Move a slash command to a different team. Commands can be specified by command ID.
 
 ```
-mmctl command move newteam commandID [flags]
+mmctl command move [team] [commandID] [flags]
 ```
 
 ### Examples
@@ -30,4 +30,5 @@ mmctl command move newteam commandID [flags]
 
 ### SEE ALSO
 
-* [mmctl command](mmctl_command.md)  - Management of slash commands
+* [mmctl command](mmctl_command.md)	 - Management of slash commands
+
