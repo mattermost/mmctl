@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"fmt"
+	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -34,7 +34,8 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 		valid := CheckVersionMatch(Version, serverVersion)
 		if !valid {
 			if viper.GetBool("strict") {
-				return fmt.Errorf("server version %s doesn't match with mmctl version %s. Please update mmctl or use --skip-version-check to ignore", serverVersion, Version)
+				printer.PrintError("ERROR: server version " + serverVersion + " doesn't match with mmctl version " + Version + ". Strict flag is set, so the command will not be run")
+				os.Exit(1)
 			}
 			printer.PrintError("WARNING: server version " + serverVersion + " doesn't match mmctl version " + Version)
 		}
