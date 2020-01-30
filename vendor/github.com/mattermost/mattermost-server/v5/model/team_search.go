@@ -1,5 +1,5 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
-// See License.txt for license information.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package model
 
@@ -19,8 +19,8 @@ func (t *TeamSearch) IsPaginated() bool {
 }
 
 // ToJson convert a TeamSearch to json string
-func (c *TeamSearch) ToJson() string {
-	b, err := json.Marshal(c)
+func (t *TeamSearch) ToJson() string {
+	b, err := json.Marshal(t)
 	if err != nil {
 		return ""
 	}
