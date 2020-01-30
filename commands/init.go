@@ -4,6 +4,10 @@
 package commands
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -17,6 +21,14 @@ import (
 	"github.com/mattermost/mmctl/printer"
 )
 
+var (
+	insecureSignatureAlgorithms = []x509.SignatureAlgorithm{
+		x509.SHA1WithRSA,
+		x509.DSAWithSHA1,
+		x509.ECDSAWithSHA1,
+	}
+)
+
 func CheckVersionMatch(version, serverVersion string) bool {
 	maj, min, _ := model.SplitVersion(version)
 	srvMaj, srvMin, _ := model.SplitVersion(serverVersion)
@@ -26,7 +38,9 @@ func CheckVersionMatch(version, serverVersion string) bool {
 
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		c, serverVersion, err := InitClient()
+		allowInsecure := viper.GetBool("insecure-sha1-intermediate")
+
+		c, serverVersion, err := InitClient(allowInsecure)
 		if err != nil {
 			return err
 		}
@@ -44,8 +58,40 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 }
 
-func InitClientWithUsernameAndPassword(username, password, instanceURL string) (*model.Client4, string, error) {
+func NewAPIv4Client(instanceURL string, allowInsecure bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL)
+
+	if !allowInsecure {
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{
+				VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+					// loop over certificate chains
+					for _, chain := range verifiedChains {
+						// check all certs but the root one
+						certs := chain[:len(chain)-1]
+
+						for _, cert := range certs {
+							for _, alg := range insecureSignatureAlgorithms {
+								if cert.SignatureAlgorithm == alg {
+									return fmt.Errorf("insecure algorithm %s found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting", alg)
+								}
+							}
+						}
+					}
+					return nil
+				},
+			},
+		}
+
+		client.HttpClient = &http.Client{Transport: transport}
+	}
+
+	return client
+}
+
+func InitClientWithUsernameAndPassword(username, password, instanceURL string, allowInsecure bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(instanceURL, allowInsecure)
+
 	_, response := client.Login(username, password)
 	if response.Error != nil {
 		return nil, "", response.Error
@@ -53,8 +99,8 @@ func InitClientWithUsernameAndPassword(username, password, instanceURL string) (
 	return client, response.ServerVersion, nil
 }
 
-func InitClientWithMFA(username, password, mfaToken, instanceURL string) (*model.Client4, string, error) {
-	client := model.NewAPIv4Client(instanceURL)
+func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowInsecure bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(instanceURL, allowInsecure)
 	_, response := client.LoginWithMFA(username, password, mfaToken)
 	if response.Error != nil {
 		return nil, "", response.Error
@@ -62,8 +108,8 @@ func InitClientWithMFA(username, password, mfaToken, instanceURL string) (*model
 	return client, response.ServerVersion, nil
 }
 
-func InitClientWithCredentials(credentials *Credentials) (*model.Client4, string, error) {
-	client := model.NewAPIv4Client(credentials.InstanceURL)
+func InitClientWithCredentials(credentials *Credentials, allowInsecure bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(credentials.InstanceURL, allowInsecure)
 
 	client.AuthType = model.HEADER_BEARER
 	client.AuthToken = credentials.AuthToken
@@ -76,12 +122,12 @@ func InitClientWithCredentials(credentials *Credentials) (*model.Client4, string
 	return client, response.ServerVersion, nil
 }
 
-func InitClient() (*model.Client4, string, error) {
+func InitClient(allowInsecure bool) (*model.Client4, string, error) {
 	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return nil, "", err
 	}
-	return InitClientWithCredentials(credentials)
+	return InitClientWithCredentials(credentials, allowInsecure)
 }
 
 func InitWebSocketClient() (*model.WebSocketClient, error) {
