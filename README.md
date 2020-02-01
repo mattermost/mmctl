@@ -58,7 +58,7 @@ make test-e2e
 
 ## Usage
 
-For the usage of all the commands, use the `--help` flag or check [the tool's documentation](./docs/mmctl.md).
+For the usage of all the commands, use the `--help` flag or check [the tool's documentation](./docs/mmctl.rst).
 
 ```sh
 Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com
@@ -120,6 +120,8 @@ last_name: Doe
 email: john.doe@example.com
 auth_service:
 ```
+
+**NOTE:** `mmctl` is designed to run against a specific version of the `mattermost-server` and its API. If run against a server with a different version, `mmctl` will show a warning and will try to execute the commands. To ensure that the commands won't run if the server version is not supported, please use the `--strict` flag or set the `MMCTL_STRICT=true` environment variable.
 
 ## Login methods
 

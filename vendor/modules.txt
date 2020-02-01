@@ -6,12 +6,27 @@ github.com/cpuguy83/go-md2man/md2man
 github.com/davecgh/go-spew/spew
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 github.com/dyatlov/go-opengraph/opengraph
+# github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
+github.com/go-asn1-ber/asn1-ber
+# github.com/fsnotify/fsnotify v1.4.7
+github.com/fsnotify/fsnotify
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
 # github.com/gorilla/websocket v1.4.1
 github.com/gorilla/websocket
+# github.com/hashicorp/hcl v1.0.0
+github.com/hashicorp/hcl
+github.com/hashicorp/hcl/hcl/ast
+github.com/hashicorp/hcl/hcl/parser
+github.com/hashicorp/hcl/hcl/printer
+github.com/hashicorp/hcl/hcl/scanner
+github.com/hashicorp/hcl/hcl/strconv
+github.com/hashicorp/hcl/hcl/token
+github.com/hashicorp/hcl/json/parser
+github.com/hashicorp/hcl/json/scanner
+github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
@@ -19,20 +34,24 @@ github.com/konsorten/go-windows-terminal-sequences
 # github.com/magefile/mage v1.9.0
 github.com/magefile/mage/mg
 github.com/magefile/mage/sh
+# github.com/magiconair/properties v1.8.1
+github.com/magiconair/properties
 # github.com/mattermost/go-i18n v1.11.0
 github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/ldap v3.0.4+incompatible
+# github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 github.com/mattermost/ldap
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20191129114437-fabce613d3ba
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200129165621-40b7790318ad
 github.com/mattermost/mattermost-server/v5/mlog
 github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
 github.com/mattermost/mattermost-server/v5/services/timezones
 github.com/mattermost/mattermost-server/v5/utils/jsonutils
 github.com/mattermost/mattermost-server/v5/utils/markdown
+# github.com/mitchellh/mapstructure v1.1.2
+github.com/mitchellh/mapstructure
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.4.0
@@ -45,11 +64,20 @@ github.com/pmezard/go-difflib/difflib
 github.com/russross/blackfriday
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
+# github.com/spf13/afero v1.2.2
+github.com/spf13/afero
+github.com/spf13/afero/mem
+# github.com/spf13/cast v1.3.0
+github.com/spf13/cast
 # github.com/spf13/cobra v0.0.5
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
+# github.com/spf13/jwalterweatherman v1.1.0
+github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
+# github.com/spf13/viper v1.3.2
+github.com/spf13/viper
 # github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
@@ -80,6 +108,8 @@ golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
+golang.org/x/text/transform
+golang.org/x/text/unicode/norm
 # gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
 gopkg.in/asn1-ber.v1
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
