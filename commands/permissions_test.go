@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/golang/mock/gomock"
 	"github.com/spf13/cobra"
@@ -153,5 +154,50 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		args := []string{mockRole.Name, "delete"}
 		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
 		s.Require().EqualError(err, "Role: role_not_found, ")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
+	s.Run("Show custom role", func() {
+		commandArg := "example-role-name"
+		mockRole := &model.Role{
+			Id:   "example-mock-id",
+			Name: commandArg,
+		}
+
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(&mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Equal(mockRole, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Show custom role with invalid name", func() {
+		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+
+		commandArgBogus := "bogus-role-name"
+
+		printer.Clean()
+
+		// showRoleCmdF will look up role by name
+		s.client.
+			EXPECT().
+			GetRoleByName(commandArgBogus).
+			Return(nil, &model.Response{Error: expectedError}).
+			Times(1)
+
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError, err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
