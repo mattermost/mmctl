@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/printer"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -1237,9 +1238,9 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 0
 		perPage := 1
 		showAll := false
-		cmd.Flags().Set("page", strconv.Itoa(page))
-		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
@@ -1264,9 +1265,9 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 0
 		perPage := 1
 		showAll := true
-		cmd.Flags().Set("page", strconv.Itoa(page))
-		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
@@ -1299,9 +1300,9 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 0
 		perPage := 1
 		showAll := false
-		cmd.Flags().Set("page", strconv.Itoa(page))
-		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
@@ -1320,9 +1321,9 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 0
 		perPage := 1
 		showAll := false
-		cmd.Flags().Set("page", strconv.Itoa(page))
-		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		mockError := model.AppError{Id: "Mock Error"}
 		mockErrorW := errors.Wrap(&mockError, "Failed to fetch users")
@@ -1347,9 +1348,9 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		page := 2
 		perPage := 1
 		showAll := false
-		cmd.Flags().Set("page", strconv.Itoa(page))
-		cmd.Flags().Set("per-page", strconv.Itoa(perPage))
-		cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
 
 		s.client.
 			EXPECT().
@@ -1362,7 +1363,6 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 	})
-
 }
 
 func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
