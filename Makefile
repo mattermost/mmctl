@@ -21,17 +21,17 @@ package: vendor check
 	mkdir -p build
 
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 go build -mod=vendor
+	env GOOS=linux GOARCH=amd64 go build -ldflags '$(LDFLAGS)' -mod=vendor
 	tar cf build/linux_amd64.tar mmctl
 	md5sum < build/linux_amd64.tar | cut -d ' ' -f 1 > build/linux_amd64.tar.md5.txt
 
 	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 go build -mod=vendor
+	env GOOS=darwin GOARCH=amd64 go build -ldflags '$(LDFLAGS)' -mod=vendor
 	tar cf build/darwin_amd64.tar mmctl
 	md5sum < build/darwin_amd64.tar | cut -d ' ' -f 1 > build/darwin_amd64.tar.md5.txt
 
 	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 go build -mod=vendor
+	env GOOS=windows GOARCH=amd64 go build -ldflags '$(LDFLAGS)' -mod=vendor
 	zip build/windows_amd64.zip mmctl.exe
 	md5sum < build/windows_amd64.zip | cut -d ' ' -f 1 > build/windows_amd64.zip.md5.txt
 
