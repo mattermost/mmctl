@@ -92,6 +92,15 @@ var SearchUserCmd = &cobra.Command{
 	RunE:    withClient(searchUserCmdF),
 }
 
+var ListUsersCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "List users",
+	Long:    "List all users",
+	Example: "  user list",
+	RunE:    withClient(listUsersCmdF),
+	Args:    cobra.NoArgs,
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -105,6 +114,10 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
+	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
+	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
+	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+
 	UserCmd.AddCommand(
 		UserActivateCmd,
 		UserDeactivateCmd,
@@ -114,6 +127,7 @@ func init() {
 		updateUserEmailCmd,
 		ResetUserMfaCmd,
 		SearchUserCmd,
+		ListUsersCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -342,6 +356,48 @@ auth_service: {{.AuthService}}`
 		}
 
 		printer.PrintT(tpl, user)
+	}
+
+	return nil
+}
+
+func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
+	page, err := command.Flags().GetInt("page")
+	if err != nil {
+		return err
+	}
+	perPage, err := command.Flags().GetInt("per-page")
+	if err != nil {
+		return err
+	}
+	showAll, err := command.Flags().GetBool("all")
+	if err != nil {
+		return err
+	}
+
+	if showAll {
+		page = 0
+	}
+
+	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
+
+	for {
+		users, res := c.GetUsers(page, perPage, "")
+		if res.Error != nil {
+			return errors.Wrap(res.Error, "Failed to fetch users")
+		}
+		if len(users) == 0 {
+			break
+		}
+
+		for _, user := range users {
+			printer.PrintT(tpl, user)
+		}
+
+		if !showAll {
+			break
+		}
+		page++
 	}
 
 	return nil

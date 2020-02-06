@@ -519,6 +519,21 @@ func (mr *MockClientMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockClient)(nil).GetUser), arg0, arg1)
 }
 
+// GetUsers mocks base method
+func (m *MockClient) GetUsers(arg0 int, arg1 int, arg2 string) ([]*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsers", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUsers indicates an expected call of GetUsers
+func (mr *MockClientMockRecorder) GetUsers(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsers", reflect.TypeOf((*MockClient)(nil).GetUsers), arg0, arg1, arg2)
+}
+
 // GetUserByEmail mocks base method
 func (m *MockClient) GetUserByEmail(arg0, arg1 string) (*model.User, *model.Response) {
 	m.ctrl.T.Helper()

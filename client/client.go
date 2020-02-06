@@ -67,6 +67,7 @@ type Client interface {
 	GetConfig() (*model.Config, *model.Response)
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
+	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
