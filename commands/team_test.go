@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
@@ -22,7 +23,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd := &cobra.Command{}
 		err := createTeamCmdF(s.client, cmd, []string{})
 
-		s.Require().Equal(err, errors.New("Name is required"))
+		s.Require().Equal(err, errors.New("name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -32,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("name", mockTeamName, "")
 
 		err := createTeamCmdF(s.client, cmd, []string{})
-		s.Require().Equal(err, errors.New("Display Name is required"))
+		s.Require().Equal(err, errors.New("display Name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -122,7 +123,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args[0] = "existingName"
 
 		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Require atleast one flag to rename team, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
 	})
 
 	s.Run("Team rename should fail with invalid flags", func() {
@@ -137,11 +138,11 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		cmd.Flags().String("-name", "newName", "Team Name Name")
 		err := renameTeamCmdF(s.client, cmd, args)
 
-		s.Require().EqualError(err, "Require atleast one flag to rename team, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
 
 		// Setting flag as display-name instead of display_name
 		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		s.Require().EqualError(err, "Require atleast one flag to rename team, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
 	})
 
 	s.Run("Team rename should fail when unknown existing team name is entered", func() {
@@ -412,8 +413,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.Run("Plain Format", func() {
 			printer.Clean()
-			printer.SetFormat(printer.FORMAT_PLAIN)
-			defer printer.SetFormat(printer.FORMAT_JSON)
+			printer.SetFormat(printer.FormatPlain)
+			defer printer.SetFormat(printer.FormatJSON)
 
 			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 			s.Require().NoError(err)
@@ -446,8 +447,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.Run("Plain Format", func() {
 			printer.Clean()
-			printer.SetFormat(printer.FORMAT_PLAIN)
-			defer printer.SetFormat(printer.FORMAT_JSON)
+			printer.SetFormat(printer.FormatPlain)
+			defer printer.SetFormat(printer.FormatJSON)
 
 			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 			s.Require().NoError(err)
@@ -459,18 +460,18 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 	s.Run("Several teams", func() {
 		mockTeams := []*model.Team{
-			&model.Team{
+			{
 				Name: "Team1",
 			},
-			&model.Team{
+			{
 				Name:     "Team2",
 				DeleteAt: 1,
 			},
-			&model.Team{
+			{
 				Name:     "Team3",
 				DeleteAt: 1,
 			},
-			&model.Team{
+			{
 				Name: "Team4",
 			},
 		}
@@ -496,8 +497,8 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.Run("Plain Format", func() {
 			printer.Clean()
-			printer.SetFormat(printer.FORMAT_PLAIN)
-			defer printer.SetFormat(printer.FORMAT_JSON)
+			printer.SetFormat(printer.FormatPlain)
+			defer printer.SetFormat(printer.FormatJSON)
 
 			err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
 			s.Require().NoError(err)
@@ -513,14 +514,14 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	teamName := "team1"
-	teamId := "teamId"
+	teamID := "teamId"
 
 	s.Run("Delete teams with confirm false returns an error", func() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "ABORTED: You did not answer YES exactly, in all capitals.")
+		s.Require().Equal(err.Error(), "ABORTED: You did not answer YES exactly, in all capitals")
 	})
 
 	s.Run("Delete teams with team not exist in db returns an error", func() {
@@ -549,13 +550,13 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	s.Run("Delete teams should delete team", func() {
 		printer.Clean()
 		mockTeam := model.Team{
-			Id:   teamId,
+			Id:   teamID,
 			Name: teamName,
 		}
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamId).
+			PermanentDeleteTeam(teamID).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
@@ -575,7 +576,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 	s.Run("Delete teams with error on PermanentDeleteTeam returns an error", func() {
 		printer.Clean()
 		mockTeam := model.Team{
-			Id:   teamId,
+			Id:   teamID,
 			Name: teamName,
 		}
 
@@ -586,7 +587,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		}
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamId).
+			PermanentDeleteTeam(teamID).
 			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
@@ -623,7 +624,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(mockTeam, printer.GetLines()[0])
-
 	})
 
 	s.Run("Search for an existing team by DisplayName", func() {
@@ -657,7 +657,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find team '" + teamName + "'", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find team '"+teamName+"'", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -675,8 +675,7 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Equal("Unable to find team '" + displayName + "'", printer.GetErrorLines()[0])
-
+		s.Require().Equal("Unable to find team '"+displayName+"'", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Test search with multiple arguments", func() {
@@ -720,14 +719,12 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam1, mockTeam2}, &model.Response{Error: nil}).
 			Times(1)
 
-
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(mockTeam1, printer.GetLines()[0])
 		s.Require().Equal(mockTeam2, printer.GetLines()[1])
-
 	})
 
 	s.Run("Test duplicates are removed from search results", func() {
@@ -773,7 +770,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 			Return([]*model.Team{mockTeam1, mockTeam2, mockTeam3, mockTeam4, mockTeam5}, &model.Response{Error: nil}).
 			Times(1)
 
-
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamVariableName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -783,7 +779,6 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		s.Require().Equal(mockTeam3, printer.GetLines()[2]) // C
 		s.Require().Equal(mockTeam4, printer.GetLines()[3]) // D
 		s.Require().Equal(mockTeam2, printer.GetLines()[4]) // e
-
 	})
 
 	s.Run("Search returns an error when the client returns an error", func() {

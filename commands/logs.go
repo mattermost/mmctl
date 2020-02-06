@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog/human"
-	"github.com/mattermost/mmctl/client"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/client"
 )
 
 var LogsCmd = &cobra.Command{

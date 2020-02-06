@@ -5,8 +5,9 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
@@ -209,7 +210,6 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "b")
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 
 	s.Run("Get error value if the key points to a missing map element", func() {
@@ -445,7 +445,6 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 
 	s.Run("Try to set a field inside a map for incorrect field, get error", func() {
@@ -544,7 +543,6 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
-
 }
 
 func (s *MmctlUnitTestSuite) TestConfigShowCmd() {

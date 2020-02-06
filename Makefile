@@ -2,17 +2,17 @@
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
 BUILD_HASH ?= $(shell git rev-parse HEAD)
-BUILD_VERSION ?= $(shell git ls-remote --tags --refs --sort="v:refname" git://github.com/mattermost/mmctl | tail -n1 | sed 's/.*\///')
+BUILD_VERSION ?= $(shell git ls-remote --tags --refs git://github.com/mattermost/mmctl | tail -n1 | sed 's/.*\///')
 # Needed to avoid install shadow in brew which is not permitted
 ADVANCED_VET ?= TRUE
 
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
-LDFLAGS += -X "github.com/mattermost/mmctl/commands.Version=$(BUILD_VERSION)"
 
 all: build
 
 build: vendor check
 	go build -ldflags '$(LDFLAGS)' -mod=vendor
+	md5sum < mmctl | cut -d ' ' -f 1 > mmctl.md5.txt
 
 install: vendor check
 	go install -ldflags '$(LDFLAGS)' -mod=vendor
@@ -21,16 +21,19 @@ package: vendor check
 	mkdir -p build
 
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 go build -mod=vendor
+	env GOOS=linux GOARCH=amd64 go build -ldflags '$(LDFLAGS)' -mod=vendor
 	tar cf build/linux_amd64.tar mmctl
+	md5sum < build/linux_amd64.tar | cut -d ' ' -f 1 > build/linux_amd64.tar.md5.txt
 
 	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 go build -mod=vendor
+	env GOOS=darwin GOARCH=amd64 go build -ldflags '$(LDFLAGS)' -mod=vendor
 	tar cf build/darwin_amd64.tar mmctl
+	md5sum < build/darwin_amd64.tar | cut -d ' ' -f 1 > build/darwin_amd64.tar.md5.txt
 
 	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 go build -mod=vendor
+	env GOOS=windows GOARCH=amd64 go build -ldflags '$(LDFLAGS)' -mod=vendor
 	zip build/windows_amd64.zip mmctl.exe
+	md5sum < build/windows_amd64.zip | cut -d ' ' -f 1 > build/windows_amd64.zip.md5.txt
 
 	rm mmctl mmctl.exe
 
@@ -51,21 +54,20 @@ gofmt:
 	@echo Gofmt success
 
 govet:
-	@echo Running govet
-	$(GO) vet $(GO_PACKAGES)
 ifeq ($(ADVANCED_VET), TRUE)
+	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
+		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
+		exit 1; \
+	fi; \
+
+	@echo Running golangci-lint
+	golangci-lint run ./...
 	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
 	fi;
 	@echo Running mattermost-govet
 	$(GO) vet -vettool=$(GOPATH)/bin/mattermost-govet -license -structuredLogging -inconsistentReceiverName -tFatal -equalLenAsserts ./...
-	@if ! [ -x "$$(command -v shadow)" ]; then \
-		echo "shadow vet tool is not installed. Please install it executing \"GO111MODULE=off go get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow\""; \
-		exit 1; \
-	fi;
-	@echo Running shadow analysis
-	$(GO) vet -vettool=$(GOPATH)/bin/shadow $(GO_PACKAGES)
 endif
 	@echo Govet success
 

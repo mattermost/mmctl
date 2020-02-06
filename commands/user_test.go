@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -64,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to activate user", func() {
@@ -88,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Activate several users with unexistent ones and failed ones", func() {
@@ -169,8 +170,8 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
 	})
 }
 
@@ -224,7 +225,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to deactivate user", func() {
@@ -248,7 +249,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Deactivate SSO user", func() {
@@ -354,8 +355,8 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+emailArgs[2]+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Errorf("Unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", emailArgs[3]).Error(), printer.GetErrorLines()[1])
 	})
 }
 
@@ -536,10 +537,10 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		argUser := "example@example.com"
 		argTeam := []string{"teamName1", "teamId2", "teamId3", "teamName4"}
 		resultTeamModels := [4]*model.Team{
-			&model.Team{Id: "teamId1"},
-			&model.Team{Id: "teamId2"},
-			&model.Team{Id: "teamId3"},
-			&model.Team{Id: "teamId4"},
+			{Id: "teamId1"},
+			{Id: "teamId2"},
+			{Id: "teamId3"},
+			{Id: "teamId4"},
 		}
 
 		// Setup GetTeam
@@ -619,7 +620,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
+		s.Require().Equal("can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Invite user to an existing team and fail invite", func() {
@@ -653,12 +654,12 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 		argUser := "example@example.com"
 		argTeam := []string{"teamName1", "unexistent", "teamId3", "teamName4", "reject", "teamId6"}
 		resultTeamModels := [6]*model.Team{
-			&model.Team{Id: "teamId1", Name: "teamName1"},
+			{Id: "teamId1", Name: "teamName1"},
 			nil,
-			&model.Team{Id: "teamId3", Name: "teamName3"},
-			&model.Team{Id: "teamId4", Name: "teamName4"},
-			&model.Team{Id: "reject", Name: "rejectName"},
-			&model.Team{Id: "teamId6", Name: "teamName6"},
+			{Id: "teamId3", Name: "teamName3"},
+			{Id: "teamId4", Name: "teamName4"},
+			{Id: "reject", Name: "rejectName"},
+			{Id: "teamId6", Name: "teamName6"},
 		}
 		mockError := model.NewAppError("", "Mock Error", nil, "", 0)
 
@@ -756,7 +757,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
 		}
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal("Can't find team '"+argTeam[1]+"'", printer.GetErrorLines()[0])
+		s.Require().Equal("can't find team '"+argTeam[1]+"'", printer.GetErrorLines()[0])
 		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultTeamModels[4].Name+". Error: "+mockError.Error(), printer.GetErrorLines()[1])
 	})
 }
@@ -907,7 +908,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{})
 
-		s.Require().EqualError(error, "Expected two arguments. See help text for details.")
+		s.Require().EqualError(error, "expected two arguments. See help text for details")
 	})
 
 	s.Run("Invalid email provided", func() {
@@ -919,7 +920,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().EqualError(error, "Invalid email: 'invalidEmail'")
+		s.Require().EqualError(error, "invalid email: 'invalidEmail'")
 	})
 
 	s.Run("User not found using email, username or id as identifier", func() {
@@ -949,7 +950,7 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().EqualError(error, "Unable to find user 'testUser'")
+		s.Require().EqualError(error, "unable to find user 'testUser'")
 	})
 
 	s.Run("Client returning error while updating user", func() {
@@ -1386,7 +1387,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 	s.Run("Deactivate an existing user by username", func() {
 		printer.Clean()
@@ -1502,7 +1502,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", arg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", arg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete multiple users", func() {
@@ -1577,7 +1577,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			GetUserByEmail(argsDelete[2], "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
-
 		s.client.
 			EXPECT().
 			GetUserByUsername(argsDelete[2], "").
@@ -1596,7 +1595,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 
 	s.Run("Delete multiple users with an non existent user", func() {
@@ -1640,6 +1638,6 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("Can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
 	})
 }
