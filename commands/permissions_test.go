@@ -170,7 +170,7 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(&mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{Error: nil}).
 			Times(1)
 
 		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
