@@ -56,7 +56,6 @@ func TestCheckVersionMatch(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.Name, func(t *testing.T) {
 			res := CheckVersionMatch(tc.Version, tc.ServerVersion)
 
@@ -66,9 +65,9 @@ func TestCheckVersionMatch(t *testing.T) {
 }
 
 func TestVerifyCertificates(t *testing.T) {
-	testCases := []struct{
-		Name string
-		Chains [][]*x509.Certificate
+	testCases := []struct {
+		Name          string
+		Chains        [][]*x509.Certificate
 		ExpectedError bool
 	}{
 		{
