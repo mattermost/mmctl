@@ -58,28 +58,37 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 }
 
+func isValidChain(chain []*x509.Certificate) bool {
+	// check all certs but the root one
+	certs := chain[:len(chain)-1]
+
+	for _, cert := range certs {
+		for _, alg := range insecureSignatureAlgorithms {
+			if cert.SignatureAlgorithm == alg {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
+	// loop over certificate chains
+	for _, chain := range verifiedChains {
+		if isValidChain(chain) {
+			return nil
+		}
+	}
+	return fmt.Errorf("insecure algorithm found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting")
+}
+
 func NewAPIv4Client(instanceURL string, allowInsecure bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL)
 
 	if !allowInsecure {
 		transport := &http.Transport{
 			TLSClientConfig: &tls.Config{
-				VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
-					// loop over certificate chains
-					for _, chain := range verifiedChains {
-						// check all certs but the root one
-						certs := chain[:len(chain)-1]
-
-						for _, cert := range certs {
-							for _, alg := range insecureSignatureAlgorithms {
-								if cert.SignatureAlgorithm == alg {
-									return fmt.Errorf("insecure algorithm %s found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting", alg)
-								}
-							}
-						}
-					}
-					return nil
-				},
+				VerifyPeerCertificate: VerifyCertificates,
 			},
 		}
 
