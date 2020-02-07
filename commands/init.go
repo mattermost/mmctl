@@ -23,8 +23,8 @@ import (
 
 var (
 	insecureSignatureAlgorithms = map[x509.SignatureAlgorithm]bool{
-		x509.SHA1WithRSA: true,
-		x509.DSAWithSHA1: true,
+		x509.SHA1WithRSA:   true,
+		x509.DSAWithSHA1:   true,
 		x509.ECDSAWithSHA1: true,
 	}
 )
