@@ -22,10 +22,10 @@ import (
 )
 
 var (
-	insecureSignatureAlgorithms = []x509.SignatureAlgorithm{
-		x509.SHA1WithRSA,
-		x509.DSAWithSHA1,
-		x509.ECDSAWithSHA1,
+	insecureSignatureAlgorithms = map[x509.SignatureAlgorithm]bool{
+		x509.SHA1WithRSA: true,
+		x509.DSAWithSHA1: true,
+		x509.ECDSAWithSHA1: true,
 	}
 )
 
@@ -63,10 +63,8 @@ func isValidChain(chain []*x509.Certificate) bool {
 	certs := chain[:len(chain)-1]
 
 	for _, cert := range certs {
-		for _, alg := range insecureSignatureAlgorithms {
-			if cert.SignatureAlgorithm == alg {
-				return false
-			}
+		if _, ok := insecureSignatureAlgorithms[cert.SignatureAlgorithm]; ok {
+			return false
 		}
 	}
 	return true
