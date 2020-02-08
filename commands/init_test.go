@@ -107,6 +107,22 @@ func TestVerifyCertificates(t *testing.T) {
 			},
 			ExpectedError: false,
 		},
+		{
+			Name: "Two invalid chains",
+			Chains: [][]*x509.Certificate{
+				{
+					{SignatureAlgorithm: x509.SHA256WithRSA},
+					{SignatureAlgorithm: x509.SHA1WithRSA},
+					{SignatureAlgorithm: x509.SHA1WithRSA},
+				},
+				{
+					{SignatureAlgorithm: x509.SHA256WithRSA},
+					{SignatureAlgorithm: x509.DSAWithSHA1},
+					{SignatureAlgorithm: x509.DSAWithSHA1},
+				},
+			},
+			ExpectedError: true,
+		},
 	}
 
 	for _, tc := range testCases {
