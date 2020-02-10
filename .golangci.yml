@@ -48,7 +48,6 @@ linters:
     - interfacer
     - misspell
     - nakedret
-    - scopelint
     - staticcheck
     - stylecheck
     - typecheck
