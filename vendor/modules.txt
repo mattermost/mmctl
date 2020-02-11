@@ -6,10 +6,10 @@ github.com/cpuguy83/go-md2man/md2man
 github.com/davecgh/go-spew/spew
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 github.com/dyatlov/go-opengraph/opengraph
-# github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
-github.com/go-asn1-ber/asn1-ber
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
+github.com/go-asn1-ber/asn1-ber
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
 # github.com/google/uuid v1.1.1
@@ -110,8 +110,6 @@ golang.org/x/text/internal/tag
 golang.org/x/text/language
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
-# gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
-gopkg.in/asn1-ber.v1
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/yaml.v2 v2.2.3
