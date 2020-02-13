@@ -1,33 +1,36 @@
-.. _mmctl_permissions_remove:
+.. _mmctl_user_list:
 
-mmctl permissions remove
-------------------------
+mmctl user list
+---------------
 
-Remove permissions from a role (EE Only)
+List users
 
 Synopsis
 ~~~~~~~~
 
 
-Remove one or more permissions from an existing role (Only works in Enterprise Edition).
+List all users
 
 ::
 
-  mmctl permissions remove [role] [permission...] [flags]
+  mmctl user list [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    permissions remove system_user list_open_teams
+    user list
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for remove
+      --all            Fetch all users. --page flag will be ignore if provided
+  -h, --help           help for list
+      --page int       Page number to fetch for the list of users
+      --per-page int   Number of users to be fetched (default 200)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -41,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 

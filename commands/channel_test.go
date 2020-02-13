@@ -1642,3 +1642,519 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		s.Require().Equal(expected, actual)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
+	s.Run("It should fail when no name and display name is supplied", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		args := []string{""}
+		args[0] = "teamName:channelName"
+
+		cmd.Flags().String("name", "", "Channel Name")
+		cmd.Flags().String("display_name", "", "Channel Display Name")
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display_name'")
+	})
+
+	s.Run("It should fail when empty team and channel name are supplied", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := ""
+		channelName := ""
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+	})
+
+	s.Run("It should fail when empty channel is supplied", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := ""
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+	})
+
+	s.Run("It should fail with empty team and non existing channel", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := ""
+		channelName := "nonExistingChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		s.client.
+			EXPECT().
+			GetChannel(channelName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+	})
+
+	s.Run("It should fail when team is not found", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "nonExistingteamName"
+		channelName := "channelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+	})
+
+	s.Run("It should fail when channel is not found", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "nonExistingChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+	})
+
+	s.Run("It should fail when api fails to rename", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "ChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        channelName,
+			DisplayName: "Channel Display Name",
+		}
+
+		channelPatch := &model.ChannelPatch{
+			DisplayName: &newChannelDisplayName,
+			Name:        &newChannelName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		mockError := model.NewAppError("at-random-location.go", "Mock Error", nil, "mocking a random error", 0)
+		s.client.
+			EXPECT().
+			PatchChannel(foundChannel.Id, channelPatch).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "Cannot rename channel '"+foundChannel.Name+"', error : "+mockError.Error())
+	})
+
+	s.Run("It should work as expected", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "ChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        channelName,
+			DisplayName: "Channel Display Name",
+		}
+
+		channelPatch := &model.ChannelPatch{
+			DisplayName: &newChannelDisplayName,
+			Name:        &newChannelName,
+		}
+
+		updatedChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        newChannelName,
+			DisplayName: newChannelDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchChannel(foundChannel.Id, channelPatch).
+			Return(updatedChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], updatedChannel)
+	})
+
+	s.Run("It should work with empty team and existing channel", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := ""
+		channelName := "ChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		foundChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        channelName,
+			DisplayName: "Channel Display Name",
+		}
+
+		channelPatch := &model.ChannelPatch{
+			DisplayName: &newChannelDisplayName,
+			Name:        &newChannelName,
+		}
+
+		updatedChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        newChannelName,
+			DisplayName: newChannelDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetChannel(channelName, "").
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchChannel(foundChannel.Id, channelPatch).
+			Return(updatedChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], updatedChannel)
+	})
+
+	s.Run("It should work even if only name flag is passed", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "ChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := "newChannelName"
+		newChannelDisplayName := ""
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        channelName,
+			DisplayName: "Channel Display Name",
+		}
+
+		channelPatch := &model.ChannelPatch{
+			Name: &newChannelName,
+		}
+
+		updatedChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        newChannelName,
+			DisplayName: newChannelDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchChannel(foundChannel.Id, channelPatch).
+			Return(updatedChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], updatedChannel)
+	})
+
+	s.Run("It should work even if only display name flag is passed", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "ChannelName"
+		argsTeamChannel := teamName + ":" + channelName
+		args := []string{""}
+		args[0] = argsTeamChannel
+
+		newChannelName := ""
+		newChannelDisplayName := "New Channel Name"
+		cmd.Flags().String("name", newChannelName, "Channel Name")
+		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			DisplayName: "teamDisplayName",
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        channelName,
+			DisplayName: "Channel Display Name",
+		}
+
+		channelPatch := &model.ChannelPatch{
+			DisplayName: &newChannelDisplayName,
+		}
+
+		updatedChannel := &model.Channel{
+			Id:          "channelId",
+			Name:        newChannelName,
+			DisplayName: newChannelDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchChannel(foundChannel.Id, channelPatch).
+			Return(updatedChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := renameChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], updatedChannel)
+	})
+}

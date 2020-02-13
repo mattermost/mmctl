@@ -5,12 +5,14 @@ package commands
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/printer"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -1220,6 +1222,149 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		s.Require().Equal(printer.GetErrorLines()[1], "Unable to find user '"+users[3]+"'")
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestListUserCmdF() {
+	cmd := &cobra.Command{}
+	cmd.Flags().Int("page", 0, "")
+	cmd.Flags().Int("per-page", 200, "")
+	cmd.Flags().Bool("all", false, "")
+
+	s.Run("Listing users with paging", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email}
+
+		page := 0
+		perPage := 1
+		showAll := false
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("Listing all the users", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2}
+
+		page := 0
+		perPage := 1
+		showAll := true
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		s.client.
+			EXPECT().
+			GetUsers(0, perPage, "").
+			Return([]*model.User{&mockUser1}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsers(1, perPage, "").
+			Return([]*model.User{&mockUser2}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsers(2, perPage, "").
+			Return([]*model.User{}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+	})
+
+	s.Run("Try to list all the users when there are no uses in store", func() {
+		printer.Clean()
+
+		page := 0
+		perPage := 1
+		showAll := false
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return([]*model.User{}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Return an error from GetUsers call and verify that error is properly returned", func() {
+		printer.Clean()
+
+		page := 0
+		perPage := 1
+		showAll := false
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		mockError := model.AppError{Id: "Mock Error"}
+		mockErrorW := errors.Wrap(&mockError, "Failed to fetch users")
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, mockErrorW.Error())
+	})
+
+	s.Run("Start with page 2 where a server has total 3 pages", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email}
+
+		page := 2
+		perPage := 1
+		showAll := false
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+
+		s.client.
+			EXPECT().
+			GetUsers(page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 	s.Run("Deactivate an existing user using email", func() {
 		printer.Clean()
