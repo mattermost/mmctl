@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -82,7 +83,8 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 
 func NewAPIv4Client(instanceURL string, allowInsecure bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL)
-	client.HttpHeader = map[string]string{"User-Agent": "mmctl/" + Version}
+	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
+	client.HttpHeader = map[string]string{"User-Agent": userAgent}
 
 	if !allowInsecure {
 		transport := &http.Transport{
