@@ -82,6 +82,7 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 
 func NewAPIv4Client(instanceURL string, allowInsecure bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL)
+	client.HttpHeader = map[string]string{"User-Agent": "mmctl/" + Version}
 
 	if !allowInsecure {
 		transport := &http.Transport{
