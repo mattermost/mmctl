@@ -31,6 +31,7 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl config edit <mmctl_config_edit.rst>`_ 	 - Edit the config
 * `mmctl config get <mmctl_config_get.rst>`_ 	 - Get config setting
 * `mmctl config reset <mmctl_config_reset.rst>`_ 	 - Reset config setting
 * `mmctl config set <mmctl_config_set.rst>`_ 	 - Set config setting
