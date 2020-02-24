@@ -160,13 +160,13 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 
 func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 	s.Run("Show custom role", func() {
+		printer.Clean()
+		
 		commandArg := "example-role-name"
 		mockRole := &model.Role{
 			Id:   "example-mock-id",
 			Name: commandArg,
 		}
-
-		printer.Clean()
 
 		s.client.
 			EXPECT().
@@ -182,11 +182,11 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 	})
 
 	s.Run("Show custom role with invalid name", func() {
+		printer.Clean()
+		
 		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
 
 		commandArgBogus := "bogus-role-name"
-
-		printer.Clean()
 
 		// showRoleCmdF will look up role by name
 		s.client.
