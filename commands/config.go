@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const defaultEditor = "vim"
+const defaultEditor = "vi"
 
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
