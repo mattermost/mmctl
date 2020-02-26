@@ -326,12 +326,12 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return cmdErr
 	}
 
-	newConfigB, err := ioutil.ReadFile(file.Name())
+	newConfigBytes, err := ioutil.ReadFile(file.Name())
 	if err != nil {
 		return err
 	}
 
-	if err := json.Unmarshal(newConfigB, config); err != nil {
+	if err := json.Unmarshal(newConfigBytes, config); err != nil {
 		return err
 	}
 
