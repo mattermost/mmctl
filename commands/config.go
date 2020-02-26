@@ -295,7 +295,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return response.Error
 	}
 
-	configB, err := json.MarshalIndent(config, "", "  ")
+	configBytes, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		file.Close()
 		os.Remove(file.Name())
 	}()
-	if _, writeErr := file.Write(configB); writeErr != nil {
+	if _, writeErr := file.Write(configBytes); writeErr != nil {
 		return writeErr
 	}
 
