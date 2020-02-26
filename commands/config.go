@@ -4,8 +4,12 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
 	"reflect"
 	"strconv"
 	"strings"
@@ -17,6 +21,8 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+const defaultEditor = "vi"
 
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
@@ -39,6 +45,15 @@ var ConfigSetCmd = &cobra.Command{
 	Example: "config set SqlSettings.DriverName mysql",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(configSetCmdF),
+}
+
+var ConfigEditCmd = &cobra.Command{
+	Use:     "edit",
+	Short:   "Edit the config",
+	Long:    "Opens the editor defined in the EDITOR environment variable to modify the server's configuration and then uploads it",
+	Example: "config edit",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(configEditCmdF),
 }
 
 var ConfigResetCmd = &cobra.Command{
@@ -64,6 +79,7 @@ func init() {
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
 		ConfigSetCmd,
+		ConfigEditCmd,
 		ConfigResetCmd,
 		ConfigShowCmd,
 	)
@@ -270,6 +286,61 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	}
 
 	printer.PrintT("Value changed successfully", newConfig)
+	return nil
+}
+
+func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
+	config, response := c.GetConfig()
+	if response.Error != nil {
+		return response.Error
+	}
+
+	configBytes, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	file, err := ioutil.TempFile(os.TempDir(), "mmctl-*.json")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		file.Close()
+		os.Remove(file.Name())
+	}()
+	if _, writeErr := file.Write(configBytes); writeErr != nil {
+		return writeErr
+	}
+
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = defaultEditor
+	}
+
+	editorCmd := exec.Command(editor, file.Name())
+	editorCmd.Stdout = os.Stdout
+	editorCmd.Stdin = os.Stdin
+	editorCmd.Stderr = os.Stderr
+
+	if cmdErr := editorCmd.Run(); cmdErr != nil {
+		return cmdErr
+	}
+
+	newConfigBytes, err := ioutil.ReadFile(file.Name())
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(newConfigBytes, config); err != nil {
+		return err
+	}
+
+	newConfig, response := c.UpdateConfig(config)
+	if response.Error != nil {
+		return response.Error
+	}
+
+	printer.PrintT("Config updated successfully", newConfig)
 	return nil
 }
 
