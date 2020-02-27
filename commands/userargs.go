@@ -41,11 +41,8 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 
 // returns true if any of traversal patterns recognized
 func checkTraversal(arg string) bool {
-	if strings.Contains(arg, "..") {
-		return true
-	}
-
-	if strings.Contains(arg, "%2e%2e") {
+	unescapedArg, _ := url.PathUnescape(arg)
+	if strings.Contains(unescapedArg, "..") {
 		return true
 	}
 
