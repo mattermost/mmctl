@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
@@ -19,6 +21,10 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 }
 
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
+	if strings.Contains(userArg, "..") {
+		return nil
+	}
+
 	var user *model.User
 	user, _ = c.GetUserByEmail(userArg, "")
 
