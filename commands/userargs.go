@@ -21,7 +21,7 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 }
 
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
-	if strings.Contains(userArg, "..") {
+	if checkTraversal(userArg) {
 		return nil
 	}
 
@@ -37,4 +37,17 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	}
 
 	return user
+}
+
+// returns true if any of traversal patterns recognized
+func checkTraversal(arg string) bool {
+	if strings.Contains(arg, "..") {
+		return true
+	}
+
+	if strings.Contains(arg, "%2e%2e") {
+		return true
+	}
+
+	return false
 }

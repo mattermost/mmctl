@@ -12,6 +12,10 @@ import (
 // getCommandFromCommandArg retrieves a Command by command id. Future versions
 // may allow lookup by team:trigger
 func getCommandFromCommandArg(c client.Client, commandArg string) *model.Command {
+	if checkTraversal(commandArg) {
+		return nil
+	}
+
 	cmd, _ := c.GetCommandById(commandArg)
 	return cmd
 }

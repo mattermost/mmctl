@@ -1190,6 +1190,15 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Equal(printer.GetLines()[4], publicChannel2)
 		s.Require().Equal(printer.GetLines()[5], archivedChannel1)
 	})
+
+	s.Run("Avoid path traversal", func() {
+		printer.Clean()
+		arg := "\"test/../hello?\"channel-test"
+
+		err := listChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team '\"test/../hello?\"channel-test'", printer.GetErrorLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {

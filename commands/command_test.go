@@ -961,4 +961,13 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Avoid path traversal", func() {
+		printer.Clean()
+		arg := "\"test/../hello?\"move"
+
+		err := showCommandCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().NotNil(err)
+		s.EqualError(err, "unable to find command '\"test/../hello?\"move'")
+	})
 }

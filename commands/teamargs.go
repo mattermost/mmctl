@@ -19,6 +19,10 @@ func getTeamsFromTeamArgs(c client.Client, teamArgs []string) []*model.Team {
 }
 
 func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
+	if checkTraversal(teamArg) {
+		return nil
+	}
+
 	var team *model.Team
 	team, _ = c.GetTeam(teamArg, "")
 
