@@ -22,19 +22,19 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 }
 
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
-	if checkTraversal(userArg) {
-		return nil
-	}
-
 	var user *model.User
-	user, _ = c.GetUserByEmail(userArg, "")
-
-	if user == nil {
-		user, _ = c.GetUserByUsername(userArg, "")
+	if !checkDots(userArg) {
+		user, _ = c.GetUserByEmail(userArg, "")
 	}
 
-	if user == nil {
-		user, _ = c.GetUser(userArg, "")
+	if !checkTraversal(userArg) {
+		if user == nil {
+			user, _ = c.GetUserByUsername(userArg, "")
+		}
+
+		if user == nil {
+			user, _ = c.GetUser(userArg, "")
+		}
 	}
 
 	return user
@@ -44,4 +44,9 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 func checkTraversal(arg string) bool {
 	unescapedArg, _ := url.PathUnescape(arg)
 	return strings.Contains(unescapedArg, "/")
+}
+
+func checkDots(arg string) bool {
+	unescapedArg, _ := url.PathUnescape(arg)
+	return strings.Contains(unescapedArg, "..")
 }
