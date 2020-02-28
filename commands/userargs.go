@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -42,9 +43,5 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 // returns true if any of traversal patterns recognized
 func checkTraversal(arg string) bool {
 	unescapedArg, _ := url.PathUnescape(arg)
-	if strings.Contains(unescapedArg, "..") {
-		return true
-	}
-
-	return false
+	return strings.Contains(unescapedArg, "/")
 }
