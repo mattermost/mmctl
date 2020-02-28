@@ -27,7 +27,7 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 		user, _ = c.GetUserByEmail(userArg, "")
 	}
 
-	if !checkTraversal(userArg) {
+	if !checkSlash(userArg) {
 		if user == nil {
 			user, _ = c.GetUserByUsername(userArg, "")
 		}
@@ -40,12 +40,13 @@ func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	return user
 }
 
-// returns true if any of traversal patterns recognized
-func checkTraversal(arg string) bool {
+// returns true if slash is found in the arg
+func checkSlash(arg string) bool {
 	unescapedArg, _ := url.PathUnescape(arg)
 	return strings.Contains(unescapedArg, "/")
 }
 
+// returns true if double dot is found in the arg
 func checkDots(arg string) bool {
 	unescapedArg, _ := url.PathUnescape(arg)
 	return strings.Contains(unescapedArg, "..")
