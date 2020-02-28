@@ -176,7 +176,7 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	team := getTeamFromTeamArg(c, teamArg)
 	if team == nil {
-		return errors.New("Unable to find team: " + teamArg)
+		return errors.Errorf("unable to find team: %s", teamArg)
 	}
 
 	channel := &model.Channel{
@@ -212,7 +212,7 @@ func removeChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	if allUsers {
@@ -257,7 +257,7 @@ func addChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	users := getUsersFromUserArgs(c, args[1:])
@@ -351,7 +351,7 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.New("unable to find channel '" + args[0] + "'")
+		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	if !(channel.Type == model.CHANNEL_OPEN) {
@@ -375,7 +375,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
 	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
@@ -388,7 +388,7 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	if _, response := c.UpdateChannelPrivacy(channel.Id, privacy); response.Error != nil {
-		return errors.Wrapf(response.Error, "Failed to update channel ('%s') privacy", args[0])
+		return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], response.Error.Error())
 	}
 
 	return nil
@@ -414,7 +414,7 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	channel := getChannelFromChannelArg(c, existingTeamChannel)
 	if channel == nil {
-		return errors.New("unable to find channel from '" + existingTeamChannel + "'")
+		return errors.Errorf("unable to find channel from %q", existingTeamChannel)
 	}
 
 	channelPatch := &model.ChannelPatch{}
@@ -428,7 +428,7 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	// Using PatchChannel API to rename channel
 	updatedChannel, response := c.PatchChannel(channel.Id, channelPatch)
 	if response.Error != nil {
-		return errors.New("Cannot rename channel '" + channel.Name + "', error : " + response.Error.Error())
+		return errors.Errorf("cannot rename channel %q, error: %s", channel.Name, response.Error.Error())
 	}
 
 	printer.PrintT("'{{.Name}}' channel renamed", updatedChannel)
@@ -443,7 +443,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	if teamArg, _ := cmd.Flags().GetString("team"); teamArg != "" {
 		team := getTeamFromTeamArg(c, teamArg)
 		if team == nil {
-			return errors.New("Team " + teamArg + " was not found")
+			return errors.Errorf("team %s was not found", teamArg)
 		}
 
 		var response *model.Response
@@ -452,7 +452,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			return response.Error
 		}
 		if channel == nil {
-			return errors.New("Channel " + args[0] + " was not found in team " + teamArg)
+			return errors.Errorf("channel %s was not found in team %s", args[0], teamArg)
 		}
 	} else {
 		teams, response := c.GetAllTeams("", 0, 9999)
@@ -468,7 +468,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		if channel == nil {
-			return errors.New("Channel " + args[0] + " was not found in any team")
+			return errors.Errorf("channel %q was not found in any team", args[0])
 		}
 	}
 
