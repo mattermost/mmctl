@@ -634,6 +634,15 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		actual := fmt.Sprintf("Unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
 	})
+
+	s.Run("Avoid path traversal with a valid team name", func() {
+		printer.Clean()
+		arg := "team:/../hello/channel-test"
+
+		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find channel 'team:/../hello/channel-test'", printer.GetErrorLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestListChannelsCmd() {

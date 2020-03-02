@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 )
 
-const ChannelArgSeparator = ":"
+const channelArgSeparator = ":"
 
 func getChannelsFromChannelArgs(c client.Client, channelArgs []string) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(channelArgs))
@@ -23,7 +23,7 @@ func getChannelsFromChannelArgs(c client.Client, channelArgs []string) []*model.
 }
 
 func parseChannelArg(channelArg string) (string, string) {
-	result := strings.SplitN(channelArg, ChannelArgSeparator, 2)
+	result := strings.SplitN(channelArg, channelArgSeparator, 2)
 	if len(result) == 1 {
 		return "", channelArg
 	}
@@ -33,6 +33,10 @@ func parseChannelArg(channelArg string) (string, string) {
 func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel {
 	teamArg, channelPart := parseChannelArg(channelArg)
 	if teamArg == "" && channelPart == "" {
+		return nil
+	}
+
+	if checkDots(channelPart) || checkSlash(channelPart) {
 		return nil
 	}
 
