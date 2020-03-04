@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -29,11 +28,11 @@ var SystemGetBusyCmd = &cobra.Command{
 }
 
 var SystemSetBusyCmd = &cobra.Command{
-	Use:     "setbusy [seconds]",
+	Use:     "setbusy -s [seconds]",
 	Short:   "Set the busy state to true",
 	Long:    `Set the busy state to true for the specified number of seconds, which disables non-critical services.`,
-	Example: `  system setbusy 3600`,
-	Args:    cobra.ExactArgs(1),
+	Example: `  system setbusy -s 3600`,
+	Args:    cobra.NoArgs,
 	RunE:    withClient(setBusyCmdF),
 }
 
@@ -47,7 +46,8 @@ var SystemClearBusyCmd = &cobra.Command{
 }
 
 func init() {
-	SystemSetBusyCmd.Flags().Uint("seconds", 3600, "Number of seconds until server is automatically marked as not busy.")
+	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
+	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
 		SystemSetBusyCmd,
@@ -56,7 +56,7 @@ func init() {
 	RootCmd.AddCommand(SystemCmd)
 }
 
-func getBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
 	sbs, response := c.GetServerBusy()
@@ -69,10 +69,7 @@ func getBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) == 0 {
-		args = []string{"3600"}
-	}
-	seconds, err := strconv.ParseUint(args[0], 10, 32)
+	seconds, err := cmd.Flags().GetUint("seconds")
 	if err != nil || seconds == 0 {
 		err = fmt.Errorf("seconds must be a number > 0")
 		printer.PrintError(err.Error())
@@ -88,7 +85,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func clearBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	ok, response := c.ClearServerBusy()
 	if response.Error != nil || !ok {
 		printer.PrintError(fmt.Sprintf("Unable to clear busy state: %v", response.Error))

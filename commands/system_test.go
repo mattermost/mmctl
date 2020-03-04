@@ -71,13 +71,16 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		printer.Clean()
 		const minutes = 15
 
+		cmd := &cobra.Command{}
+		cmd.Flags().Uint("seconds", minutes*60, "")
+
 		s.client.
 			EXPECT().
 			SetServerBusy(minutes*60).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
-		err := setBusyCmdF(s.client, &cobra.Command{}, []string{strconv.Itoa(minutes * 60)})
+		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(minutes * 60)})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
@@ -86,23 +89,8 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 
 	s.Run("SetBusy with missing arg", func() {
 		printer.Clean()
-		s.client.
-			EXPECT().
-			SetServerBusy(3600). // endpoint defaults to 3600 seconds
-			Return(true, &model.Response{Error: nil}).
-			Times(1)
 
 		err := setBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("SetBusy invalid seconds", func() {
-		printer.Clean()
-
-		err := setBusyCmdF(s.client, &cobra.Command{}, []string{strconv.Itoa(-1)})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 	})
@@ -110,7 +98,10 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 	s.Run("SetBusy zero seconds", func() {
 		printer.Clean()
 
-		err := setBusyCmdF(s.client, &cobra.Command{}, []string{strconv.Itoa(0)})
+		cmd := &cobra.Command{}
+		cmd.Flags().Uint("seconds", 0, "")
+
+		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(0)})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 	})
