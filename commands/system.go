@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -57,6 +58,7 @@ func getBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	sbs, response := c.GetServerBusy()
 	if response.Error != nil {
+		printer.PrintError("Unable to get busy state: " + response.Error.Error())
 		return response.Error
 	}
 	printer.PrintT("busy:{{.Busy}} expires:{{.Expires}}", sbs)
@@ -64,18 +66,21 @@ func getBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		args = []string{"3600"}
+	}
 	seconds, err := strconv.ParseUint(args[0], 10, 32)
-	if err != nil {
-		printer.PrintError("Seconds must be a number > 0")
+	if err != nil || seconds == 0 {
+		err = fmt.Errorf("seconds must be a number > 0")
+		printer.PrintError(err.Error())
 		return err
 	}
 
 	ok, response := c.SetServerBusy(int(seconds))
 	if response.Error != nil || !ok {
-		printer.PrintError("Unable to set busy state")
+		printer.PrintError(fmt.Sprintf("Unable to set busy state: %v", response.Error))
 		return response.Error
 	}
-
 	printer.Print("Busy state set")
 	return nil
 }
@@ -83,10 +88,9 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	ok, response := c.ClearServerBusy()
 	if response.Error != nil || !ok {
-		printer.PrintError("Unable to clear busy state")
+		printer.PrintError(fmt.Sprintf("Unable to clear busy state: %v", response.Error))
 		return response.Error
 	}
-
 	printer.Print("Busy state cleared")
 	return nil
 }
