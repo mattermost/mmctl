@@ -16,6 +16,7 @@ import (
 var SystemCmd = &cobra.Command{
 	Use:   "system",
 	Short: "System management",
+	Long:  `System management commands for interacting with the server state and configuration.`,
 }
 
 var SystemGetBusyCmd = &cobra.Command{
@@ -23,6 +24,7 @@ var SystemGetBusyCmd = &cobra.Command{
 	Short:   "Get the current busy state",
 	Long:    `Gets the server busy state (high load) and timestamp corresponding to when the server busy flag will be automatically cleared.`,
 	Example: `  system getbusy`,
+	Args:    cobra.NoArgs,
 	RunE:    withClient(getBusyCmdF),
 }
 
@@ -40,6 +42,7 @@ var SystemClearBusyCmd = &cobra.Command{
 	Short:   "Clears the busy state",
 	Long:    `Clear the busy state, which re-enables non-critical services.`,
 	Example: `  system clearbusy`,
+	Args:    cobra.NoArgs,
 	RunE:    withClient(clearBusyCmdF),
 }
 
@@ -81,7 +84,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printer.PrintError(fmt.Sprintf("Unable to set busy state: %v", response.Error))
 		return response.Error
 	}
-	printer.Print("Busy state set")
+	printer.PrintT("Busy state set", map[string]string{"status": "ok"})
 	return nil
 }
 
@@ -91,6 +94,6 @@ func clearBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printer.PrintError(fmt.Sprintf("Unable to clear busy state: %v", response.Error))
 		return response.Error
 	}
-	printer.Print("Busy state cleared")
+	printer.PrintT("Busy state cleared", map[string]string{"status": "ok"})
 	return nil
 }

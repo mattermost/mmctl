@@ -80,7 +80,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		err := setBusyCmdF(s.client, &cobra.Command{}, []string{strconv.Itoa(minutes * 60)})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "Busy state set")
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -95,7 +95,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		err := setBusyCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "Busy state set")
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -128,7 +128,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "Busy state cleared")
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
