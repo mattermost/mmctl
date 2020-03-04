@@ -405,6 +405,15 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("Unable to find user 'example@example.com'", printer.GetErrorLines()[0])
 	})
+
+	s.Run("Avoid path traversal", func() {
+		printer.Clean()
+		arg := "test/../hello?@mattermost.com"
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find user 'test/../hello?@mattermost.com'", printer.GetErrorLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {

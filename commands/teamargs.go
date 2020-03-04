@@ -19,6 +19,10 @@ func getTeamsFromTeamArgs(c client.Client, teamArgs []string) []*model.Team {
 }
 
 func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
+	if checkDots(teamArg) || checkSlash(teamArg) {
+		return nil
+	}
+
 	var team *model.Team
 	team, _ = c.GetTeam(teamArg, "")
 
