@@ -76,18 +76,19 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	ok, response := c.SetServerBusy(int(seconds))
-	if response.Error != nil || !ok {
+	_, response := c.SetServerBusy(int(seconds))
+	if response.Error != nil {
 		printer.PrintError(fmt.Sprintf("Unable to set busy state: %v", response.Error))
 		return response.Error
 	}
+
 	printer.PrintT("Busy state set", map[string]string{"status": "ok"})
 	return nil
 }
 
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
-	ok, response := c.ClearServerBusy()
-	if response.Error != nil || !ok {
+	_, response := c.ClearServerBusy()
+	if response.Error != nil {
 		printer.PrintError(fmt.Sprintf("Unable to clear busy state: %v", response.Error))
 		return response.Error
 	}
