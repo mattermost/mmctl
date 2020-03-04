@@ -26,9 +26,9 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Times(1)
 
 		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], sbs)
+		s.Require().Equal(sbs, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -45,9 +45,9 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 			Times(1)
 
 		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], sbs)
+		s.Require().Equal(sbs, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -56,13 +56,13 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		s.client.
 			EXPECT().
 			GetServerBusy().
-			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
 			Times(1)
 
 		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
 
@@ -81,9 +81,9 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 			Times(1)
 
 		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(minutes * 60)})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
+		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -91,8 +91,9 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		printer.Clean()
 
 		err := setBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NotNil(err)
-		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
 	})
 
 	s.Run("SetBusy zero seconds", func() {
@@ -102,8 +103,9 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		cmd.Flags().Uint("seconds", 0, "")
 
 		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(0)})
-		s.Require().NotNil(err)
-		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
 	})
 }
 
@@ -117,9 +119,9 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 			Times(1)
 
 		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
+		s.Require().Equal(map[string]string{"status": "ok"}, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -128,12 +130,12 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		s.client.
 			EXPECT().
 			ClearServerBusy().
-			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(false, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
 			Times(1)
 
 		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 }

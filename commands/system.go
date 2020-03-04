@@ -6,6 +6,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -61,8 +62,7 @@ func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 
 	sbs, response := c.GetServerBusy()
 	if response.Error != nil {
-		printer.PrintError("Unable to get busy state: " + response.Error.Error())
-		return response.Error
+		return fmt.Errorf("unable to get busy state: %w", response.Error)
 	}
 	printer.PrintT("busy:{{.Busy}} expires:{{.Expires}}", sbs)
 	return nil
@@ -71,15 +71,12 @@ func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	seconds, err := cmd.Flags().GetUint("seconds")
 	if err != nil || seconds == 0 {
-		err = fmt.Errorf("seconds must be a number > 0")
-		printer.PrintError(err.Error())
-		return err
+		return errors.New("seconds must be a number > 0")
 	}
 
 	_, response := c.SetServerBusy(int(seconds))
 	if response.Error != nil {
-		printer.PrintError(fmt.Sprintf("Unable to set busy state: %v", response.Error))
-		return response.Error
+		return fmt.Errorf("unable to set busy state: %w", response.Error)
 	}
 
 	printer.PrintT("Busy state set", map[string]string{"status": "ok"})
@@ -89,8 +86,7 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	_, response := c.ClearServerBusy()
 	if response.Error != nil {
-		printer.PrintError(fmt.Sprintf("Unable to clear busy state: %v", response.Error))
-		return response.Error
+		return fmt.Errorf("unable to clear busy state: %w", response.Error)
 	}
 	printer.PrintT("Busy state cleared", map[string]string{"status": "ok"})
 	return nil
