@@ -107,7 +107,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		s.EqualError(err, "Channel "+channelArg+" was not found in team "+teamArg)
+		s.EqualError(err, "channel "+channelArg+" was not found in team "+teamArg)
 	})
 
 	s.Run("Search for a channel in a nonexistent team", func() {
@@ -134,7 +134,7 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
-		s.EqualError(err, "Team "+teamArg+" was not found")
+		s.EqualError(err, "team "+teamArg+" was not found")
 	})
 }
 
@@ -183,7 +183,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			Times(1)
 
 		err := modifyChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Unable to find channel '"+args[0]+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel %q", args[0]))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -212,7 +212,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			Times(1)
 
 		err := modifyChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Unable to find channel '"+args[0]+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel %q", args[0]))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -296,7 +296,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 			Times(1)
 
 		err := modifyChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Failed to update channel ('"+channel.Id+"') privacy: "+mockError.Error())
+		s.Require().EqualError(err, fmt.Sprintf("failed to update channel (%q) privacy: %s", channel.Id, mockError.Error()))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -1290,7 +1290,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 			Times(1)
 
 		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
-		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
+		s.EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -1311,7 +1311,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 			Times(1)
 
 		err := addChannelUsersCmdF(s.client, cmd, []string{channelArg, userArg})
-		s.EqualError(err, "Unable to find channel '"+channelArg+"'")
+		s.EqualError(err, fmt.Sprintf("unable to find channel %q", channelArg))
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -1694,7 +1694,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		cmd.Flags().String("display_name", newChannelDisplayName, "Channel Display Name")
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when empty channel is supplied", func() {
@@ -1743,7 +1743,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 			Times(1)
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail with empty team and non existing channel", func() {
@@ -1769,7 +1769,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 			Times(1)
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when team is not found", func() {
@@ -1801,7 +1801,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 			Times(1)
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when channel is not found", func() {
@@ -1851,7 +1851,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 			Times(1)
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "unable to find channel from '"+argsTeamChannel+"'")
+		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
 	})
 
 	s.Run("It should fail when api fails to rename", func() {
@@ -1913,7 +1913,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 			Times(1)
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "Cannot rename channel '"+foundChannel.Name+"', error : "+mockError.Error())
+		s.Require().EqualError(err, fmt.Sprintf("cannot rename channel %q, error: %s", foundChannel.Name, mockError.Error()))
 	})
 
 	s.Run("It should work as expected", func() {

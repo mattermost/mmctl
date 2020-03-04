@@ -201,7 +201,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 		commands, response := c.ListCommands(team.Id, true)
 		if response.Error != nil {
-			printer.PrintError("Unable to list commands for '" + args[i] + "'")
+			printer.PrintError("Unable to list commands for '" + team.Id + "'")
 			continue
 		}
 		for _, command := range commands {
