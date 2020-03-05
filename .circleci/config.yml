@@ -1,4 +1,8 @@
 version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.0.5
+
 executors:
   default:
     working_directory: ~/go/src/github.com/mattermost/mmctl
@@ -160,6 +164,19 @@ jobs:
               mattermost/mattermost-build-server:oct-18-2019 \
               bash -c 'ulimit -n 8096 && make test-all'
 
+  coverage:
+    executor:
+      name: default
+    steps:
+      - checkout
+      - *restore_cache
+      - run: 
+          name: Generating Coverage Results
+          command: make coverage
+      - *save_cache
+      - codecov/upload:
+        file:  coverage.txt
+
   build:
     executor:
       name: default
@@ -194,6 +211,7 @@ workflows:
     jobs:
       - docs
       - lint
+      - coverage
       - setup
       - test:
           requires:

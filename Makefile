@@ -85,6 +85,11 @@ test-all:
 	@echo Running all tests
 	$(GO) test -mod=vendor -race -v -tags 'unit e2e' $(GO_PACKAGES)
 
+.PHONY: coverage
+coverage:
+	$(GO) test -mod=vendor -race -tags unit -coverprofile=coverage.txt ./...
+	$(GO) tool cover -html=coverage.txt
+
 check: gofmt govet
 
 vendor:
