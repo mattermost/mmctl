@@ -64,11 +64,13 @@ func getBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	if response.Error != nil {
 		return fmt.Errorf("unable to get busy state: %w", response.Error)
 	}
-	printer.PrintT("busy:{{.Busy}} expires:{{.Expires}}", sbs)
+	printer.PrintT("busy:{{.Busy}} expires:{{.Expires_ts}}", sbs)
 	return nil
 }
 
 func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
 	seconds, err := cmd.Flags().GetUint("seconds")
 	if err != nil || seconds == 0 {
 		return errors.New("seconds must be a number > 0")
@@ -84,6 +86,8 @@ func setBusyCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	printer.SetSingle(true)
+
 	_, response := c.ClearServerBusy()
 	if response.Error != nil {
 		return fmt.Errorf("unable to clear busy state: %w", response.Error)
