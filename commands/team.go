@@ -69,12 +69,12 @@ var SearchTeamCmd = &cobra.Command{
 
 // RenameTeamCmd is the command to rename team along with its display name
 var RenameTeamCmd = &cobra.Command{
-	Use:   "rename [team]",
-	Short: "Rename team",
-	Long:  "Rename an existing team",
+	Use:     "rename [team]",
+	Short:   "Rename team",
+	Long:    "Rename an existing team",
 	Example: "  team rename old-team --display_name 'New Display Name'",
-	Args: cobra.ExactArgs(1),
-	RunE: withClient(renameTeamCmdF),
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(renameTeamCmdF),
 }
 
 func init() {
