@@ -72,9 +72,7 @@ var RenameTeamCmd = &cobra.Command{
 	Use:   "rename [team]",
 	Short: "Rename team",
 	Long:  "Rename an existing team",
-	Example: `  team rename old-team --name 'new-team' --display_name 'New Display Name'
-  team rename old-team --name 'new-team'
-  team rename old-team --display_name 'New Display Name'`,
+	Example: "  team rename old-team --display_name 'New Display Name'",
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(renameTeamCmdF),
 }
@@ -89,8 +87,8 @@ func init() {
 	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
 
 	// Add flag declaration for RenameTeam
-	RenameTeamCmd.Flags().String("name", "", "Old Team Name")
 	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
+	_ = RenameTeamCmd.MarkFlagRequired("display_name")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -239,24 +237,13 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
 	newDisplayName, _ := cmd.Flags().GetString("display_name")
-	newTeamName, _ := cmd.Flags().GetString("name")
-
-	// If both flags are absent, abort!
-	if newTeamName == "" && newDisplayName == "" {
-		return errors.New("require at least one flag to rename team, either 'name' or 'display_name'")
-	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	if newTeamName != "" {
-		team.Name = newTeamName
-	}
-	if newDisplayName != "" {
-		team.DisplayName = newDisplayName
-	}
+	team.DisplayName = newDisplayName
 
 	// Using UpdateTeam API Method to rename team
 	_, response := c.UpdateTeam(team)
