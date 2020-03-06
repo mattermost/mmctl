@@ -2,15 +2,13 @@ module github.com/mattermost/mmctl
 
 go 1.13
 
-replace github.com/mattermost/mattermost-server/v5 => /home/dlauder/Development/mattermost/mattermost-server
-
 require (
 	github.com/golang/mock v1.3.1
 	github.com/magefile/mage v1.9.0
-	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200129165621-40b7790318ad
+	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200306103707-398a12329a3f
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.4.0
-	golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
+	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 )

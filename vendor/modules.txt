@@ -45,7 +45,7 @@ github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 github.com/mattermost/ldap
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200129165621-40b7790318ad => /home/dlauder/Development/mattermost/mattermost-server
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200306103707-398a12329a3f
 github.com/mattermost/mattermost-server/v5/mlog
 github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
@@ -97,7 +97,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20200117160349-530e935923ad
+# golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/ssh/terminal
@@ -117,7 +117,7 @@ golang.org/x/text/internal/tag
 golang.org/x/text/language
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20200211205636-11eff242d136
+# golang.org/x/tools v0.0.0-20200213050514-49b8ac185c84
 golang.org/x/tools/go/analysis
 golang.org/x/tools/go/analysis/passes/inspect
 golang.org/x/tools/go/ast/astutil
