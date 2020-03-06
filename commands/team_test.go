@@ -114,44 +114,12 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
-	s.Run("Team rename should fail with missing name and display name flag", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		args := []string{""}
-		args[0] = "existingName"
-
-		err := renameTeamCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
-	})
-
-	s.Run("Team rename should fail with invalid flags", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		args := []string{""}
-		args[0] = "existingName"
-
-		// Setting incorrect name flag
-		cmd.Flags().String("-name", "newName", "Team Name Name")
-		err := renameTeamCmdF(s.client, cmd, args)
-
-		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
-
-		// Setting flag as display-name instead of display_name
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
-		s.Require().EqualError(err, "require at least one flag to rename team, either 'name' or 'display_name'")
-	})
-
 	s.Run("Team rename should fail when unknown existing team name is entered", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 
 		args := []string{""}
 		args[0] = "existingName"
-		cmd.Flags().String("name", "newName", "Team Name")
 		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 
 		// Mocking : GetTeam searches with team id, if team not found proceeds with team name search
@@ -179,22 +147,18 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		existingName := "existingTeamName"
 		existingDisplayName := "existingDisplayName"
 		newDisplayName := "NewDisplayName"
-		newName := "newTeamName"
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
 		cmd.Flags().String("display_name", newDisplayName, "Display Name")
 
 		// Only reduced model.Team struct for testing per say
 		// as we are interested in updating only name and display name
 		foundTeam := &model.Team{
 			DisplayName: existingDisplayName,
-			Name:        existingName,
 		}
 		renamedTeam := &model.Team{
 			DisplayName: newDisplayName,
-			Name:        newName,
 		}
 
 		s.client.
@@ -231,56 +195,6 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		existingName := "existingTeamName"
 		existingDisplayName := "existingDisplayName"
 		newDisplayName := "NewDisplayName"
-		newName := "newTeamName"
-		args := []string{""}
-
-		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
-
-		foundTeam := &model.Team{
-			DisplayName: existingDisplayName,
-			Name:        existingName,
-		}
-		updatedTeam := &model.Team{
-			DisplayName: newDisplayName,
-			Name:        newName,
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(updatedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
-	})
-
-	s.Run("Team rename should work as expected even if only display name is supplied", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newDisplayName := "NewDisplayName"
 		args := []string{""}
 
 		args[0] = existingName
@@ -288,61 +202,9 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		foundTeam := &model.Team{
 			DisplayName: existingDisplayName,
-			Name:        existingName,
 		}
-
 		updatedTeam := &model.Team{
 			DisplayName: newDisplayName,
-			Name:        existingName,
-		}
-
-		s.client.
-			EXPECT().
-			GetTeam(args[0], "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(args[0], "").
-			Return(foundTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			UpdateTeam(updatedTeam).
-			Return(updatedTeam, &model.Response{Error: nil}).
-			Times(1)
-
-		err := renameTeamCmdF(s.client, cmd, args)
-
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], "'"+existingName+"' team renamed")
-	})
-
-	s.Run("Team rename should work as expected even if only name is supplied", func() {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-
-		existingName := "existingTeamName"
-		existingDisplayName := "existingDisplayName"
-		newName := "newTeamName"
-		args := []string{""}
-
-		args[0] = existingName
-		cmd.Flags().String("name", newName, "Display Name")
-
-		foundTeam := &model.Team{
-			DisplayName: existingDisplayName,
-			Name:        existingName,
-		}
-
-		updatedTeam := &model.Team{
-			DisplayName: existingDisplayName,
-			Name:        newName,
 		}
 
 		s.client.
