@@ -1012,7 +1012,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
-		s.Require().Error(err)
+		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -1042,11 +1042,11 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(teamTrigger).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "command not found"}}).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "bogus"}}).
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
-		s.Require().Error(err)
+		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

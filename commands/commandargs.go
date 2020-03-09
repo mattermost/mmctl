@@ -26,10 +26,6 @@ func getCommandFromCommandArg(c client.Client, commandArg string) *model.Command
 
 // getCommandFromTeamTrigger retrieves a Command via team:trigger syntax.
 func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Command {
-	if !strings.Contains(teamTrigger, ":") {
-		return nil
-	}
-
 	arr := strings.Split(teamTrigger, ":")
 	if len(arr) != 2 {
 		return nil
