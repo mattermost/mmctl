@@ -211,7 +211,9 @@ workflows:
     jobs:
       - docs
       - lint
-      - coverage
+      - coverage:
+          requires:
+            - test
       - setup
       - test:
           requires:
