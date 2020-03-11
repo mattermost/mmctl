@@ -1,4 +1,4 @@
-.PHONY: vendor docs mocks
+.PHONY: vendor docs mocks coverage
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
 BUILD_HASH ?= $(shell git rev-parse HEAD)
@@ -84,6 +84,10 @@ test-e2e:
 test-all:
 	@echo Running all tests
 	$(GO) test -mod=vendor -race -v -tags 'unit e2e' $(GO_PACKAGES)
+
+coverage:
+	$(GO) test -mod=vendor -race -tags unit -coverprofile=coverage.txt ./...
+	$(GO) tool cover -html=coverage.txt
 
 check: gofmt govet
 
