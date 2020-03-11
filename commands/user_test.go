@@ -405,6 +405,15 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("Unable to find user 'example@example.com'", printer.GetErrorLines()[0])
 	})
+
+	s.Run("Avoid path traversal", func() {
+		printer.Clean()
+		arg := "test/../hello?@mattermost.com"
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find user 'test/../hello?@mattermost.com'", printer.GetErrorLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
@@ -582,7 +591,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Return(resultTeamModels[3], &model.Response{Error: nil}).
 			Times(1)
 
-		// Setup InvitUsersToTeam
+		// Setup InviteUsersToTeam
 		for _, resultTeamModel := range resultTeamModels {
 			s.client.
 				EXPECT().
@@ -720,7 +729,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Return(resultTeamModels[3], &model.Response{Error: nil}).
 			Times(1)
 
-		// Setup InvitUsersToTeam
+		// Setup InviteUsersToTeam
 		s.client.
 			EXPECT().
 			InviteUsersToTeam(resultTeamModels[0].Id, []string{argUser}).

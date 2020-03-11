@@ -4,3 +4,5 @@ build
 
 # Editor files
 .vscode
+
+coverage.txt
