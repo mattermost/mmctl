@@ -71,4 +71,7 @@ type Client interface {
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
+	SetServerBusy(secs int) (bool, *model.Response)
+	ClearServerBusy() (bool, *model.Response)
+	GetServerBusy() (*model.ServerBusyState, *model.Response)
 }
