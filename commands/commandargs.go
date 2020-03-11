@@ -41,16 +41,15 @@ func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Comma
 		return nil
 	}
 
-	var cmd *model.Command
 	list, _ := c.ListCommands(team.Id, false)
 	if list == nil {
 		return nil
 	}
 
-	for _, c := range list {
-		if c.Trigger == trigger {
-			cmd = c
+	for _, cmd := range list {
+		if cmd.Trigger == trigger {
+			return cmd
 		}
 	}
-	return cmd
+	return nil
 }
