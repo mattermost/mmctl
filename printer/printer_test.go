@@ -34,7 +34,7 @@ func TestPrintT(t *testing.T) {
 	t.Run("should execute template", func(t *testing.T) {
 		tpl := `testing template {{.ID}}`
 		PrintT(tpl, ts)
-		assert.Equal(t, "testing template 123", printer.Lines[0], "should be equal")
+		assert.Equal(t, "testing template 123", printer.Lines[0])
 	})
 
 	t.Run("should fail to execute, no method or field", func(t *testing.T) {
