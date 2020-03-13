@@ -47,8 +47,7 @@ func TestPrintT(t *testing.T) {
 
 func TestFlush(t *testing.T) {
 	mw := &mockWriter{}
-	w := mw
-	printer.writer = w
+	printer.writer = mw
 	printer.Format = FormatJSON
 
 	t.Run("should print a line in JSON format", func(t *testing.T) {
