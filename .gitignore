@@ -6,3 +6,4 @@ build
 .vscode
 
 coverage.txt
+mmctl.md5.txt
