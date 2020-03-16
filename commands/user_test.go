@@ -1684,13 +1684,7 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockUser.Id, mockToken.Description})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Contains(printer.GetLines()[0], mockToken.Token)
-	})
-
-	s.Run("Should fail for not enough args", func() {
-		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{""})
-		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "expected at least two arguments.")
+		s.Require().Equal(&mockToken, printer.GetLines()[0])
 	})
 
 	s.Run("Should fail on an invalid username", func() {
@@ -1788,8 +1782,8 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
-		s.Require().Contains(printer.GetLines()[0], mockToken1.Id)
-		s.Require().Contains(printer.GetLines()[1], mockToken2.Id)
+		s.Require().Equal(&mockToken1, printer.GetLines()[0])
+		s.Require().Equal(&mockToken2, printer.GetLines()[1])
 	})
 
 	s.Run("Should list only active access tokens of a user", func() {
@@ -1822,7 +1816,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Contains(printer.GetLines()[0], mockToken1.Id)
+		s.Require().Equal(&mockToken1, printer.GetLines()[0])
 	})
 
 	s.Run("Should err on a absent user", func() {

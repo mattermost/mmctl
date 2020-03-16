@@ -8,11 +8,10 @@
 package mocks
 
 import (
-	io "io"
-	reflect "reflect"
-
 	gomock "github.com/golang/mock/gomock"
 	model "github.com/mattermost/mattermost-server/v5/model"
+	io "io"
+	reflect "reflect"
 )
 
 // MockClient is a mock of Client interface
@@ -563,6 +562,21 @@ func (m *MockClient) GetUser(arg0, arg1 string) (*model.User, *model.Response) {
 func (mr *MockClientMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockClient)(nil).GetUser), arg0, arg1)
+}
+
+// GetUserAccessTokensForUser mocks base method
+func (m *MockClient) GetUserAccessTokensForUser(arg0 string, arg1, arg2 int) ([]*model.UserAccessToken, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserAccessTokensForUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.UserAccessToken)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUserAccessTokensForUser indicates an expected call of GetUserAccessTokensForUser
+func (mr *MockClientMockRecorder) GetUserAccessTokensForUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserAccessTokensForUser", reflect.TypeOf((*MockClient)(nil).GetUserAccessTokensForUser), arg0, arg1, arg2)
 }
 
 // GetUserByEmail mocks base method

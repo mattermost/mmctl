@@ -116,6 +116,7 @@ var ListUserTokensCmd = &cobra.Command{
 	Long:    "List the tokens of a user",
 	Example: "  user tokens testuser",
 	RunE:    withClient(listTokensOfAUserCmdF),
+	Args:    cobra.ExactArgs(1),
 }
 
 func init() {
@@ -138,7 +139,7 @@ func init() {
 	ListUserTokensCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUserTokensCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUserTokensCmd.Flags().Bool("all", false, "Fetch all tokens. --page flag will be ignore if provided")
-	ListUserTokensCmd.Flags().Bool("active", false, "List only active tokens")
+	ListUserTokensCmd.Flags().Bool("active", true, "List only active tokens")
 	ListUserTokensCmd.Flags().Bool("inactive", false, "List only inactive tokens")
 
 	UserCmd.AddCommand(
@@ -429,10 +430,6 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []string) error {
-	if len(args) != 2 {
-		return errors.New("expected at least two arguments. See help text for details")
-	}
-
 	userArg := args[0]
 	user := getUserFromUserArg(c, userArg)
 	if user == nil {
@@ -449,10 +446,6 @@ func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []s
 }
 
 func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return errors.New("expected at least one argument. See help text for details")
-	}
-
 	page, _ := command.Flags().GetInt("page")
 	perPage, _ := command.Flags().GetInt("per-page")
 	showAll, _ := command.Flags().GetBool("all")
@@ -474,14 +467,13 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 	if res.Error != nil {
 		return errors.Errorf("could not retrieve tokens for user %q: %s", userArg, res.Error.Error())
 	}
-
 	if len(tokens) == 0 {
 		return errors.Errorf("there are no tokens for the %q", userArg)
 	}
 
 	for _, t := range tokens {
 		if t.IsActive && !inactive {
-			printer.Print(fmt.Sprintf("%s : %s", t.Id, t.Description))
+			printer.PrintT("{{.Id}}: {{.Description}}", t)
 		}
 		if !t.IsActive && !active {
 			printer.PrintT("{{.Id}}: {{.Description}}", t)
