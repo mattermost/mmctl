@@ -33,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		autocompleteDesc := "autocompleteDesc"
 		autocompleteHint := "autocompleteHint"
 
-		mockTeam := model.Team{Id: teamArg}
+		mockTeam := model.Team{Id: teamArg, Name: "TeamRed"}
 		mockUser := model.User{Id: creatorIDArg, Username: creatorUsernameArg}
 		mockCommand := model.Command{
 			TeamId:           teamArg,
@@ -678,7 +678,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.EqualError(err, "a trigger word must not contain spaces")
 	})
 
-	s.Run("Create slash command with trigger word prefixed with /", func() {
+	s.Run("Modify slash command with trigger word prefixed with /", func() {
 		printer.Clean()
 		mockCommandModified := copyCommand(&mockCommand)
 		mockCommandModified.Trigger = "/modified_with_slash"
@@ -709,7 +709,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.EqualError(err, "a trigger word cannot begin with a /")
 	})
 
-	s.Run("Create slash command fail", func() {
+	s.Run("Modify slash command fail", func() {
 		printer.Clean()
 		mockCommandModified := copyCommand(&mockCommand)
 		mockCommandModified.Trigger = creatorIDArg + "_modified"
@@ -928,8 +928,9 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		AutoCompleteDesc: "example autocomplete description",
 		AutoCompleteHint: "autocompleteHint",
 	}
+	mockTeam := model.Team{Id: "mockteamid", Name: "TeamRed"}
 
-	s.Run("Show custom slash command", func() {
+	s.Run("Show custom slash command via id", func() {
 		printer.Clean()
 
 		// showCommandCmdF will look up command by id
@@ -958,6 +959,94 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
 		s.Require().NotNil(err)
 		s.EqualError(err, "unable to find command '"+commandArgBogus+"'")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Show custom slash command via team:trigger", func() {
+		printer.Clean()
+
+		list := []*model.Command{copyCommand(&mockCommand), &mockCommand, copyCommand(&mockCommand)}
+		list[0].Trigger = "bloop"
+		list[2].Trigger = "bleep"
+
+		s.client.
+			EXPECT().
+			GetTeamByName(mockTeam.Name, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			ListCommands(mockTeam.Id, false).
+			Return(list, &model.Response{Error: nil}).
+			Times(1)
+
+		err := showCommandCmdF(s.client, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", mockTeam.Name, mockCommand.Trigger)})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Equal(&mockCommand, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Show custom slash command via team:trigger with invalid team", func() {
+		printer.Clean()
+
+		list := []*model.Command{copyCommand(&mockCommand), &mockCommand, copyCommand(&mockCommand)}
+		list[0].Trigger = "bloop"
+		list[2].Trigger = "bleep"
+
+		const teamName = "bogus_team"
+		teamTrigger := fmt.Sprintf("%s:%s", teamName, mockCommand.Trigger)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{Message: "team not found"}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetCommandById(teamTrigger).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "command not found"}}).
+			Times(1)
+
+		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
+		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Show custom slash command via team:trigger with invalid trigger", func() {
+		printer.Clean()
+
+		list := []*model.Command{copyCommand(&mockCommand), &mockCommand, copyCommand(&mockCommand)}
+		list[0].Trigger = "bloop"
+		list[2].Trigger = "bleep"
+
+		const trigger = "bogus_trigger"
+		teamTrigger := fmt.Sprintf("%s:%s", mockTeam.Name, trigger)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(mockTeam.Name, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			ListCommands(mockTeam.Id, false).
+			Return(list, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetCommandById(teamTrigger).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "bogus"}}).
+			Times(1)
+
+		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
+		s.Require().EqualError(err, fmt.Sprintf("unable to find command '%s'", teamTrigger))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

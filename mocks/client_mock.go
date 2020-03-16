@@ -68,6 +68,21 @@ func (mr *MockClientMockRecorder) AddTeamMember(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTeamMember", reflect.TypeOf((*MockClient)(nil).AddTeamMember), arg0, arg1)
 }
 
+// ClearServerBusy mocks base method
+func (m *MockClient) ClearServerBusy() (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ClearServerBusy")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ClearServerBusy indicates an expected call of ClearServerBusy
+func (mr *MockClientMockRecorder) ClearServerBusy() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearServerBusy", reflect.TypeOf((*MockClient)(nil).ClearServerBusy))
+}
+
 // ConvertChannelToPrivate mocks base method
 func (m *MockClient) ConvertChannelToPrivate(arg0 string) (*model.Channel, *model.Response) {
 	m.ctrl.T.Helper()
@@ -490,6 +505,21 @@ func (mr *MockClientMockRecorder) GetRoleByName(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoleByName", reflect.TypeOf((*MockClient)(nil).GetRoleByName), arg0)
 }
 
+// GetServerBusy mocks base method
+func (m *MockClient) GetServerBusy() (*model.ServerBusyState, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServerBusy")
+	ret0, _ := ret[0].(*model.ServerBusyState)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetServerBusy indicates an expected call of GetServerBusy
+func (mr *MockClientMockRecorder) GetServerBusy() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServerBusy", reflect.TypeOf((*MockClient)(nil).GetServerBusy))
+}
+
 // GetTeam mocks base method
 func (m *MockClient) GetTeam(arg0, arg1 string) (*model.Team, *model.Response) {
 	m.ctrl.T.Helper()
@@ -533,21 +563,6 @@ func (m *MockClient) GetUser(arg0, arg1 string) (*model.User, *model.Response) {
 func (mr *MockClientMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockClient)(nil).GetUser), arg0, arg1)
-}
-
-// GetUserAccessTokensForUser mocks base method
-func (m *MockClient) GetUserAccessTokensForUser(arg0 string, arg1, arg2 int) ([]*model.UserAccessToken, *model.Response) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserAccessTokensForUser", arg0, arg1, arg2)
-	ret0, _ := ret[0].([]*model.UserAccessToken)
-	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
-}
-
-// GetUserAccessTokensForUser indicates an expected call of GetUserAccessTokensForUser
-func (mr *MockClientMockRecorder) GetUserAccessTokensForUser(arg0, arg1, arg2 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserAccessTokensForUser", reflect.TypeOf((*MockClient)(nil).GetUserAccessTokensForUser), arg0, arg1, arg2)
 }
 
 // GetUserByEmail mocks base method
@@ -803,6 +818,21 @@ func (m *MockClient) SendPasswordResetEmail(arg0 string) (bool, *model.Response)
 func (mr *MockClientMockRecorder) SendPasswordResetEmail(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendPasswordResetEmail", reflect.TypeOf((*MockClient)(nil).SendPasswordResetEmail), arg0)
+}
+
+// SetServerBusy mocks base method
+func (m *MockClient) SetServerBusy(arg0 int) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetServerBusy", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// SetServerBusy indicates an expected call of SetServerBusy
+func (mr *MockClientMockRecorder) SetServerBusy(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetServerBusy", reflect.TypeOf((*MockClient)(nil).SetServerBusy), arg0)
 }
 
 // SoftDeleteTeam mocks base method
