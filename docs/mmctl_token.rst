@@ -1,33 +1,22 @@
-.. _mmctl_user_generate-token:
+.. _mmctl_token:
 
-mmctl user generate-token
--------------------------
+mmctl token
+-----------
 
-Generate token for a user
+manage users' access tokens
 
 Synopsis
 ~~~~~~~~
 
 
-Generate token for a user
-
-::
-
-  mmctl user generate-token [user] [description] [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    generate-token testuser test-token
+manage users' access tokens
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for generate-token
+  -h, --help   help for token
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -41,5 +30,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl token generate <mmctl_token_generate.rst>`_ 	 - Generate token for a user
+* `mmctl token list <mmctl_token_list.rst>`_ 	 - List users tokens
 

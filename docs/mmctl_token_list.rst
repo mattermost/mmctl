@@ -1,7 +1,7 @@
-.. _mmctl_user_tokens:
+.. _mmctl_token_list:
 
-mmctl user tokens
------------------
+mmctl token list
+----------------
 
 List users tokens
 
@@ -13,7 +13,7 @@ List the tokens of a user
 
 ::
 
-  mmctl user tokens [user] [flags]
+  mmctl token list [user] [flags]
 
 Examples
 ~~~~~~~~
@@ -29,7 +29,7 @@ Options
 
       --active         List only active tokens (default true)
       --all            Fetch all tokens. --page flag will be ignore if provided
-  -h, --help           help for tokens
+  -h, --help           help for list
       --inactive       List only inactive tokens
       --page int       Page number to fetch for the list of users
       --per-page int   Number of users to be fetched (default 200)
@@ -46,5 +46,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
 
