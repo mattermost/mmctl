@@ -591,7 +591,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Return(resultTeamModels[3], &model.Response{Error: nil}).
 			Times(1)
 
-		// Setup InvitUsersToTeam
+		// Setup InviteUsersToTeam
 		for _, resultTeamModel := range resultTeamModels {
 			s.client.
 				EXPECT().
@@ -729,7 +729,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Return(resultTeamModels[3], &model.Response{Error: nil}).
 			Times(1)
 
-		// Setup InvitUsersToTeam
+		// Setup InviteUsersToTeam
 		s.client.
 			EXPECT().
 			InviteUsersToTeam(resultTeamModels[0].Id, []string{argUser}).

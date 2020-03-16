@@ -38,6 +38,7 @@ SEE ALSO
 * `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
 * `mmctl plugin <mmctl_plugin.rst>`_ 	 - Management of plugins
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl system <mmctl_system.rst>`_ 	 - System management
 * `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
 * `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 * `mmctl version <mmctl_version.rst>`_ 	 - Prints the version of mmctl.

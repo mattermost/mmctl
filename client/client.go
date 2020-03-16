@@ -72,4 +72,7 @@ type Client interface {
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
 	CreateBot(bot *model.Bot) (*model.Bot, *model.Response)
+	SetServerBusy(secs int) (bool, *model.Response)
+	ClearServerBusy() (bool, *model.Response)
+	GetServerBusy() (*model.ServerBusyState, *model.Response)
 }

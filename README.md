@@ -1,4 +1,8 @@
-# mmctl ![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/mattermost/mmctl)](https://goreportcard.com/report/github.com/mattermost/mmctl)
+# mmctl
+
+![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg)
+[![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mmctl/master.svg)](https://codecov.io/gh/mattermost/mmctl/branch/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mattermost/mmctl)](https://goreportcard.com/report/github.com/mattermost/mmctl)
 
 A remote CLI tool for [Mattermost](https://github.com/mattermost/mattermost-server): the Open Source, self-hosted Slack-alternative.
 
