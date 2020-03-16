@@ -1,33 +1,33 @@
-.. _mmctl_token_generate:
+.. _mmctl_token_revoke:
 
-mmctl token generate
---------------------
+mmctl token revoke
+------------------
 
-Generate token for a user
+Revoke tokens for a user
 
 Synopsis
 ~~~~~~~~
 
 
-Generate token for a user
+Revoke tokens for a user
 
 ::
 
-  mmctl token generate [user] [description] [flags]
+  mmctl token revoke [user] [token-ids] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    generate testuser test-token
+    revoke testuser test-token-id
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for generate
+  -h, --help   help for revoke
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

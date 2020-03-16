@@ -59,6 +59,7 @@ type Client interface {
 	UpdateUser(user *model.User) (*model.User, *model.Response)
 	UpdateUserMfa(userId, code string, activate bool) (bool, *model.Response)
 	CreateUserAccessToken(userId, description string) (*model.UserAccessToken, *model.Response)
+	RevokeUserAccessToken(tokenId string) (bool, *model.Response)
 	GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.Response)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.Response)
 	ListCommands(teamId string, customOnly bool) ([]*model.Command, *model.Response)

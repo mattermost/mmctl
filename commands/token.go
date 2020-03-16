@@ -20,9 +20,18 @@ var GenerateUserTokenCmd = &cobra.Command{
 	Use:     "generate [user] [description]",
 	Short:   "Generate token for a user",
 	Long:    "Generate token for a user",
-	Example: "  generate-token testuser test-token",
+	Example: "  generate testuser test-token",
 	RunE:    withClient(generateTokenForAUserCmdF),
 	Args:    cobra.ExactArgs(2),
+}
+
+var RevokeUserTokenCmd = &cobra.Command{
+	Use:     "revoke [user] [token-ids]",
+	Short:   "Revoke tokens for a user",
+	Long:    "Revoke tokens for a user",
+	Example: "  revoke testuser test-token-id",
+	RunE:    withClient(revokeTokenForAUserCmdF),
+	Args:    cobra.MinimumNArgs(2),
 }
 
 var ListUserTokensCmd = &cobra.Command{
@@ -43,6 +52,7 @@ func init() {
 
 	TokenCmd.AddCommand(
 		GenerateUserTokenCmd,
+		RevokeUserTokenCmd,
 		ListUserTokensCmd,
 	)
 
@@ -99,6 +109,25 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 		}
 		if !t.IsActive && !active {
 			printer.PrintT("{{.Id}}: {{.Description}}", t)
+		}
+	}
+	return nil
+}
+
+func revokeTokenForAUserCmdF(c client.Client, command *cobra.Command, args []string) error {
+	userArg := args[0]
+	user := getUserFromUserArg(c, userArg)
+	if user == nil {
+		return errors.Errorf("could not retrieve user information of %q", userArg)
+	}
+
+	for _, id := range args[1:] {
+		ok, res := c.RevokeUserAccessToken(id)
+		if res.Error != nil {
+			return errors.Errorf("could not revoke token %q: %s", id, res.Error.Error())
+		}
+		if !ok {
+			return errors.Errorf("could not revoke token %q", id)
 		}
 	}
 	return nil
