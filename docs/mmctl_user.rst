@@ -35,9 +35,11 @@ SEE ALSO
 * `mmctl user create <mmctl_user_create.rst>`_ 	 - Create a user
 * `mmctl user deactivate <mmctl_user_deactivate.rst>`_ 	 - Deactivate users
 * `mmctl user email <mmctl_user_email.rst>`_ 	 - Change email of the user
+* `mmctl user generate-token <mmctl_user_generate-token.rst>`_ 	 - Generate token for a user
 * `mmctl user invite <mmctl_user_invite.rst>`_ 	 - Send user an email invite to a team.
 * `mmctl user list <mmctl_user_list.rst>`_ 	 - List users
 * `mmctl user reset_password <mmctl_user_reset_password.rst>`_ 	 - Send users an email to reset their password
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
+* `mmctl user tokens <mmctl_user_tokens.rst>`_ 	 - List users tokens
 
