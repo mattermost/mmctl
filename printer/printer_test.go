@@ -62,6 +62,7 @@ func TestFlush(t *testing.T) {
 
 		Flush()
 		assert.Equal(t, "[\n  \"test string\"\n]\n", string(*mw))
+		assert.Empty(t, GetLines(), 0)
 	})
 
 	t.Run("should print multi line in JSON format", func(t *testing.T) {
@@ -75,5 +76,6 @@ func TestFlush(t *testing.T) {
 
 		Flush()
 		assert.Equal(t, "[\n  \"test string-1\",\n  \"test string-2\"\n]\n", string(*mw))
+		assert.Empty(t, GetLines(), 0)
 	})
 }
