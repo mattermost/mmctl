@@ -484,7 +484,7 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 			printer.Print(fmt.Sprintf("%s : %s", t.Id, t.Description))
 		}
 		if !t.IsActive && !active {
-			printer.Print(fmt.Sprintf("%s : %s", t.Id, t.Description))
+			printer.PrintT("{{.Id}}: {{.Description}}", t)
 		}
 	}
 	return nil
