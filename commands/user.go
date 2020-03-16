@@ -107,7 +107,7 @@ var GenerateUserTokenCmd = &cobra.Command{
 	Long:    "Generate token for a user",
 	Example: "  generate-token testuser test-token",
 	RunE:    withClient(generateTokenForAUserCmdF),
-	Args:    cobra.MinimumNArgs(2),
+	Args:    cobra.ExactArgs(2),
 }
 
 var ListUserTokensCmd = &cobra.Command{
