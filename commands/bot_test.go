@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/printer"
@@ -31,13 +29,7 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 		err := botCreateCmdF(s.client, cmd, []string{botArg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], fmt.Sprintf("Created bot %s", mockBot.UserId))
-	})
-
-	s.Run("Should error if no arg provided", func() {
-		err := botCreateCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "expected at least one argument. See help text for details")
+		s.Require().Equal(&mockBot, printer.GetLines()[0])
 	})
 
 	s.Run("Should error when creating a bot", func() {

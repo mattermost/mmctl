@@ -72,11 +72,4 @@ type Client interface {
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
 	CreateBot(bot *model.Bot) (*model.Bot, *model.Response)
-	// PatchBot(userId string, patch *model.BotPatch) (*model.Bot, *model.Response)
-	// GetBots(page, perPage int, etag string) ([]*model.Bot, *model.Response)
-	// GetBotsIncludeDeleted(page, perPage int, etag string) ([]*model.Bot, *model.Response)
-	// GetBotsOrphaned(page, perPage int, etag string) ([]*model.Bot, *model.Response)
-	// DisableBot(botUserId string) (*model.Bot, *model.Response)
-	// EnableBot(botUserId string) (*model.Bot, *model.Response)
-	// AssignBot(botUserId, newOwnerId string) (*model.Bot, *model.Response)
 }

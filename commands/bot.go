@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
@@ -26,6 +24,7 @@ var CreateBotCmd = &cobra.Command{
 	Long:    "Create bot.",
 	Example: `  bot create testbot`,
 	RunE:    withClient(botCreateCmdF),
+	Args:    cobra.ExactArgs(1),
 }
 
 func init() {
@@ -40,10 +39,6 @@ func init() {
 }
 
 func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("expected at least one argument. See help text for details")
-	}
-
 	username := args[0]
 	displayName, _ := cmd.Flags().GetString("display-name")
 	description, _ := cmd.Flags().GetString("description")
