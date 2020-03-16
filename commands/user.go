@@ -443,7 +443,7 @@ func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []s
 	if res.Error != nil {
 		return errors.Errorf("could not create token for %q: %s", userArg, res.Error.Error())
 	}
-	printer.Print(fmt.Sprintf("%s : %s", token.Token, token.Description))
+	printer.PrintT("{{.Token}}: {{.Description}}", token)
 
 	return nil
 }
