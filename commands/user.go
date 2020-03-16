@@ -107,7 +107,7 @@ var GenerateUserTokenCmd = &cobra.Command{
 	Long:    "Generate token for a user",
 	Example: "  generate-token testuser test-token",
 	RunE:    withClient(generateTokenForAUserCmdF),
-	Args:    cobra.MinimumNArgs(2),
+	Args:    cobra.ExactArgs(2),
 }
 
 var ListUserTokensCmd = &cobra.Command{
@@ -443,7 +443,7 @@ func generateTokenForAUserCmdF(c client.Client, command *cobra.Command, args []s
 	if res.Error != nil {
 		return errors.Errorf("could not create token for %q: %s", userArg, res.Error.Error())
 	}
-	printer.Print(fmt.Sprintf("%s : %s", token.Token, token.Description))
+	printer.PrintT("{{.Token}}: {{.Description}}", token)
 
 	return nil
 }
@@ -453,30 +453,11 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	page, err := command.Flags().GetInt("page")
-	if err != nil {
-		return err
-	}
-
-	perPage, err := command.Flags().GetInt("per-page")
-	if err != nil {
-		return err
-	}
-
-	showAll, err := command.Flags().GetBool("all")
-	if err != nil {
-		return err
-	}
-
-	active, err := command.Flags().GetBool("active")
-	if err != nil {
-		return err
-	}
-
-	inactive, err := command.Flags().GetBool("inactive")
-	if err != nil {
-		return err
-	}
+	page, _ := command.Flags().GetInt("page")
+	perPage, _ := command.Flags().GetInt("per-page")
+	showAll, _ := command.Flags().GetBool("all")
+	active, _ := command.Flags().GetBool("active")
+	inactive, _ := command.Flags().GetBool("inactive")
 
 	if showAll {
 		page = 0
@@ -503,7 +484,7 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 			printer.Print(fmt.Sprintf("%s : %s", t.Id, t.Description))
 		}
 		if !t.IsActive && !active {
-			printer.Print(fmt.Sprintf("%s : %s", t.Id, t.Description))
+			printer.PrintT("{{.Id}}: {{.Description}}", t)
 		}
 	}
 	return nil
