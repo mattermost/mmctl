@@ -57,7 +57,7 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.Errorf("could not create bot: %s", err)
 	}
 
-	printer.Print(fmt.Sprintf("Created bot %s", bot.UserId))
+	printer.PrintT("Created bot {{.UserId}}", bot)
 
 	return nil
 }
