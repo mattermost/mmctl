@@ -453,30 +453,11 @@ func listTokensOfAUserCmdF(c client.Client, command *cobra.Command, args []strin
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	page, err := command.Flags().GetInt("page")
-	if err != nil {
-		return err
-	}
-
-	perPage, err := command.Flags().GetInt("per-page")
-	if err != nil {
-		return err
-	}
-
-	showAll, err := command.Flags().GetBool("all")
-	if err != nil {
-		return err
-	}
-
-	active, err := command.Flags().GetBool("active")
-	if err != nil {
-		return err
-	}
-
-	inactive, err := command.Flags().GetBool("inactive")
-	if err != nil {
-		return err
-	}
+	page, _ := command.Flags().GetInt("page")
+	perPage, _ := command.Flags().GetInt("per-page")
+	showAll, _ := command.Flags().GetBool("all")
+	active, _ := command.Flags().GetBool("active")
+	inactive, _ := command.Flags().GetBool("inactive")
 
 	if showAll {
 		page = 0
