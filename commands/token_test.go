@@ -135,7 +135,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUserAccessTokensForUser(mockUser.Id, 0, 2).
+			GetUserAccessTokensForUser(mockUser.Id, 0, 9999).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
 				&model.Response{Error: nil},
@@ -148,12 +148,12 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		s.Require().Equal(&mockToken2, printer.GetLines()[1])
 	})
 
-	s.Run("Should list only active access tokens of a user", func() {
+	s.Run("Should list only active user access tokens of a user", func() {
 		printer.Clean()
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
 		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", true, "")
+		command.Flags().Bool("all", false, "")
 		command.Flags().Bool("active", true, "")
 		command.Flags().Bool("inactive", false, "")
 
@@ -186,7 +186,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
 		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", true, "")
+		command.Flags().Bool("all", false, "")
 		command.Flags().Bool("active", false, "")
 		command.Flags().Bool("inactive", false, "")
 
@@ -213,12 +213,12 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not retrieve user information of %q", userArg))
 	})
 
-	s.Run("Should error if there are no tokens for a valid user", func() {
+	s.Run("Should error if there are no user access tokens for a valid user", func() {
 		printer.Clean()
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
 		command.Flags().Int("per-page", 2, "")
-		command.Flags().Bool("all", true, "")
+		command.Flags().Bool("all", false, "")
 		command.Flags().Bool("active", true, "")
 		command.Flags().Bool("inactive", false, "")
 
@@ -245,29 +245,9 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
-	s.Run("Should revoke a token for a user", func() {
-		userArg := "userId1"
-		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
+	s.Run("Should revoke user access tokens", func() {
 		mockToken1 := model.UserAccessToken{Token: "token-id1", Description: "token-desc1", Id: "123456"}
 		mockToken2 := model.UserAccessToken{Token: "token-id2", Description: "token-desc2", Id: "234567"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
-			Times(1)
 
 		s.client.
 			EXPECT().
@@ -281,53 +261,19 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockUser.Id, mockToken1.Id, mockToken2.Id})
+		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockToken1.Id, mockToken2.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Should fail on an invalid username", func() {
-		userArg := "some-text"
-		s.client.
-			EXPECT().
-			GetUserByEmail(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUserByUsername(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUser(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given ID"}}).
-			Times(1)
-
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{userArg, "token-id"})
-		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), fmt.Sprintf("could not retrieve user information of %q", userArg))
-	})
-
-	s.Run("Should fail if can't revoke tokens for a valid user", func() {
-		userArg := "user1@example.com"
-		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
-
-		s.client.
-			EXPECT().
-			GetUserByEmail(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
-			Times(1)
-
+	s.Run("Should fail if can't revoke user access token", func() {
 		s.client.
 			EXPECT().
 			RevokeUserAccessToken("token-id").
-			Return(false, &model.Response{Error: &model.AppError{Message: "error-message"}}).
+			Return(false, &model.Response{Error: &model.AppError{Message: "some-error"}}).
 			Times(1)
 
-		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockUser.Email, "token-id"})
+		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"token-id"})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), fmt.Sprintf("could not revoke token %q", "token-id"))
 	})

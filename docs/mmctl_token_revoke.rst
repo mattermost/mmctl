@@ -13,7 +13,7 @@ Revoke tokens for a user
 
 ::
 
-  mmctl token revoke [user] [token-ids] [flags]
+  mmctl token revoke [token-ids] [flags]
 
 Examples
 ~~~~~~~~
