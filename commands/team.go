@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/web"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -176,17 +177,26 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	teams, response := c.GetAllTeams("", 0, 10000)
-	if response.Error != nil {
-		return response.Error
-	}
-
-	for _, team := range teams {
-		if team.DeleteAt > 0 {
-			printer.PrintT("{{.Name}} (archived)", team)
-		} else {
-			printer.PrintT("{{.Name}}", team)
+	page := 0
+	for {
+		teams, response := c.GetAllTeams("", page, web.LIMIT_MAXIMUM)
+		if response.Error != nil {
+			return response.Error
 		}
+
+		for _, team := range teams {
+			if team.DeleteAt > 0 {
+				printer.PrintT("{{.Name}} (archived)", team)
+			} else {
+				printer.PrintT("{{.Name}}", team)
+			}
+		}
+
+		if len(teams) < web.LIMIT_MAXIMUM {
+			break
+		}
+
+		page++
 	}
 
 	return nil

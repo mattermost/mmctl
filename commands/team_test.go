@@ -5,8 +5,10 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/web"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -241,7 +243,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 10000).
+			GetAllTeams("", 0, web.LIMIT_MAXIMUM).
 			Return(nil, &model.Response{Error: &mockError}).
 			Times(1)
 
@@ -259,7 +261,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 10000).
+			GetAllTeams("", 0, web.LIMIT_MAXIMUM).
 			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
 			Times(2)
 
@@ -293,7 +295,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 10000).
+			GetAllTeams("", 0, web.LIMIT_MAXIMUM).
 			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
 			Times(2)
 
@@ -340,7 +342,7 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 10000).
+			GetAllTeams("", 0, web.LIMIT_MAXIMUM).
 			Return(mockTeams, &model.Response{Error: nil}).
 			Times(2)
 
@@ -371,6 +373,36 @@ func (s *MmctlUnitTestSuite) TestListTeamsCmdF() {
 			s.Require().Equal(mockTeams[3].Name, printer.GetLines()[3])
 			s.Require().Len(printer.GetErrorLines(), 0)
 		})
+	})
+
+	s.Run("Multiple team pages", func() {
+		printer.Clean()
+
+		mockTeamsPage1 := make([]*model.Team, web.LIMIT_MAXIMUM)
+		for i := 0; i < web.LIMIT_MAXIMUM; i++ {
+			mockTeamsPage1[i] = &model.Team{Name: fmt.Sprintf("Team%d", i)}
+		}
+		mockTeamsPage2 := []*model.Team{{Name: fmt.Sprintf("Team%d", web.LIMIT_MAXIMUM)}}
+
+		s.client.
+			EXPECT().
+			GetAllTeams("", 0, web.LIMIT_MAXIMUM).
+			Return(mockTeamsPage1, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetAllTeams("", 1, web.LIMIT_MAXIMUM).
+			Return(mockTeamsPage2, &model.Response{Error: nil}).
+			Times(1)
+
+		err := listTeamsCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), web.LIMIT_MAXIMUM+1)
+		for i := 0; i < web.LIMIT_MAXIMUM+1; i++ {
+			s.Require().Equal(printer.GetLines()[i].(*model.Team).Name, fmt.Sprintf("Team%d", i))
+		}
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
 
