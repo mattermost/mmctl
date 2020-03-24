@@ -97,6 +97,21 @@ func (mr *MockClientMockRecorder) ConvertChannelToPrivate(arg0 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertChannelToPrivate", reflect.TypeOf((*MockClient)(nil).ConvertChannelToPrivate), arg0)
 }
 
+// CreateBot mocks base method
+func (m *MockClient) CreateBot(arg0 *model.Bot) (*model.Bot, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBot", arg0)
+	ret0, _ := ret[0].(*model.Bot)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CreateBot indicates an expected call of CreateBot
+func (mr *MockClientMockRecorder) CreateBot(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBot", reflect.TypeOf((*MockClient)(nil).CreateBot), arg0)
+}
+
 // CreateChannel mocks base method
 func (m *MockClient) CreateChannel(arg0 *model.Channel) (*model.Channel, *model.Response) {
 	m.ctrl.T.Helper()
