@@ -178,13 +178,13 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return errors.Wrap(res.Error, "Failed to fetch bots")
 		}
 
-		usersById := map[string]*model.User{}
+		usersByID := map[string]*model.User{}
 		for _, user := range users {
-			usersById[user.Id] = user
+			usersByID[user.Id] = user
 		}
 
 		for _, bot := range bots {
-			owner := usersById[bot.OwnerId]
+			owner := usersByID[bot.OwnerId]
 			tplExtraText := fmt.Sprintf("(Owner by %s, {{if ne .DeleteAt 0}}Disabled{{else}}Enabled{{end}}{{if ne %d 0}}, Orphaned{{end}})", owner.Username, owner.DeleteAt)
 			printer.PrintT(tpl+tplExtraText, bot)
 		}
@@ -243,14 +243,6 @@ func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	newOwnerUser := getUserFromUserArg(c, args[1])
 	if newOwnerUser == nil {
 		return errors.New("unable to find user '" + args[1] + "'")
-	}
-	if botUser == nil {
-		printer.PrintError(fmt.Sprintf("can't find user '%v'", args[0]))
-		return nil
-	}
-	if newOwnerUser == nil {
-		printer.PrintError(fmt.Sprintf("can't find user '%v'", args[1]))
-		return nil
 	}
 
 	newBot, res := c.AssignBot(botUser.Id, newOwnerUser.Id)
