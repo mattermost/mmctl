@@ -57,11 +57,13 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "new-username", "")
 		cmd.Flags().String("display-name", "some-name", "")
 		cmd.Flags().String("description", "some-text", "")
+		cmd.Flags().Lookup("username").Changed = true
 		cmd.Flags().Lookup("display-name").Changed = true
 		cmd.Flags().Lookup("description").Changed = true
-		mockBot := model.Bot{Username: botArg, DisplayName: "some-name", Description: "some-text"}
+		mockBot := model.Bot{Username: "new-username", DisplayName: "some-name", Description: "some-text"}
 		mockUser := model.User{Id: model.NewId()}
 
 		s.client.
