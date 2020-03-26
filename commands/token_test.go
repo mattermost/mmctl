@@ -15,6 +15,8 @@ import (
 
 func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 	s.Run("Should generate a token for a user", func() {
+		printer.Clean()
+
 		userArg := "userId1"
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 		mockToken := model.UserAccessToken{Token: "token-id", Description: "token-desc"}
@@ -50,6 +52,8 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 	})
 
 	s.Run("Should fail on an invalid username", func() {
+		printer.Clean()
+
 		userArg := "some-text"
 		s.client.
 			EXPECT().
@@ -75,6 +79,8 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 	})
 
 	s.Run("Should fail if can't create tokens for a valid user", func() {
+		printer.Clean()
+
 		userArg := "user1"
 		mockUser := model.User{Id: "userId1", Email: "user1@example.com", Username: "user1"}
 
@@ -104,6 +110,8 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 
 func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	s.Run("Should list access tokens of a user", func() {
+		printer.Clean()
+
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
 		command.Flags().Int("per-page", 2, "")
@@ -150,6 +158,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 	s.Run("Should list only active user access tokens of a user", func() {
 		printer.Clean()
+
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
 		command.Flags().Int("per-page", 2, "")
@@ -182,6 +191,8 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 	})
 
 	s.Run("Should err on a absent user", func() {
+		printer.Clean()
+
 		userArg := "test-user"
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
@@ -215,6 +226,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 	s.Run("Should error if there are no user access tokens for a valid user", func() {
 		printer.Clean()
+
 		command := cobra.Command{}
 		command.Flags().Int("page", 0, "")
 		command.Flags().Int("per-page", 2, "")
@@ -246,6 +258,8 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 
 func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 	s.Run("Should revoke user access tokens", func() {
+		printer.Clean()
+
 		mockToken1 := model.UserAccessToken{Token: "token-id1", Description: "token-desc1", Id: "123456"}
 		mockToken2 := model.UserAccessToken{Token: "token-id2", Description: "token-desc2", Id: "234567"}
 
