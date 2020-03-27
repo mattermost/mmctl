@@ -5,6 +5,7 @@ package client
 
 import (
 	"io"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -36,6 +37,8 @@ type Client interface {
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
 	GetPostsForChannel(channelId string, page, perPage int, etag string) (*model.PostList, *model.Response)
+	GetPostsRoute() string
+	DoApiPost(url string, data string) (*http.Response, *model.AppError)
 	GetLdapGroups() ([]*model.Group, *model.Response)
 	GetGroupsByChannel(channelId string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response)
 	GetGroupsByTeam(teamId string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response)

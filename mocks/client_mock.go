@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	model "github.com/mattermost/mattermost-server/v5/model"
 	io "io"
+	http "net/http"
 	reflect "reflect"
 )
 
@@ -230,6 +231,21 @@ func (m *MockClient) DisablePlugin(arg0 string) (bool, *model.Response) {
 func (mr *MockClientMockRecorder) DisablePlugin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisablePlugin", reflect.TypeOf((*MockClient)(nil).DisablePlugin), arg0)
+}
+
+// DoApiPost mocks base method
+func (m *MockClient) DoApiPost(arg0, arg1 string) (*http.Response, *model.AppError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DoApiPost", arg0, arg1)
+	ret0, _ := ret[0].(*http.Response)
+	ret1, _ := ret[1].(*model.AppError)
+	return ret0, ret1
+}
+
+// DoApiPost indicates an expected call of DoApiPost
+func (mr *MockClientMockRecorder) DoApiPost(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoApiPost", reflect.TypeOf((*MockClient)(nil).DoApiPost), arg0, arg1)
 }
 
 // EnablePlugin mocks base method
@@ -472,6 +488,20 @@ func (m *MockClient) GetPostsForChannel(arg0 string, arg1, arg2 int, arg3 string
 func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3)
+}
+
+// GetPostsRoute mocks base method
+func (m *MockClient) GetPostsRoute() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostsRoute")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GetPostsRoute indicates an expected call of GetPostsRoute
+func (mr *MockClientMockRecorder) GetPostsRoute() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsRoute", reflect.TypeOf((*MockClient)(nil).GetPostsRoute))
 }
 
 // GetPublicChannelsForTeam mocks base method
