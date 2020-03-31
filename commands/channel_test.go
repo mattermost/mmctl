@@ -2185,9 +2185,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		teamName := "teamName"
 		channelName := "channelName"
-		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{teamName + ":" + channelName}
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
@@ -2248,16 +2246,20 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		cmd.Flags().String("name", channelName, "Channel Name")
 		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
 
+		mockError := &model.AppError{
+			Message: "mockError",
+		}
+
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeamByName(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		err := createChannelCmdF(s.client, cmd, args)
@@ -2316,7 +2318,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
 	})
@@ -2357,12 +2358,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamName, "").
 			Return(foundTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -2374,7 +2369,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
 	})
@@ -2436,7 +2430,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], foundChannel)
 	})
