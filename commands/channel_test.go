@@ -2181,15 +2181,14 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 	userArg := "user@example.com"
 	userID := "example-user-id"
 	mockUser := model.User{Id: userID, Email: userArg}
+	teamName := "teamName"
+	channelName := "channelName"
+	argsTeamChannel := teamName + ":" + channelName
 
 	s.Run("should remove user from channel", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-
-		teamName := "teamName"
-		channelName := "channelName"
-		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel, "user@example.com"}
 
 		foundTeam := &model.Team{
@@ -2207,12 +2206,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamName, "").
 			Return(foundTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -2236,7 +2229,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -2245,10 +2237,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
-
-		teamName := "teamName"
-		channelName := "channelName"
-		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel, "user@example.com"}
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
@@ -2260,10 +2248,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
-
-		teamName := "teamName"
-		channelName := "channelName"
-		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel}
 
 		foundTeam := &model.Team{
@@ -2284,12 +2268,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamName, "").
 			Return(foundTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -2314,7 +2292,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 		err := removeChannelUsersCmdF(s.client, cmd, args)
 
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -2322,10 +2299,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-
-		teamName := "teamName"
-		channelName := "channelName"
-		argsTeamChannel := teamName + ":" + channelName
 		args := []string{argsTeamChannel, "user@example.com", "user@example.com"}
 
 		foundTeam := &model.Team{
@@ -2343,12 +2316,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamName, "").
 			Return(foundTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -2372,7 +2339,6 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 	})
 }
