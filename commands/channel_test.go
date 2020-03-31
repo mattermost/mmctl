@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	userID	 		   = "userID"
-	userEmail 		   = "user@example.com"
-	teamID 			   = "teamID"
-	teamName 		   = "teamName"
+	userID             = "userID"
+	userEmail          = "user@example.com"
+	teamID             = "teamID"
+	teamName           = "teamName"
 	teamDisplayName    = "teamDisplayName"
-	channelID 		   = "channelID"
-	channelName 	   = "channelName"
+	channelID          = "channelID"
+	channelName        = "channelName"
 	channelDisplayName = "channelDisplayName"
 )
 
