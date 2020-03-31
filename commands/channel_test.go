@@ -2177,10 +2177,10 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
-	userArg := "user@example.com"
+func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
+	userEmail := "user@example.com"
 	userID := "example-user-id"
-	mockUser := model.User{Id: userID, Email: userArg}
+	mockUser := model.User{Id: userID, Email: userEmail}
 	teamName := "teamName"
 	channelName := "channelName"
 	argsTeamChannel := teamName + ":" + channelName
@@ -2217,7 +2217,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(userArg, "").
+			GetUserByEmail(userEmail, "").
 			Return(&mockUser, &model.Response{Error: nil}).
 			Times(1)
 
@@ -2237,7 +2237,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("all-users", true, "Remove all users from the indicated channel.")
-		args := []string{argsTeamChannel, "user@example.com"}
+		args := []string{argsTeamChannel, userEmail}
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("individual users must not be specified in conjunction with the --all-users flag"))
@@ -2299,7 +2299,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		args := []string{argsTeamChannel, "user@example.com", "user@example.com"}
+		args := []string{argsTeamChannel, userEmail, userEmail}
 
 		foundTeam := &model.Team{
 			Id:          "teamId",
@@ -2327,7 +2327,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelCmd() {
 
 		s.client.
 			EXPECT().
-			GetUserByEmail(userArg, "").
+			GetUserByEmail(userEmail, "").
 			Return(&mockUser, &model.Response{Error: nil}).
 			Times(2)
 
