@@ -7,9 +7,10 @@ import (
 	"fmt"
 
 	"bytes"
+	"io/ioutil"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 
 	"github.com/mattermost/mmctl/printer"
 )
