@@ -40,12 +40,14 @@ func init() {
 	RootCmd.AddCommand(LicenseCmd)
 }
 
+var customReadFile = ioutil.ReadFile // customReadFile can be reassigned to handle mocking
+
 func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return errors.New("enter one license file to upload")
 	}
 
-	fileBytes, err := ioutil.ReadFile(args[0])
+	fileBytes, err := customReadFile(args[0])
 	if err != nil {
 		return err
 	}
