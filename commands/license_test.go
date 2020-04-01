@@ -53,17 +53,16 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 	})
 }
 
-func ReadFile(filename string) ([]byte, error) {
-	buf := bytes.NewBufferString(fakeLicensePayload)
-	return ioutil.ReadAll(buf)
-}
-
 func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
+	customReadFile = func(filename string) ([]byte, error) {
+		buf := bytes.NewBufferString(fakeLicensePayload)
+		return ioutil.ReadAll(buf)
+	}
+
 	s.Run("Upload license successfully", func() {
 		printer.Clean()
 		path := "/path/to/file"
 		mockLicenseFile := []byte(fakeLicensePayload)
-		customReadFile = ReadFile
 		s.client.
 			EXPECT().
 			UploadLicenseFile(mockLicenseFile).
@@ -81,7 +80,6 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		mockLicenseFile := []byte(fakeLicensePayload)
 		errMsg := "open " + path + ": no such file or directory"
 		mockErr := &model.AppError{Message: errMsg}
-		customReadFile = ReadFile
 		s.client.
 			EXPECT().
 			UploadLicenseFile(mockLicenseFile).
