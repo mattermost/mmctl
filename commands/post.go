@@ -120,9 +120,9 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	}
 
 	if showIds {
-		fmt.Println(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s", post.Id, username, post.Message))
+		fmt.Printf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s\n", post.Id, username, post.Message)
 	} else {
-		fmt.Println(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m %s", username, post.Message))
+		fmt.Printf("\u001b[34;1m[%s]\u001b[0m %s\n", username, post.Message)
 	}
 }
 
