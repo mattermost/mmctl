@@ -2176,3 +2176,170 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		s.Require().Equal(printer.GetLines()[0], updatedChannel)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
+	s.Run("Move a channel to another team by using names", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Name: dstTeamName,
+			Id:   dstTeamID,
+		}
+
+		srcTeamName := "source-team-name"
+		srcTeamID := "source-team-id"
+		mockTeam2 := model.Team{
+			Name: srcTeamName,
+			Id:   srcTeamID,
+		}
+
+		channelName := "channel-name"
+		channelID := "channel-id"
+		mockChannel := model.Channel{
+			Name:   channelName,
+			TeamId: mockTeam2.Id,
+			Id:     channelID,
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(dstTeamName, "").
+			Return(&mockTeam1, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(srcTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(srcTeamName, "").
+			Return(&mockTeam2, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, mockTeam2.Id, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(mockChannel.Id, mockTeam1.Id, false).
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal(
+			fmt.Sprintf("Moved channel %q to %q (%s) from %s.", mockChannel.Name, mockTeam1.Name, mockTeam1.Id, mockTeam2.Id),
+			printer.GetLines()[0],
+		)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should fail for not being able to find the destination team", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(dstTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, "team:channel"})
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, fmt.Sprintf("unable to find destination team %q", dstTeamName))
+	})
+
+	s.Run("Should fail for not being able to find the channel", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Name: dstTeamName,
+			Id:   dstTeamID,
+		}
+
+		channelID := "channel-id"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamID, "").
+			Return(&mockTeam1, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelID, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", channelID), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Fail on client.MoveChannel to another team by using Ids", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Id: dstTeamID,
+		}
+
+		channelID := "channel-id"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamID, "").
+			Return(&mockTeam1, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelID, "").
+			Return(&model.Channel{Id: channelID, Name: "some-name"}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(channelID, mockTeam1.Id, false).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to move channel %q: ", "some-name"))
+	})
+}

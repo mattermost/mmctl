@@ -699,6 +699,21 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1)
 }
 
+// MoveChannel mocks base method
+func (m *MockClient) MoveChannel(arg0, arg1 string, arg2 bool) (*model.Channel, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MoveChannel", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// MoveChannel indicates an expected call of MoveChannel
+func (mr *MockClientMockRecorder) MoveChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveChannel", reflect.TypeOf((*MockClient)(nil).MoveChannel), arg0, arg1, arg2)
+}
+
 // MoveCommand mocks base method
 func (m *MockClient) MoveCommand(arg0, arg1 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
