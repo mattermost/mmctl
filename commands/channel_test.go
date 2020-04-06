@@ -1685,8 +1685,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := ""
 		channelName := ""
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1705,8 +1704,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "teamName"
 		channelName := ""
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1754,8 +1752,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := ""
 		channelName := "nonExistingChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1780,8 +1777,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "nonExistingteamName"
 		channelName := "channelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1812,8 +1808,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "teamName"
 		channelName := "nonExistingChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1862,8 +1857,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "teamName"
 		channelName := "ChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1924,8 +1918,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "teamName"
 		channelName := "ChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1994,8 +1987,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := ""
 		channelName := "ChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -2046,8 +2038,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "teamName"
 		channelName := "ChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := ""
@@ -2115,8 +2106,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := "teamName"
 		channelName := "ChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := ""
 		newChannelDisplayName := "New Channel Name"
@@ -2202,8 +2192,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		teamName := "teamName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := teamName + ":" + channelDisplayName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
@@ -2220,8 +2209,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		channelName := "channelName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := channelName + ":" + channelDisplayName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("name", channelName, "Channel Name")
 		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
@@ -2239,8 +2227,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		channelName := "channelName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
@@ -2275,8 +2262,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		channelName := "channelName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
@@ -2292,10 +2278,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			TeamId:      "teamId",
 			Name:        channelName,
 			DisplayName: channelDisplayName,
-			Header:      "",
-			Purpose:     "",
 			Type:        model.CHANNEL_OPEN,
-			CreatorId:   "",
 		}
 
 		s.client.
@@ -2331,8 +2314,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		channelName := "channelName"
 		channelDisplayName := "channelDisplayName"
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
@@ -2349,10 +2331,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			TeamId:      "teamId",
 			Name:        channelName,
 			DisplayName: channelDisplayName,
-			Header:      "",
-			Purpose:     "",
 			Type:        model.CHANNEL_PRIVATE,
-			CreatorId:   "",
 		}
 
 		s.client.
@@ -2384,8 +2363,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		header := "someHeader"
 		purpose := "somePurpose"
 		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
@@ -2413,12 +2391,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(nil, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetTeamByName(teamName, "").
 			Return(foundTeam, &model.Response{Error: nil}).
 			Times(1)
 
