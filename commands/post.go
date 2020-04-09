@@ -81,8 +81,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		RootId:    replyTo,
 	}
 
-	if _, res := c.CreatePost(post); res.Error != nil {
-		return res.Error
+	url := c.GetPostsRoute() + "?set_online=false"
+	if _, err := c.DoApiPost(url, post.ToUnsanitizedJson()); err != nil {
+		return fmt.Errorf("could not create post: %s", err.Error())
 	}
 	return nil
 }
@@ -119,9 +120,9 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	}
 
 	if showIds {
-		fmt.Println(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s", post.Id, username, post.Message))
+		fmt.Printf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s\n", post.Id, username, post.Message)
 	} else {
-		fmt.Println(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m %s", username, post.Message))
+		fmt.Printf("\u001b[34;1m[%s]\u001b[0m %s\n", username, post.Message)
 	}
 }
 

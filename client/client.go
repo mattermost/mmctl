@@ -5,6 +5,7 @@ package client
 
 import (
 	"io"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -36,6 +37,8 @@ type Client interface {
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
 	GetPostsForChannel(channelId string, page, perPage int, etag string) (*model.PostList, *model.Response)
+	GetPostsRoute() string
+	DoApiPost(url string, data string) (*http.Response, *model.AppError)
 	GetLdapGroups() ([]*model.Group, *model.Response)
 	GetGroupsByChannel(channelId string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response)
 	GetGroupsByTeam(teamId string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response)
@@ -58,6 +61,9 @@ type Client interface {
 	SendPasswordResetEmail(email string) (bool, *model.Response)
 	UpdateUser(user *model.User) (*model.User, *model.Response)
 	UpdateUserMfa(userId, code string, activate bool) (bool, *model.Response)
+	CreateUserAccessToken(userId, description string) (*model.UserAccessToken, *model.Response)
+	RevokeUserAccessToken(tokenId string) (bool, *model.Response)
+	GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.Response)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.Response)
 	ListCommands(teamId string, customOnly bool) ([]*model.Command, *model.Response)
 	GetCommandById(cmdId string) (*model.Command, *model.Response)
