@@ -14,6 +14,8 @@ import (
 
 func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 	s.Run("Should create a bot", func() {
+		printer.Clean()
+
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
@@ -54,6 +56,8 @@ func (s *MmctlUnitTestSuite) TestBotCreateCmd() {
 
 func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 	s.Run("Should update a bot", func() {
+		printer.Clean()
+
 		botArg := "a-bot"
 
 		cmd := &cobra.Command{}
@@ -390,6 +394,8 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 
 func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 	s.Run("Should disable a bot", func() {
+		printer.Clean()
+
 		botArg := "a-bot"
 
 		mockBot := model.Bot{Username: botArg, DisplayName: "some-name", Description: "some-text"}
@@ -486,6 +492,8 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 
 func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 	s.Run("Should enable a bot", func() {
+		printer.Clean()
+
 		botArg := "a-bot"
 
 		mockBot := model.Bot{Username: botArg, DisplayName: "some-name", Description: "some-text"}
@@ -582,6 +590,8 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 
 func (s *MmctlUnitTestSuite) TestBotAssignCmd() {
 	s.Run("Should assign a bot", func() {
+		printer.Clean()
+
 		botArg := "a-bot"
 		userArg := "a-user"
 

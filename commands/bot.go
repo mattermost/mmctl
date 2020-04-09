@@ -44,14 +44,14 @@ var ListBotCmd = &cobra.Command{
 	Long:    "List the bots users.",
 	Example: `  bot list`,
 	RunE:    withClient(botListCmdF),
-	Args:    cobra.ExactArgs(0),
+	Args:    cobra.NoArgs,
 }
 
 var DisableBotCmd = &cobra.Command{
 	Use:     "disable [username]",
 	Short:   "Disable bot",
-	Long:    "Disable a disabled bot",
-	Example: `  bot enable testbot`,
+	Long:    "Disable an enabled bot",
+	Example: `  bot disable testbot`,
 	RunE:    withClient(botDisableCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
@@ -115,6 +115,10 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if !cmd.Flags().Changed("username") && !cmd.Flags().Changed("display-name") && !cmd.Flags().Changed("description") {
+		return errors.New("At least one of --username, --display-name or --description must be set")
+	}
+
 	user := getUserFromUserArg(c, args[0])
 	if user == nil {
 		return errors.New("unable to find user '" + args[0] + "'")
@@ -164,7 +168,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return errors.Wrap(res.Error, "Failed to fetch bots")
 		}
 
-		if len(bots) == 0 {
+		if len(bots) < 200 {
 			break
 		}
 
