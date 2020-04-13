@@ -101,6 +101,15 @@ var ListUsersCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 }
 
+var VerifyUserCmd = &cobra.Command{
+	Use:     "verify [users]",
+	Short:   "Verify email of users",
+	Long:    "Verify the emails of some users.",
+	Example: "  user verify user1",
+	RunE:    withClient(verifyUserCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -128,6 +137,7 @@ func init() {
 		ResetUserMfaCmd,
 		SearchUserCmd,
 		ListUsersCmd,
+		VerifyUserCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -400,5 +410,22 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		page++
 	}
 
+	return nil
+}
+
+func verifyUserCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	users := getUsersFromUserArgs(c, userArgs)
+	for i, user := range users {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			continue
+		}
+
+		_, resp := c.VerifyUser(user.Id)
+		if resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
+			continue
+		}
+	}
 	return nil
 }

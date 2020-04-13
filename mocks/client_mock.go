@@ -1088,3 +1088,18 @@ func (mr *MockClientMockRecorder) UploadPlugin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadPlugin", reflect.TypeOf((*MockClient)(nil).UploadPlugin), arg0)
 }
+
+// VerifyUser mocks base method
+func (m *MockClient) VerifyUser(arg0 string) (*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyUser", arg0)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// VerifyUser indicates an expected call of VerifyUser
+func (mr *MockClientMockRecorder) VerifyUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUser", reflect.TypeOf((*MockClient)(nil).VerifyUser), arg0)
+}
