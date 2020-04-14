@@ -25,6 +25,7 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl auth <mmctl_auth.rst>`_ 	 - Manages the credentials of the remote Mattermost instances
+* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
 * `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 * `mmctl command <mmctl_command.rst>`_ 	 - Management of slash commands
 * `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
@@ -39,6 +40,7 @@ SEE ALSO
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
 * `mmctl system <mmctl_system.rst>`_ 	 - System management
 * `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
+* `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
 * `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 * `mmctl version <mmctl_version.rst>`_ 	 - Prints the version of mmctl.
 * `mmctl websocket <mmctl_websocket.rst>`_ 	 - Display websocket in a human-readable format

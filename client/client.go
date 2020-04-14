@@ -5,6 +5,7 @@ package client
 
 import (
 	"io"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 )
@@ -36,6 +37,8 @@ type Client interface {
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
 	GetPostsForChannel(channelId string, page, perPage int, etag string) (*model.PostList, *model.Response)
+	GetPostsRoute() string
+	DoApiPost(url string, data string) (*http.Response, *model.AppError)
 	GetLdapGroups() ([]*model.Group, *model.Response)
 	GetGroupsByChannel(channelId string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response)
 	GetGroupsByTeam(teamId string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response)
@@ -58,6 +61,9 @@ type Client interface {
 	SendPasswordResetEmail(email string) (bool, *model.Response)
 	UpdateUser(user *model.User) (*model.User, *model.Response)
 	UpdateUserMfa(userId, code string, activate bool) (bool, *model.Response)
+	CreateUserAccessToken(userId, description string) (*model.UserAccessToken, *model.Response)
+	RevokeUserAccessToken(tokenId string) (bool, *model.Response)
+	GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.Response)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.Response)
 	ListCommands(teamId string, customOnly bool) ([]*model.Command, *model.Response)
 	GetCommandById(cmdId string) (*model.Command, *model.Response)
@@ -68,9 +74,18 @@ type Client interface {
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
+	GetUsersByIds(userIds []string) ([]*model.User, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
+	CreateBot(bot *model.Bot) (*model.Bot, *model.Response)
+	PatchBot(userId string, patch *model.BotPatch) (*model.Bot, *model.Response)
+	GetBots(page, perPage int, etag string) ([]*model.Bot, *model.Response)
+	GetBotsIncludeDeleted(page, perPage int, etag string) ([]*model.Bot, *model.Response)
+	GetBotsOrphaned(page, perPage int, etag string) ([]*model.Bot, *model.Response)
+	DisableBot(botUserId string) (*model.Bot, *model.Response)
+	EnableBot(botUserId string) (*model.Bot, *model.Response)
+	AssignBot(botUserId, newOwnerId string) (*model.Bot, *model.Response)
 	SetServerBusy(secs int) (bool, *model.Response)
 	ClearServerBusy() (bool, *model.Response)
 	GetServerBusy() (*model.ServerBusyState, *model.Response)
