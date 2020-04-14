@@ -511,12 +511,16 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if _, resp := c.MoveChannel(channel.Id, team.Id, removeDeactivatedMembers); resp.Error != nil {
+		if channel.TeamId == team.Id {
+			continue
+		}
+
+		newChannel, resp := c.MoveChannel(channel.Id, team.Id, removeDeactivatedMembers)
+		if resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, resp.Error))
 			continue
 		}
-		originTeamID := channel.TeamId
-		printer.Print(fmt.Sprintf("Moved channel %q to %q (%s) from %s.", channel.Name, team.Name, team.Id, originTeamID))
+		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
 	}
 	return nil
 }

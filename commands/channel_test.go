@@ -2244,10 +2244,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Equal(
-			fmt.Sprintf("Moved channel %q to %q (%s) from %s.", mockChannel.Name, mockTeam1.Name, mockTeam1.Id, mockTeam2.Id),
-			printer.GetLines()[0],
-		)
+		s.Equal(&mockChannel, printer.GetLines()[0])
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
