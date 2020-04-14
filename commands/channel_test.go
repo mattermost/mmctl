@@ -2181,7 +2181,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		cmd.Flags().String("name", channelName, "Channel Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, fmt.Sprintf("display Name is required"))
+		s.Require().EqualError(err, "display Name is required")
 	})
 
 	s.Run("should not create channel without name", func() {
@@ -2198,7 +2198,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, fmt.Sprintf("name is required"))
+		s.Require().EqualError(err, "name is required")
 	})
 
 	s.Run("should not create channel without team", func() {
@@ -2215,7 +2215,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, fmt.Sprintf("team is required"))
+		s.Require().EqualError(err, "team is required")
 	})
 
 	s.Run("should fail when team does not exist", func() {
@@ -2385,7 +2385,6 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			Header:      header,
 			Purpose:     purpose,
 			Type:        model.CHANNEL_PRIVATE,
-			CreatorId:   "",
 		}
 
 		s.client.
