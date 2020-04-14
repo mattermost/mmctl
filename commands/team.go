@@ -9,13 +9,14 @@ import (
 	"sort"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/web"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
+
+const API_LIMIT_MAXIMUM = 200
 
 var TeamCmd = &cobra.Command{
 	Use:   "team",
@@ -179,7 +180,7 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, response := c.GetAllTeams("", page, web.LIMIT_MAXIMUM)
+		teams, response := c.GetAllTeams("", page, API_LIMIT_MAXIMUM)
 		if response.Error != nil {
 			return response.Error
 		}
@@ -192,7 +193,7 @@ func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		if len(teams) < web.LIMIT_MAXIMUM {
+		if len(teams) < API_LIMIT_MAXIMUM {
 			break
 		}
 

@@ -1,63 +1,23 @@
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
-# github.com/Masterminds/squirrel v1.1.0
-github.com/Masterminds/squirrel
-# github.com/NYTimes/gziphandler v1.1.1
-github.com/NYTimes/gziphandler
-# github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
-github.com/avct/uasurfer
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
 # github.com/cpuguy83/go-md2man v1.0.10
 github.com/cpuguy83/go-md2man/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
-github.com/dgryski/dgoogauth
-# github.com/disintegration/imaging v1.6.2
-github.com/disintegration/imaging
 # github.com/dyatlov/go-opengraph v0.0.0-20180429202543-816b6608b3c8
 github.com/dyatlov/go-opengraph/opengraph
-# github.com/fatih/color v1.9.0
-github.com/fatih/color
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
 # github.com/go-asn1-ber/asn1-ber v1.3.2-0.20191121212151-29be175fc3a3
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-sql-driver/mysql v1.5.0
-github.com/go-sql-driver/mysql
-# github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
-github.com/golang/freetype
-github.com/golang/freetype/raster
-github.com/golang/freetype/truetype
 # github.com/golang/mock v1.3.1
 github.com/golang/mock/gomock
-# github.com/golang/protobuf v1.3.2
-github.com/golang/protobuf/proto
-github.com/golang/protobuf/ptypes
-github.com/golang/protobuf/ptypes/any
-github.com/golang/protobuf/ptypes/duration
-github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
-# github.com/gorilla/mux v1.7.3
-github.com/gorilla/mux
-# github.com/gorilla/schema v1.1.0
-github.com/gorilla/schema
 # github.com/gorilla/websocket v1.4.1
 github.com/gorilla/websocket
-# github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-github.com/gregjones/httpcache
-# github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
-github.com/h2non/go-is-svg
-# github.com/hashicorp/go-hclog v0.12.0
-github.com/hashicorp/go-hclog
-# github.com/hashicorp/go-plugin v1.0.1
-github.com/hashicorp/go-plugin
-github.com/hashicorp/go-plugin/internal/plugin
-# github.com/hashicorp/golang-lru v0.5.4
-github.com/hashicorp/golang-lru
-github.com/hashicorp/golang-lru/simplelru
 # github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/ast
@@ -69,25 +29,10 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d
-github.com/hashicorp/yamux
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
-# github.com/jaytaylor/html2text v0.0.0-20190408195923-01ec452cbe43
-github.com/jaytaylor/html2text
-# github.com/jmoiron/sqlx v1.2.0
-github.com/jmoiron/sqlx
-github.com/jmoiron/sqlx/reflectx
 # github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
-# github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-github.com/lann/builder
-# github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0
-github.com/lann/ps
-# github.com/lib/pq v1.3.0
-github.com/lib/pq
-github.com/lib/pq/oid
-github.com/lib/pq/scram
 # github.com/magefile/mage v1.9.0
 github.com/magefile/mage/mg
 github.com/magefile/mage/sh
@@ -98,82 +43,17 @@ github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
-# github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
-github.com/mattermost/gorp
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 github.com/mattermost/ldap
 # github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200306103707-398a12329a3f
-github.com/mattermost/mattermost-server/v5/app
-github.com/mattermost/mattermost-server/v5/config
-github.com/mattermost/mattermost-server/v5/einterfaces
-github.com/mattermost/mattermost-server/v5/einterfaces/jobs
-github.com/mattermost/mattermost-server/v5/jobs
-github.com/mattermost/mattermost-server/v5/jobs/interfaces
 github.com/mattermost/mattermost-server/v5/mlog
 github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
-github.com/mattermost/mattermost-server/v5/plugin
-github.com/mattermost/mattermost-server/v5/services/cache
-github.com/mattermost/mattermost-server/v5/services/cache/lru
-github.com/mattermost/mattermost-server/v5/services/configservice
-github.com/mattermost/mattermost-server/v5/services/filesstore
-github.com/mattermost/mattermost-server/v5/services/httpservice
-github.com/mattermost/mattermost-server/v5/services/imageproxy
-github.com/mattermost/mattermost-server/v5/services/mailservice
-github.com/mattermost/mattermost-server/v5/services/marketplace
-github.com/mattermost/mattermost-server/v5/services/mfa
 github.com/mattermost/mattermost-server/v5/services/timezones
-github.com/mattermost/mattermost-server/v5/services/tracing
-github.com/mattermost/mattermost-server/v5/store
-github.com/mattermost/mattermost-server/v5/store/localcachelayer
-github.com/mattermost/mattermost-server/v5/store/sqlstore
-github.com/mattermost/mattermost-server/v5/utils
-github.com/mattermost/mattermost-server/v5/utils/fileutils
-github.com/mattermost/mattermost-server/v5/utils/imgutils
 github.com/mattermost/mattermost-server/v5/utils/jsonutils
 github.com/mattermost/mattermost-server/v5/utils/markdown
-github.com/mattermost/mattermost-server/v5/web
-# github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
-github.com/mattermost/rsc/gf256
-github.com/mattermost/rsc/qr
-github.com/mattermost/rsc/qr/coding
-# github.com/mattermost/viper v1.0.4
-github.com/mattermost/viper
-# github.com/mattn/go-colorable v0.1.4
-github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.12
-github.com/mattn/go-isatty
-# github.com/mattn/go-runewidth v0.0.8
-github.com/mattn/go-runewidth
-# github.com/minio/minio-go/v6 v6.0.45
-github.com/minio/minio-go/v6
-github.com/minio/minio-go/v6/pkg/credentials
-github.com/minio/minio-go/v6/pkg/encrypt
-github.com/minio/minio-go/v6/pkg/s3signer
-github.com/minio/minio-go/v6/pkg/s3utils
-github.com/minio/minio-go/v6/pkg/set
-# github.com/minio/sha256-simd v0.1.1
-github.com/minio/sha256-simd
-# github.com/mitchellh/go-homedir v1.1.0
-github.com/mitchellh/go-homedir
-# github.com/mitchellh/go-testing-interface v1.0.0
-github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/muesli/smartcrop v0.3.0
-github.com/muesli/smartcrop
-github.com/muesli/smartcrop/nfnt
-github.com/muesli/smartcrop/options
-# github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-github.com/nfnt/resize
-# github.com/oklog/run v1.1.0
-github.com/oklog/run
-# github.com/olekukonko/tablewriter v0.0.4
-github.com/olekukonko/tablewriter
-# github.com/opentracing/opentracing-go v1.1.0
-github.com/opentracing/opentracing-go
-github.com/opentracing/opentracing-go/ext
-github.com/opentracing/opentracing-go/log
 # github.com/pborman/uuid v1.2.0
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.6.0
@@ -182,17 +62,8 @@ github.com/pelletier/go-toml
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/rs/cors v1.7.0
-github.com/rs/cors
 # github.com/russross/blackfriday v1.5.2
 github.com/russross/blackfriday
-# github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
-github.com/rwcarlsen/goexif/exif
-github.com/rwcarlsen/goexif/tiff
-# github.com/segmentio/analytics-go v3.1.0+incompatible
-github.com/segmentio/analytics-go
-# github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c
-github.com/segmentio/backo-go
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.2.2
@@ -209,39 +80,10 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/spf13/viper v1.3.2
 github.com/spf13/viper
-# github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
-github.com/ssor/bom
 # github.com/stretchr/testify v1.4.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
-# github.com/throttled/throttled v2.2.4+incompatible
-github.com/throttled/throttled
-github.com/throttled/throttled/store/memstore
-# github.com/uber/jaeger-client-go v2.22.1+incompatible
-github.com/uber/jaeger-client-go
-github.com/uber/jaeger-client-go/config
-github.com/uber/jaeger-client-go/internal/baggage
-github.com/uber/jaeger-client-go/internal/baggage/remote
-github.com/uber/jaeger-client-go/internal/reporterstats
-github.com/uber/jaeger-client-go/internal/spanlog
-github.com/uber/jaeger-client-go/internal/throttler
-github.com/uber/jaeger-client-go/internal/throttler/remote
-github.com/uber/jaeger-client-go/log
-github.com/uber/jaeger-client-go/rpcmetrics
-github.com/uber/jaeger-client-go/thrift
-github.com/uber/jaeger-client-go/thrift-gen/agent
-github.com/uber/jaeger-client-go/thrift-gen/baggage
-github.com/uber/jaeger-client-go/thrift-gen/jaeger
-github.com/uber/jaeger-client-go/thrift-gen/sampling
-github.com/uber/jaeger-client-go/thrift-gen/zipkincore
-github.com/uber/jaeger-client-go/transport
-github.com/uber/jaeger-client-go/utils
-github.com/uber/jaeger-client-go/zipkin
-# github.com/uber/jaeger-lib v2.2.0+incompatible
-github.com/uber/jaeger-lib/metrics
-# github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
-github.com/xtgo/uuid
 # go.uber.org/atomic v1.5.1
 go.uber.org/atomic
 # go.uber.org/multierr v1.4.0
@@ -256,72 +98,24 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
-golang.org/x/crypto/acme
-golang.org/x/crypto/acme/autocert
-golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
-golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
-golang.org/x/crypto/cast5
-golang.org/x/crypto/openpgp
-golang.org/x/crypto/openpgp/armor
-golang.org/x/crypto/openpgp/elgamal
-golang.org/x/crypto/openpgp/errors
-golang.org/x/crypto/openpgp/packet
-golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/image v0.0.0-20200119044424-58c23975cae1
-golang.org/x/image/bmp
-golang.org/x/image/ccitt
-golang.org/x/image/draw
-golang.org/x/image/font
-golang.org/x/image/math/f64
-golang.org/x/image/math/fixed
-golang.org/x/image/riff
-golang.org/x/image/tiff
-golang.org/x/image/tiff/lzw
-golang.org/x/image/vp8
-golang.org/x/image/vp8l
-golang.org/x/image/webp
 # golang.org/x/lint v0.0.0-20191125180803-fdd1cda4f05f
 golang.org/x/lint
 golang.org/x/lint/golint
 # golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
-golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
-golang.org/x/net/html/charset
-golang.org/x/net/http/httpguts
-golang.org/x/net/http2
-golang.org/x/net/http2/hpack
-golang.org/x/net/idna
-golang.org/x/net/internal/timeseries
-golang.org/x/net/publicsuffix
-golang.org/x/net/trace
 # golang.org/x/sys v0.0.0-20200124204421-9fbb57f87de9
-golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2
-golang.org/x/text/encoding
-golang.org/x/text/encoding/charmap
-golang.org/x/text/encoding/htmlindex
-golang.org/x/text/encoding/internal
-golang.org/x/text/encoding/internal/identifier
-golang.org/x/text/encoding/japanese
-golang.org/x/text/encoding/korean
-golang.org/x/text/encoding/simplifiedchinese
-golang.org/x/text/encoding/traditionalchinese
-golang.org/x/text/encoding/unicode
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
-golang.org/x/text/internal/utf8internal
 golang.org/x/text/language
-golang.org/x/text/runes
-golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
-golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
 # golang.org/x/tools v0.0.0-20200213050514-49b8ac185c84
 golang.org/x/tools/go/analysis
@@ -336,53 +130,6 @@ golang.org/x/tools/go/packages
 golang.org/x/tools/go/types/objectpath
 golang.org/x/tools/go/types/typeutil
 golang.org/x/tools/internal/packagesinternal
-# google.golang.org/genproto v0.0.0-20200128133413-58ce757ed39b
-google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.26.0
-google.golang.org/grpc
-google.golang.org/grpc/attributes
-google.golang.org/grpc/backoff
-google.golang.org/grpc/balancer
-google.golang.org/grpc/balancer/base
-google.golang.org/grpc/balancer/roundrobin
-google.golang.org/grpc/binarylog/grpc_binarylog_v1
-google.golang.org/grpc/codes
-google.golang.org/grpc/connectivity
-google.golang.org/grpc/credentials
-google.golang.org/grpc/credentials/internal
-google.golang.org/grpc/encoding
-google.golang.org/grpc/encoding/proto
-google.golang.org/grpc/grpclog
-google.golang.org/grpc/health
-google.golang.org/grpc/health/grpc_health_v1
-google.golang.org/grpc/internal
-google.golang.org/grpc/internal/backoff
-google.golang.org/grpc/internal/balancerload
-google.golang.org/grpc/internal/binarylog
-google.golang.org/grpc/internal/buffer
-google.golang.org/grpc/internal/channelz
-google.golang.org/grpc/internal/envconfig
-google.golang.org/grpc/internal/grpcrand
-google.golang.org/grpc/internal/grpcsync
-google.golang.org/grpc/internal/resolver/dns
-google.golang.org/grpc/internal/resolver/passthrough
-google.golang.org/grpc/internal/syscall
-google.golang.org/grpc/internal/transport
-google.golang.org/grpc/keepalive
-google.golang.org/grpc/metadata
-google.golang.org/grpc/naming
-google.golang.org/grpc/peer
-google.golang.org/grpc/resolver
-google.golang.org/grpc/serviceconfig
-google.golang.org/grpc/stats
-google.golang.org/grpc/status
-google.golang.org/grpc/tap
-# gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
-gopkg.in/alexcesaro/quotedprintable.v3
-# gopkg.in/ini.v1 v1.51.1
-gopkg.in/ini.v1
-# gopkg.in/mail.v2 v2.3.1
-gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
 # gopkg.in/yaml.v2 v2.2.8
@@ -413,8 +160,3 @@ honnef.co/go/tools/staticcheck/vrp
 honnef.co/go/tools/stylecheck
 honnef.co/go/tools/unused
 honnef.co/go/tools/version
-# willnorris.com/go/gifresize v1.0.0
-willnorris.com/go/gifresize
-# willnorris.com/go/imageproxy v0.9.0
-willnorris.com/go/imageproxy
-willnorris.com/go/imageproxy/third_party/http
