@@ -1222,7 +1222,7 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
 	})
-	s.Run("Add existing user user@example.coto existing channel", func() {
+	s.Run("Add existing user to existing channel", func() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 
@@ -2145,6 +2145,8 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 	mockUser := model.User{Id: userID, Email: userEmail}
+	mockUser2 := model.User{Id: userID + "2", Email: userID + "2@example.com"}
+	mockUser3 := model.User{Id: userID + "3", Email: userID + "3@example.com"}
 	argsTeamChannel := teamName + ":" + channelName
 
 	s.Run("should remove user from channel", func() {
@@ -2224,8 +2226,10 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 			DisplayName: channelDisplayName,
 		}
 
-		mockMember := model.ChannelMember{ChannelId: channelID, UserId: mockUser.Id}
-		mockChannelMembers := model.ChannelMembers{mockMember, mockMember, mockMember}
+		mockMember1 := model.ChannelMember{ChannelId: channelID, UserId: mockUser.Id}
+		mockMember2 := model.ChannelMember{ChannelId: channelID, UserId: mockUser2.Id}
+		mockMember3 := model.ChannelMember{ChannelId: channelID, UserId: mockUser3.Id}
+		mockChannelMembers := model.ChannelMembers{mockMember1, mockMember2, mockMember3}
 
 		s.client.
 			EXPECT().
@@ -2249,7 +2253,19 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
 			Return(true, &model.Response{Error: nil}).
-			Times(3)
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemoveUserFromChannel(foundChannel.Id, mockUser2.Id).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemoveUserFromChannel(foundChannel.Id, mockUser3.Id).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
 
@@ -2261,7 +2277,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		args := []string{argsTeamChannel, userEmail, userEmail}
+		args := []string{argsTeamChannel, userEmail, mockUser2.Email}
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2291,13 +2307,25 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 			EXPECT().
 			GetUserByEmail(userEmail, "").
 			Return(&mockUser, &model.Response{Error: nil}).
-			Times(2)
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(mockUser2.Email, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
 			Return(true, &model.Response{Error: nil}).
-			Times(2)
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemoveUserFromChannel(foundChannel.Id, mockUser2.Id).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
