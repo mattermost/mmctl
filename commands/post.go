@@ -81,8 +81,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		RootId:    replyTo,
 	}
 
-	if _, res := c.CreatePost(post); res.Error != nil {
-		return res.Error
+	url := c.GetPostsRoute() + "?set_online=false"
+	if _, err := c.DoApiPost(url, post.ToUnsanitizedJson()); err != nil {
+		return fmt.Errorf("could not create post: %s", err.Error())
 	}
 	return nil
 }
