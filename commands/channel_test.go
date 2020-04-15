@@ -2312,7 +2312,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser2.Email, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser2, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
