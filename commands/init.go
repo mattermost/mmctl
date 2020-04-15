@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -39,13 +40,18 @@ func CheckVersionMatch(version, serverVersion string) bool {
 
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		allowInsecure := viper.GetBool("insecure-sha1-intermediate")
+		if viper.GetBool("local") {
+			c, err := InitUnixClient()
+			if err != nil {
+				return err
+			}
+			return fn(c, cmd, args)
+		}
 
-		c, serverVersion, err := InitClient(allowInsecure)
+		c, serverVersion, err := InitClient(viper.GetBool("insecure-sha1-intermediate"))
 		if err != nil {
 			return err
 		}
-
 		valid := CheckVersionMatch(Version, serverVersion)
 		if !valid {
 			if viper.GetBool("strict") {
@@ -148,6 +154,23 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	client, appErr := model.NewWebSocketClient4(strings.Replace(credentials.InstanceURL, "http", "ws", 1), credentials.AuthToken)
 	if appErr != nil {
 		return nil, errors.Wrap(appErr, "unable to create the websockets connection")
+	}
+	return client, nil
+}
+
+func InitUnixClient() (*model.Client4, error) {
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (net.Conn, error) {
+				return net.Dial("unix", viper.GetString("local-socket-path"))
+			},
+		},
+	}
+
+	client := &model.Client4{
+		ApiUrl:     "http://unix" + model.API_URL_SUFFIX,
+		HttpClient: httpClient,
+		HttpHeader: map[string]string{},
 	}
 	return client, nil
 }
