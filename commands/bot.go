@@ -116,7 +116,7 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if !cmd.Flags().Changed("username") && !cmd.Flags().Changed("display-name") && !cmd.Flags().Changed("description") {
-		return errors.New("At least one of --username, --display-name or --description must be set")
+		return errors.New("at least one of --username, --display-name or --description must be set")
 	}
 
 	user := getUserFromUserArg(c, args[0])
@@ -168,10 +168,6 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return errors.Wrap(res.Error, "Failed to fetch bots")
 		}
 
-		if len(bots) < 200 {
-			break
-		}
-
 		userIds := []string{}
 		for _, bot := range bots {
 			userIds = append(userIds, bot.OwnerId)
@@ -191,6 +187,10 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			owner := usersByID[bot.OwnerId]
 			tplExtraText := fmt.Sprintf("(Owner by %s, {{if ne .DeleteAt 0}}Disabled{{else}}Enabled{{end}}{{if ne %d 0}}, Orphaned{{end}})", owner.Username, owner.DeleteAt)
 			printer.PrintT(tpl+tplExtraText, bot)
+		}
+
+		if len(bots) < 200 {
+			break
 		}
 
 		page++
