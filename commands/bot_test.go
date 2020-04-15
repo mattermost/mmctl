@@ -98,6 +98,9 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 		printer.Clean()
 
 		botArg := "a-bot"
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", "bot-username", "")
+		cmd.Flags().Lookup("username").Changed = true
 
 		s.client.
 			EXPECT().
@@ -117,7 +120,7 @@ func (s *MmctlUnitTestSuite) TestBotUpdateCmd() {
 			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
 			Times(1)
 
-		err := botUpdateCmdF(s.client, &cobra.Command{}, []string{botArg})
+		err := botUpdateCmdF(s.client, cmd, []string{botArg})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "unable to find user 'a-bot'")
@@ -178,12 +181,6 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 
 		s.client.
 			EXPECT().
-			GetBotsIncludeDeleted(1, 200, "").
-			Return([]*model.Bot{}, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUsersByIds([]string{mockBot.OwnerId}).
 			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
@@ -201,30 +198,16 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", true, "")
-		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
-		mockUser := model.User{Id: mockBot.OwnerId}
 
 		s.client.
 			EXPECT().
 			GetBotsIncludeDeleted(0, 200, "").
-			Return([]*model.Bot{&mockBot}, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetBotsIncludeDeleted(1, 200, "").
 			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUsersByIds([]string{mockBot.OwnerId}).
-			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
 
 		err := botListCmdF(s.client, cmd, []string{botArg})
 		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "Failed to fetch bots")
 	})
 
@@ -246,12 +229,6 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 
 		s.client.
 			EXPECT().
-			GetBotsOrphaned(1, 200, "").
-			Return([]*model.Bot{}, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUsersByIds([]string{mockBot.OwnerId}).
 			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
@@ -269,30 +246,16 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("orphaned", true, "")
 		cmd.Flags().Bool("all", false, "")
-		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
-		mockUser := model.User{Id: mockBot.OwnerId}
 
 		s.client.
 			EXPECT().
 			GetBotsOrphaned(0, 200, "").
-			Return([]*model.Bot{&mockBot}, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetBotsOrphaned(1, 200, "").
 			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUsersByIds([]string{mockBot.OwnerId}).
-			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
 
 		err := botListCmdF(s.client, cmd, []string{botArg})
 		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "Failed to fetch bots")
 	})
 
@@ -314,12 +277,6 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 
 		s.client.
 			EXPECT().
-			GetBots(1, 200, "").
-			Return([]*model.Bot{}, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
 			GetUsersByIds([]string{mockBot.OwnerId}).
 			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
@@ -337,30 +294,16 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("orphaned", false, "")
 		cmd.Flags().Bool("all", false, "")
-		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: model.NewId()}
-		mockUser := model.User{Id: mockBot.OwnerId}
 
 		s.client.
 			EXPECT().
 			GetBots(0, 200, "").
-			Return([]*model.Bot{&mockBot}, &model.Response{Error: nil}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetBots(1, 200, "").
 			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			GetUsersByIds([]string{mockBot.OwnerId}).
-			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
 
 		err := botListCmdF(s.client, cmd, []string{botArg})
 		s.Require().NotNil(err)
-		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Contains(err.Error(), "Failed to fetch bots")
 	})
 

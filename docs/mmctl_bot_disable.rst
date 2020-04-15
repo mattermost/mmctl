@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Disable a disabled bot
+Disable an enabled bot
 
 ::
 
@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    bot enable testbot
+    bot disable testbot
 
 Options
 ~~~~~~~
