@@ -5,9 +5,8 @@ package commands
 
 import (
 	"fmt"
-
-	"bytes"
 	"io/ioutil"
+	"os"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
@@ -55,40 +54,42 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
-	customReadFile = func(filename string) ([]byte, error) {
-		buf := bytes.NewBufferString(fakeLicensePayload)
-		return ioutil.ReadAll(buf)
+	// create temporary file
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "testLicense-")
+	if err != nil {
+		panic(err)
 	}
+	text := []byte(fakeLicensePayload)
+	if _, err = tmpFile.Write(text); err != nil {
+		panic(err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	mockLicenseFile := []byte(fakeLicensePayload)
 
 	s.Run("Upload license successfully", func() {
 		printer.Clean()
-		path := "/path/to/file"
-		mockLicenseFile := []byte(fakeLicensePayload)
 		s.client.
 			EXPECT().
 			UploadLicenseFile(mockLicenseFile).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
-		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{path})
+		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
 		s.Require().Nil(err)
 	})
 
 	s.Run("Fail to upload license if file not found", func() {
 		printer.Clean()
-
 		path := "/path/to/nonexistentfile"
-		mockLicenseFile := []byte(fakeLicensePayload)
 		errMsg := "open " + path + ": no such file or directory"
-		mockErr := &model.AppError{Message: errMsg}
 		s.client.
 			EXPECT().
 			UploadLicenseFile(mockLicenseFile).
-			Return(false, &model.Response{Error: mockErr}).
-			Times(1)
+			Times(0)
 
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{path})
-		s.Require().EqualError(err, ": "+errMsg+", ")
+		s.Require().EqualError(err, errMsg)
 	})
 
 	s.Run("Fail to upload license if no path is given", func() {
