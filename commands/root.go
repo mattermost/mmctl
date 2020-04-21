@@ -15,6 +15,7 @@ import (
 func Run(args []string) error {
 	viper.SetEnvPrefix("mmctl")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	// TODO: swap this with model.LOCAL_MODE_SOCKET_PATH after server PR is merged (MM-23710)
 	viper.SetDefault("local-socket-path", "/var/tmp/mattermost_local.socket")
 	viper.AutomaticEnv()
 
