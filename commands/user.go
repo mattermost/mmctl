@@ -421,7 +421,11 @@ func verifyUserCmdF(c client.Client, cmd *cobra.Command, userArgs []string) erro
 			continue
 		}
 
-		_, resp := c.VerifyUser(user.Id)
+		if newUser, resp := c.VerifyUser(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
+		} else {
+			printer.PrintT("User {{.Username}} verified", newUser)
+		}
 		if resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
 			continue
