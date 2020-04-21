@@ -168,7 +168,7 @@ func InitUnixClient() (*model.Client4, error) {
 	}
 
 	client := &model.Client4{
-		ApiUrl:     "http://unix" + model.API_URL_SUFFIX,
+		ApiUrl:     "http://_" + model.API_URL_SUFFIX,
 		HttpClient: httpClient,
 		HttpHeader: map[string]string{},
 	}
