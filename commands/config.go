@@ -42,7 +42,7 @@ var ConfigSetCmd = &cobra.Command{
 	Use:     "set",
 	Short:   "Set config setting",
 	Long:    "Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings",
-	Example: "config set SqlSettings.DriverName mysql",
+	Example: "config set SqlSettings.DriverName mysql\nconfig set SqlSettings.DataSourceReplicas \"replica1\" \"replica2\"",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(configSetCmdF),
 }
@@ -140,7 +140,11 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		if val.Type().Elem().Kind() != reflect.String {
 			return errors.New("unsupported type of slice")
 		}
-		val.Set(reflect.ValueOf(newValue))
+		v := reflect.ValueOf(newValue)
+		if v.Kind() != reflect.Slice {
+			return errors.New("target value is of type Array and provided value is not")
+		}
+		val.Set(v)
 		return nil
 	case reflect.Int:
 		v, err := strconv.ParseInt(newValue.(string), 10, 64)

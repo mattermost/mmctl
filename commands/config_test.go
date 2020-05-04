@@ -346,6 +346,26 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Should get an error if a string is passed while trying to set a slice", func() {
+		printer.Clean()
+		args := []string{"SqlSettings.DataSourceReplicas", "[\"test1\", \"test2\"]"}
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		inputConfig := &model.Config{}
+		inputConfig.SetDefaults()
+		inputConfig.SqlSettings.DataSourceReplicas = []string{"test1", "test2"}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
 	s.Run("Get error if the key doesn't exists", func() {
 		printer.Clean()
 		defaultConfig := &model.Config{}
