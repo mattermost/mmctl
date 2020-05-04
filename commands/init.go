@@ -41,7 +41,7 @@ func CheckVersionMatch(version, serverVersion string) bool {
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if viper.GetBool("local") {
-			c, err := InitUnixClient()
+			c, err := InitUnixClient(viper.GetString("local-socket-path"))
 			if err != nil {
 				return err
 			}
@@ -158,19 +158,15 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	return client, nil
 }
 
-func InitUnixClient() (*model.Client4, error) {
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
-				return net.Dial("unix", viper.GetString("local-socket-path"))
-			},
+func InitUnixClient(socketPath string) (*model.Client4, error) {
+	tr := &http.Transport{
+		Dial: func(network, addr string) (net.Conn, error) {
+			return net.Dial("unix", socketPath)
 		},
 	}
 
-	client := &model.Client4{
-		ApiUrl:     "http://_" + model.API_URL_SUFFIX,
-		HttpClient: httpClient,
-		HttpHeader: map[string]string{},
-	}
+	client := model.NewAPIv4Client("http://_" + model.API_URL_SUFFIX)
+	client.HttpClient = &http.Client{Transport: tr}
+
 	return client, nil
 }
