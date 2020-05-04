@@ -1,34 +1,36 @@
-.. _mmctl_config_set:
+.. _mmctl_bot_update:
 
-mmctl config set
+mmctl bot update
 ----------------
 
-Set config setting
+Update bot
 
 Synopsis
 ~~~~~~~~
 
 
-Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings
+Update bot information.
 
 ::
 
-  mmctl config set [flags]
+  mmctl bot update [username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  config set SqlSettings.DriverName mysql
-  config set SqlSettings.DataSourceReplicas "replica1" "replica2"
+    bot update testbot --username newbotusername
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for set
+      --description string    Optional. The new description text for the bot.
+      --display-name string   Optional. The new display name for the bot.
+  -h, --help                  help for update
+      --username string       Optional. The new username for the bot.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl config <mmctl_config.rst>`_ 	 - Configuration
+* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
 

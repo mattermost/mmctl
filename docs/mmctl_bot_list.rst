@@ -1,34 +1,35 @@
-.. _mmctl_config_set:
+.. _mmctl_bot_list:
 
-mmctl config set
-----------------
+mmctl bot list
+--------------
 
-Set config setting
+List bots
 
 Synopsis
 ~~~~~~~~
 
 
-Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings
+List the bots users.
 
 ::
 
-  mmctl config set [flags]
+  mmctl bot list [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  config set SqlSettings.DriverName mysql
-  config set SqlSettings.DataSourceReplicas "replica1" "replica2"
+    bot list
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for set
+      --all        Optional. Show all bots (including deleleted and orphaned).
+  -h, --help       help for list
+      --orphaned   Optional. Only show orphaned bots.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +43,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl config <mmctl_config.rst>`_ 	 - Configuration
+* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
 

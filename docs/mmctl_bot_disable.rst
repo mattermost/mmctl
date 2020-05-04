@@ -1,34 +1,33 @@
-.. _mmctl_config_set:
+.. _mmctl_bot_disable:
 
-mmctl config set
-----------------
+mmctl bot disable
+-----------------
 
-Set config setting
+Disable bot
 
 Synopsis
 ~~~~~~~~
 
 
-Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings
+Disable an enabled bot
 
 ::
 
-  mmctl config set [flags]
+  mmctl bot disable [username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  config set SqlSettings.DriverName mysql
-  config set SqlSettings.DataSourceReplicas "replica1" "replica2"
+    bot disable testbot
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for set
+  -h, --help   help for disable
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +41,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl config <mmctl_config.rst>`_ 	 - Configuration
+* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
 

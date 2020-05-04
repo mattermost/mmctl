@@ -1,34 +1,33 @@
-.. _mmctl_config_set:
+.. _mmctl_bot_assign:
 
-mmctl config set
+mmctl bot assign
 ----------------
 
-Set config setting
+Assign bot
 
 Synopsis
 ~~~~~~~~
 
 
-Sets the value of a config setting by its name in dot notation. Accepts multiple values for array settings
+Assign the ownership of a bot to another user
 
 ::
 
-  mmctl config set [flags]
+  mmctl bot assign [bot-username] [new-owner-username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  config set SqlSettings.DriverName mysql
-  config set SqlSettings.DataSourceReplicas "replica1" "replica2"
+    bot assign testbot user2
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for set
+  -h, --help   help for assign
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +41,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl config <mmctl_config.rst>`_ 	 - Configuration
+* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
 
