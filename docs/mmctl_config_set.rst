@@ -21,6 +21,7 @@ Examples
 ::
 
   config set SqlSettings.DriverName mysql
+  config set SqlSettings.DataSourceReplicas "replica1" "replica2"
 
 Options
 ~~~~~~~

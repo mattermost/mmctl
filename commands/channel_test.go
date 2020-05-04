@@ -1663,8 +1663,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := ""
 		channelName := ""
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1682,8 +1681,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		channelName := ""
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1731,8 +1729,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		teamName := ""
 		channelName := "nonExistingChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1756,8 +1753,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		teamName := "nonExistingteamName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1787,8 +1783,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		channelName := "nonExistingChannelName"
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1835,8 +1830,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1895,8 +1889,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -1964,8 +1957,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 
 		teamName := ""
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
@@ -2014,8 +2006,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := "newChannelName"
 		newChannelDisplayName := ""
@@ -2081,8 +2072,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		cmd := &cobra.Command{}
 
 		argsTeamChannel := teamName + ":" + channelName
-		args := []string{""}
-		args[0] = argsTeamChannel
+		args := []string{argsTeamChannel}
 
 		newChannelName := ""
 		newChannelDisplayName := "New Channel Name"
@@ -2140,6 +2130,245 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], updatedChannel)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
+	s.Run("should not create channel without display name", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "channelName"
+		args := []string{teamName + ":" + channelName}
+
+		cmd.Flags().String("team", teamName, "Team Name")
+		cmd.Flags().String("name", channelName, "Channel Name")
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "display Name is required")
+	})
+
+	s.Run("should not create channel without name", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelDisplayName := "channelDisplayName"
+		argsTeamChannel := teamName + ":" + channelDisplayName
+		args := []string{argsTeamChannel}
+
+		cmd.Flags().String("team", teamName, "Team Name")
+		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "name is required")
+	})
+
+	s.Run("should not create channel without team", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		channelName := "channelName"
+		channelDisplayName := "channelDisplayName"
+		argsTeamChannel := channelName + ":" + channelDisplayName
+		args := []string{argsTeamChannel}
+
+		cmd.Flags().String("name", channelName, "Channel Name")
+		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "team is required")
+	})
+
+	s.Run("should fail when team does not exist", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "channelName"
+		channelDisplayName := "channelDisplayName"
+		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
+		args := []string{argsTeamChannel}
+
+		cmd.Flags().String("team", teamName, "Team Name")
+		cmd.Flags().String("name", channelName, "Channel Name")
+		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+
+		mockError := &model.AppError{
+			Message: "mockError",
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, fmt.Sprintf("unable to find team: %s", teamName))
+	})
+
+	s.Run("should create public channel", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "channelName"
+		channelDisplayName := "channelDisplayName"
+		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
+		args := []string{argsTeamChannel}
+
+		cmd.Flags().String("team", teamName, "Team Name")
+		cmd.Flags().String("name", channelName, "Channel Name")
+		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			Name:        teamName,
+			DisplayName: "teamDisplayName",
+		}
+
+		foundChannel := &model.Channel{
+			TeamId:      "teamId",
+			Name:        channelName,
+			DisplayName: channelDisplayName,
+			Type:        model.CHANNEL_OPEN,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateChannel(foundChannel).
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], foundChannel)
+	})
+
+	s.Run("should create private channel", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "channelName"
+		channelDisplayName := "channelDisplayName"
+		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
+		args := []string{argsTeamChannel}
+
+		cmd.Flags().String("team", teamName, "Team Name")
+		cmd.Flags().String("name", channelName, "Channel Name")
+		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().Bool("private", true, "Create a private channel")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			Name:        teamName,
+			DisplayName: "teamDisplayName",
+		}
+
+		foundChannel := &model.Channel{
+			TeamId:      "teamId",
+			Name:        channelName,
+			DisplayName: channelDisplayName,
+			Type:        model.CHANNEL_PRIVATE,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateChannel(foundChannel).
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], foundChannel)
+	})
+
+	s.Run("should create channel with header and purpose", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+
+		teamName := "teamName"
+		channelName := "channelName"
+		channelDisplayName := "channelDisplayName"
+		header := "someHeader"
+		purpose := "somePurpose"
+		argsTeamChannel := teamName + ":" + channelName + ":" + channelDisplayName
+		args := []string{argsTeamChannel}
+
+		cmd.Flags().String("team", teamName, "Team Name")
+		cmd.Flags().String("name", channelName, "Channel Name")
+		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("header", header, "Channel header")
+		cmd.Flags().String("purpose", purpose, "Channel purpose")
+		cmd.Flags().Bool("private", true, "Create a private channel")
+
+		foundTeam := &model.Team{
+			Id:          "teamId",
+			Name:        teamName,
+			DisplayName: "teamDisplayName",
+		}
+
+		foundChannel := &model.Channel{
+			TeamId:      "teamId",
+			Name:        channelName,
+			DisplayName: channelDisplayName,
+			Header:      header,
+			Purpose:     purpose,
+			Type:        model.CHANNEL_PRIVATE,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(foundTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			CreateChannel(foundChannel).
+			Return(foundChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := createChannelCmdF(s.client, cmd, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], foundChannel)
 	})
 }
 
