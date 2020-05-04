@@ -1671,7 +1671,8 @@ func (s *MmctlUnitTestSuite) TestVerifyUserCmd() {
 
 		err := verifyUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
