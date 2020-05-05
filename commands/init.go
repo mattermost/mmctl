@@ -165,7 +165,7 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 		},
 	}
 
-	client := model.NewAPIv4Client("http://_" + model.API_URL_SUFFIX)
+	client := model.NewAPIv4Client("http://_")
 	client.HttpClient = &http.Client{Transport: tr}
 
 	return client, nil
