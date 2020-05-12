@@ -101,12 +101,12 @@ var ListUsersCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 }
 
-var VerifyUserCmd = &cobra.Command{
+var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Use:     "verify [users]",
 	Short:   "Verify email of users",
 	Long:    "Verify the emails of some users.",
 	Example: "  user verify user1",
-	RunE:    withClient(verifyUserCmdF),
+	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
 
@@ -137,7 +137,7 @@ func init() {
 		ResetUserMfaCmd,
 		SearchUserCmd,
 		ListUsersCmd,
-		VerifyUserCmd,
+		VerifyUserEmailWithoutTokenCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -413,7 +413,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	return nil
 }
 
-func verifyUserCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	users := getUsersFromUserArgs(c, userArgs)
 	for i, user := range users {
 		if user == nil {
@@ -421,7 +421,7 @@ func verifyUserCmdF(c client.Client, cmd *cobra.Command, userArgs []string) erro
 			continue
 		}
 
-		if newUser, resp := c.VerifyUser(user.Id); resp.Error != nil {
+		if newUser, resp := c.VerifyUserEmailWithoutToken(user.Id); resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)

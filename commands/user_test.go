@@ -1651,7 +1651,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestVerifyUserCmd() {
+func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.Run("Verify user", func() {
 		printer.Clean()
 		emailArg := "example@example.com"
@@ -1665,11 +1665,11 @@ func (s *MmctlUnitTestSuite) TestVerifyUserCmd() {
 
 		s.client.
 			EXPECT().
-			VerifyUser(mockUser.Id).
+			VerifyUserEmailWithoutToken(mockUser.Id).
 			Return(&mockUser, &model.Response{Error: nil}).
 			Times(1)
 
-		err := verifyUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
@@ -1698,7 +1698,7 @@ func (s *MmctlUnitTestSuite) TestVerifyUserCmd() {
 			Return(nil, &model.Response{Error: &model.AppError{}}).
 			Times(1)
 
-		err := verifyUserCmdF(s.client, &cobra.Command{}, []string{userArg})
+		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{userArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -1717,11 +1717,11 @@ func (s *MmctlUnitTestSuite) TestVerifyUserCmd() {
 
 		s.client.
 			EXPECT().
-			VerifyUser(mockUser.Id).
+			VerifyUserEmailWithoutToken(mockUser.Id).
 			Return(nil, &model.Response{Error: &model.AppError{Message: "some-message"}}).
 			Times(1)
 
-		err := verifyUserCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
