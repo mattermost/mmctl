@@ -19,7 +19,6 @@ type Client interface {
 	GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*model.Channel, *model.Response)
 	GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*model.Channel, *model.Response)
 	RestoreChannel(channelId string) (*model.Channel, *model.Response)
-	ConvertChannelToPrivate(channelId string) (*model.Channel, *model.Response)
 	PatchChannel(channelId string, patch *model.ChannelPatch) (*model.Channel, *model.Response)
 	GetChannelByName(channelName, teamId string, etag string) (*model.Channel, *model.Response)
 	GetChannelByNameIncludeDeleted(channelName, teamId string, etag string) (*model.Channel, *model.Response)
