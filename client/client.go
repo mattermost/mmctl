@@ -71,6 +71,7 @@ type Client interface {
 	DeleteCommand(commandId string) (bool, *model.Response)
 	GetConfig() (*model.Config, *model.Response)
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
+	PatchConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
 	GetUsersByIds(userIds []string) ([]*model.User, *model.Response)
