@@ -164,7 +164,9 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 func checkValidSocket(socketPath string) error {
 	// check file mode and permissions
 	fi, err := os.Stat(socketPath)
-	if err != nil {
+	if err != nil && os.IsNotExist(err) {
+		return fmt.Errorf("socket file %q doesn't exists. Please check the server configuration for local mode", socketPath)
+	} else if err != nil {
 		return err
 	}
 	if fi.Mode() != expectedSocketMode {
