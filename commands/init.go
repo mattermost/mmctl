@@ -10,8 +10,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/user"
 	"runtime"
 	"strings"
+	"syscall"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 
@@ -29,6 +31,7 @@ var (
 		x509.DSAWithSHA1:   true,
 		x509.ECDSAWithSHA1: true,
 	}
+	expectedSocketMode os.FileMode = os.ModeSocket | 0600
 )
 
 func CheckVersionMatch(version, serverVersion string) bool {
@@ -158,7 +161,37 @@ func InitWebSocketClient() (*model.WebSocketClient, error) {
 	return client, nil
 }
 
+func checkValidSocket(socketPath string) error {
+	// check file mode and permissions
+	fi, err := os.Stat(socketPath)
+	if err != nil {
+		return err
+	}
+	if fi.Mode() != expectedSocketMode {
+		return fmt.Errorf("invalid file mode for file %q. It must be a socket with 0600 permissions", socketPath)
+	}
+
+	// check matching user
+	cUser, err := user.Current()
+	if err != nil {
+		return err
+	}
+	s, ok := fi.Sys().(*syscall.Stat_t)
+	if !ok {
+		return fmt.Errorf("cannot get owner of the file %q", socketPath)
+	}
+	if fmt.Sprint(s.Uid) != cUser.Uid {
+		return fmt.Errorf("owner of the file %q must be the same user running mmctl", socketPath)
+	}
+
+	return nil
+}
+
 func InitUnixClient(socketPath string) (*model.Client4, error) {
+	if err := checkValidSocket(socketPath); err != nil {
+		return nil, err
+	}
+
 	tr := &http.Transport{
 		Dial: func(network, addr string) (net.Conn, error) {
 			return net.Dial("unix", socketPath)
