@@ -252,7 +252,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(inputConfig).
+			PatchConfig(inputConfig).
 			Return(inputConfig, &model.Response{Error: nil}).
 			Times(1)
 
@@ -280,7 +280,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(inputConfig).
+			PatchConfig(inputConfig).
 			Return(inputConfig, &model.Response{Error: nil}).
 			Times(1)
 
@@ -308,7 +308,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(inputConfig).
+			PatchConfig(inputConfig).
 			Return(inputConfig, &model.Response{Error: nil}).
 			Times(1)
 
@@ -335,7 +335,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(inputConfig).
+			PatchConfig(inputConfig).
 			Return(inputConfig, &model.Response{Error: nil}).
 			Times(1)
 
@@ -403,7 +403,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(1)
 		s.client.
 			EXPECT().
-			UpdateConfig(inputConfig).
+			PatchConfig(inputConfig).
 			Return(inputConfig, &model.Response{StatusCode: 500, Error: &model.AppError{}}).
 			Times(1)
 
@@ -444,7 +444,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateConfig(inputConfig).
+			PatchConfig(inputConfig).
 			Return(inputConfig, &model.Response{Error: nil}).
 			Times(3)
 
