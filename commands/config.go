@@ -284,7 +284,7 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	if err := setConfigValue(path, config, args[1:]); err != nil {
 		return err
 	}
-	newConfig, res := c.UpdateConfig(config)
+	newConfig, res := c.PatchConfig(config)
 	if res.Error != nil {
 		return res.Error
 	}
