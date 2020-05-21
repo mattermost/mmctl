@@ -1119,6 +1119,21 @@ func (mr *MockClientMockRecorder) UpdateTeam(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTeam", reflect.TypeOf((*MockClient)(nil).UpdateTeam), arg0)
 }
 
+// UpdateTeamPrivacy mocks base method
+func (m *MockClient) UpdateTeamPrivacy(arg0, arg1 string) (*model.Team, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTeamPrivacy", arg0, arg1)
+	ret0, _ := ret[0].(*model.Team)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateTeamPrivacy indicates an expected call of UpdateTeamPrivacy
+func (mr *MockClientMockRecorder) UpdateTeamPrivacy(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTeamPrivacy", reflect.TypeOf((*MockClient)(nil).UpdateTeamPrivacy), arg0, arg1)
+}
+
 // UpdateUser mocks base method
 func (m *MockClient) UpdateUser(arg0 *model.User) (*model.User, *model.Response) {
 	m.ctrl.T.Helper()

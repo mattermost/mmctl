@@ -32,6 +32,7 @@ type Client interface {
 	RemoveTeamMember(teamId, userId string) (bool, *model.Response)
 	SoftDeleteTeam(teamId string) (bool, *model.Response)
 	PermanentDeleteTeam(teamId string) (bool, *model.Response)
+	UpdateTeamPrivacy(teamId string, privacy string) (*model.Team, *model.Response)
 	SearchTeams(search *model.TeamSearch) ([]*model.Team, *model.Response)
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
