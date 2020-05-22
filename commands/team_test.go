@@ -825,3 +825,82 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
+	teamName := "team1"
+	teamID := "teamId"
+	cmd := &cobra.Command{}
+
+	s.Run("Restore teams with team not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Restore team", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamID,
+			Name: teamName,
+		}
+
+		s.client.
+			EXPECT().
+			RestoreTeam(teamID).
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Restore team with error on RestoreTeam returns an error", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamID,
+			Name: teamName,
+		}
+
+		mockError := &model.AppError{
+			Message:       "An error occurred restoring a team",
+			DetailedError: "Team cannot be restored",
+			Where:         "Team.restoreTeam",
+		}
+		s.client.
+			EXPECT().
+			RestoreTeam(teamID).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to restore team 'team1' error: Team.restoreTeam: An error occurred restoring a team, Team cannot be restored",
+			printer.GetErrorLines()[0])
+	})
+}

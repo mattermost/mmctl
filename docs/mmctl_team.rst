@@ -38,6 +38,7 @@ SEE ALSO
 * `mmctl team list <mmctl_team_list.rst>`_ 	 - List all teams
 * `mmctl team modify <mmctl_team_modify.rst>`_ 	 - Modify teams
 * `mmctl team rename <mmctl_team_rename.rst>`_ 	 - Rename team
+* `mmctl team restore <mmctl_team_restore.rst>`_ 	 - Restore teams
 * `mmctl team search <mmctl_team_search.rst>`_ 	 - Search for teams
 * `mmctl team users <mmctl_team_users.rst>`_ 	 - Management of team users
 
