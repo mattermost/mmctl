@@ -865,13 +865,13 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			RestoreTeam(teamID).
+			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			RestoreTeam(teamID).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -895,14 +895,14 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			RestoreTeam(teamID).
+			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			RestoreTeam(teamID).
-			Return(nil, &model.Response{Error: mockError}).
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
