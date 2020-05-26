@@ -449,13 +449,14 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamID).
-			Return(true, &model.Response{Error: nil}).
-			Times(1)
-		s.client.
-			EXPECT().
 			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamID).
+			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -478,16 +479,17 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			DetailedError: "Team cannot be deleted",
 			Where:         "Team.deleteTeam",
 		}
-		s.client.
-			EXPECT().
-			PermanentDeleteTeam(teamID).
-			Return(false, &model.Response{Error: mockError}).
-			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamID).
+			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -745,12 +747,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_INVITE).
+			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			UpdateTeamPrivacy(teamID, model.TEAM_INVITE).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -773,12 +776,13 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetTeam(teamName, "").
+			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -804,16 +808,17 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			DetailedError: "Team cannot be modified",
 			Where:         "Team.updateTeamPrivacy",
 		}
-		s.client.
-			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
-			Return(nil, &model.Response{Error: mockError}).
-			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -863,6 +868,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 			RestoreTeam(teamID).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
@@ -886,16 +892,17 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 			DetailedError: "Team cannot be restored",
 			Where:         "Team.restoreTeam",
 		}
-		s.client.
-			EXPECT().
-			RestoreTeam(teamID).
-			Return(nil, &model.Response{Error: mockError}).
-			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RestoreTeam(teamID).
+			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
