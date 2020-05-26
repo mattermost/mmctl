@@ -79,6 +79,15 @@ var RenameTeamCmd = &cobra.Command{
 	RunE:    withClient(renameTeamCmdF),
 }
 
+var ModifyTeamsCmd = &cobra.Command{
+	Use:     "modify [teams] [flag]",
+	Short:   "Modify teams",
+	Long:    "Modify teams' privacy setting to public or private",
+	Example: "  team modify myteam --private",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(modifyTeamsCmdF),
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -87,6 +96,9 @@ func init() {
 
 	DeleteTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the team and a DB backup has been performed.")
 	ArchiveTeamsCmd.Flags().Bool("confirm", false, "Confirm you really want to archive the team and a DB backup has been performed.")
+
+	ModifyTeamsCmd.Flags().Bool("private", false, "Modify team to be private.")
+	ModifyTeamsCmd.Flags().Bool("public", false, "Modify team to be public.")
 
 	// Add flag declaration for RenameTeam
 	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
@@ -99,6 +111,7 @@ func init() {
 		ListTeamsCmd,
 		SearchTeamCmd,
 		RenameTeamCmd,
+		ModifyTeamsCmd,
 	)
 
 	RootCmd.AddCommand(TeamCmd)
@@ -293,6 +306,37 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
+		}
+	}
+
+	return nil
+}
+
+func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	private, _ := cmd.Flags().GetBool("private")
+	public, _ := cmd.Flags().GetBool("public")
+
+	if (!private && !public) || (private && public) {
+		return errors.New("must specify one of --private or --public")
+	}
+
+	// I = invite only (private)
+	// O = open (public)
+	privacy := model.TEAM_INVITE
+	if public {
+		privacy = model.TEAM_OPEN
+	}
+
+	teams := getTeamsFromTeamArgs(c, args)
+	for i, team := range teams {
+		if team == nil {
+			printer.PrintError("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if _, response := c.UpdateTeamPrivacy(team.Id, privacy); response.Error != nil {
+			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Modified team '{{.Name}}'", team)
 		}
 	}
 
