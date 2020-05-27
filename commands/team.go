@@ -52,6 +52,15 @@ Archives a team along with all related information including posts from the data
 	RunE:    withClient(archiveTeamsCmdF),
 }
 
+var RestoreTeamsCmd = &cobra.Command{
+	Use:     "restore [teams]",
+	Short:   "Restore teams",
+	Long:    "Restores archived teams.",
+	Example: "  team restore myteam",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(restoreTeamsCmdF),
+}
+
 var ListTeamsCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List all teams",
@@ -108,6 +117,7 @@ func init() {
 		TeamCreateCmd,
 		DeleteTeamsCmd,
 		ArchiveTeamsCmd,
+		RestoreTeamsCmd,
 		ListTeamsCmd,
 		SearchTeamCmd,
 		RenameTeamCmd,
@@ -340,5 +350,21 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	return nil
+}
+
+func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	teams := getTeamsFromTeamArgs(c, args)
+	for i, team := range teams {
+		if team == nil {
+			printer.PrintError("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		if rteam, response := c.RestoreTeam(team.Id); response.Error != nil {
+			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Restored team '{{.Name}}'", rteam)
+		}
+	}
 	return nil
 }

@@ -969,6 +969,21 @@ func (mr *MockClientMockRecorder) RestoreChannel(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreChannel", reflect.TypeOf((*MockClient)(nil).RestoreChannel), arg0)
 }
 
+// RestoreTeam mocks base method
+func (m *MockClient) RestoreTeam(arg0 string) (*model.Team, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreTeam", arg0)
+	ret0, _ := ret[0].(*model.Team)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// RestoreTeam indicates an expected call of RestoreTeam
+func (mr *MockClientMockRecorder) RestoreTeam(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreTeam", reflect.TypeOf((*MockClient)(nil).RestoreTeam), arg0)
+}
+
 // RevokeUserAccessToken mocks base method
 func (m *MockClient) RevokeUserAccessToken(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
