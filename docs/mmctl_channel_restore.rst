@@ -3,7 +3,7 @@
 mmctl channel restore
 ---------------------
 
-Restore some channels
+Restore some channels, alias: unarchive
 
 Synopsis
 ~~~~~~~~
@@ -21,7 +21,7 @@ Examples
 
 ::
 
-    channel restore myteam:mychannel
+    channel restore|unarchive myteam:mychannel
 
 Options
 ~~~~~~~

@@ -88,11 +88,12 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 }
 
 var RestoreChannelsCmd = &cobra.Command{
-	Use:   "restore [channels]",
-	Short: "Restore some channels",
+	Use:     "restore [channels]",
+	Aliases: []string{"unarchive"},
+	Short:   "Restore some channels, alias: unarchive",
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel restore myteam:mychannel",
+	Example: "  channel restore|unarchive myteam:mychannel",
 	RunE:    withClient(restoreChannelsCmdF),
 }
 
