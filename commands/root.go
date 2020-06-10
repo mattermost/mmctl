@@ -15,6 +15,8 @@ import (
 func Run(args []string) error {
 	viper.SetEnvPrefix("mmctl")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	// TODO: swap this with model.LOCAL_MODE_SOCKET_PATH after server PR is merged (MM-23710)
+	viper.SetDefault("local-socket-path", "/var/tmp/mattermost_local.socket")
 	viper.AutomaticEnv()
 
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
@@ -23,6 +25,8 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.PersistentFlags().Bool("insecure-sha1-intermediate", false, "allows to use insecure TLS protocols, such as SHA-1")
 	_ = viper.BindPFlag("insecure-sha1-intermediate", RootCmd.PersistentFlags().Lookup("insecure-sha1-intermediate"))
+	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
+	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
 
 	RootCmd.SetArgs(args)
 

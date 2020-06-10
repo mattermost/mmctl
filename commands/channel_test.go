@@ -2597,7 +2597,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 		args := []string{argsTeamChannel, userEmail}
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, fmt.Sprintf("individual users must not be specified in conjunction with the --all-users flag"))
+		s.Require().EqualError(err, "individual users must not be specified in conjunction with the --all-users flag")
 	})
 
 	s.Run("should remove all users from channel", func() {

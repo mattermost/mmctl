@@ -374,7 +374,7 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("you can only change the type of public channels")
 	}
 
-	if _, response := c.ConvertChannelToPrivate(channel.Id); response.Error != nil {
+	if _, response := c.UpdateChannelPrivacy(channel.Id, model.CHANNEL_PRIVATE); response.Error != nil {
 		return response.Error
 	}
 
