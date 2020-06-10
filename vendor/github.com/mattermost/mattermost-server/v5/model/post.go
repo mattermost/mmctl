@@ -5,11 +5,13 @@ package model
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/v5/utils/markdown"
@@ -61,7 +63,10 @@ const (
 	POST_PROPS_OVERRIDE_ICON_EMOJI = "override_icon_emoji"
 
 	POST_PROPS_MENTION_HIGHLIGHT_DISABLED = "mentionHighlightDisabled"
+	POST_PROPS_GROUP_HIGHLIGHT_DISABLED   = "disable_group_highlight"
 )
+
+var AT_MENTION_PATTEN = regexp.MustCompile(`\B@`)
 
 type Post struct {
 	Id         string `json:"id"`
@@ -83,7 +88,8 @@ type Post struct {
 	MessageSource string `json:"message_source,omitempty" db:"-"`
 
 	Type          string          `json:"type"`
-	Props         StringInterface `json:"props"`
+	propsMu       sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Post.Props.
+	Props         StringInterface `json:"props"` // Deprecated: use GetProps()
 	Hashtags      string          `json:"hashtags"`
 	Filenames     StringArray     `json:"filenames,omitempty"` // Deprecated, do not use this field any more
 	FileIds       StringArray     `json:"file_ids,omitempty"`
@@ -156,10 +162,46 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
-// Clone shallowly copies the post.
+// ShallowCopy is an utility function to shallow copy a Post to the given
+// destination without touching the internal RWMutex.
+func (o *Post) ShallowCopy(dst *Post) error {
+	if dst == nil {
+		return errors.New("dst cannot be nil")
+	}
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	dst.propsMu.Lock()
+	defer dst.propsMu.Unlock()
+	dst.Id = o.Id
+	dst.CreateAt = o.CreateAt
+	dst.UpdateAt = o.UpdateAt
+	dst.EditAt = o.EditAt
+	dst.DeleteAt = o.DeleteAt
+	dst.IsPinned = o.IsPinned
+	dst.UserId = o.UserId
+	dst.ChannelId = o.ChannelId
+	dst.RootId = o.RootId
+	dst.ParentId = o.ParentId
+	dst.OriginalId = o.OriginalId
+	dst.Message = o.Message
+	dst.MessageSource = o.MessageSource
+	dst.Type = o.Type
+	dst.Props = o.Props
+	dst.Hashtags = o.Hashtags
+	dst.Filenames = o.Filenames
+	dst.FileIds = o.FileIds
+	dst.PendingPostId = o.PendingPostId
+	dst.HasReactions = o.HasReactions
+	dst.ReplyCount = o.ReplyCount
+	dst.Metadata = o.Metadata
+	return nil
+}
+
+// Clone shallowly copies the post and returns the copy.
 func (o *Post) Clone() *Post {
-	copy := *o
-	return &copy
+	copy := &Post{}
+	o.ShallowCopy(copy)
+	return copy
 }
 
 func (o *Post) ToJson() string {
@@ -199,8 +241,7 @@ func (o *Post) Etag() string {
 }
 
 func (o *Post) IsValid(maxPostSize int) *AppError {
-
-	if len(o.Id) != 26 {
+	if !IsValidId(o.Id) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -212,19 +253,19 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.update_at.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if len(o.UserId) != 26 {
+	if !IsValidId(o.UserId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.ChannelId) != 26 {
+	if !IsValidId(o.ChannelId) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.RootId) == 26 || len(o.RootId) == 0) {
+	if !(IsValidId(o.RootId) || len(o.RootId) == 0) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.root_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if !(len(o.ParentId) == 26 || len(o.ParentId) == 0) {
+	if !(IsValidId(o.ParentId) || len(o.ParentId) == 0) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.parent_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -286,7 +327,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.file_ids.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(StringInterfaceToJson(o.Props)) > POST_PROPS_MAX_RUNES {
+	if utf8.RuneCountInString(StringInterfaceToJson(o.GetProps())) > POST_PROPS_MAX_RUNES {
 		return NewAppError("Post.IsValid", "model.post.is_valid.props.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -299,8 +340,8 @@ func (o *Post) SanitizeProps() {
 	}
 
 	for _, member := range membersToSanitize {
-		if _, ok := o.Props[member]; ok {
-			delete(o.Props, member)
+		if _, ok := o.GetProps()[member]; ok {
+			o.DelProp(member)
 		}
 	}
 }
@@ -321,8 +362,8 @@ func (o *Post) PreSave() {
 }
 
 func (o *Post) PreCommit() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 
 	if o.Filenames == nil {
@@ -340,16 +381,49 @@ func (o *Post) PreCommit() {
 }
 
 func (o *Post) MakeNonNil() {
-	if o.Props == nil {
-		o.Props = make(map[string]interface{})
+	if o.GetProps() == nil {
+		o.SetProps(make(map[string]interface{}))
 	}
 }
 
+func (o *Post) DelProp(key string) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)-1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	delete(propsCopy, key)
+	o.Props = propsCopy
+}
+
 func (o *Post) AddProp(key string, value interface{}) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	propsCopy := make(map[string]interface{}, len(o.Props)+1)
+	for k, v := range o.Props {
+		propsCopy[k] = v
+	}
+	propsCopy[key] = value
+	o.Props = propsCopy
+}
 
-	o.MakeNonNil()
+func (o *Post) GetProps() StringInterface {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props
+}
 
-	o.Props[key] = value
+func (o *Post) SetProps(props StringInterface) {
+	o.propsMu.Lock()
+	defer o.propsMu.Unlock()
+	o.Props = props
+}
+
+func (o *Post) GetProp(key string) interface{} {
+	o.propsMu.RLock()
+	defer o.propsMu.RUnlock()
+	return o.Props[key]
 }
 
 func (o *Post) IsSystemMessage() bool {
@@ -379,7 +453,8 @@ func (o *Post) Patch(patch *PostPatch) {
 	}
 
 	if patch.Props != nil {
-		o.Props = *patch.Props
+		newProps := *patch.Props
+		o.SetProps(newProps)
 	}
 
 	if patch.FileIds != nil {
@@ -464,11 +539,11 @@ func findAtChannelMention(message string) (mention string, found bool) {
 }
 
 func (o *Post) Attachments() []*SlackAttachment {
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp("attachments").([]*SlackAttachment); ok {
 		return attachments
 	}
 	var ret []*SlackAttachment
-	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
+	if attachments, ok := o.GetProp("attachments").([]interface{}); ok {
 		for _, attachment := range attachments {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment

@@ -449,13 +449,14 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			PermanentDeleteTeam(teamID).
-			Return(true, &model.Response{Error: nil}).
-			Times(1)
-		s.client.
-			EXPECT().
 			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamID).
+			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -478,16 +479,17 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 			DetailedError: "Team cannot be deleted",
 			Where:         "Team.deleteTeam",
 		}
-		s.client.
-			EXPECT().
-			PermanentDeleteTeam(teamID).
-			Return(false, &model.Response{Error: mockError}).
-			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
 			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteTeam(teamID).
+			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -686,5 +688,226 @@ func (s *MmctlUnitTestSuite) TestSearchTeamCmd() {
 		err := searchTeamCmdF(s.client, &cobra.Command{}, []string{teamName})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
+	teamName := "team1"
+	teamID := "teamId"
+
+	s.Run("Modify teams with no flags returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("private", false, "")
+		cmd.Flags().Bool("public", false, "")
+		err := modifyTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "must specify one of --private or --public")
+	})
+
+	s.Run("Modify teams with both flags returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("private", true, "")
+		cmd.Flags().Bool("public", true, "")
+		err := modifyTeamsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "must specify one of --private or --public")
+	})
+
+	s.Run("Modify teams with team not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("private", true, "")
+
+		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Modify teams, set to private", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:              teamID,
+			Name:            teamName,
+			AllowOpenInvite: true,
+			Type:            model.TEAM_OPEN,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeamPrivacy(teamID, model.TEAM_INVITE).
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("private", true, "")
+
+		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Modify teams, set to public", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:              teamID,
+			Name:            teamName,
+			AllowOpenInvite: false,
+			Type:            model.TEAM_INVITE,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("public", true, "")
+
+		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Modify teams with error on UpdateTeamPrivacy returns an error", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:              teamID,
+			Name:            teamName,
+			AllowOpenInvite: false,
+			Type:            model.TEAM_INVITE,
+		}
+
+		mockError := &model.AppError{
+			Message:       "An error occurred modifying a team",
+			DetailedError: "Team cannot be modified",
+			Where:         "Team.updateTeamPrivacy",
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("public", true, "")
+
+		err := modifyTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to modify team 'team1' error: Team.updateTeamPrivacy: An error occurred modifying a team, Team cannot be modified",
+			printer.GetErrorLines()[0])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
+	teamName := "team1"
+	teamID := "teamId"
+	cmd := &cobra.Command{}
+
+	s.Run("Restore teams with team not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Restore team", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamID,
+			Name: teamName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RestoreTeam(teamID).
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockTeam, printer.GetLines()[0])
+	})
+
+	s.Run("Restore team with error on RestoreTeam returns an error", func() {
+		printer.Clean()
+		mockTeam := model.Team{
+			Id:   teamID,
+			Name: teamName,
+		}
+
+		mockError := &model.AppError{
+			Message:       "An error occurred restoring a team",
+			DetailedError: "Team cannot be restored",
+			Where:         "Team.restoreTeam",
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(&mockTeam, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RestoreTeam(teamID).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
+		s.Require().Nil(err)
+		s.Require().Equal("Unable to restore team 'team1' error: Team.restoreTeam: An error occurred restoring a team, Team cannot be restored",
+			printer.GetErrorLines()[0])
 	})
 }
