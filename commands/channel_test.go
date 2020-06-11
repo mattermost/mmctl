@@ -2193,7 +2193,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			MoveChannel(mockChannel.Id, mockTeam1.Id, false).
+			MoveChannel(mockChannel.Id, mockTeam1.Id).
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
@@ -2286,7 +2286,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			MoveChannel(channelID, mockTeam1.Id, false).
+			MoveChannel(channelID, mockTeam1.Id).
 			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
 			Times(1)
 

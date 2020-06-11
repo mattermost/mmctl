@@ -147,8 +147,6 @@ func init() {
 
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
-	MoveChannelCmd.Flags().Bool("remove-deactivated-users", false, "Automatically remove any deactivated users from the channel before moving it.")
-
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -502,8 +500,6 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find destination team %q", args[0])
 	}
 
-	removeDeactivatedMembers, _ := cmd.Flags().GetBool("remove-deactivated-users")
-
 	channels := getChannelsFromChannelArgs(c, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
@@ -515,7 +511,7 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newChannel, resp := c.MoveChannel(channel.Id, team.Id, removeDeactivatedMembers)
+		newChannel, resp := c.MoveChannel(channel.Id, team.Id)
 		if resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, resp.Error))
 			continue
