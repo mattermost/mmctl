@@ -88,13 +88,22 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 }
 
 var RestoreChannelsCmd = &cobra.Command{
-	Use:     "restore [channels]",
-	Aliases: []string{"unarchive"},
-	Short:   "Restore some channels, alias: unarchive",
+	Use:        "restore [channels]",
+	Deprecated: "please use \"unarchive\" instead",
+	Short:      "Restore some channels",
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel restore|unarchive myteam:mychannel",
-	RunE:    withClient(restoreChannelsCmdF),
+	Example: "  channel restore myteam:mychannel",
+	RunE:    withClient(unarchiveChannelsCmdF),
+}
+
+var UnarchiveChannelCmd = &cobra.Command{
+	Use:   "unarchive [channels]",
+	Short: "Unarchive some channels",
+	Long: `Unarchive a previously archived channel
+Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel unarchive myteam:mychannel",
+	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
 var MakeChannelPrivateCmd = &cobra.Command{
@@ -142,6 +151,7 @@ func init() {
 		ArchiveChannelsCmd,
 		ListChannelsCmd,
 		RestoreChannelsCmd,
+		UnarchiveChannelCmd,
 		MakeChannelPrivateCmd,
 		ModifyChannelCmd,
 		ChannelRenameCmd,
@@ -326,7 +336,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	return nil
 }
 
-func restoreChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("enter at least one channel")
 	}
@@ -338,7 +348,7 @@ func restoreChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 			continue
 		}
 		if _, response := c.RestoreChannel(channel.Id); response.Error != nil {
-			printer.PrintError("Unable to restore channel '" + args[i] + "'. Error: " + response.Error.Error())
+			printer.PrintError("Unable to unarchive channel '" + args[i] + "'. Error: " + response.Error.Error())
 		}
 	}
 
