@@ -75,6 +75,7 @@ type Client interface {
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	PatchConfig(*model.Config) (*model.Config, *model.Response)
 	SyncLdap() (bool, *model.Response)
+	MigrateIdLdap(toAttribute string) (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
 	GetUsersByIds(userIds []string) ([]*model.User, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)

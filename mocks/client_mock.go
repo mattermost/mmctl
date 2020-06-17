@@ -789,6 +789,21 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1)
 }
 
+// MigrateIdLdap mocks base method
+func (m *MockClient) MigrateIdLdap(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MigrateIdLdap", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// MigrateIdLdap indicates an expected call of MigrateIdLdap
+func (mr *MockClientMockRecorder) MigrateIdLdap(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateIdLdap", reflect.TypeOf((*MockClient)(nil).MigrateIdLdap), arg0)
+}
+
 // MoveCommand mocks base method
 func (m *MockClient) MoveCommand(arg0, arg1 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
