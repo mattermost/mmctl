@@ -26,7 +26,7 @@ func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 
 		// loginCmdf doesn't return an error in this case. It prints to stderr instead.
 		printer.Clean()
-		_ = loginCmdF(cmd, []string{InstanceURL + "/"})
+		_ = loginCmdF(cmd, []string{InstanceURL + "/"}) // add a trailing slash
 		errLines := printer.GetErrorLines()
 		s.Require().Lenf(errLines, 0, "expected no error, got %q", errLines)
 	})
