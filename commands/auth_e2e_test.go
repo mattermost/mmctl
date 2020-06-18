@@ -11,7 +11,6 @@ import (
 
 func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 	s.Run("URL with trailing slash", func() {
-
 		// cobra wont let us run a subcommand directly. When we try to `execute`
 		// the subcommand cobra executes the parent command
 		// Instead of calling RootCmd, with its various subcommands and options,
