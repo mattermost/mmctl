@@ -11,10 +11,13 @@ import (
 
 func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 	s.Run("URL with trailing slash", func() {
-		// cobra wont let us run a subcommand directly. When we try to `execute`
-		// the subcommand cobra executes the parent command
+		// loginCmdf doesn't return an error in this case. It prints to stderr instead.
+		printer.Clean()
+
+		// cobra wont let us run a subcommand directly. When we try to `Execute`
+		// the subcommand, cobra executes the parent command.
 		// Instead of calling RootCmd, with its various subcommands and options,
-		// we duplicate part of the the LoginCmd here
+		// we duplicate part of the the LoginCmd here.
 		cmd := &cobra.Command{}
 		cmd.Flags().StringP("name", "n", "name", "Name for the credentials")
 		cmd.Flags().StringP("username", "u", SysadminUsername, "Username for the credentials")
@@ -23,8 +26,6 @@ func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 		cmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
 		cmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
-		// loginCmdf doesn't return an error in this case. It prints to stderr instead.
-		printer.Clean()
 		_ = loginCmdF(cmd, []string{s.th.InstanceURL + "/"}) // add a trailing slash
 		errLines := printer.GetErrorLines()
 		s.Require().Lenf(errLines, 0, "expected no error, got %q", errLines)
