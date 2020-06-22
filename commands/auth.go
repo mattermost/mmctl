@@ -138,7 +138,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 	allowInsecure := viper.GetBool("insecure-sha1-intermediate")
 
-	url := args[0]
+	url := strings.TrimRight(args[0], "/")
 	method := MethodPassword
 
 	if name == "" {
