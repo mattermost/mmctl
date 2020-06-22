@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -95,6 +94,6 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	s.Run("Fail to upload license if no path is given", func() {
 		printer.Clean()
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().EqualError(err, fmt.Sprintf("enter one license file to upload"))
+		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }
