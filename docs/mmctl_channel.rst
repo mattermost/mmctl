@@ -41,6 +41,6 @@ SEE ALSO
 * `mmctl channel move <mmctl_channel_move.rst>`_ 	 - Moves channels to the specified team
 * `mmctl channel remove <mmctl_channel_remove.rst>`_ 	 - Remove users from channel
 * `mmctl channel rename <mmctl_channel_rename.rst>`_ 	 - Rename channel
-* `mmctl channel restore <mmctl_channel_restore.rst>`_ 	 - Restore some channels
 * `mmctl channel search <mmctl_channel_search.rst>`_ 	 - Search a channel
+* `mmctl channel unarchive <mmctl_channel_unarchive.rst>`_ 	 - Unarchive some channels
 
