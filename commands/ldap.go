@@ -23,19 +23,19 @@ var LdapSyncCmd = &cobra.Command{
 	RunE:    withClient(ldapSyncCmdF),
 }
 
-var LdapIdMigrate = &cobra.Command{
+var LdapIDMigrate = &cobra.Command{
 	Use:     "idmigrate",
 	Short:   "Migrate LDAP IdAttribute to new value",
 	Long:    "Migrate LDAP IdAttribute to new value. Run this utility then change the IdAttribute to the new value.",
 	Example: " ldap idmigrate objectGUID",
 	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(ldapIdMigrateCmdF),
+	RunE:    withClient(ldapIDMigrateCmdF),
 }
 
 func init() {
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
-		LdapIdMigrate,
+		LdapIDMigrate,
 	)
 	RootCmd.AddCommand(LdapCmd)
 }
@@ -57,7 +57,7 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func ldapIdMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	toAttribute := args[0]
 	ok, response := c.MigrateIdLdap(toAttribute)
 	if response.Error != nil {

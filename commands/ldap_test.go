@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
-		err := ldapIdMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
+		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Contains(printer.GetLines()[0], "test-id")
@@ -90,7 +90,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 			Return(false, &model.Response{Error: &model.AppError{Message: "test-error"}}).
 			Times(1)
 
-		err := ldapIdMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
+		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})
