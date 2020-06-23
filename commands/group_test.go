@@ -300,7 +300,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
-		mockGroup := &model.GroupWithSchemeAdmin{Group: model.Group{Name: groupName}}
+		mockGroup := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString(groupName)}}
 		mockGroups := []*model.GroupWithSchemeAdmin{mockGroup}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -346,8 +346,8 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 		mockTeam := model.Team{Id: teamID}
 		mockChannel := model.Channel{Id: channelID}
 		mockGroups := []*model.GroupWithSchemeAdmin{
-			{Group: model.Group{Name: "group1"}},
-			{Group: model.Group{Name: "group2"}},
+			{Group: model.Group{Name: model.NewString("group1")}},
+			{Group: model.Group{Name: model.NewString("group2")}},
 		}
 
 		groupOpts := &model.GroupSearchOpts{
@@ -968,7 +968,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: "group-name"}}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString("group-name")}}
 		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		groupOpts := &model.GroupSearchOpts{
 			PageOpts: &model.PageOpts{
@@ -1117,7 +1117,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: "group-name"}}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString("group-name")}}
 		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		mockError := model.AppError{Id: "Mock Error"}
 		groupOpts := &model.GroupSearchOpts{
@@ -1266,7 +1266,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 		channelPart := "channel-id"
 		mockChannel := model.Channel{Id: channelPart}
 		channelArg := teamArg + ":" + channelPart
-		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: "group-name"}}
+		group := &model.GroupWithSchemeAdmin{Group: model.Group{Name: model.NewString("group-name")}}
 		mockGroups := []*model.GroupWithSchemeAdmin{group}
 		mockError := model.AppError{Id: "Mock Error"}
 		groupOpts := &model.GroupSearchOpts{
