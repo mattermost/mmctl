@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -126,6 +128,17 @@ Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
 	RunE: withClient(searchChannelCmdF),
 }
 
+var MoveChannelCmd = &cobra.Command{
+	Use:   "move [team] [channels]",
+	Short: "Moves channels to the specified team",
+	Long: `Moves the provided channels to the specified team.
+Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
+Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel move newteam oldteam:mychannel",
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    withClient(moveChannelCmdF),
+}
+
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
 	ChannelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
@@ -156,6 +169,7 @@ func init() {
 		ModifyChannelCmd,
 		ChannelRenameCmd,
 		SearchChannelCmd,
+		MoveChannelCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -487,6 +501,33 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		printer.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}} (archived)", channel)
 	} else {
 		printer.PrintT("Channel Name :{{.Name}}, Display Name :{{.DisplayName}}, Channel ID :{{.Id}}", channel)
+	}
+	return nil
+}
+
+func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	team := getTeamFromTeamArg(c, args[0])
+	if team == nil {
+		return fmt.Errorf("unable to find destination team %q", args[0])
+	}
+
+	channels := getChannelsFromChannelArgs(c, args[1:])
+	for i, channel := range channels {
+		if channel == nil {
+			printer.PrintError(fmt.Sprintf("Unable to find channel %q", args[i+1]))
+			continue
+		}
+
+		if channel.TeamId == team.Id {
+			continue
+		}
+
+		newChannel, resp := c.MoveChannel(channel.Id, team.Id)
+		if resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, resp.Error))
+			continue
+		}
+		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
 	}
 	return nil
 }

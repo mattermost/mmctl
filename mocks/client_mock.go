@@ -804,6 +804,21 @@ func (mr *MockClientMockRecorder) MigrateIdLdap(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateIdLdap", reflect.TypeOf((*MockClient)(nil).MigrateIdLdap), arg0)
 }
 
+// MoveChannel mocks base method
+func (m *MockClient) MoveChannel(arg0, arg1 string) (*model.Channel, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MoveChannel", arg0, arg1)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// MoveChannel indicates an expected call of MoveChannel
+func (mr *MockClientMockRecorder) MoveChannel(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveChannel", reflect.TypeOf((*MockClient)(nil).MoveChannel), arg0, arg1)
+}
+
 // MoveCommand mocks base method
 func (m *MockClient) MoveCommand(arg0, arg1 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
