@@ -3,13 +3,13 @@
 mmctl user deleteall
 --------------------
 
-Delete all users and all posts. Local only.
+Delete all users and all posts. Local command only.
 
 Synopsis
 ~~~~~~~~
 
 
-Permanently delete all users and all related information including posts. Local command only.
+Permanently delete all users and all related information including posts. This command can only be run in local mode.
 
 ::
 
