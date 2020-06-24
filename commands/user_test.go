@@ -361,6 +361,43 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
+	s.Run("Delete all users", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers().
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := deleteAllUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+	})
+
+	s.Run("Delete all users call fails", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			PermanentDeleteAllUsers().
+			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Times(1)
+
+		err := deleteAllUsersCmdF(s.client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 	s.Run("Search for an existing user", func() {
 		emailArg := "example@example.com"
