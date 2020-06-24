@@ -350,12 +350,12 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals.")
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 		fmt.Println("Are you sure you want to permanently delete all user accounts? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals.")
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 	}
 
