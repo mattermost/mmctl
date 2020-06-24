@@ -86,8 +86,8 @@ If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon 
 
 var DeleteAllUsersCmd = &cobra.Command{
 	Use:     "deleteall",
-	Short:   "Delete all users and all posts. Local only.",
-	Long:    "Permanently delete all users and all related information including posts. Local command only.",
+	Short:   "Delete all users and all posts. Local command only.",
+	Long:    "Permanently delete all users and all related information including posts. This command can only be run in local mode.",
 	Example: "  user deleteall",
 	Args:    cobra.NoArgs,
 	PreRun:  localOnlyPrecheck,
