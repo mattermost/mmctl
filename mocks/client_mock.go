@@ -98,21 +98,6 @@ func (mr *MockClientMockRecorder) ClearServerBusy() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearServerBusy", reflect.TypeOf((*MockClient)(nil).ClearServerBusy))
 }
 
-// ConvertChannelToPrivate mocks base method
-func (m *MockClient) ConvertChannelToPrivate(arg0 string) (*model.Channel, *model.Response) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConvertChannelToPrivate", arg0)
-	ret0, _ := ret[0].(*model.Channel)
-	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
-}
-
-// ConvertChannelToPrivate indicates an expected call of ConvertChannelToPrivate
-func (mr *MockClientMockRecorder) ConvertChannelToPrivate(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertChannelToPrivate", reflect.TypeOf((*MockClient)(nil).ConvertChannelToPrivate), arg0)
-}
-
 // CreateBot mocks base method
 func (m *MockClient) CreateBot(arg0 *model.Bot) (*model.Bot, *model.Response) {
 	m.ctrl.T.Helper()
@@ -804,6 +789,21 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1)
 }
 
+// MoveChannel mocks base method
+func (m *MockClient) MoveChannel(arg0, arg1 string) (*model.Channel, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MoveChannel", arg0, arg1)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// MoveChannel indicates an expected call of MoveChannel
+func (mr *MockClientMockRecorder) MoveChannel(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveChannel", reflect.TypeOf((*MockClient)(nil).MoveChannel), arg0, arg1)
+}
+
 // MoveCommand mocks base method
 func (m *MockClient) MoveCommand(arg0, arg1 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
@@ -847,6 +847,21 @@ func (m *MockClient) PatchChannel(arg0 string, arg1 *model.ChannelPatch) (*model
 func (mr *MockClientMockRecorder) PatchChannel(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchChannel", reflect.TypeOf((*MockClient)(nil).PatchChannel), arg0, arg1)
+}
+
+// PatchConfig mocks base method
+func (m *MockClient) PatchConfig(arg0 *model.Config) (*model.Config, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchConfig", arg0)
+	ret0, _ := ret[0].(*model.Config)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PatchConfig indicates an expected call of PatchConfig
+func (mr *MockClientMockRecorder) PatchConfig(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchConfig", reflect.TypeOf((*MockClient)(nil).PatchConfig), arg0)
 }
 
 // PatchRole mocks base method
@@ -967,6 +982,21 @@ func (m *MockClient) RestoreChannel(arg0 string) (*model.Channel, *model.Respons
 func (mr *MockClientMockRecorder) RestoreChannel(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreChannel", reflect.TypeOf((*MockClient)(nil).RestoreChannel), arg0)
+}
+
+// RestoreTeam mocks base method
+func (m *MockClient) RestoreTeam(arg0 string) (*model.Team, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreTeam", arg0)
+	ret0, _ := ret[0].(*model.Team)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// RestoreTeam indicates an expected call of RestoreTeam
+func (mr *MockClientMockRecorder) RestoreTeam(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreTeam", reflect.TypeOf((*MockClient)(nil).RestoreTeam), arg0)
 }
 
 // RevokeUserAccessToken mocks base method
@@ -1117,6 +1147,21 @@ func (m *MockClient) UpdateTeam(arg0 *model.Team) (*model.Team, *model.Response)
 func (mr *MockClientMockRecorder) UpdateTeam(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTeam", reflect.TypeOf((*MockClient)(nil).UpdateTeam), arg0)
+}
+
+// UpdateTeamPrivacy mocks base method
+func (m *MockClient) UpdateTeamPrivacy(arg0, arg1 string) (*model.Team, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTeamPrivacy", arg0, arg1)
+	ret0, _ := ret[0].(*model.Team)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UpdateTeamPrivacy indicates an expected call of UpdateTeamPrivacy
+func (mr *MockClientMockRecorder) UpdateTeamPrivacy(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTeamPrivacy", reflect.TypeOf((*MockClient)(nil).UpdateTeamPrivacy), arg0, arg1)
 }
 
 // UpdateUser mocks base method

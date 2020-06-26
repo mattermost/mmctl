@@ -25,6 +25,7 @@ type TestHelper struct {
 	SystemAdminClient client.Client
 	BasicUser         *model.User
 	SystemAdminUser   *model.User
+	InstanceURL       string
 }
 
 func setupTestHelper() (*TestHelper, error) {
@@ -56,6 +57,7 @@ func setupTestHelper() (*TestHelper, error) {
 		SystemAdminClient: sysadminClient,
 		BasicUser:         basicUser,
 		SystemAdminUser:   sysadminUser,
+		InstanceURL:       instanceURL,
 	}
 
 	return th, nil

@@ -1383,11 +1383,11 @@ func (s *MmctlUnitTestSuite) TestAddChannelUsersCmdF() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
-	s.Run("Restore channel without args returns an error", func() {
+func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
+	s.Run("Unarchive channel without args returns an error", func() {
 		printer.Clean()
 
-		err := restoreChannelsCmdF(s.client, &cobra.Command{}, []string{})
+		err := unarchiveChannelsCmdF(s.client, &cobra.Command{}, []string{})
 		mockErr := errors.New("enter at least one channel")
 
 		expected := mockErr.Error()
@@ -1397,7 +1397,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Restore an existing channel on an existing team", func() {
+	s.Run("Unarchive an existing channel on an existing team", func() {
 		printer.Clean()
 
 		mockTeam := model.Team{Id: teamID}
@@ -1424,13 +1424,13 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, []string{args})
+		err := unarchiveChannelsCmdF(s.client, cmd, []string{args})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Restore an existing channel specified by channel id", func() {
+	s.Run("Unarchive an existing channel specified by channel id", func() {
 		printer.Clean()
 
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
@@ -1450,13 +1450,13 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(&mockChannel, &model.Response{Error: nil}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Restore several channels specified by channel id", func() {
+	s.Run("Unarchive several channels specified by channel id", func() {
 		printer.Clean()
 
 		channelArg1 := "some-channel"
@@ -1494,13 +1494,13 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(&mockChannel2, &model.Response{Error: nil}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Fail to restore a channel on a non-existent team", func() {
+	s.Run("Fail to unarchive a channel on a non-existent team", func() {
 		printer.Clean()
 
 		teamArg := "some-non-existent-team-id"
@@ -1520,7 +1520,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -1530,7 +1530,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		s.Require().Equal(expected, actual)
 	})
 
-	s.Run("Fail to restore a non-existing channel on an existent team", func() {
+	s.Run("Fail to unarchive a non-existing channel on an existent team", func() {
 		printer.Clean()
 
 		teamArg := "some-non-existing-team-id"
@@ -1558,7 +1558,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -1568,7 +1568,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		s.Require().Equal(expected, actual)
 	})
 
-	s.Run("Fail to restore a non-existing channel", func() {
+	s.Run("Fail to unarchive a non-existing channel", func() {
 		printer.Clean()
 
 		channelArg := "some-non-existing-channel"
@@ -1581,7 +1581,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -1591,7 +1591,7 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 		s.Require().Equal(expected, actual)
 	})
 
-	s.Run("Fail to restore an existing channel when client throws error", func() {
+	s.Run("Fail to unarchive an existing channel when client throws error", func() {
 		printer.Clean()
 
 		mockChannel := model.Channel{Id: channelID, Name: channelName}
@@ -1612,23 +1612,23 @@ func (s *MmctlUnitTestSuite) TestRestoreChannelCmdF() {
 			Return(nil, &model.Response{Error: mockErr}).
 			Times(1)
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
 		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to restore channel '%s'. Error: %s", channelName, mockErr.Error())
+		expected := fmt.Sprintf("Unable to unarchive channel '%s'. Error: %s", channelName, mockErr.Error())
 		s.Require().Equal(expected, actual)
 	})
 
-	s.Run("Fail to restore when team and channel not provided", func() {
+	s.Run("Fail to unarchive when team and channel not provided", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
 		args := []string{":"}
 
-		err := restoreChannelsCmdF(s.client, cmd, args)
+		err := unarchiveChannelsCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -2133,6 +2133,170 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
+	s.Run("Move a channel to another team by using names", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Name: dstTeamName,
+			Id:   dstTeamID,
+		}
+
+		srcTeamName := "source-team-name"
+		srcTeamID := "source-team-id"
+		mockTeam2 := model.Team{
+			Name: srcTeamName,
+			Id:   srcTeamID,
+		}
+
+		channelName := "channel-name"
+		channelID := "channel-id"
+		mockChannel := model.Channel{
+			Name:   channelName,
+			TeamId: mockTeam2.Id,
+			Id:     channelID,
+		}
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(dstTeamName, "").
+			Return(&mockTeam1, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeam(srcTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(srcTeamName, "").
+			Return(&mockTeam2, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, mockTeam2.Id, "").
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(mockChannel.Id, mockTeam1.Id).
+			Return(&mockChannel, &model.Response{Error: nil}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, srcTeamName + ":" + channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal(&mockChannel, printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should fail for not being able to find the destination team", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(dstTeamName, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, "team:channel"})
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, fmt.Sprintf("unable to find destination team %q", dstTeamName))
+	})
+
+	s.Run("Should fail for not being able to find the channel", func() {
+		printer.Clean()
+
+		dstTeamName := "destination-team-name"
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Name: dstTeamName,
+			Id:   dstTeamID,
+		}
+
+		channelID := "channel-id"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamID, "").
+			Return(&mockTeam1, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelID, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", channelID), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Fail on client.MoveChannel to another team by using Ids", func() {
+		printer.Clean()
+
+		dstTeamID := "destination-team-id"
+		mockTeam1 := model.Team{
+			Id: dstTeamID,
+		}
+
+		channelID := "channel-id"
+
+		cmd := &cobra.Command{}
+
+		s.client.
+			EXPECT().
+			GetTeam(dstTeamID, "").
+			Return(&mockTeam1, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelID, "").
+			Return(&model.Channel{Id: channelID, Name: "some-name"}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			MoveChannel(channelID, mockTeam1.Id).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to move channel %q: ", "some-name"))
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 	s.Run("should not create channel without display name", func() {
 		printer.Clean()
@@ -2433,7 +2597,7 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 		args := []string{argsTeamChannel, userEmail}
 
 		err := removeChannelUsersCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, fmt.Sprintf("individual users must not be specified in conjunction with the --all-users flag"))
+		s.Require().EqualError(err, "individual users must not be specified in conjunction with the --all-users flag")
 	})
 
 	s.Run("should remove all users from channel", func() {
