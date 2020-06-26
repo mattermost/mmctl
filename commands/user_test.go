@@ -1650,3 +1650,81 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Equal(fmt.Errorf("can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
+	s.Run("Verify user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			VerifyUserEmailWithoutToken(mockUser.Id).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Couldn't find the user", func() {
+		printer.Clean()
+		userArg := "bad-user-id"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(userArg, "").
+			Return(nil, &model.Response{Error: &model.AppError{}}).
+			Times(1)
+
+		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{userArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+
+	s.Run("Could not verify user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			VerifyUserEmailWithoutToken(mockUser.Id).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "some-message"}}).
+			Times(1)
+
+		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to verify user %s email", mockUser.Id))
+	})
+}
