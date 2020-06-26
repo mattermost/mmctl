@@ -598,3 +598,32 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 		s.EqualError(err, configError.Error())
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
+	s.Run("Should reload config", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			ReloadConfig().
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should fail on error when reload config", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			ReloadConfig().
+			Return(false, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NotNil(err)
+	})
+}

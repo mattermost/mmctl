@@ -76,6 +76,7 @@ type Client interface {
 	GetConfig() (*model.Config, *model.Response)
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	PatchConfig(*model.Config) (*model.Config, *model.Response)
+	ReloadConfig() (bool, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
 	GetUsersByIds(userIds []string) ([]*model.User, *model.Response)
