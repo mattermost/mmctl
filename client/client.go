@@ -59,6 +59,7 @@ type Client interface {
 	GetUserByEmail(email, etag string) (*model.User, *model.Response)
 	PermanentDeleteAllUsers() (bool, *model.Response)
 	CreateUser(user *model.User) (*model.User, *model.Response)
+	VerifyUserEmailWithoutToken(userId string) (*model.User, *model.Response)
 	UpdateUserRoles(userId, roles string) (bool, *model.Response)
 	InviteUsersToTeam(teamId string, userEmails []string) (bool, *model.Response)
 	SendPasswordResetEmail(email string) (bool, *model.Response)

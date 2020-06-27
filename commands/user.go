@@ -111,6 +111,15 @@ var ListUsersCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 }
 
+var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
+	Use:     "verify [users]",
+	Short:   "Verify email of users",
+	Long:    "Verify the emails of some users.",
+	Example: "  user verify user1",
+	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -141,6 +150,7 @@ func init() {
 		DeleteAllUsersCmd,
 		SearchUserCmd,
 		ListUsersCmd,
+		VerifyUserEmailWithoutTokenCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -439,5 +449,22 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		page++
 	}
 
+	return nil
+}
+
+func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	users := getUsersFromUserArgs(c, userArgs)
+	for i, user := range users {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			continue
+		}
+
+		if newUser, resp := c.VerifyUserEmailWithoutToken(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
+		} else {
+			printer.PrintT("User {{.Username}} verified", newUser)
+		}
+	}
 	return nil
 }

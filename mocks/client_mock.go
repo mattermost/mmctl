@@ -1268,3 +1268,18 @@ func (mr *MockClientMockRecorder) UploadPlugin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadPlugin", reflect.TypeOf((*MockClient)(nil).UploadPlugin), arg0)
 }
+
+// VerifyUserEmailWithoutToken mocks base method
+func (m *MockClient) VerifyUserEmailWithoutToken(arg0 string) (*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyUserEmailWithoutToken", arg0)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// VerifyUserEmailWithoutToken indicates an expected call of VerifyUserEmailWithoutToken
+func (mr *MockClientMockRecorder) VerifyUserEmailWithoutToken(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUserEmailWithoutToken", reflect.TypeOf((*MockClient)(nil).VerifyUserEmailWithoutToken), arg0)
+}
