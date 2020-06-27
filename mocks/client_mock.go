@@ -894,6 +894,21 @@ func (mr *MockClientMockRecorder) PatchTeam(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTeam", reflect.TypeOf((*MockClient)(nil).PatchTeam), arg0, arg1)
 }
 
+// PermanentDeleteAllUsers mocks base method
+func (m *MockClient) PermanentDeleteAllUsers() (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PermanentDeleteAllUsers")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PermanentDeleteAllUsers indicates an expected call of PermanentDeleteAllUsers
+func (mr *MockClientMockRecorder) PermanentDeleteAllUsers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteAllUsers", reflect.TypeOf((*MockClient)(nil).PermanentDeleteAllUsers))
+}
+
 // PermanentDeleteTeam mocks base method
 func (m *MockClient) PermanentDeleteTeam(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
