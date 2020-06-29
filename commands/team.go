@@ -175,12 +175,12 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 	}
 
@@ -297,12 +297,12 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
 		fmt.Scanln(&confirm)
 		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals")
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 	}
 
