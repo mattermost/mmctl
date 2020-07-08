@@ -377,7 +377,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
 	})
 
-	s.Run("Delete user with team that does not exist in db returns an error", func() {
+	s.Run("Delete user that does not exist in db returns an error", func() {
 		printer.Clean()
 		arg := "userdoesnotexist@example.com"
 
