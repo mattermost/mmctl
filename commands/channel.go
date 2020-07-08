@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -12,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var ChannelCmd = &cobra.Command{
@@ -72,7 +74,8 @@ var ListChannelsCmd = &cobra.Command{
 	Use:   "list [teams]",
 	Short: "List all channels on specified teams.",
 	Long: `List all channels on specified teams.
-Archived channels are appended with ' (archived)'.`,
+Archived channels are appended with ' (archived)'.
+Private channels the user is a member of or has access to are appended with ' (private)'.`,
 	Example: "  channel list myteam",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(listChannelsCmdF),
@@ -345,6 +348,14 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		for _, channel := range deletedChannels {
 			printer.PrintT("{{.Name}} (archived)", channel)
 		}
+
+		privateChannels, err := getPrivateChannels(c, team.Id)
+		if err != nil {
+			printer.PrintError("Unable to list private channels for '" + args[i] + "'. Error: " + err.Error())
+		}
+		for _, channel := range privateChannels {
+			printer.PrintT("{{.Name}} (private)", channel)
+		}
 	}
 
 	return nil
@@ -530,4 +541,31 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
 	}
 	return nil
+}
+
+func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *model.AppError) {
+	allPrivateChannels, response := c.GetPrivateChannelsForTeam(teamID, 0, 10000, "")
+	// local mode admin result is a superset of user result
+	// if see an error and we're in local mode we can return early
+	if response.Error == nil || viper.GetBool("local") {
+		return allPrivateChannels, response.Error
+	}
+
+	// We are definitely not in local mode here so we can safely use "GetChannelsForTeamForUser"
+	// and "me" for userId
+	allChannels, response := c.GetChannelsForTeamForUser(teamID, "me", false, "")
+	if response.Error != nil {
+		if response.StatusCode == http.StatusNotFound { // user doesn't belong to any channels
+			return nil, nil
+		}
+		return nil, response.Error
+	}
+	privateChannels := make([]*model.Channel, 0, len(allChannels))
+	for _, channel := range allChannels {
+		if channel.Type != model.CHANNEL_PRIVATE {
+			continue
+		}
+		privateChannels = append(privateChannels, channel)
+	}
+	return privateChannels, nil
 }
