@@ -87,8 +87,8 @@ If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon 
 var DeleteUsersCmd = &cobra.Command{
 	Use:   "delete [users]",
 	Short: "Delete users",
-	Long: `Permanently delete some user.
-Permanently deletes a user along with all related information including posts from the database.`,
+	Long: `Permanently delete some users.
+Permanently deletes one or multiple users along with all related information including posts from the database.`,
 	Example: "  user delete user@example.com",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteUsersCmdF),
