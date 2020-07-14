@@ -939,6 +939,21 @@ func (mr *MockClientMockRecorder) PermanentDeleteUser(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteUser", reflect.TypeOf((*MockClient)(nil).PermanentDeleteUser), arg0)
 }
 
+// ReloadConfig mocks base method.
+func (m *MockClient) ReloadConfig() (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReloadConfig")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ReloadConfig indicates an expected call of ReloadConfig.
+func (mr *MockClientMockRecorder) ReloadConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReloadConfig", reflect.TypeOf((*MockClient)(nil).ReloadConfig))
+}
+
 // RemoveLicenseFile mocks base method.
 func (m *MockClient) RemoveLicenseFile() (bool, *model.Response) {
 	m.ctrl.T.Helper()
