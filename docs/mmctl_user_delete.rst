@@ -9,8 +9,8 @@ Synopsis
 ~~~~~~~~
 
 
-Permanently delete some user.
-Permanently deletes a user along with all related information including posts from the database.
+Permanently delete some users.
+Permanently deletes one or multiple users along with all related information including posts from the database.
 
 ::
 
