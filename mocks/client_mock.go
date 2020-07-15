@@ -83,6 +83,21 @@ func (mr *MockClientMockRecorder) AssignBot(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBot", reflect.TypeOf((*MockClient)(nil).AssignBot), arg0, arg1)
 }
 
+// CheckIntegrity mocks base method
+func (m *MockClient) CheckIntegrity() ([]model.IntegrityCheckResult, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckIntegrity")
+	ret0, _ := ret[0].([]model.IntegrityCheckResult)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CheckIntegrity indicates an expected call of CheckIntegrity
+func (mr *MockClientMockRecorder) CheckIntegrity() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIntegrity", reflect.TypeOf((*MockClient)(nil).CheckIntegrity))
+}
+
 // ClearServerBusy mocks base method
 func (m *MockClient) ClearServerBusy() (bool, *model.Response) {
 	m.ctrl.T.Helper()

@@ -95,4 +95,5 @@ type Client interface {
 	SetServerBusy(secs int) (bool, *model.Response)
 	ClearServerBusy() (bool, *model.Response)
 	GetServerBusy() (*model.ServerBusyState, *model.Response)
+	CheckIntegrity() ([]model.IntegrityCheckResult, *model.Response)
 }
