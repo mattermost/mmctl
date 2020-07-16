@@ -428,6 +428,21 @@ func (mr *MockClientMockRecorder) GetChannelMembers(arg0, arg1, arg2, arg3 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelMembers", reflect.TypeOf((*MockClient)(nil).GetChannelMembers), arg0, arg1, arg2, arg3)
 }
 
+// GetChannelsForTeamForUser mocks base method
+func (m *MockClient) GetChannelsForTeamForUser(arg0, arg1 string, arg2 bool, arg3 string) ([]*model.Channel, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChannelsForTeamForUser", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetChannelsForTeamForUser indicates an expected call of GetChannelsForTeamForUser
+func (mr *MockClientMockRecorder) GetChannelsForTeamForUser(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChannelsForTeamForUser", reflect.TypeOf((*MockClient)(nil).GetChannelsForTeamForUser), arg0, arg1, arg2, arg3)
+}
+
 // GetCommandById mocks base method
 func (m *MockClient) GetCommandById(arg0 string) (*model.Command, *model.Response) {
 	m.ctrl.T.Helper()
@@ -592,6 +607,21 @@ func (m *MockClient) GetPostsRoute() string {
 func (mr *MockClientMockRecorder) GetPostsRoute() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsRoute", reflect.TypeOf((*MockClient)(nil).GetPostsRoute))
+}
+
+// GetPrivateChannelsForTeam mocks base method
+func (m *MockClient) GetPrivateChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPrivateChannelsForTeam", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetPrivateChannelsForTeam indicates an expected call of GetPrivateChannelsForTeam
+func (mr *MockClientMockRecorder) GetPrivateChannelsForTeam(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrivateChannelsForTeam", reflect.TypeOf((*MockClient)(nil).GetPrivateChannelsForTeam), arg0, arg1, arg2, arg3)
 }
 
 // GetPublicChannelsForTeam mocks base method
@@ -805,18 +835,18 @@ func (mr *MockClientMockRecorder) MigrateIdLdap(arg0 interface{}) *gomock.Call {
 }
 
 // MoveChannel mocks base method
-func (m *MockClient) MoveChannel(arg0, arg1 string) (*model.Channel, *model.Response) {
+func (m *MockClient) MoveChannel(arg0, arg1 string, arg2 bool) (*model.Channel, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MoveChannel", arg0, arg1)
+	ret := m.ctrl.Call(m, "MoveChannel", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
 	return ret0, ret1
 }
 
 // MoveChannel indicates an expected call of MoveChannel
-func (mr *MockClientMockRecorder) MoveChannel(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) MoveChannel(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveChannel", reflect.TypeOf((*MockClient)(nil).MoveChannel), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MoveChannel", reflect.TypeOf((*MockClient)(nil).MoveChannel), arg0, arg1, arg2)
 }
 
 // MoveCommand mocks base method
@@ -909,6 +939,21 @@ func (mr *MockClientMockRecorder) PatchTeam(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchTeam", reflect.TypeOf((*MockClient)(nil).PatchTeam), arg0, arg1)
 }
 
+// PermanentDeleteAllUsers mocks base method
+func (m *MockClient) PermanentDeleteAllUsers() (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PermanentDeleteAllUsers")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PermanentDeleteAllUsers indicates an expected call of PermanentDeleteAllUsers
+func (mr *MockClientMockRecorder) PermanentDeleteAllUsers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteAllUsers", reflect.TypeOf((*MockClient)(nil).PermanentDeleteAllUsers))
+}
+
 // PermanentDeleteTeam mocks base method
 func (m *MockClient) PermanentDeleteTeam(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
@@ -922,6 +967,21 @@ func (m *MockClient) PermanentDeleteTeam(arg0 string) (bool, *model.Response) {
 func (mr *MockClientMockRecorder) PermanentDeleteTeam(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteTeam", reflect.TypeOf((*MockClient)(nil).PermanentDeleteTeam), arg0)
+}
+
+// ReloadConfig mocks base method
+func (m *MockClient) ReloadConfig() (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReloadConfig")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ReloadConfig indicates an expected call of ReloadConfig
+func (mr *MockClientMockRecorder) ReloadConfig() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReloadConfig", reflect.TypeOf((*MockClient)(nil).ReloadConfig))
 }
 
 // RemoveLicenseFile mocks base method
@@ -1267,4 +1327,19 @@ func (m *MockClient) UploadPlugin(arg0 io.Reader) (*model.Manifest, *model.Respo
 func (mr *MockClientMockRecorder) UploadPlugin(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadPlugin", reflect.TypeOf((*MockClient)(nil).UploadPlugin), arg0)
+}
+
+// VerifyUserEmailWithoutToken mocks base method
+func (m *MockClient) VerifyUserEmailWithoutToken(arg0 string) (*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyUserEmailWithoutToken", arg0)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// VerifyUserEmailWithoutToken indicates an expected call of VerifyUserEmailWithoutToken
+func (mr *MockClientMockRecorder) VerifyUserEmailWithoutToken(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyUserEmailWithoutToken", reflect.TypeOf((*MockClient)(nil).VerifyUserEmailWithoutToken), arg0)
 }

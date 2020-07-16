@@ -84,6 +84,16 @@ If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon 
 	RunE:    withClient(resetUserMfaCmdF),
 }
 
+var DeleteAllUsersCmd = &cobra.Command{
+	Use:     "deleteall",
+	Short:   "Delete all users and all posts. Local command only.",
+	Long:    "Permanently delete all users and all related information including posts. This command can only be run in local mode.",
+	Example: "  user deleteall",
+	Args:    cobra.NoArgs,
+	PreRun:  localOnlyPrecheck,
+	RunE:    withClient(deleteAllUsersCmdF),
+}
+
 var SearchUserCmd = &cobra.Command{
 	Use:     "search [users]",
 	Short:   "Search for users",
@@ -101,6 +111,15 @@ var ListUsersCmd = &cobra.Command{
 	Args:    cobra.NoArgs,
 }
 
+var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
+	Use:     "verify [users]",
+	Short:   "Verify email of users",
+	Long:    "Verify the emails of some users.",
+	Example: "  user verify user1",
+	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -114,6 +133,8 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
+	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
+
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
@@ -126,8 +147,10 @@ func init() {
 		SendPasswordResetEmailCmd,
 		updateUserEmailCmd,
 		ResetUserMfaCmd,
+		DeleteAllUsersCmd,
 		SearchUserCmd,
 		ListUsersCmd,
+		VerifyUserEmailWithoutTokenCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -329,6 +352,32 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	return nil
 }
 
+func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		fmt.Println("Have you performed a database backup? (YES/NO): ")
+		fmt.Scanln(&confirm)
+
+		if confirm != "YES" {
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		}
+		fmt.Println("Are you sure you want to permanently delete all user accounts? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm != "YES" {
+			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		}
+	}
+
+	if _, response := c.PermanentDeleteAllUsers(); response.Error != nil {
+		return response.Error
+	}
+
+	printer.Print("All users successfully deleted")
+
+	return nil
+}
+
 func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
@@ -400,5 +449,22 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		page++
 	}
 
+	return nil
+}
+
+func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	users := getUsersFromUserArgs(c, userArgs)
+	for i, user := range users {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			continue
+		}
+
+		if newUser, resp := c.VerifyUserEmailWithoutToken(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
+		} else {
+			printer.PrintT("User {{.Username}} verified", newUser)
+		}
+	}
 	return nil
 }

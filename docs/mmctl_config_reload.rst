@@ -1,35 +1,33 @@
-.. _mmctl_channel_list:
+.. _mmctl_config_reload:
 
-mmctl channel list
-------------------
+mmctl config reload
+-------------------
 
-List all channels on specified teams.
+Reload the server configuration
 
 Synopsis
 ~~~~~~~~
 
 
-List all channels on specified teams.
-Archived channels are appended with ' (archived)'.
-Private channels the user is a member of or has access to are appended with ' (private)'.
+Reload the server configuration in case you want to new settings to be applied.
 
 ::
 
-  mmctl channel list [teams] [flags]
+  mmctl config reload [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel list myteam
+  config reload
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+  -h, --help   help for reload
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,5 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 

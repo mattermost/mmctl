@@ -66,6 +66,14 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 }
 
+func localOnlyPrecheck(cmd *cobra.Command, args []string) {
+	local := viper.GetBool("local")
+	if !local {
+		fmt.Fprintln(os.Stderr, "This command can only be run in local mode")
+		os.Exit(1)
+	}
+}
+
 func isValidChain(chain []*x509.Certificate) bool {
 	// check all certs but the root one
 	certs := chain[:len(chain)-1]

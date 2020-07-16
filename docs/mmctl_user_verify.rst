@@ -1,35 +1,33 @@
-.. _mmctl_channel_list:
+.. _mmctl_user_verify:
 
-mmctl channel list
-------------------
+mmctl user verify
+-----------------
 
-List all channels on specified teams.
+Verify email of users
 
 Synopsis
 ~~~~~~~~
 
 
-List all channels on specified teams.
-Archived channels are appended with ' (archived)'.
-Private channels the user is a member of or has access to are appended with ' (private)'.
+Verify the emails of some users.
 
 ::
 
-  mmctl channel list [teams] [flags]
+  mmctl user verify [users] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel list myteam
+    user verify user1
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+  -h, --help   help for verify
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,5 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 

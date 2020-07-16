@@ -74,6 +74,15 @@ var ConfigShowCmd = &cobra.Command{
 	RunE:    withClient(configShowCmdF),
 }
 
+var ConfigReloadCmd = &cobra.Command{
+	Use:     "reload",
+	Short:   "Reload the server configuration",
+	Long:    "Reload the server configuration in case you want to new settings to be applied.",
+	Example: "config reload",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(configReloadCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 	ConfigCmd.AddCommand(
@@ -82,6 +91,7 @@ func init() {
 		ConfigEditCmd,
 		ConfigResetCmd,
 		ConfigShowCmd,
+		ConfigReloadCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -406,4 +416,13 @@ func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 
 func parseConfigPath(configPath string) []string {
 	return strings.Split(configPath, ".")
+}
+
+func configReloadCmdF(c client.Client, _ *cobra.Command, _ []string) error {
+	_, response := c.ReloadConfig()
+	if response.Error != nil {
+		return response.Error
+	}
+
+	return nil
 }

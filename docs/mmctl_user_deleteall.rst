@@ -1,35 +1,34 @@
-.. _mmctl_channel_list:
+.. _mmctl_user_deleteall:
 
-mmctl channel list
-------------------
+mmctl user deleteall
+--------------------
 
-List all channels on specified teams.
+Delete all users and all posts. Local command only.
 
 Synopsis
 ~~~~~~~~
 
 
-List all channels on specified teams.
-Archived channels are appended with ' (archived)'.
-Private channels the user is a member of or has access to are appended with ' (private)'.
+Permanently delete all users and all related information including posts. This command can only be run in local mode.
 
 ::
 
-  mmctl channel list [teams] [flags]
+  mmctl user deleteall [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel list myteam
+    user deleteall
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+      --confirm   Confirm you really want to delete the user and a DB backup has been performed.
+  -h, --help      help for deleteall
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,5 +43,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 
