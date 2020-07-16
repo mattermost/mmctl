@@ -11,6 +11,7 @@ Synopsis
 
 List all channels on specified teams.
 Archived channels are appended with ' (archived)'.
+Private channels the user is a member of or has access to are appended with ' (private)'.
 
 ::
 
