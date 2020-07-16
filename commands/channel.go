@@ -533,7 +533,7 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newChannel, resp := c.MoveChannel(channel.Id, team.Id)
+		newChannel, resp := c.MoveChannel(channel.Id, team.Id, false)
 		if resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, resp.Error))
 			continue

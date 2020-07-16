@@ -63,3 +63,35 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
+	s.Run("Run successfully without errors", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			MigrateIdLdap("test-id").
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Contains(printer.GetLines()[0], "test-id")
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Unable to migrate", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			MigrateIdLdap("test-id").
+			Return(false, &model.Response{Error: &model.AppError{Message: "test-error"}}).
+			Times(1)
+
+		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
