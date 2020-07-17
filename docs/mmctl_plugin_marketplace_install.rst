@@ -1,22 +1,33 @@
-.. _mmctl_plugin:
+.. _mmctl_plugin_marketplace_install:
 
-mmctl plugin
-------------
+mmctl plugin marketplace install
+--------------------------------
 
-Management of plugins
+Install a plugin from the marketplace
 
 Synopsis
 ~~~~~~~~
 
 
-Management of plugins
+Installs a plugin listed in the marketplace server
+
+::
+
+  mmctl plugin marketplace install <id> <version> [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    $ mmctl plugin marketplace install jitsi 2.0.0
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for plugin
+  -h, --help   help for install
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,12 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl plugin add <mmctl_plugin_add.rst>`_ 	 - Add plugins
-* `mmctl plugin delete <mmctl_plugin_delete.rst>`_ 	 - Delete plugins
-* `mmctl plugin disable <mmctl_plugin_disable.rst>`_ 	 - Disable plugins
-* `mmctl plugin enable <mmctl_plugin_enable.rst>`_ 	 - Enable plugins
-* `mmctl plugin install-url <mmctl_plugin_install-url.rst>`_ 	 - Install plugin from url
-* `mmctl plugin list <mmctl_plugin_list.rst>`_ 	 - List plugins
 * `mmctl plugin marketplace <mmctl_plugin_marketplace.rst>`_ 	 - Management of marketplace plugins
 
