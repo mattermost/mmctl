@@ -27,7 +27,7 @@ var PluginAddCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 }
 
-var PluginInstallUrlCmd = &cobra.Command{
+var PluginInstallURLCmd = &cobra.Command{
 	Use:   "install-url <url>...",
 	Short: "Install plugin from url",
 	Long:  "Supply one or multiple URLs to plugins compressed in a .tar.gz file. Plugins must be enabled in the server's config settings",
@@ -36,7 +36,7 @@ var PluginInstallUrlCmd = &cobra.Command{
 
   # Or install multiple in one go
   $ mmctl plugin install-url https://example.com/mattermost-plugin-one.tar.gz https://example.com/mattermost-plugin-two.tar.gz`,
-	RunE: withClient(pluginInstallUrlCmdF),
+	RunE: withClient(pluginInstallURLCmdF),
 	Args: cobra.MinimumNArgs(1),
 }
 
@@ -76,11 +76,11 @@ var PluginListCmd = &cobra.Command{
 }
 
 func init() {
-	PluginInstallUrlCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
+	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 
 	PluginCmd.AddCommand(
 		PluginAddCmd,
-		PluginInstallUrlCmd,
+		PluginInstallURLCmd,
 		PluginDeleteCmd,
 		PluginEnableCmd,
 		PluginDisableCmd,
@@ -107,7 +107,7 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginInstallUrlCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
 
 	for _, plugin := range args {
