@@ -55,15 +55,15 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 	})
 }
 
-func createMarketplacePlugin(name string) *model.MarketplacePlugin {
-	return &model.MarketplacePlugin{
-		BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-			Manifest: &model.Manifest{Name: name},
-		},
-	}
-}
-
 func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
+	createMarketplacePlugin := func(name string) *model.MarketplacePlugin {
+		return &model.MarketplacePlugin{
+			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
+				Manifest: &model.Manifest{Name: name},
+			},
+		}
+	}
+
 	s.Run("List honoring pagination flags", func() {
 		printer.Clean()
 
