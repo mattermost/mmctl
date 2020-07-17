@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -502,7 +501,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal(err, errors.New("Unable to list plugins. Error: "+mockError.Error()))
+		s.Require().EqualError(err, "Unable to list plugins. Error: "+mockError.Error())
 	})
 }
 
