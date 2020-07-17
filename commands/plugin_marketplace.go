@@ -12,60 +12,57 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func PluginMarketplaceCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "marketplace",
-		Short: "Management of marketplace plugins",
-	}
-
-	cmd.AddCommand(
-		InstallPluginMarketplaceCmd(),
-		ListPluginMarketplaceCmd(),
-	)
-
-	return cmd
+var PluginMarketplaceCmd = &cobra.Command{
+	Use:   "marketplace",
+	Short: "Management of marketplace plugins",
 }
 
-func InstallPluginMarketplaceCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:     "install <id> <version>",
-		Short:   "Install a plugin from the marketplace",
-		Long:    "",
-		Example: "  plugin marketplace install jitsi 2.0.0",
-		Args:    cobra.ExactArgs(2),
-		RunE:    withClient(installPluginMarketplaceCmdF),
-	}
+var PluginMarketplaceInstallCmd = &cobra.Command{
+	Use:     "install <id> <version>",
+	Short:   "Install a plugin from the marketplace",
+	Long:    "Installs a plugin listed in the marketplace server",
+	Example: "  $ mmctl plugin marketplace install jitsi 2.0.0",
+	Args:    cobra.ExactArgs(2),
+	RunE:    withClient(pluginMarketplaceInstallCmdF),
 }
 
-func ListPluginMarketplaceCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "list",
-		Short: "List marketplace plugins",
-		Long:  "",
-		Example: `  plugin marketplace list
-  plugin marketplace list --all
-  plugin marketplace list --filter jit
-  plugin marketplace list --local-only --page 2 --per-page 10`,
-		Args: cobra.NoArgs,
-		RunE: withClient(listPluginMarketplaceCmdF),
-	}
+var PluginMarketplaceListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List marketplace plugins",
+	Long:  "Gets all plugins from the marketplace server, merging data from locally installed plugins as well as prepackaged plugins shipped with the server",
+	Example: `  # You can list all the plugins
+  $ mmctl plugin marketplace list --all
 
-	cmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
-	cmd.Flags().Int("per-page", 200, "Number of users to be fetched")
-	cmd.Flags().Bool("all", false, "Fetch all plugins. --page flag will be ignore if provided")
-	cmd.Flags().String("filter", "", "Filter plugins by ID, name or description")
-	cmd.Flags().Bool("local-only", false, "Only retrieve local plugins")
+  # Pagination options can be used too
+  $ mmctl plugin marketplace list --page 2 --per-page 10
 
-	return cmd
+  # Filtering will narrow down the search
+  $ mmctl plugin marketplace list --filter jit
+
+  # You can only retrieve local plugins
+  $ mmctl plugin marketplace list --local-only`,
+	Args: cobra.NoArgs,
+	RunE: withClient(pluginMarketplaceListCmdF),
 }
 
 func init() {
+	PluginMarketplaceListCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
+	PluginMarketplaceListCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
+	PluginMarketplaceListCmd.Flags().Bool("all", false, "Fetch all plugins. --page flag will be ignore if provided")
+	PluginMarketplaceListCmd.Flags().String("filter", "", "Filter plugins by ID, name or description")
+	PluginMarketplaceListCmd.Flags().Bool("local-only", false, "Only retrieve local plugins")
+
+	PluginMarketplaceCmd.AddCommand(
+		PluginMarketplaceInstallCmd,
+		PluginMarketplaceListCmd,
+	)
+
 	PluginCmd.AddCommand(
-		PluginMarketplaceCmd(),
+		PluginMarketplaceCmd,
 	)
 }
 
-func installPluginMarketplaceCmdF(c client.Client, _ *cobra.Command, args []string) error {
+func pluginMarketplaceInstallCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	pluginRequest := &model.InstallMarketplacePluginRequest{Id: args[0], Version: args[1]}
 	manifest, resp := c.InstallMarketplacePlugin(pluginRequest)
 	if resp.Error != nil {
@@ -77,7 +74,7 @@ func installPluginMarketplaceCmdF(c client.Client, _ *cobra.Command, args []stri
 	return nil
 }
 
-func listPluginMarketplaceCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+func pluginMarketplaceListCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	page, _ := cmd.Flags().GetInt("page")
 	perPage, _ := cmd.Flags().GetInt("per-page")
 	showAll, _ := cmd.Flags().GetBool("all")
