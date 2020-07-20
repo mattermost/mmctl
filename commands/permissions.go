@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
@@ -44,11 +46,31 @@ var ShowRoleCmd = &cobra.Command{
 	RunE:    withClient(showRoleCmdF),
 }
 
+var AssignUsersCmd = &cobra.Command{
+	Use:     "assign [role_name] [username...]",
+	Short:   "Assign users to role (EE Only)",
+	Long:    "Assign users to a role by username (Only works in Enterprise Edition).",
+	Example: `  permissions assign read_only_admin john.doe jane.doe`,
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    withClient(assignUsersCmdF),
+}
+
+var UnassignUsersCmd = &cobra.Command{
+	Use:     "unassign [role_name] [username...]",
+	Short:   "Unassign users from role (EE Only)",
+	Long:    "Unassign users from a role by username (Only works in Enterprise Edition).",
+	Example: `  permissions unassign read_only_admin john.doe jane.doe`,
+	Args:    cobra.MinimumNArgs(2),
+	RunE:    withClient(unassignUsersCmdF),
+}
+
 func init() {
 	PermissionsCmd.AddCommand(
 		AddPermissionsCmd,
 		RemovePermissionsCmd,
 		ShowRoleCmd,
+		AssignUsersCmd,
+		UnassignUsersCmd,
 	)
 
 	RootCmd.AddCommand(PermissionsCmd)
@@ -129,6 +151,63 @@ Scheme Managed: no
 `
 
 	printer.PrintT(tpl, role)
+
+	return nil
+}
+
+func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	role, response := c.GetRoleByName(args[0])
+	if response.Error != nil {
+		return response.Error
+	}
+
+	for _, username := range args[1:] {
+		user, response := c.GetUserByUsername(username, "")
+		if response.Error != nil {
+			return response.Error
+		}
+
+		startingRoles := strings.Fields(user.Roles)
+		for _, roleName := range startingRoles {
+			if roleName == role.Name {
+				return nil
+			}
+		}
+
+		userRoles := append(startingRoles, role.Name)
+		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+		if response.Error != nil {
+			return response.Error
+		}
+	}
+
+	return nil
+}
+
+func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	role, response := c.GetRoleByName(args[0])
+	if response.Error != nil {
+		return response.Error
+	}
+
+	for _, username := range args[1:] {
+		user, response := c.GetUserByUsername(username, "")
+		if response.Error != nil {
+			return response.Error
+		}
+
+		userRoles := strings.Fields(user.Roles)
+		for i := 0; i < len(userRoles); i++ {
+			if userRoles[i] == role.Name {
+				userRoles = append(userRoles[:i], userRoles[i+1:]...)
+				i--
+			}
+		}
+		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+		if response.Error != nil {
+			return response.Error
+		}
+	}
 
 	return nil
 }
