@@ -33,6 +33,7 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl user activate <mmctl_user_activate.rst>`_ 	 - Activate users
+* `mmctl user convert <mmctl_user_convert.rst>`_ 	 - Convert users to bots, or a bot to a user
 * `mmctl user create <mmctl_user_create.rst>`_ 	 - Create a user
 * `mmctl user deactivate <mmctl_user_deactivate.rst>`_ 	 - Deactivate users
 * `mmctl user deleteall <mmctl_user_deleteall.rst>`_ 	 - Delete all users and all posts. Local command only.

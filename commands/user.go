@@ -120,6 +120,16 @@ var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 }
 
+var UserConvertCmd = &cobra.Command{
+	Use:   "convert [emails, usernames, userIds] --bot",
+	Short: "Convert users to bots, or a bot to a user",
+	Long:  "Convert users to bots, or a bot to a user",
+	Example: `  user convert user@example.com anotherUser --bot
+	user convert botusername --email new.email@email.com --password password --user`,
+	RunE: withClient(userConvertCmdF),
+	Args: cobra.MinimumNArgs(1),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -139,6 +149,17 @@ func init() {
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 
+	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
+	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user.")
+	UserConvertCmd.Flags().String("password", "", "The password for converted new user account. Required when \"user\" flag is set.")
+	UserConvertCmd.Flags().String("username", "", "Username for the converted user account. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().String("email", "", "The email address for the converted user account. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().String("nickname", "", "The nickname for the converted user account. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().String("firstname", "", "The first name for the converted user account. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().Bool("system_admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Ignored when \"user\" flag is missing.")
+
 	UserCmd.AddCommand(
 		UserActivateCmd,
 		UserDeactivateCmd,
@@ -151,6 +172,7 @@ func init() {
 		SearchUserCmd,
 		ListUsersCmd,
 		VerifyUserEmailWithoutTokenCmd,
+		UserConvertCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -466,5 +488,108 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
 	}
+	return nil
+}
+
+func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	toBot, _ := cmd.Flags().GetBool("bot")
+
+	toUser, _ := cmd.Flags().GetBool("user")
+
+	if !(toUser || toBot) {
+		return fmt.Errorf("either %q flag or %q flag should be provided", "user", "bot")
+	}
+
+	if toBot {
+		return convertUserToBot(c, cmd, userArgs)
+	}
+
+	return convertBotToUser(c, cmd, userArgs)
+}
+
+func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
+	users := getUsersFromUserArgs(c, userArgs)
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+		bot, resp := c.ConvertUserToBot(user.Id)
+		if resp.Error != nil {
+			printer.PrintError(resp.Error.Error())
+			continue
+		}
+
+		printer.PrintT("{{.Username}} converted to bot.", bot)
+	}
+	return nil
+}
+
+func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	user := getUserFromUserArg(c, userArgs[0])
+	if user == nil {
+		return fmt.Errorf("could not find user by %q", userArgs[0])
+	}
+
+	password, err := cmd.Flags().GetString("password")
+	if err != nil {
+		return err
+	}
+
+	if password == "" {
+		return errors.New("password is required")
+	}
+
+	up := &model.UserPatch{
+		Password: model.NewString(password),
+	}
+
+	username, _ := cmd.Flags().GetString("username")
+	if username == "" {
+		if user.Username == "" {
+			return errors.New("username is empty")
+		}
+	} else {
+		up.Username = model.NewString(username)
+	}
+
+	email, _ := cmd.Flags().GetString("email")
+	if email == "" {
+		if user.Email == "" {
+			return errors.New("email is empty")
+		}
+	} else {
+		up.Email = model.NewString(email)
+	}
+
+	nickname, _ := cmd.Flags().GetString("nickname")
+	if nickname != "" {
+		up.Nickname = model.NewString(nickname)
+	}
+
+	firstname, _ := cmd.Flags().GetString("firstname")
+	if firstname != "" {
+		up.FirstName = model.NewString(firstname)
+	}
+
+	lastname, _ := cmd.Flags().GetString("lastname")
+	if lastname != "" {
+		up.LastName = model.NewString(lastname)
+	}
+
+	locale, _ := cmd.Flags().GetString("locale")
+	if locale != "" {
+		up.Locale = model.NewString(locale)
+	}
+
+	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+
+	user, resp := c.ConvertBotToUser(user.Id, up, systemAdmin)
+	if resp.Error != nil {
+		printer.PrintError(resp.Error.Error())
+		return resp.Error
+	}
+
+	printer.PrintT("{{.Username}} converted to user.", user)
+
 	return nil
 }
