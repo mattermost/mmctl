@@ -6,6 +6,7 @@ package commands
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -331,4 +332,84 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {}
+func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
+	s.Run("Unassigning a user from a role", func() {
+		roleName := "mock-role"
+
+		mockUser := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			Roles:    fmt.Sprintf("system_user %s team_admin", roleName),
+		}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(mockUser.Username, "").
+			Return(mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserRoles(mockUser.Id, "system_user team_admin").
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{roleName, mockUser.Username}
+		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Unassign multiple users from a role", func() {
+		roleName := "mock-role"
+
+		mockUser1 := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			Roles:    "system_user mock-role",
+		}
+
+		mockUser2 := &model.User{
+			Id:       model.NewId(),
+			Username: "user2",
+			Roles:    "system_user system_admin mock-role",
+		}
+
+		for _, user := range []*model.User{mockUser1, mockUser2} {
+			s.client.
+				EXPECT().
+				GetUserByUsername(user.Username, "").
+				Return(user, &model.Response{Error: nil}).
+				Times(1)
+
+			s.client.
+				EXPECT().
+				UpdateUserRoles(user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
+				Return(true, &model.Response{Error: nil}).
+				Times(1)
+		}
+
+		args := []string{roleName, mockUser1.Username, mockUser2.Username}
+		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Unassign from a non-assigned or role", func() {
+		roleName := "mock-role"
+
+		mockUser := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			Roles:    "system_user",
+		}
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(mockUser.Username, "").
+			Return(mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{roleName, mockUser.Username}
+		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+}
