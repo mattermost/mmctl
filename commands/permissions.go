@@ -185,10 +185,7 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
-	}
+	roleName := strings.TrimSpace(args[0])
 
 	for _, username := range args[1:] {
 		user, response := c.GetUserByUsername(username, "")
@@ -197,15 +194,20 @@ func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		userRoles := strings.Fields(user.Roles)
+		originalCount := len(userRoles)
+
 		for i := 0; i < len(userRoles); i++ {
-			if userRoles[i] == role.Name {
+			if userRoles[i] == roleName {
 				userRoles = append(userRoles[:i], userRoles[i+1:]...)
 				i--
 			}
 		}
-		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
-		if response.Error != nil {
-			return response.Error
+
+		if originalCount > len(userRoles) {
+			_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+			if response.Error != nil {
+				return response.Error
+			}
 		}
 	}
 
