@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net"
 	"net/http"
 	"os"
 	"runtime"
@@ -172,14 +171,5 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 		return nil, err
 	}
 
-	tr := &http.Transport{
-		Dial: func(network, addr string) (net.Conn, error) {
-			return net.Dial("unix", socketPath)
-		},
-	}
-
-	client := model.NewAPIv4Client("http://_")
-	client.HttpClient = &http.Client{Transport: tr}
-
-	return client, nil
+	return model.NewAPIv4SocketClient(socketPath), nil
 }
