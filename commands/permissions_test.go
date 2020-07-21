@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mmctl/printer"
@@ -202,3 +203,132 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
+	s.Run("Assigning a user to a role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit"},
+		}
+
+		mockUser := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			Roles:    "system_user",
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(mockUser.Username, "").
+			Return(mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateUserRoles(mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, mockUser.Username}
+		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Assigning multiple users to a role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit"},
+		}
+
+		mockUser1 := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			Roles:    "system_user",
+		}
+
+		mockUser2 := &model.User{
+			Id:       model.NewId(),
+			Username: "user2",
+			Roles:    "system_user system_admin",
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		for _, user := range []*model.User{mockUser1, mockUser2} {
+			s.client.
+				EXPECT().
+				GetUserByUsername(user.Username, "").
+				Return(user, &model.Response{Error: nil}).
+				Times(1)
+
+			s.client.
+				EXPECT().
+				UpdateUserRoles(user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
+				Return(true, &model.Response{Error: nil}).
+				Times(1)
+		}
+
+		args := []string{mockRole.Name, mockUser1.Username, mockUser2.Username}
+		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Assigning to a non-existent role", func() {
+		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+
+		s.client.
+			EXPECT().
+			GetRoleByName("non-existent").
+			Return(nil, &model.Response{Error: expectedError}).
+			Times(1)
+
+		args := []string{"non-existent", "user1"}
+		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError, err)
+	})
+
+	s.Run("Assigning a user to a role that is already assigned", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit"},
+		}
+
+		mockUser := &model.User{
+			Id:       model.NewId(),
+			Username: "user1",
+			Roles:    "system_user mock-role",
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(mockUser.Username, "").
+			Return(mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, mockUser.Username}
+		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {}
