@@ -53,7 +53,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200716082646-5ddf8d4099b2
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200721131335-918fc1d45c04
 github.com/mattermost/mattermost-server/v5/mlog
 github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
