@@ -98,4 +98,7 @@ type Client interface {
 	SetServerBusy(secs int) (bool, *model.Response)
 	ClearServerBusy() (bool, *model.Response)
 	GetServerBusy() (*model.ServerBusyState, *model.Response)
+	InstallPluginFromUrl(string, bool) (*model.Manifest, *model.Response)
+	InstallMarketplacePlugin(*model.InstallMarketplacePluginRequest) (*model.Manifest, *model.Response)
+	GetMarketplacePlugins(*model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.Response)
 }
