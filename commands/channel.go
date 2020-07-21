@@ -160,7 +160,7 @@ func init() {
 
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
-	MoveChannelCmd.Flags().Bool("force", false, "Remove members those are not member of target team before moving the channel.")
+	MoveChannelCmd.Flags().Bool("force", false, "Remove users that are not members of target team before moving the channel.")
 
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
