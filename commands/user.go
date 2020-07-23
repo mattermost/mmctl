@@ -121,11 +121,17 @@ var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 }
 
 var UserConvertCmd = &cobra.Command{
-	Use:   "convert [emails, usernames, userIds] --bot",
+	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password=PASSWORD [--email=EMAIL])",
 	Short: "Convert users to bots, or a bot to a user",
 	Long:  "Convert users to bots, or a bot to a user",
-	Example: `  user convert user@example.com anotherUser --bot
-	user convert botusername --email new.email@email.com --password password --user`,
+	Example: `  # you can convert a user to a bot providing its email, id or username
+  $ mmctl user convert user@example.com --bot
+  
+  # or multiple users in one go
+  $ mmctl user convert user@example.com anotherUser --bot
+  
+  # you can convert a bot to a user specifying the email and password that the user will have after conversion
+  $ mmctl user convert botusername --email new.email@email.com --password password --user`,
 	RunE: withClient(userConvertCmdF),
 	Args: cobra.MinimumNArgs(1),
 }
@@ -152,13 +158,13 @@ func init() {
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user.")
 	UserConvertCmd.Flags().String("password", "", "The password for converted new user account. Required when \"user\" flag is set.")
-	UserConvertCmd.Flags().String("username", "", "Username for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("email", "", "The email address for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("nickname", "", "The nickname for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("firstname", "", "The first name for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().Bool("system_admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Ignored when \"user\" flag is missing.")
+	UserConvertCmd.Flags().String("username", "", "Username for the converted user account. Required when the \"bot\" flag is set.")
+	UserConvertCmd.Flags().String("email", "", "The email address for the converted user account. Required when the \"bot\" flag is set.")
+	UserConvertCmd.Flags().String("nickname", "", "The nickname for the converted user account. Required when the \"bot\" flag is set.")
+	UserConvertCmd.Flags().String("firstname", "", "The first name for the converted user account. Required when the \"bot\" flag is set.")
+	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Required when the \"bot\" flag is set.")
+	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Required when the \"bot\" flag is set.")
+	UserConvertCmd.Flags().Bool("system_admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set.")
 
 	UserCmd.AddCommand(
 		UserActivateCmd,
@@ -493,7 +499,6 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 
 func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
 	toBot, _ := cmd.Flags().GetBool("bot")
-
 	toUser, _ := cmd.Flags().GetBool("user")
 
 	if !(toUser || toBot) {
@@ -530,18 +535,12 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 		return fmt.Errorf("could not find user by %q", userArgs[0])
 	}
 
-	password, err := cmd.Flags().GetString("password")
-	if err != nil {
-		return err
-	}
-
+	password, _ := cmd.Flags().GetString("password")
 	if password == "" {
 		return errors.New("password is required")
 	}
 
-	up := &model.UserPatch{
-		Password: model.NewString(password),
-	}
+	up := &model.UserPatch{Password: &password}
 
 	username, _ := cmd.Flags().GetString("username")
 	if username == "" {
@@ -585,7 +584,6 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 
 	user, resp := c.ConvertBotToUser(user.Id, up, systemAdmin)
 	if resp.Error != nil {
-		printer.PrintError(resp.Error.Error())
 		return resp.Error
 	}
 
