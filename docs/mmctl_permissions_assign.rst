@@ -20,7 +20,10 @@ Examples
 
 ::
 
-    permissions assign read_only_admin john.doe jane.doe
+    permissions assign system_admin john.doe jane.doe
+    permissions assign system_manager john.doe jane.doe
+    permissions assign system_user_manager john.doe jane.doe
+    permissions assign system_read_only_admin john.doe jane.doe
 
 Options
 ~~~~~~~
