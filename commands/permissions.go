@@ -47,21 +47,27 @@ var ShowRoleCmd = &cobra.Command{
 }
 
 var AssignUsersCmd = &cobra.Command{
-	Use:     "assign [role_name] [username...]",
-	Short:   "Assign users to role (EE Only)",
-	Long:    "Assign users to a role by username (Only works in Enterprise Edition).",
-	Example: `  permissions assign system_read_only_admin john.doe jane.doe`,
-	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(assignUsersCmdF),
+	Use:   "assign [role_name] [username...]",
+	Short: "Assign users to role (EE Only)",
+	Long:  "Assign users to a role by username (Only works in Enterprise Edition).",
+	Example: `  permissions assign system_admin john.doe jane.doe
+  permissions assign system_manager john.doe jane.doe
+  permissions assign system_user_manager john.doe jane.doe
+  permissions assign system_read_only_admin john.doe jane.doe`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: withClient(assignUsersCmdF),
 }
 
 var UnassignUsersCmd = &cobra.Command{
-	Use:     "unassign [role_name] [username...]",
-	Short:   "Unassign users from role (EE Only)",
-	Long:    "Unassign users from a role by username (Only works in Enterprise Edition).",
-	Example: `  permissions unassign system_read_only_admin john.doe jane.doe`,
-	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(unassignUsersCmdF),
+	Use:   "unassign [role_name] [username...]",
+	Short: "Unassign users from role (EE Only)",
+	Long:  "Unassign users from a role by username (Only works in Enterprise Edition).",
+	Example: `  permissions unassign system_admin john.doe jane.doe
+  permissions unassign system_manager john.doe jane.doe
+  permissions unassign system_user_manager john.doe jane.doe
+  permissions unassign system_read_only_admin john.doe jane.doe`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: withClient(unassignUsersCmdF),
 }
 
 func init() {
