@@ -160,6 +160,8 @@ func init() {
 
 	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
+	MoveChannelCmd.Flags().Bool("force", false, "Remove users that are not members of target team before moving the channel.")
+
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -517,6 +519,8 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	force, _ := cmd.Flags().GetBool("force")
+
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return fmt.Errorf("unable to find destination team %q", args[0])
@@ -533,7 +537,7 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newChannel, resp := c.MoveChannel(channel.Id, team.Id, false)
+		newChannel, resp := c.MoveChannel(channel.Id, team.Id, force)
 		if resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, resp.Error))
 			continue
