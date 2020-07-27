@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
