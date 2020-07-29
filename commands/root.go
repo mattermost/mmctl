@@ -9,14 +9,15 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 )
 
 func Run(args []string) error {
 	viper.SetEnvPrefix("mmctl")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	// TODO: swap this with model.LOCAL_MODE_SOCKET_PATH after server PR is merged (MM-23710)
-	viper.SetDefault("local-socket-path", "/var/tmp/mattermost_local.socket")
+	viper.SetDefault("local-socket-path", model.LOCAL_MODE_SOCKET_PATH)
 	viper.AutomaticEnv()
 
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
