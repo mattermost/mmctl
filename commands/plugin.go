@@ -4,12 +4,12 @@
 package commands
 
 import (
-	"errors"
 	"os"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -25,6 +25,19 @@ var PluginAddCmd = &cobra.Command{
 	Example: `  plugin add hovercardexample.tar.gz pluginexample.tar.gz`,
 	RunE:    withClient(pluginAddCmdF),
 	Args:    cobra.MinimumNArgs(1),
+}
+
+var PluginInstallURLCmd = &cobra.Command{
+	Use:   "install-url <url>...",
+	Short: "Install plugin from url",
+	Long:  "Supply one or multiple URLs to plugins compressed in a .tar.gz file. Plugins must be enabled in the server's config settings",
+	Example: `  # You can install one plugin
+  $ mmctl plugin install-url https://example.com/mattermost-plugin.tar.gz
+
+  # Or install multiple in one go
+  $ mmctl plugin install-url https://example.com/mattermost-plugin-one.tar.gz https://example.com/mattermost-plugin-two.tar.gz`,
+	RunE: withClient(pluginInstallURLCmdF),
+	Args: cobra.MinimumNArgs(1),
 }
 
 var PluginDeleteCmd = &cobra.Command{
@@ -63,8 +76,11 @@ var PluginListCmd = &cobra.Command{
 }
 
 func init() {
+	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
+
 	PluginCmd.AddCommand(
 		PluginAddCmd,
+		PluginInstallURLCmd,
 		PluginDeleteCmd,
 		PluginEnableCmd,
 		PluginDisableCmd,
@@ -86,6 +102,21 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.Print("Added plugin: " + plugin)
 		}
 		fileReader.Close()
+	}
+
+	return nil
+}
+
+func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	force, _ := cmd.Flags().GetBool("force")
+
+	for _, plugin := range args {
+		manifest, resp := c.InstallPluginFromUrl(plugin, force)
+		if resp.Error != nil {
+			printer.PrintError("Unable to install plugin from URL \"" + plugin + "\". Error: " + resp.Error.Error())
+		} else {
+			printer.PrintT("Plugin {{.Name}} successfully installed", manifest)
+		}
 	}
 
 	return nil

@@ -60,7 +60,7 @@ issues:
       # ignore unused warnings from enterprise code
       # add more as required.
       - unused
-      text: "testLogsCmdF|MmctlE2ETestSuite|MmctlUnitTestSuite|setupTestHelper"
+      text: "setupTestHelper"
 
     - path: client
       linters:
@@ -71,6 +71,8 @@ issues:
       linters:
         - dupl
         - goconst
+        # added the linter here as per https://github.com/golangci/golangci-lint/issues/791#issuecomment-552986482
+        - unused
 
     - linters:
         - goconst

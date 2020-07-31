@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -98,6 +97,87 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to add plugin: "+args[0]+". Error: "+mockError.Error())
 		s.Require().Equal(printer.GetErrorLines()[1], "Unable to add plugin: "+args[2]+". Error: "+mockError.Error())
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
+	s.Run("Install multiple plugins", func() {
+		printer.Clean()
+
+		pluginURL1 := "https://example.com/plugin1.tar.gz"
+		pluginURL2 := "https://example.com/plugin2.tar.gz"
+		manifest1 := &model.Manifest{Name: "plugin one"}
+		manifest2 := &model.Manifest{Name: "plugin two"}
+		args := []string{pluginURL1, pluginURL2}
+
+		s.client.
+			EXPECT().
+			InstallPluginFromUrl(pluginURL1, false).
+			Return(manifest1, &model.Response{}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			InstallPluginFromUrl(pluginURL2, false).
+			Return(manifest2, &model.Response{}).
+			Times(1)
+
+		err := pluginInstallURLCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(manifest1, printer.GetLines()[0])
+		s.Require().Equal(manifest2, printer.GetLines()[1])
+	})
+
+	s.Run("Install one plugin, with force active", func() {
+		printer.Clean()
+
+		pluginURL := "https://example.com/plugin.tar.gz"
+		manifest := &model.Manifest{Name: "plugin name"}
+
+		s.client.
+			EXPECT().
+			InstallPluginFromUrl(pluginURL, true).
+			Return(manifest, &model.Response{}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", true, "")
+
+		err := pluginInstallURLCmdF(s.client, cmd, []string{pluginURL})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(manifest, printer.GetLines()[0])
+	})
+
+	s.Run("Install multiple plugins, some failing", func() {
+		printer.Clean()
+
+		pluginURL1 := "https://example.com/plugin1.tar.gz"
+		pluginURL2 := "https://example.com/plugin2.tar.gz"
+		manifest1 := &model.Manifest{Name: "plugin one"}
+		args := []string{pluginURL1, pluginURL2}
+
+		s.client.
+			EXPECT().
+			InstallPluginFromUrl(pluginURL1, false).
+			Return(manifest1, &model.Response{}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			InstallPluginFromUrl(pluginURL2, false).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
+			Times(1)
+
+		err := pluginInstallURLCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to install plugin from URL \"https://example.com/plugin2.tar.gz\". Error: : Mock error, ", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(manifest1, printer.GetLines()[0])
 	})
 }
 
@@ -421,7 +501,7 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 
 		err := pluginListCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal(err, errors.New("Unable to list plugins. Error: "+mockError.Error()))
+		s.Require().EqualError(err, "Unable to list plugins. Error: "+mockError.Error())
 	})
 }
 

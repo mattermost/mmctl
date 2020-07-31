@@ -29,7 +29,8 @@ Options
 
 ::
 
-  -h, --help   help for move
+      --force   Remove users that are not members of target team before moving the channel.
+  -h, --help    help for move
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

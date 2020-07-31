@@ -36,5 +36,7 @@ SEE ALSO
 * `mmctl plugin delete <mmctl_plugin_delete.rst>`_ 	 - Delete plugins
 * `mmctl plugin disable <mmctl_plugin_disable.rst>`_ 	 - Disable plugins
 * `mmctl plugin enable <mmctl_plugin_enable.rst>`_ 	 - Enable plugins
+* `mmctl plugin install-url <mmctl_plugin_install-url.rst>`_ 	 - Install plugin from url
 * `mmctl plugin list <mmctl_plugin_list.rst>`_ 	 - List plugins
+* `mmctl plugin marketplace <mmctl_plugin_marketplace.rst>`_ 	 - Management of marketplace plugins
 
