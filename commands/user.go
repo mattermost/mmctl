@@ -84,6 +84,16 @@ If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon 
 	RunE:    withClient(resetUserMfaCmdF),
 }
 
+var DeleteUsersCmd = &cobra.Command{
+	Use:   "delete [users]",
+	Short: "Delete users",
+	Long: `Permanently delete some users.
+Permanently deletes one or multiple users along with all related information including posts from the database.`,
+	Example: "  user delete user@example.com",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(deleteUsersCmdF),
+}
+
 var DeleteAllUsersCmd = &cobra.Command{
 	Use:     "deleteall",
 	Short:   "Delete all users and all posts. Local command only.",
@@ -133,6 +143,7 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
+	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
@@ -147,6 +158,7 @@ func init() {
 		SendPasswordResetEmailCmd,
 		updateUserEmailCmd,
 		ResetUserMfaCmd,
+		DeleteUsersCmd,
 		DeleteAllUsersCmd,
 		SearchUserCmd,
 		ListUsersCmd,
@@ -349,6 +361,49 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		}
 	}
 
+	return nil
+}
+
+func deleteUser(c client.Client, user *model.User) (bool, *model.Response) {
+	return c.PermanentDeleteUser(user.Id)
+}
+
+func getUserDeleteConfirmation() error {
+	var confirm string
+	fmt.Println("Have you performed a database backup? (YES/NO): ")
+	fmt.Scanln(&confirm)
+
+	if confirm != "YES" {
+		return errors.New("aborted: You did not answer YES exactly, in all capitals")
+	}
+	fmt.Println("Are you sure you want to delete the users specified? All data will be permanently deleted? (YES/NO): ")
+	fmt.Scanln(&confirm)
+	if confirm != "YES" {
+		return errors.New("aborted: You did not answer YES exactly, in all capitals")
+	}
+	return nil
+}
+
+func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getUserDeleteConfirmation(); err != nil {
+			return err
+		}
+	}
+
+	users := getUsersFromUserArgs(c, args)
+	for i, user := range users {
+		if user == nil {
+			printer.PrintError("Unable to find user '" + args[i] + "'")
+			continue
+		}
+		if _, response := deleteUser(c, user); response.Error != nil {
+			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Deleted user '{{.Username}}'", user)
+		}
+	}
 	return nil
 }
 
