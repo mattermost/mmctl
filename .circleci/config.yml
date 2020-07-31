@@ -159,7 +159,7 @@ jobs:
               --env MMCTL_INSTANCE_URL=http://mattermost_circleci:8065 \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
-              mattermost/mattermost-build-server:oct-18-2019 \
+              mattermost/mattermost-build-server:20200731_golang-1.14.6 \
               bash -c 'ulimit -n 8096 && make test-all'
 
   coverage:
