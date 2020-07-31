@@ -13,14 +13,18 @@ Installs a plugin listed in the marketplace server
 
 ::
 
-  mmctl plugin marketplace install <id> <version> [flags]
+  mmctl plugin marketplace install <id> [version] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
+    # you can specify with both the plugin id and its version
     $ mmctl plugin marketplace install jitsi 2.0.0
+
+    # if you don't specify the version, the latest one will be installed
+    $ mmctl plugin marketplace install jitsi
 
 Options
 ~~~~~~~
