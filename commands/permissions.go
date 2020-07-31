@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -136,24 +137,13 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if response.Error != nil {
 		return response.Error
 	}
-
+	sort.Strings(role.Permissions)
 	tpl := `Name: {{.Name}}
 Display Name: {{.DisplayName}}
-Description: {{.Description}}
-Permissions: {{.Permissions}}
-{{range .Permissions}}
-  - {{.}}
-{{end}}
-{{if .BuiltIn}}
-Built in: yes
-{{else}}
-Built in: no
-{{end}}
-{{if .SchemeManaged}}
-Scheme Managed: yes
-{{else}}
-Scheme Managed: no
-{{end}}
+Built in: {{.BuiltIn}}
+Scheme Managed: {{.SchemeManaged}}
+Permissions:{{range .Permissions}}
+- {{.}}{{end}}
 `
 
 	printer.PrintT(tpl, role)
