@@ -23,21 +23,23 @@ var PermissionsCmd = &cobra.Command{
 }
 
 var AddPermissionsCmd = &cobra.Command{
-	Use:     "add [role] [permission...]",
-	Short:   "Add permissions to a role (EE Only)",
-	Long:    `Add one or more permissions to an existing role (Only works in Enterprise Edition).`,
-	Example: `  permissions add system_user list_open_teams`,
-	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(addPermissionsCmdF),
+	Use:   "add [role] [permission...]",
+	Short: "Add permissions to a role (EE Only)",
+	Long:  `Add one or more permissions to an existing role (Only works in Enterprise Edition).`,
+	Example: `  permissions add system_user list_open_teams
+  permissions add system_manager sysconsole_read_user_management_channels --ancillary`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: withClient(addPermissionsCmdF),
 }
 
 var RemovePermissionsCmd = &cobra.Command{
-	Use:     "remove [role] [permission...]",
-	Short:   "Remove permissions from a role (EE Only)",
-	Long:    `Remove one or more permissions from an existing role (Only works in Enterprise Edition).`,
-	Example: `  permissions remove system_user list_open_teams`,
-	Args:    cobra.MinimumNArgs(2),
-	RunE:    withClient(removePermissionsCmdF),
+	Use:   "remove [role] [permission...]",
+	Short: "Remove permissions from a role (EE Only)",
+	Long:  `Remove one or more permissions from an existing role (Only works in Enterprise Edition).`,
+	Example: `  permissions remove system_user list_open_teams
+  permissions remove system_manager sysconsole_read_user_management_channels --ancillary`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: withClient(removePermissionsCmdF),
 }
 
 var ShowRoleCmd = &cobra.Command{
@@ -74,6 +76,9 @@ var UnassignUsersCmd = &cobra.Command{
 }
 
 func init() {
+	AddPermissionsCmd.Flags().Bool("include-ancillary", false, "Optional. Add ancillary permissions used by each sysconsole_* permission being added.")
+	RemovePermissionsCmd.Flags().Bool("prune-ancillary", false, "Optional. Remove ancillary permissions no longer used by each sysconsole_* permission being removed.")
+
 	PermissionsCmd.AddCommand(
 		AddPermissionsCmd,
 		RemovePermissionsCmd,
@@ -90,7 +95,24 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	if response.Error != nil {
 		return response.Error
 	}
-	newPermissions := append(role.Permissions, args[1:]...)
+
+	addAncillary, _ := cmd.Flags().GetBool("include-ancillary")
+	newPermissions := role.Permissions
+
+	for _, permissionID := range args[1:] {
+		newPermissions = append(newPermissions, permissionID)
+
+		if !addAncillary {
+			continue
+		}
+
+		if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
+			for _, ancillaryPermission := range ancillaryPermissions {
+				newPermissions = append(newPermissions, ancillaryPermission.Id)
+			}
+		}
+	}
+
 	patchRole := model.RolePatch{
 		Permissions: &newPermissions,
 	}
@@ -118,13 +140,44 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		return response.Error
 	}
 
-	newPermissions := role.Permissions
-	for _, arg := range args[1:] {
-		newPermissions = removePermission(newPermissions, arg)
+	// remove the permissions explicitly requested
+	newPermissionSet := role.Permissions
+	for _, permissionID := range args[1:] {
+		newPermissionSet = removePermission(newPermissionSet, permissionID)
+	}
+
+	includes := func(haystack []*model.Permission, needle *model.Permission) bool {
+		for _, item := range haystack {
+			if item.Id == needle.Id {
+				return true
+			}
+		}
+		return false
+	}
+
+	// optionally remove ancillary permissions
+	if ok, _ := cmd.Flags().GetBool("prune-ancillary"); ok {
+		// get the set of all ancillary permissions used by the role, after the requested removals
+		var ancillaryPermissionsNeededNow []*model.Permission
+		for _, permissionID := range newPermissionSet {
+			if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
+				ancillaryPermissionsNeededNow = append(ancillaryPermissionsNeededNow, ancillaryPermissions...)
+			}
+		}
+
+		for _, permissionID := range args[1:] {
+			if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
+				for _, permission := range ancillaryPermissions {
+					if !includes(ancillaryPermissionsNeededNow, permission) {
+						newPermissionSet = removePermission(newPermissionSet, permission.Id)
+					}
+				}
+			}
+		}
 	}
 
 	patchRole := model.RolePatch{
-		Permissions: &newPermissions,
+		Permissions: &newPermissionSet,
 	}
 
 	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
