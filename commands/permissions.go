@@ -148,7 +148,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		for _, permissionID := range args[1:] {
 			if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
 				for _, permission := range ancillaryPermissions {
-					if !permissionsSliceInclude(ancillaryPermissionsStillUsed, permission) {
+					if !permissionsSliceIncludes(ancillaryPermissionsStillUsed, permission) {
 						newPermissionSet = removeFromStringSlice(newPermissionSet, permission.Id)
 					}
 				}
@@ -303,7 +303,7 @@ func removeFromStringSlice(items []string, item string) []string {
 	return newPermissions
 }
 
-func permissionsSliceInclude(haystack []*model.Permission, needle *model.Permission) bool {
+func permissionsSliceIncludes(haystack []*model.Permission, needle *model.Permission) bool {
 	for _, item := range haystack {
 		if item.Id == needle.Id {
 			return true
