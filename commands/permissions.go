@@ -17,6 +17,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const flagAncillaryPermissions = "ancillary"
+
 var PermissionsCmd = &cobra.Command{
 	Use:   "permissions",
 	Short: "Management of permissions and roles",
@@ -26,8 +28,8 @@ var AddPermissionsCmd = &cobra.Command{
 	Use:   "add [role] [permission...]",
 	Short: "Add permissions to a role (EE Only)",
 	Long:  `Add one or more permissions to an existing role (Only works in Enterprise Edition).`,
-	Example: `  permissions add system_user list_open_teams
-  permissions add system_manager sysconsole_read_user_management_channels --ancillary`,
+	Example: fmt.Sprintf(`  permissions add system_user list_open_teams
+  permissions add system_manager sysconsole_read_user_management_channels --%s`, flagAncillaryPermissions),
 	Args: cobra.MinimumNArgs(2),
 	RunE: withClient(addPermissionsCmdF),
 }
@@ -36,8 +38,8 @@ var RemovePermissionsCmd = &cobra.Command{
 	Use:   "remove [role] [permission...]",
 	Short: "Remove permissions from a role (EE Only)",
 	Long:  `Remove one or more permissions from an existing role (Only works in Enterprise Edition).`,
-	Example: `  permissions remove system_user list_open_teams
-  permissions remove system_manager sysconsole_read_user_management_channels --ancillary`,
+	Example: fmt.Sprintf(`  permissions remove system_user list_open_teams
+  permissions remove system_manager sysconsole_read_user_management_channels --%s`, flagAncillaryPermissions),
 	Args: cobra.MinimumNArgs(2),
 	RunE: withClient(removePermissionsCmdF),
 }
@@ -76,8 +78,8 @@ var UnassignUsersCmd = &cobra.Command{
 }
 
 func init() {
-	AddPermissionsCmd.Flags().Bool("include-ancillary", false, "Optional. Add ancillary permissions used by each sysconsole_* permission being added.")
-	RemovePermissionsCmd.Flags().Bool("prune-ancillary", false, "Optional. Remove ancillary permissions no longer used by each sysconsole_* permission being removed.")
+	AddPermissionsCmd.Flags().Bool(flagAncillaryPermissions, false, "Optional. Add all of the ancillary permissions used by each sysconsole_* permission being added.")
+	RemovePermissionsCmd.Flags().Bool(flagAncillaryPermissions, false, "Optional. Remove each of the ancillary permissions that no longer used by each sysconsole_* permission being removed, if no other sysconsole_* is using it.")
 
 	PermissionsCmd.AddCommand(
 		AddPermissionsCmd,
@@ -96,7 +98,7 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		return response.Error
 	}
 
-	addAncillary, _ := cmd.Flags().GetBool("include-ancillary")
+	addAncillary, _ := cmd.Flags().GetBool(flagAncillaryPermissions)
 	newPermissions := role.Permissions
 
 	for _, permissionID := range args[1:] {
@@ -124,52 +126,30 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	return nil
 }
 
-func removePermission(permissions []string, permission string) []string {
-	newPermissions := []string{}
-	for _, p := range permissions {
-		if p != permission {
-			newPermissions = append(newPermissions, p)
-		}
-	}
-	return newPermissions
-}
-
 func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error
 	}
 
-	// remove the permissions explicitly requested
 	newPermissionSet := role.Permissions
 	for _, permissionID := range args[1:] {
-		newPermissionSet = removePermission(newPermissionSet, permissionID)
+		newPermissionSet = removeFromStringSlice(newPermissionSet, permissionID)
 	}
 
-	includes := func(haystack []*model.Permission, needle *model.Permission) bool {
-		for _, item := range haystack {
-			if item.Id == needle.Id {
-				return true
-			}
-		}
-		return false
-	}
-
-	// optionally remove ancillary permissions
-	if ok, _ := cmd.Flags().GetBool("prune-ancillary"); ok {
-		// get the set of all ancillary permissions used by the role, after the requested removals
-		var ancillaryPermissionsNeededNow []*model.Permission
+	if ok, _ := cmd.Flags().GetBool(flagAncillaryPermissions); ok {
+		var ancillaryPermissionsStillUsed []*model.Permission
 		for _, permissionID := range newPermissionSet {
 			if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
-				ancillaryPermissionsNeededNow = append(ancillaryPermissionsNeededNow, ancillaryPermissions...)
+				ancillaryPermissionsStillUsed = append(ancillaryPermissionsStillUsed, ancillaryPermissions...)
 			}
 		}
 
 		for _, permissionID := range args[1:] {
 			if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
 				for _, permission := range ancillaryPermissions {
-					if !includes(ancillaryPermissionsNeededNow, permission) {
-						newPermissionSet = removePermission(newPermissionSet, permission.Id)
+					if !permissionsSliceInclude(ancillaryPermissionsStillUsed, permission) {
+						newPermissionSet = removeFromStringSlice(newPermissionSet, permission.Id)
 					}
 				}
 			}
@@ -311,4 +291,23 @@ func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	return nil
+}
+
+func removeFromStringSlice(items []string, item string) []string {
+	newPermissions := []string{}
+	for _, x := range items {
+		if x != item {
+			newPermissions = append(newPermissions, x)
+		}
+	}
+	return newPermissions
+}
+
+func permissionsSliceInclude(haystack []*model.Permission, needle *model.Permission) bool {
+	for _, item := range haystack {
+		if item.Id == needle.Id {
+			return true
+		}
+	}
+	return false
 }
