@@ -21,13 +21,15 @@ Examples
 ::
 
     permissions remove system_user list_open_teams
+    permissions remove system_manager sysconsole_read_user_management_channels --ancillary
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for remove
+      --ancillary   Optional. Remove each of the ancillary permissions that no longer used by each sysconsole_* permission being removed, if no other sysconsole_* is using it.
+  -h, --help        help for remove
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

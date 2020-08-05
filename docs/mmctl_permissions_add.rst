@@ -21,13 +21,15 @@ Examples
 ::
 
     permissions add system_user list_open_teams
+    permissions add system_manager sysconsole_read_user_management_channels --ancillary
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for add
+      --ancillary   Optional. Add all of the ancillary permissions used by each sysconsole_* permission being added.
+  -h, --help        help for add
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
