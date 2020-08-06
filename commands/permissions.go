@@ -119,10 +119,6 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		Permissions: &newPermissions,
 	}
 
-	for i, perm := range *patchRole.Permissions {
-		fmt.Printf("perm[%v]: %v\n", i, perm)
-	}
-
 	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
 		return response.Error
 	}
