@@ -5,14 +5,16 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
+	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 
-	"github.com/golang/mock/gomock"
 	"github.com/spf13/cobra"
 )
 
@@ -59,6 +61,54 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		args := []string{"mockRole", "newPermission"}
 		err := addPermissionsCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Equal(expectedError, err)
+	})
+
+	s.Run("Adding a new sysconsole_* permission to a role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{},
+		}
+		newPermission := "sysconsole_read_user_management_channels"
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(2)
+
+		s.Run("without the ancillary flag", func() {
+			expectedPermissions := append(mockRole.Permissions, newPermission)
+			expectedPatch := &model.RolePatch{
+				Permissions: &expectedPermissions,
+			}
+			s.client.
+				EXPECT().
+				PatchRole(mockRole.Id, expectedPatch).
+				Return(&model.Role{}, &model.Response{Error: nil}).
+				Times(1)
+			args := []string{mockRole.Name, newPermission}
+
+			err := addPermissionsCmdF(s.client, &cobra.Command{}, args)
+			s.Require().Nil(err)
+		})
+
+		s.Run("with the ancillary flag", func() {
+			expectedPermissions := append(mockRole.Permissions, []string{newPermission, "read_public_channel", "read_channel", "read_channel_groups"}...)
+			expectedPatch := &model.RolePatch{
+				Permissions: &expectedPermissions,
+			}
+			s.client.
+				EXPECT().
+				PatchRole(mockRole.Id, expectedPatch).
+				Return(&model.Role{}, &model.Response{Error: nil}).
+				Times(1)
+			args := []string{mockRole.Name, newPermission}
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("ancillary", true, "")
+			err := addPermissionsCmdF(s.client, cmd, args)
+			s.Require().Nil(err)
+		})
 	})
 }
 
@@ -162,8 +212,6 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 
 func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 	s.Run("Show custom role", func() {
-		printer.Clean()
-
 		commandArg := "example-role-name"
 		mockRole := &model.Role{
 			Id:   "example-mock-id",
@@ -176,11 +224,48 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 			Return(mockRole, &model.Response{Error: nil}).
 			Times(1)
 
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Equal(mockRole, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
+		output := runCapturingStdout(func() {
+			err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+			s.Require().Nil(err)
+		})
+
+		s.Equal(`Property      Value
+--------      -----
+Name          example-role-name
+DisplayName   
+BuiltIn       false
+SchemeManaged false
+`, output)
+	})
+
+	s.Run("Show a role with a sysconsole_* permission", func() {
+		commandArg := "example-role-name"
+		mockRole := &model.Role{
+			Id:          "example-mock-id",
+			Name:        commandArg,
+			Permissions: []string{"sysconsole_write_site", "edit_brand"},
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		output := runCapturingStdout(func() {
+			err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+			s.Require().Nil(err)
+		})
+
+		s.Equal(`Property      Value                 Used by
+--------      -----                 -------
+Name          example-role-name     
+DisplayName                         
+BuiltIn       false                 
+SchemeManaged false                 
+Permissions   edit_brand            sysconsole_write_site
+              sysconsole_write_site 
+`, output)
 	})
 
 	s.Run("Show custom role with invalid name", func() {
@@ -412,4 +497,17 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 	})
+}
+
+func runCapturingStdout(f func()) string {
+	rescueStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	f()
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = rescueStdout
+	return string(out)
 }

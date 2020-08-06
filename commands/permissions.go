@@ -119,6 +119,10 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		Permissions: &newPermissions,
 	}
 
+	for i, perm := range *patchRole.Permissions {
+		fmt.Printf("perm[%v]: %v\n", i, perm)
+	}
+
 	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
 		return response.Error
 	}
@@ -214,9 +218,12 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(w, "DisplayName\t%s\t\n", role.DisplayName)
 		fmt.Fprintf(w, "BuiltIn\t%v\t\n", role.BuiltIn)
 		fmt.Fprintf(w, "SchemeManaged\t%v\t\n", role.SchemeManaged)
-		fmt.Fprintf(w, "Permissions\t%s\t%v\n", role.Permissions[0], strings.Join(getUsedBy(role.Permissions[0]), ", "))
-		for _, perm := range role.Permissions[1:] {
-			fmt.Fprintf(w, "\t%s\t%v\n", perm, strings.Join(getUsedBy(perm), ", "))
+		for i, perm := range role.Permissions {
+			if i == 0 {
+				fmt.Fprintf(w, "Permissions\t%s\t%v\n", role.Permissions[0], strings.Join(getUsedBy(role.Permissions[0]), ", "))
+			} else {
+				fmt.Fprintf(w, "\t%s\t%v\n", perm, strings.Join(getUsedBy(perm), ", "))
+			}
 		}
 	} else {
 		fmt.Fprintf(w, "Property\tValue\n")
@@ -225,9 +232,12 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(w, "DisplayName\t%s\n", role.DisplayName)
 		fmt.Fprintf(w, "BuiltIn\t%v\n", role.BuiltIn)
 		fmt.Fprintf(w, "SchemeManaged\t%v\n", role.SchemeManaged)
-		fmt.Fprintf(w, "Permissions\t%s\n", role.Permissions[0])
-		for _, perm := range role.Permissions[1:] {
-			fmt.Fprintf(w, "\t%s\n", perm)
+		for i, perm := range role.Permissions {
+			if i == 0 {
+				fmt.Fprintf(w, "Permissions\t%s\n", role.Permissions[0])
+			} else {
+				fmt.Fprintf(w, "\t%s\n", perm)
+			}
 		}
 	}
 
