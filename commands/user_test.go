@@ -1920,3 +1920,155 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to verify user %s email", mockUser.Id))
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
+	s.Run("convert user to a bot", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+		mockBot := model.Bot{UserId: "example"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			ConvertUserToBot(mockUser.Id).
+			Return(&mockBot, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userConvertCmdF(s.client, cmd, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockBot, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("convert bot to a user", func() {
+		printer.Clean()
+		userNameArg := "example-bot"
+		mockUser := model.User{Id: "example", Email: "example@example.com"}
+		mockBot := model.Bot{UserId: "example", Username: userNameArg}
+		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
+
+		userPatch := model.UserPatch{
+			Email:    model.NewString("example@example.com"),
+			Password: model.NewString("password"),
+			Username: model.NewString("example-user"),
+		}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("user", true, "")
+		cmd.Flags().String("password", "password", "")
+		cmd.Flags().String("email", "example@example.com", "")
+		cmd.Flags().String("username", "example-user", "")
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userNameArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userNameArg, "").
+			Return(&mockBotUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			ConvertBotToUser(mockBot.UserId, &userPatch, false).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		err := userConvertCmdF(s.client, cmd, []string{userNameArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("fail for not providing either user or bot flag", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+
+		cmd := &cobra.Command{}
+
+		err := userConvertCmdF(s.client, cmd, []string{emailArg})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("got error while converting a user to a bot", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			ConvertUserToBot(mockUser.Id).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := userConvertCmdF(s.client, cmd, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
+
+	s.Run("got error while converting a bot to a user", func() {
+		printer.Clean()
+		userNameArg := "example-bot"
+		mockBot := model.Bot{UserId: "example", Username: userNameArg}
+		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
+
+		userPatch := model.UserPatch{
+			Email:    model.NewString("example@example.com"),
+			Password: model.NewString("password"),
+			Username: model.NewString("example-user"),
+		}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("user", true, "")
+		cmd.Flags().String("password", "password", "")
+		cmd.Flags().String("email", "example@example.com", "")
+		cmd.Flags().String("username", "example-user", "")
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userNameArg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(userNameArg, "").
+			Return(&mockBotUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			ConvertBotToUser(mockBot.UserId, &userPatch, false).
+			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := userConvertCmdF(s.client, cmd, []string{userNameArg})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
