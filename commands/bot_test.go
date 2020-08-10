@@ -287,7 +287,34 @@ func (s *MmctlUnitTestSuite) TestBotListCmd() {
 		s.Require().Equal(&mockBot, printer.GetLines()[0])
 	})
 
-	s.Run("Should list fail if one featching bots requests fail", func() {
+	s.Run("Should list correctly bots with invalid ownerId", func() {
+		printer.Clean()
+		botArg := "a-bot"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("orphaned", false, "")
+		cmd.Flags().Bool("all", false, "")
+		mockBot := model.Bot{UserId: model.NewId(), Username: botArg, DisplayName: "some-name", Description: "some-text", OwnerId: "Mr.Robot"}
+
+		s.client.
+			EXPECT().
+			GetBots(0, 200, "").
+			Return([]*model.Bot{&mockBot}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersByIds([]string{mockBot.OwnerId}).
+			Return([]*model.User{}, &model.Response{Error: nil}).
+			Times(1)
+
+		err := botListCmdF(s.client, cmd, []string{botArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockBot, printer.GetLines()[0])
+	})
+
+	s.Run("Should list fail if one fetching bots requests fail", func() {
 		printer.Clean()
 		botArg := "a-bot"
 

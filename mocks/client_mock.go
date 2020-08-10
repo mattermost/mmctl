@@ -83,7 +83,22 @@ func (mr *MockClientMockRecorder) AssignBot(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBot", reflect.TypeOf((*MockClient)(nil).AssignBot), arg0, arg1)
 }
 
-// ClearServerBusy mocks base method
+// CheckIntegrity mocks base method.
+func (m *MockClient) CheckIntegrity() ([]model.IntegrityCheckResult, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckIntegrity")
+	ret0, _ := ret[0].([]model.IntegrityCheckResult)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CheckIntegrity indicates an expected call of CheckIntegrity.
+func (mr *MockClientMockRecorder) CheckIntegrity() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckIntegrity", reflect.TypeOf((*MockClient)(nil).CheckIntegrity))
+}
+
+// ClearServerBusy mocks base method.
 func (m *MockClient) ClearServerBusy() (bool, *model.Response) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClearServerBusy")
@@ -1044,7 +1059,22 @@ func (mr *MockClientMockRecorder) PermanentDeleteTeam(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteTeam", reflect.TypeOf((*MockClient)(nil).PermanentDeleteTeam), arg0)
 }
 
-// ReloadConfig mocks base method
+// PermanentDeleteUser mocks base method.
+func (m *MockClient) PermanentDeleteUser(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PermanentDeleteUser", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PermanentDeleteUser indicates an expected call of PermanentDeleteUser.
+func (mr *MockClientMockRecorder) PermanentDeleteUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteUser", reflect.TypeOf((*MockClient)(nil).PermanentDeleteUser), arg0)
+}
+
+// ReloadConfig mocks base method.
 func (m *MockClient) ReloadConfig() (bool, *model.Response) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReloadConfig")

@@ -361,6 +361,161 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 	})
 }
 
+func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
+	email1 := "user1@example.com"
+	email2 := "user2@example.com"
+	userID1 := model.NewId()
+	userID2 := model.NewId()
+	mockUser1 := model.User{Username: "User1", Email: email1, Id: userID1}
+	mockUser2 := model.User{Username: "User2", Email: email2, Id: userID2}
+
+	s.Run("Delete users with confirm false returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
+	})
+
+	s.Run("Delete user that does not exist in db returns an error", func() {
+		printer.Clean()
+		arg := "userdoesnotexist@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(arg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(arg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(arg, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		err := deleteUsersCmdF(s.client, cmd, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal(fmt.Sprintf("Unable to find user '%s'", arg), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete users should delete users", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(email1, "").
+			Return(&mockUser1, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PermanentDeleteUser(userID1).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(email2, "").
+			Return(&mockUser2, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PermanentDeleteUser(userID2).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().Equal(&mockUser2, printer.GetLines()[1])
+	})
+
+	s.Run("Delete users with error on PermanentDeleteUser returns an error", func() {
+		printer.Clean()
+
+		mockError := &model.AppError{
+			Message:       "An error occurred on deleting a user",
+			DetailedError: "User cannot be deleted",
+			Where:         "User.deleteUser",
+		}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(email1, "").
+			Return(&mockUser1, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteUser(userID1).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteUsersCmdF(s.client, cmd, []string{email1})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to delete user 'User1' error: User.deleteUser: An error occurred on deleting a user, User cannot be deleted",
+			printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete two users, first fails with error other passes", func() {
+		printer.Clean()
+
+		mockError := &model.AppError{
+			Message:       "An error occurred on deleting a user",
+			DetailedError: "User cannot be deleted",
+			Where:         "User.deleteUser",
+		}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(email1, "").
+			Return(&mockUser1, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetUserByEmail(email2, "").
+			Return(&mockUser2, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteUser(userID1).
+			Return(false, &model.Response{Error: mockError}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PermanentDeleteUser(userID2).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteUsersCmdF(s.client, cmd, []string{email1, email2})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(&mockUser2, printer.GetLines()[0])
+		s.Require().Equal("Unable to delete user 'User1' error: User.deleteUser: An error occurred on deleting a user, User cannot be deleted",
+			printer.GetErrorLines()[0])
+	})
+}
+
 func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
 	s.Run("Delete all users", func() {
 		printer.Clean()
@@ -1915,6 +2070,5 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		err := userConvertCmdF(s.client, cmd, []string{userNameArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 }

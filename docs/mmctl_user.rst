@@ -36,6 +36,7 @@ SEE ALSO
 * `mmctl user convert <mmctl_user_convert.rst>`_ 	 - Convert users to bots, or a bot to a user
 * `mmctl user create <mmctl_user_create.rst>`_ 	 - Create a user
 * `mmctl user deactivate <mmctl_user_deactivate.rst>`_ 	 - Deactivate users
+* `mmctl user delete <mmctl_user_delete.rst>`_ 	 - Delete users
 * `mmctl user deleteall <mmctl_user_deleteall.rst>`_ 	 - Delete all users and all posts. Local command only.
 * `mmctl user email <mmctl_user_email.rst>`_ 	 - Change email of the user
 * `mmctl user invite <mmctl_user_invite.rst>`_ 	 - Send user an email invite to a team.
