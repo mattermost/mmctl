@@ -13,7 +13,7 @@ Convert users to bots, or a bot to a user
 
 ::
 
-  mmctl user convert (--bot [emails] [usernames] [userIds] | --user <username> --password=PASSWORD [--email=EMAIL]) [flags]
+  mmctl user convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL]) [flags]
 
 Examples
 ~~~~~~~~

@@ -131,7 +131,7 @@ var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 }
 
 var UserConvertCmd = &cobra.Command{
-	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password=PASSWORD [--email=EMAIL])",
+	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL])",
 	Short: "Convert users to bots, or a bot to a user",
 	Long:  "Convert users to bots, or a bot to a user",
 	Example: `  # you can convert a user to a bot providing its email, id or username
