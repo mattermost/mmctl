@@ -88,9 +88,9 @@ var ModifyChannelCmd = &cobra.Command{
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: `  channel modify myteam:mychannel --private
   channel modify channelId --public`,
-	Args: cobra.ExactArgs(1),
-	PreRun:  disableLocalPrecheck,
-	RunE: withClient(modifyChannelCmdF),
+	Args:   cobra.ExactArgs(1),
+	PreRun: disableLocalPrecheck,
+	RunE:   withClient(modifyChannelCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{
