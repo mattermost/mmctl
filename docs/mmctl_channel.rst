@@ -35,6 +35,7 @@ SEE ALSO
 * `mmctl channel add <mmctl_channel_add.rst>`_ 	 - Add users to channel
 * `mmctl channel archive <mmctl_channel_archive.rst>`_ 	 - Archive channels
 * `mmctl channel create <mmctl_channel_create.rst>`_ 	 - Create a channel
+* `mmctl channel delete <mmctl_channel_delete.rst>`_ 	 - Delete channels
 * `mmctl channel list <mmctl_channel_list.rst>`_ 	 - List all channels on specified teams.
 * `mmctl channel make_private <mmctl_channel_make_private.rst>`_ 	 - Set a channel's type to private
 * `mmctl channel modify <mmctl_channel_modify.rst>`_ 	 - Modify a channel's public/private type
