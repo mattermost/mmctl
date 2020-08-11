@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/golang/mock v1.3.1
 	github.com/magefile/mage v1.9.0
-	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200727082022-e5edf2683df5
+	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200807110520-a47ba1fae02b
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.4.0

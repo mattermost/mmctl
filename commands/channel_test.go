@@ -3044,3 +3044,159 @@ func (s *MmctlUnitTestSuite) TestRemoveChannelUsersCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
+	teamName := "team1"
+	teamID := "teamId"
+	mockTeam := model.Team{
+		Name: teamName,
+		Id:   teamID,
+	}
+
+	channelName := "channel1"
+	channelID := "channel1Id"
+	mockChannel := model.Channel{
+		Name: channelName,
+		Id:   channelID,
+	}
+
+	s.Run("Delete channels with confirm false returns an error", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
+	})
+
+	s.Run("Delete channel that does not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(&mockTeam, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		arg := teamID + ":" + channelName
+		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete channel from team that does not exist in db returns an error", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamName, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		arg := teamName + ":" + channelName
+		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg), printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete channel should delete channel", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(&mockTeam, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			Return(&mockChannel, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteChannel(channelID).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		arg := teamID + ":" + channelName
+		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
+		s.Require().Nil(err)
+		s.Require().Equal(&mockChannel, printer.GetLines()[0])
+	})
+
+	s.Run("Delete two channels, first one does not exist", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeam(teamID, "").
+			Return(&mockTeam, nil).
+			Times(2)
+
+		channelNameDoesNotExist := "this channel does not exist"
+		mockError := model.AppError{Id: "Channel Does Not Exist Error"}
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelNameDoesNotExist, teamID, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannel(channelNameDoesNotExist, "").
+			Return(nil, &model.Response{Error: &mockError}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, teamID, "").
+			Return(&mockChannel, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PermanentDeleteChannel(channelID).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		arg1 := teamID + ":" + channelNameDoesNotExist
+		arg2 := teamID + ":" + channelName
+		err := deleteChannelsCmdF(s.client, cmd, []string{arg1, arg2})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg1), printer.GetErrorLines()[0])
+		s.Require().Equal(&mockChannel, printer.GetLines()[0])
+	})
+}
