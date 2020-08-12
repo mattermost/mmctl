@@ -25,6 +25,7 @@ var CreateBotCmd = &cobra.Command{
 	Short:   "Create bot",
 	Long:    "Create bot.",
 	Example: `  bot create testbot`,
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(botCreateCmdF),
 	Args:    cobra.ExactArgs(1),
 }
