@@ -10,6 +10,9 @@ LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
 
 all: build
 
+-include config.override.mk
+include config.mk
+
 build: vendor check
 	go build -ldflags '$(LDFLAGS)' -mod=vendor
 	md5sum < mmctl | cut -d ' ' -f 1 > mmctl.md5.txt
@@ -79,11 +82,11 @@ test-unit:
 
 test-e2e:
 	@echo Running e2e tests
-	$(GO) test -mod=vendor -race -v -tags e2e $(GO_PACKAGES)
+	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test -mod=vendor -race -v -tags e2e $(GO_PACKAGES)
 
 test-all:
 	@echo Running all tests
-	$(GO) test -mod=vendor -race -v -tags 'unit e2e' $(GO_PACKAGES)
+	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test -mod=vendor -race -v -tags 'unit e2e' $(GO_PACKAGES)
 
 coverage:
 	$(GO) test -mod=vendor -race -tags unit -coverprofile=coverage.txt ./...

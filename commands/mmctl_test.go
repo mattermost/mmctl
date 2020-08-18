@@ -4,14 +4,14 @@
 package commands
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/mocks"
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/mattermost/mattermost-server/v5/api4"
 )
 
 type MmctlUnitTestSuite struct {
@@ -36,20 +36,61 @@ func (s *MmctlUnitTestSuite) TearDownTest() {
 
 type MmctlE2ETestSuite struct {
 	suite.Suite
-	th *TestHelper
+	th *api4.TestHelper
 }
 
 func (s *MmctlE2ETestSuite) SetupSuite() {
 	printer.SetFormat(printer.FormatJSON)
-
-	var err error
-	if s.th, err = setupTestHelper(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing E2E test helper. %s\n", err)
-		fmt.Fprintln(os.Stderr, "Aborting E2E test execution")
-		os.Exit(1)
-	}
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {
 	printer.Clean()
+
+	// if a test helper was used, we run the teardown and remove it
+	// from the structure to avoid reusing the same helper between
+	// tests
+	if s.th != nil {
+		s.th.TearDown()
+		s.th = nil
+	}
+}
+
+func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
+	s.th = api4.Setup(s.T())
+	return s.th
+}
+
+func (s *MmctlE2ETestSuite) SetupEnterpriseTestHelper() *api4.TestHelper {
+	s.th = api4.SetupEnterprise(s.T())
+	return s.th
+}
+
+// RunForSystemAdminAndLocal runs a test function for both SystemAdmin
+// and Local clients. Several commands work in the same way when used
+// by a fully privileged user and through the local mode, so this
+// helper facilitates checking both
+func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(client.Client)) {
+	s.Run(testName+"/SystemAdminClient", func() {
+		fn(s.th.SystemAdminClient)
+	})
+
+	s.Run(testName+"/LocalClient", func() {
+		fn(s.th.LocalClient)
+	})
+}
+
+// RunForAllClients runs a test function for all the clients
+// registered in the TestHelper
+func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Client)) {
+	s.Run(testName+"/Client", func() {
+		fn(s.th.Client)
+	})
+
+	s.Run(testName+"/SystemAdminClient", func() {
+		fn(s.th.SystemAdminClient)
+	})
+
+	s.Run(testName+"/LocalClient", func() {
+		fn(s.th.LocalClient)
+	})
 }
