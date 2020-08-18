@@ -3060,7 +3060,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		Id:   channelID,
 	}
 
-	s.Run("Delete channels with confirm false returns an error", func() {
+	s.Run("Delete channels without confirm flag returns an error", func() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
