@@ -1,7 +1,7 @@
-.. _mmctl_permissions_unassign:
+.. _mmctl_permissions_role_unassign:
 
-mmctl permissions unassign
---------------------------
+mmctl permissions role unassign
+-------------------------------
 
 Unassign users from role (EE Only)
 
@@ -13,14 +13,17 @@ Unassign users from a role by username (Only works in Enterprise Edition).
 
 ::
 
-  mmctl permissions unassign [role_name] [username...] [flags]
+  mmctl permissions role unassign [role_name] [username...] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
+    # Unassign users with usernames 'john.doe' and 'jane.doe' from the role named 'system_admin'.
     permissions unassign system_admin john.doe jane.doe
+
+    # Examples using other system roles
     permissions unassign system_manager john.doe jane.doe
     permissions unassign system_user_manager john.doe jane.doe
     permissions unassign system_read_only_admin john.doe jane.doe
@@ -45,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl permissions role <mmctl_permissions_role.rst>`_ 	 - Management of roles
 

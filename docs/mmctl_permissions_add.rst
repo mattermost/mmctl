@@ -42,5 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
 

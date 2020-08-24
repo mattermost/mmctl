@@ -16,7 +16,12 @@ import (
 
 var PermissionsCmd = &cobra.Command{
 	Use:   "permissions",
-	Short: "Management of permissions and roles",
+	Short: "Management of permissions",
+}
+
+var RoleCmd = &cobra.Command{
+	Use:   "role",
+	Short: "Management of roles",
 }
 
 var AddPermissionsCmd = &cobra.Command{
@@ -38,19 +43,23 @@ var RemovePermissionsCmd = &cobra.Command{
 }
 
 var ShowRoleCmd = &cobra.Command{
-	Use:     "show [role_name]",
-	Short:   "Show the role information",
-	Long:    "Show all the information about a role.",
-	Example: `  permissions show system_user`,
-	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(showRoleCmdF),
+	Use:        "show [role_name]",
+	Deprecated: "please use \"role show\" instead",
+	Short:      "Show the role information",
+	Long:       "Show all the information about a role.",
+	Example:    `  permissions show system_user`,
+	Args:       cobra.ExactArgs(1),
+	RunE:       withClient(showRoleCmdF),
 }
 
 var AssignUsersCmd = &cobra.Command{
 	Use:   "assign [role_name] [username...]",
 	Short: "Assign users to role (EE Only)",
 	Long:  "Assign users to a role by username (Only works in Enterprise Edition).",
-	Example: `  permissions assign system_admin john.doe jane.doe
+	Example: `  # Assign users with usernames 'john.doe' and 'jane.doe' to the role named 'system_admin'.
+  permissions assign system_admin john.doe jane.doe
+  
+  # Examples using other system roles
   permissions assign system_manager john.doe jane.doe
   permissions assign system_user_manager john.doe jane.doe
   permissions assign system_read_only_admin john.doe jane.doe`,
@@ -62,7 +71,10 @@ var UnassignUsersCmd = &cobra.Command{
 	Use:   "unassign [role_name] [username...]",
 	Short: "Unassign users from role (EE Only)",
 	Long:  "Unassign users from a role by username (Only works in Enterprise Edition).",
-	Example: `  permissions unassign system_admin john.doe jane.doe
+	Example: `  # Unassign users with usernames 'john.doe' and 'jane.doe' from the role named 'system_admin'.
+  permissions unassign system_admin john.doe jane.doe
+
+  # Examples using other system roles
   permissions unassign system_manager john.doe jane.doe
   permissions unassign system_user_manager john.doe jane.doe
   permissions unassign system_read_only_admin john.doe jane.doe`,
@@ -71,12 +83,17 @@ var UnassignUsersCmd = &cobra.Command{
 }
 
 func init() {
+	RoleCmd.AddCommand(
+		AssignUsersCmd,
+		UnassignUsersCmd,
+		ShowRoleCmd,
+	)
+
 	PermissionsCmd.AddCommand(
 		AddPermissionsCmd,
 		RemovePermissionsCmd,
 		ShowRoleCmd,
-		AssignUsersCmd,
-		UnassignUsersCmd,
+		RoleCmd,
 	)
 
 	RootCmd.AddCommand(PermissionsCmd)

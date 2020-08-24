@@ -1,7 +1,7 @@
-.. _mmctl_permissions_assign:
+.. _mmctl_permissions_role_assign:
 
-mmctl permissions assign
-------------------------
+mmctl permissions role assign
+-----------------------------
 
 Assign users to role (EE Only)
 
@@ -13,14 +13,17 @@ Assign users to a role by username (Only works in Enterprise Edition).
 
 ::
 
-  mmctl permissions assign [role_name] [username...] [flags]
+  mmctl permissions role assign [role_name] [username...] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
+    # Assign users with usernames 'john.doe' and 'jane.doe' to the role named 'system_admin'.
     permissions assign system_admin john.doe jane.doe
+    
+    # Examples using other system roles
     permissions assign system_manager john.doe jane.doe
     permissions assign system_user_manager john.doe jane.doe
     permissions assign system_read_only_admin john.doe jane.doe
@@ -45,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl permissions role <mmctl_permissions_role.rst>`_ 	 - Management of roles
 
