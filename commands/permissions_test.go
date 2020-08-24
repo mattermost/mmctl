@@ -227,6 +227,12 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
+			GetUserByEmail(mockUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
 			GetUserByUsername(mockUser.Username, "").
 			Return(mockUser, &model.Response{Error: nil}).
 			Times(1)
@@ -268,6 +274,12 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Times(1)
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
+			s.client.
+				EXPECT().
+				GetUserByEmail(user.Username, "").
+				Return(nil, &model.Response{Error: nil}).
+				Times(1)
+
 			s.client.
 				EXPECT().
 				GetUserByUsername(user.Username, "").
@@ -322,6 +334,12 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 
 		s.client.
 			EXPECT().
+			GetUserByEmail(mockUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
 			GetUserByUsername(mockUser.Username, "").
 			Return(mockUser, &model.Response{Error: nil}).
 			Times(1)
@@ -341,6 +359,12 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Username: "user1",
 			Roles:    fmt.Sprintf("system_user %s team_admin", roleName),
 		}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(mockUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
 
 		s.client.
 			EXPECT().
@@ -377,6 +401,12 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
+				GetUserByEmail(user.Username, "").
+				Return(nil, &model.Response{Error: nil}).
+				Times(1)
+
+			s.client.
+				EXPECT().
 				GetUserByUsername(user.Username, "").
 				Return(user, &model.Response{Error: nil}).
 				Times(1)
@@ -401,6 +431,12 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Username: "user1",
 			Roles:    "system_user",
 		}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(mockUser.Username, "").
+			Return(mockUser, &model.Response{Error: nil}).
+			Times(1)
 
 		s.client.
 			EXPECT().
