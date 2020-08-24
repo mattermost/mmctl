@@ -1,35 +1,33 @@
-.. _mmctl_channel_remove:
+.. _mmctl_channel_users_add:
 
-mmctl channel remove
---------------------
+mmctl channel users add
+-----------------------
 
-Remove users from channel
+Add users to channel
 
 Synopsis
 ~~~~~~~~
 
 
-Remove some users from channel
+Add some users to channel
 
 ::
 
-  mmctl channel remove [channel] [users] [flags]
+  mmctl channel users add [channel] [users] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel remove myteam:mychannel user@example.com username
-    channel remove myteam:mychannel --all-users
+    channel users add myteam:mychannel user@example.com username
 
 Options
 ~~~~~~~
 
 ::
 
-      --all-users   Remove all users from the indicated channel.
-  -h, --help        help for remove
+  -h, --help   help for add
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,5 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl channel users <mmctl_channel_users.rst>`_ 	 - Management of channel users
 
