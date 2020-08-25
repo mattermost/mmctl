@@ -112,11 +112,16 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		var userHasRequestedRole bool
 		startingRoles := strings.Fields(user.Roles)
 		for _, roleName := range startingRoles {
 			if roleName == role.Name {
-				continue
+				userHasRequestedRole = true
 			}
+		}
+
+		if userHasRequestedRole {
+			continue
 		}
 
 		userRoles := append(startingRoles, role.Name)

@@ -203,6 +203,44 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 	})
+
+	s.Run("Assigning a user that is not found", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit"},
+		}
+
+		requestedUser := "user99"
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(requestedUser, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(requestedUser, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(requestedUser, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, requestedUser}
+		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
@@ -300,6 +338,32 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
+		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Unassigning a user that is not found", func() {
+		requestedUser := "user99"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(requestedUser, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(requestedUser, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(requestedUser, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{"mock-role-id", requestedUser}
 		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 	})
