@@ -435,7 +435,7 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Username, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
