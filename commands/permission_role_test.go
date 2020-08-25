@@ -122,6 +122,12 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Roles:    "system_user system_admin",
 		}
 
+		notFoundUser := &model.User{
+			Id:       model.NewId(),
+			Username: "notfound",
+			Roles:    "system_user system_admin",
+		}
+
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
@@ -148,7 +154,25 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 				Times(1)
 		}
 
-		args := []string{mockRole.Name, mockUser1.Username, mockUser2.Username}
+		s.client.
+			EXPECT().
+			GetUserByEmail(notFoundUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(notFoundUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(notFoundUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
 		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 	})
@@ -291,6 +315,12 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 			Roles:    "system_user system_admin mock-role",
 		}
 
+		notFoundUser := &model.User{
+			Id:       model.NewId(),
+			Username: "notfound",
+			Roles:    "system_user system_admin",
+		}
+
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
@@ -311,7 +341,25 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 				Times(1)
 		}
 
-		args := []string{roleName, mockUser1.Username, mockUser2.Username}
+		s.client.
+			EXPECT().
+			GetUserByEmail(notFoundUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(notFoundUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(notFoundUser.Username, "").
+			Return(nil, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{roleName, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
 		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 	})
