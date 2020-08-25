@@ -106,11 +106,16 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	users := getUsersFromUserArgs(c, args[1:])
 
-	for _, user := range users {
+	for i, user := range users {
+		if user == nil {
+			printer.PrintError("Couldn't find user '" + args[i+1] + "'.")
+			continue
+		}
+
 		startingRoles := strings.Fields(user.Roles)
 		for _, roleName := range startingRoles {
 			if roleName == role.Name {
-				return nil
+				continue
 			}
 		}
 
@@ -127,7 +132,12 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args[1:])
 
-	for _, user := range users {
+	for i, user := range users {
+		if user == nil {
+			printer.PrintError("Couldn't find user '" + args[i+1] + "'.")
+			continue
+		}
+
 		userRoles := strings.Fields(user.Roles)
 		originalCount := len(userRoles)
 
