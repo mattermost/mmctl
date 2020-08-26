@@ -72,6 +72,8 @@ type Client interface {
 	CreateUserAccessToken(userId, description string) (*model.UserAccessToken, *model.Response)
 	RevokeUserAccessToken(tokenId string) (bool, *model.Response)
 	GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.Response)
+	ConvertUserToBot(userId string) (*model.Bot, *model.Response)
+	ConvertBotToUser(userId string, userPatch *model.UserPatch, setSystemAdmin bool) (*model.User, *model.Response)
 	CreateCommand(cmd *model.Command) (*model.Command, *model.Response)
 	ListCommands(teamId string, customOnly bool) ([]*model.Command, *model.Response)
 	GetCommandById(cmdId string) (*model.Command, *model.Response)

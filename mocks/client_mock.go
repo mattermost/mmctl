@@ -113,6 +113,36 @@ func (mr *MockClientMockRecorder) ClearServerBusy() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ClearServerBusy", reflect.TypeOf((*MockClient)(nil).ClearServerBusy))
 }
 
+// ConvertBotToUser mocks base method.
+func (m *MockClient) ConvertBotToUser(arg0 string, arg1 *model.UserPatch, arg2 bool) (*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConvertBotToUser", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ConvertBotToUser indicates an expected call of ConvertBotToUser.
+func (mr *MockClientMockRecorder) ConvertBotToUser(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertBotToUser", reflect.TypeOf((*MockClient)(nil).ConvertBotToUser), arg0, arg1, arg2)
+}
+
+// ConvertUserToBot mocks base method.
+func (m *MockClient) ConvertUserToBot(arg0 string) (*model.Bot, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConvertUserToBot", arg0)
+	ret0, _ := ret[0].(*model.Bot)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ConvertUserToBot indicates an expected call of ConvertUserToBot.
+func (mr *MockClientMockRecorder) ConvertUserToBot(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertUserToBot", reflect.TypeOf((*MockClient)(nil).ConvertUserToBot), arg0)
+}
+
 // CreateBot mocks base method.
 func (m *MockClient) CreateBot(arg0 *model.Bot) (*model.Bot, *model.Response) {
 	m.ctrl.T.Helper()

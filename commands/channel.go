@@ -48,15 +48,17 @@ var RemoveChannelUsersCmd = &cobra.Command{
 	Long:  "Remove some users from channel",
 	Example: `  channel remove myteam:mychannel user@example.com username
   channel remove myteam:mychannel --all-users`,
-	RunE: withClient(removeChannelUsersCmdF),
+	Deprecated: "please use \"users remove\" instead",
+	RunE:       withClient(channelUsersRemoveCmdF),
 }
 
 var AddChannelUsersCmd = &cobra.Command{
-	Use:     "add [channel] [users]",
-	Short:   "Add users to channel",
-	Long:    "Add some users to channel",
-	Example: "  channel add myteam:mychannel user@example.com username",
-	RunE:    withClient(addChannelUsersCmdF),
+	Use:        "add [channel] [users]",
+	Short:      "Add users to channel",
+	Long:       "Add some users to channel",
+	Example:    "  channel add myteam:mychannel user@example.com username",
+	Deprecated: "please use \"users add\" instead",
+	RunE:       withClient(channelUsersAddCmdF),
 }
 
 var ArchiveChannelsCmd = &cobra.Command{
@@ -98,8 +100,9 @@ var ModifyChannelCmd = &cobra.Command{
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: `  channel modify myteam:mychannel --private
   channel modify channelId --public`,
-	Args: cobra.ExactArgs(1),
-	RunE: withClient(modifyChannelCmdF),
+	Args:   cobra.ExactArgs(1),
+	PreRun: disableLocalPrecheck,
+	RunE:   withClient(modifyChannelCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{
@@ -109,6 +112,7 @@ var RestoreChannelsCmd = &cobra.Command{
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
@@ -118,6 +122,7 @@ var UnarchiveChannelCmd = &cobra.Command{
 	Long: `Unarchive a previously archived channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel unarchive myteam:mychannel",
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
@@ -127,6 +132,7 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Long: `Set the type of a channel from public to private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel make_private myteam:mychannel",
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
@@ -149,6 +155,7 @@ Validates that all users in the channel belong to the target team. Incoming/Outg
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel move newteam oldteam:mychannel",
 	Args:    cobra.MinimumNArgs(2),
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(moveChannelCmdF),
 }
 
@@ -240,85 +247,6 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	printer.PrintT("New channel {{.Name}} successfully created", newChannel)
 
 	return nil
-}
-
-func removeChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	allUsers, _ := cmd.Flags().GetBool("all-users")
-
-	if allUsers && len(args) != 1 {
-		return errors.New("individual users must not be specified in conjunction with the --all-users flag")
-	}
-
-	if !allUsers && len(args) < 2 {
-		return errors.New("you must specify some users to remove from the channel, or use the --all-users flag to remove them all")
-	}
-
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.Errorf("unable to find channel %q", args[0])
-	}
-
-	if allUsers {
-		removeAllUsersFromChannel(c, channel)
-	} else {
-		users := getUsersFromUserArgs(c, args[1:])
-		for i, user := range users {
-			removeUserFromChannel(c, channel, user, args[i+1])
-		}
-	}
-
-	return nil
-}
-
-func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
-	}
-	if _, response := c.RemoveUserFromChannel(channel.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
-	}
-}
-
-func removeAllUsersFromChannel(c client.Client, channel *model.Channel) {
-	members, response := c.GetChannelMembers(channel.Id, 0, 10000, "")
-	if response.Error != nil {
-		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + response.Error.Error())
-	}
-
-	for _, member := range *members {
-		if _, response := c.RemoveUserFromChannel(channel.Id, member.UserId); response.Error != nil {
-			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + response.Error.Error())
-		}
-	}
-}
-
-func addChannelUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 2 {
-		return errors.New("not enough arguments")
-	}
-
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.Errorf("unable to find channel %q", args[0])
-	}
-
-	users := getUsersFromUserArgs(c, args[1:])
-	for i, user := range users {
-		addUserToChannel(c, channel, user, args[i+1])
-	}
-
-	return nil
-}
-
-func addUserToChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
-	}
-	if _, response := c.AddChannelMember(channel.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + response.Error.Error())
-	}
 }
 
 func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
