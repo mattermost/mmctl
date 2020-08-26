@@ -1,33 +1,22 @@
-.. _mmctl_permissions_show:
+.. _mmctl_permissions_role:
 
-mmctl permissions show
+mmctl permissions role
 ----------------------
 
-Show the role information
+Management of roles
 
 Synopsis
 ~~~~~~~~
 
 
-Show all the information about a role.
-
-::
-
-  mmctl permissions show [role_name] [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    permissions show system_user
+Management of roles
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for show
+  -h, --help   help for role
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +31,8 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
+* `mmctl permissions role assign <mmctl_permissions_role_assign.rst>`_ 	 - Assign users to role (EE Only)
+* `mmctl permissions role show <mmctl_permissions_role_show.rst>`_ 	 - Show the role information
+* `mmctl permissions role unassign <mmctl_permissions_role_unassign.rst>`_ 	 - Unassign users from role (EE Only)
 

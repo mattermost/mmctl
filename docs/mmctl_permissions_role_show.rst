@@ -1,33 +1,33 @@
-.. _mmctl_permissions_add:
+.. _mmctl_permissions_role_show:
 
-mmctl permissions add
----------------------
+mmctl permissions role show
+---------------------------
 
-Add permissions to a role (EE Only)
+Show the role information
 
 Synopsis
 ~~~~~~~~
 
 
-Add one or more permissions to an existing role (Only works in Enterprise Edition).
+Show all the information about a role.
 
 ::
 
-  mmctl permissions add [role] [permission...] [flags]
+  mmctl permissions role show [role_name] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    permissions add system_user list_open_teams
+    permissions show system_user
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for add
+  -h, --help   help for show
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
+* `mmctl permissions role <mmctl_permissions_role.rst>`_ 	 - Management of roles
 
