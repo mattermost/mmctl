@@ -71,6 +71,16 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 	RunE:    withClient(archiveChannelsCmdF),
 }
 
+var DeleteChannelsCmd = &cobra.Command{
+	Use:   "delete [channels]",
+	Short: "Delete channels",
+	Long: `Permanently delete some channels.
+Permanently deletes one or multiple channels along with all related information including posts from the database.`,
+	Example: "  channel delete myteam:mychannel",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    withClient(deleteChannelsCmdF),
+}
+
 // ListChannelsCmd is a command which lists all the channels of team(s) in a server.
 var ListChannelsCmd = &cobra.Command{
 	Use:   "list [teams]",
@@ -169,6 +179,8 @@ func init() {
 
 	MoveChannelCmd.Flags().Bool("force", false, "Remove users that are not members of target team before moving the channel.")
 
+	DeleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channel and a DB backup has been performed.")
+
 	ChannelCmd.AddCommand(
 		ChannelCreateCmd,
 		RemoveChannelUsersCmd,
@@ -182,6 +194,7 @@ func init() {
 		ChannelRenameCmd,
 		SearchChannelCmd,
 		MoveChannelCmd,
+		DeleteChannelsCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -500,4 +513,43 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 		privateChannels = append(privateChannels, channel)
 	}
 	return privateChannels, nil
+}
+
+func getChannelDeleteConfirmation() error {
+	var confirm string
+	fmt.Println("Have you performed a database backup? (YES/NO): ")
+	fmt.Scanln(&confirm)
+
+	if confirm != "YES" {
+		return errors.New("aborted: You did not answer YES exactly, in all capitals")
+	}
+	fmt.Println("Are you sure you want to delete the channels specified? All data will be permanently deleted? (YES/NO): ")
+	fmt.Scanln(&confirm)
+	if confirm != "YES" {
+		return errors.New("aborted: You did not answer YES exactly, in all capitals")
+	}
+	return nil
+}
+
+func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	if !confirmFlag {
+		if err := getChannelDeleteConfirmation(); err != nil {
+			return err
+		}
+	}
+
+	channels := getChannelsFromChannelArgs(c, args)
+	for i, channel := range channels {
+		if channel == nil {
+			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			continue
+		}
+		if _, response := c.PermanentDeleteChannel(channel.Id); response.Error != nil {
+			printer.PrintError("Unable to delete channel '" + channel.Name + "' error: " + response.Error.Error())
+		} else {
+			printer.PrintT("Deleted channel '{{.Name}}'", channel)
+		}
+	}
+	return nil
 }
