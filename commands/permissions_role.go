@@ -146,10 +146,10 @@ func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		userRoles := strings.Fields(user.Roles)
 		originalCount := len(userRoles)
 
-		for i := 0; i < len(userRoles); i++ {
-			if userRoles[i] == args[0] {
-				userRoles = append(userRoles[:i], userRoles[i+1:]...)
-				i--
+		for j := 0; j < len(userRoles); j++ {
+			if userRoles[j] == args[0] {
+				userRoles = append(userRoles[:j], userRoles[j+1:]...)
+				j--
 			}
 		}
 
