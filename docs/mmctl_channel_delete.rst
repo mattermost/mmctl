@@ -1,33 +1,35 @@
-.. _mmctl_permissions_show:
+.. _mmctl_channel_delete:
 
-mmctl permissions show
-----------------------
+mmctl channel delete
+--------------------
 
-Show the role information
+Delete channels
 
 Synopsis
 ~~~~~~~~
 
 
-Show all the information about a role.
+Permanently delete some channels.
+Permanently deletes one or multiple channels along with all related information including posts from the database.
 
 ::
 
-  mmctl permissions show [role_name] [flags]
+  mmctl channel delete [channels] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    permissions show system_user
+    channel delete myteam:mychannel
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for show
+      --confirm   Confirm you really want to delete the channel and a DB backup has been performed.
+  -h, --help      help for delete
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 

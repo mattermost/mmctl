@@ -7,14 +7,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
 
 var PermissionsCmd = &cobra.Command{
 	Use:   "permissions",
-	Short: "Management of permissions and roles",
+	Short: "Management of permissions",
 }
 
 var AddPermissionsCmd = &cobra.Command{
@@ -36,12 +35,13 @@ var RemovePermissionsCmd = &cobra.Command{
 }
 
 var ShowRoleCmd = &cobra.Command{
-	Use:     "show [role_name]",
-	Short:   "Show the role information",
-	Long:    "Show all the information about a role.",
-	Example: `  permissions show system_user`,
-	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(showRoleCmdF),
+	Use:        "show [role_name]",
+	Deprecated: "please use \"role show\" instead",
+	Short:      "Show the role information",
+	Long:       "Show all the information about a role.",
+	Example:    `  permissions show system_user`,
+	Args:       cobra.ExactArgs(1),
+	RunE:       withClient(showRoleCmdF),
 }
 
 func init() {
@@ -99,36 +99,6 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
 		return response.Error
 	}
-
-	return nil
-}
-
-func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
-	}
-
-	tpl := `Name: {{.Name}}
-Display Name: {{.DisplayName}}
-Description: {{.Description}}
-Permissions: {{.Permissions}}
-{{range .Permissions}}
-  - {{.}}
-{{end}}
-{{if .BuiltIn}}
-Built in: yes
-{{else}}
-Built in: no
-{{end}}
-{{if .SchemeManaged}}
-Scheme Managed: yes
-{{else}}
-Scheme Managed: no
-{{end}}
-`
-
-	printer.PrintT(tpl, role)
 
 	return nil
 }

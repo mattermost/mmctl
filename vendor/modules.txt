@@ -53,7 +53,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200727082022-e5edf2683df5
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200814084239-d76039db23e6
 github.com/mattermost/mattermost-server/v5/mlog
 github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
@@ -66,6 +66,8 @@ github.com/mitchellh/mapstructure
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.8.0
 github.com/pelletier/go-toml
+# github.com/philhofer/fwd v1.0.0
+github.com/philhofer/fwd
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
@@ -94,6 +96,8 @@ github.com/spf13/viper
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
+# github.com/tinylib/msgp v1.1.2
+github.com/tinylib/msgp/msgp
 # github.com/wiggin77/cfg v1.0.2
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
@@ -113,14 +117,14 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+# golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20200625001655-4c5254603344
+# golang.org/x/net v0.0.0-20200707034311-ab3426394381
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae
+# golang.org/x/sys v0.0.0-20200805065543-0cf7623e9dbd
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows

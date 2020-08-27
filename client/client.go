@@ -16,6 +16,7 @@ type Client interface {
 	GetChannelMembers(channelId string, page, perPage int, etag string) (*model.ChannelMembers, *model.Response)
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.Response)
 	DeleteChannel(channelId string) (bool, *model.Response)
+	PermanentDeleteChannel(channelId string) (bool, *model.Response)
 	MoveChannel(channelId, teamId string, force bool) (*model.Channel, *model.Response)
 	GetPublicChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*model.Channel, *model.Response)
 	GetDeletedChannelsForTeam(teamId string, page int, perPage int, etag string) ([]*model.Channel, *model.Response)

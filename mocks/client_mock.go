@@ -1044,6 +1044,21 @@ func (mr *MockClientMockRecorder) PermanentDeleteAllUsers() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteAllUsers", reflect.TypeOf((*MockClient)(nil).PermanentDeleteAllUsers))
 }
 
+// PermanentDeleteChannel mocks base method
+func (m *MockClient) PermanentDeleteChannel(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PermanentDeleteChannel", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PermanentDeleteChannel indicates an expected call of PermanentDeleteChannel
+func (mr *MockClientMockRecorder) PermanentDeleteChannel(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteChannel", reflect.TypeOf((*MockClient)(nil).PermanentDeleteChannel), arg0)
+}
+
 // PermanentDeleteTeam mocks base method
 func (m *MockClient) PermanentDeleteTeam(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
