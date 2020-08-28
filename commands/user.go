@@ -413,7 +413,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 			var err error
 			current, err = getPasswordFromStdin()
 			if err != nil {
-				return errors.New("couldn't read password: " + err.Error())
+				return errors.Wrap(err, "couldn't read password")
 			}
 		}
 
@@ -421,7 +421,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		var err error
 		password, err = getPasswordFromStdin()
 		if err != nil {
-			return errors.New("couldn't read password: " + err.Error())
+			return errors.Wrap(err, "couldn't read password")
 		}
 	}
 
@@ -432,11 +432,11 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	if hashed {
 		if _, resp := c.UpdateUserHashedPassword(user.Id, password); resp.Error != nil {
-			return errors.New("changing user password failed: " + resp.Error.Error())
+			return errors.Wrap(resp.Error, "changing user password failed")
 		}
 	} else {
 		if _, resp := c.UpdateUserPassword(user.Id, current, password); resp.Error != nil {
-			return errors.New("changing user password failed: " + resp.Error.Error())
+			return errors.Wrap(resp.Error, "changing user password failed")
 		}
 	}
 
