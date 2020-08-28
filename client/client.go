@@ -69,6 +69,8 @@ type Client interface {
 	SendPasswordResetEmail(email string) (bool, *model.Response)
 	UpdateUser(user *model.User) (*model.User, *model.Response)
 	UpdateUserMfa(userId, code string, activate bool) (bool, *model.Response)
+	UpdateUserPassword(userId, currentPassword, newPassword string) (bool, *model.Response)
+	UpdateUserHashedPassword(userId, newHashedPassword string) (bool, *model.Response)
 	CreateUserAccessToken(userId, description string) (*model.UserAccessToken, *model.Response)
 	RevokeUserAccessToken(tokenId string) (bool, *model.Response)
 	GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.Response)
