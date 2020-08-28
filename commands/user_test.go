@@ -813,7 +813,7 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 		cmd.Flags().Bool("hashed", true, "")
 
 		err := changePasswordUserCmdF(s.client, cmd, []string{emailArg})
-		s.Require().EqualError(err, "changing user password failed: : Mock error, ")
+		s.Require().EqualError(err, "changing user hashed password failed: : Mock error, ")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

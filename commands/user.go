@@ -432,7 +432,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 
 	if hashed {
 		if _, resp := c.UpdateUserHashedPassword(user.Id, password); resp.Error != nil {
-			return errors.Wrap(resp.Error, "changing user password failed")
+			return errors.Wrap(resp.Error, "changing user hashed password failed")
 		}
 	} else {
 		if _, resp := c.UpdateUserPassword(user.Id, current, password); resp.Error != nil {
