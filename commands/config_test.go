@@ -627,3 +627,34 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 		s.Require().NotNil(err)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
+	s.Run("Should be able to migrate config", func() {
+		printer.Clean()
+		args := []string{"from", "to"}
+
+		s.client.
+			EXPECT().
+			MigrateConfig(args[0], args[1]).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should fail on error when migrating config", func() {
+		printer.Clean()
+		args := []string{"from", "to"}
+
+		s.client.
+			EXPECT().
+			MigrateConfig(args[0], args[1]).
+			Return(false, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Times(1)
+
+		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+	})
+}

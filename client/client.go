@@ -86,6 +86,7 @@ type Client interface {
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	PatchConfig(*model.Config) (*model.Config, *model.Response)
 	ReloadConfig() (bool, *model.Response)
+	MigrateConfig(from, to string) (bool, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	MigrateIdLdap(toAttribute string) (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
