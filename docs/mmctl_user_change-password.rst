@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Changes the password of a user by a new one provided. If the user is changing it's own password, the flag --current must indicate the current password. The flag --hashed can be used to indicate that the new password has been introduced already hashed
+Changes the password of a user by a new one provided. If the user is changing their own password, the flag --current must indicate the current password. The flag --hashed can be used to indicate that the new password has been introduced already hashed
 
 ::
 
