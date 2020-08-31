@@ -23,7 +23,7 @@ var RoleCmd = &cobra.Command{
 }
 
 var ShowCmd = &cobra.Command{
-	Use:     "show [role_name]",
+	Use:     "show <role_name>",
 	Short:   "Show the role information",
 	Long:    "Show all the information about a role.",
 	Example: `  permissions show system_user`,
@@ -32,7 +32,7 @@ var ShowCmd = &cobra.Command{
 }
 
 var AssignCmd = &cobra.Command{
-	Use:   "assign [role_name] [username...]",
+	Use:   "assign <role_name> <username...>",
 	Short: "Assign users to role (EE Only)",
 	Long:  "Assign users to a role by username (Only works in Enterprise Edition).",
 	Example: `  # Assign users with usernames 'john.doe' and 'jane.doe' to the role named 'system_admin'.
@@ -47,7 +47,7 @@ var AssignCmd = &cobra.Command{
 }
 
 var UnassignCmd = &cobra.Command{
-	Use:   "unassign [role_name] [username...]",
+	Use:   "unassign <role_name> <username...>",
 	Short: "Unassign users from role (EE Only)",
 	Long:  "Unassign users from a role by username (Only works in Enterprise Edition).",
 	Example: `  # Unassign users with usernames 'john.doe' and 'jane.doe' from the role named 'system_admin'.

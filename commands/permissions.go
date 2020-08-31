@@ -21,7 +21,7 @@ var PermissionsCmd = &cobra.Command{
 }
 
 var AddPermissionsCmd = &cobra.Command{
-	Use:   "add [role] [permission...]",
+	Use:   "add <role> <permission...>",
 	Short: "Add permissions to a role (EE Only)",
 	Long:  `Add one or more permissions to an existing role (Only works in Enterprise Edition).`,
 	Example: fmt.Sprintf(`  permissions add system_user list_open_teams
@@ -31,7 +31,7 @@ var AddPermissionsCmd = &cobra.Command{
 }
 
 var RemovePermissionsCmd = &cobra.Command{
-	Use:   "remove [role] [permission...]",
+	Use:   "remove <role> <permission...>",
 	Short: "Remove permissions from a role (EE Only)",
 	Long:  `Remove one or more permissions from an existing role (Only works in Enterprise Edition).`,
 	Example: fmt.Sprintf(`  permissions remove system_user list_open_teams
@@ -41,37 +41,13 @@ var RemovePermissionsCmd = &cobra.Command{
 }
 
 var ShowRoleCmd = &cobra.Command{
-	Use:        "show [role_name]",
+	Use:        "show <role_name>",
 	Deprecated: "please use \"role show\" instead",
 	Short:      "Show the role information",
 	Long:       "Show all the information about a role.",
 	Example:    `  permissions show system_user`,
 	Args:       cobra.ExactArgs(1),
 	RunE:       withClient(showRoleCmdF),
-}
-
-var AssignUsersCmd = &cobra.Command{
-	Use:   "assign [role_name] [username...]",
-	Short: "Assign users to role (EE Only)",
-	Long:  "Assign users to a role by username (Only works in Enterprise Edition).",
-	Example: `  permissions assign system_admin john.doe jane.doe
-  permissions assign system_manager john.doe jane.doe
-  permissions assign system_user_manager john.doe jane.doe
-  permissions assign system_read_only_admin john.doe jane.doe`,
-	Args: cobra.MinimumNArgs(2),
-	RunE: withClient(assignUsersCmdF),
-}
-
-var UnassignUsersCmd = &cobra.Command{
-	Use:   "unassign [role_name] [username...]",
-	Short: "Unassign users from role (EE Only)",
-	Long:  "Unassign users from a role by username (Only works in Enterprise Edition).",
-	Example: `  permissions unassign system_admin john.doe jane.doe
-  permissions unassign system_manager john.doe jane.doe
-  permissions unassign system_user_manager john.doe jane.doe
-  permissions unassign system_read_only_admin john.doe jane.doe`,
-	Args: cobra.MinimumNArgs(2),
-	RunE: withClient(unassignUsersCmdF),
 }
 
 func init() {
