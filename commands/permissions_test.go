@@ -89,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		})
 
 		s.Run("with the ancillary flag", func() {
-			expectedPermissions := append(mockRole.Permissions, []string{newPermission, "read_public_channel", "read_channel", "read_channel_groups"}...)
+			expectedPermissions := append(mockRole.Permissions, []string{newPermission, "read_public_channel", "read_channel", "read_public_channel_groups", "read_private_channel_groups"}...)
 			expectedPatch := &model.RolePatch{
 				Permissions: &expectedPermissions,
 			}
