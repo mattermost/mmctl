@@ -13,7 +13,7 @@ Add one or more permissions to an existing role (Only works in Enterprise Editio
 
 ::
 
-  mmctl permissions add [role] [permission...] [flags]
+  mmctl permissions add <role> <permission...> [flags]
 
 Examples
 ~~~~~~~~
@@ -21,15 +21,14 @@ Examples
 ::
 
     permissions add system_user list_open_teams
-    permissions add system_manager sysconsole_read_user_management_channels --ancillary
+    permissions add system_manager sysconsole_read_user_management_channels
 
 Options
 ~~~~~~~
 
 ::
 
-      --ancillary   Optional. Add all of the ancillary permissions used by each sysconsole_* permission being added.
-  -h, --help        help for add
+  -h, --help   help for add
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

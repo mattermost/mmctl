@@ -13,7 +13,7 @@ Remove one or more permissions from an existing role (Only works in Enterprise E
 
 ::
 
-  mmctl permissions remove [role] [permission...] [flags]
+  mmctl permissions remove <role> <permission...> [flags]
 
 Examples
 ~~~~~~~~
@@ -21,15 +21,14 @@ Examples
 ::
 
     permissions remove system_user list_open_teams
-    permissions remove system_manager sysconsole_read_user_management_channels --ancillary
+    permissions remove system_manager sysconsole_read_user_management_channels
 
 Options
 ~~~~~~~
 
 ::
 
-      --ancillary   Optional. Remove each of the ancillary permissions that no longer used by each sysconsole_* permission being removed, if no other sysconsole_* is using it.
-  -h, --help        help for remove
+  -h, --help   help for remove
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -13,7 +13,7 @@ Assign users to a role by username (Only works in Enterprise Edition).
 
 ::
 
-  mmctl permissions role assign [role_name] [username...] [flags]
+  mmctl permissions role assign <role_name> <username...> [flags]
 
 Examples
 ~~~~~~~~
