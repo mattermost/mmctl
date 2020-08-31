@@ -70,25 +70,9 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 			EXPECT().
 			GetRoleByName(mockRole.Name).
 			Return(mockRole, &model.Response{Error: nil}).
-			Times(2)
+			Times(1)
 
-		s.Run("without the ancillary flag", func() {
-			expectedPermissions := append(mockRole.Permissions, newPermission)
-			expectedPatch := &model.RolePatch{
-				Permissions: &expectedPermissions,
-			}
-			s.client.
-				EXPECT().
-				PatchRole(mockRole.Id, expectedPatch).
-				Return(&model.Role{}, &model.Response{Error: nil}).
-				Times(1)
-			args := []string{mockRole.Name, newPermission}
-
-			err := addPermissionsCmdF(s.client, &cobra.Command{}, args)
-			s.Require().Nil(err)
-		})
-
-		s.Run("with the ancillary flag", func() {
+		s.Run("with ancillary permissions", func() {
 			expectedPermissions := append(mockRole.Permissions, []string{newPermission, "read_public_channel", "read_channel", "read_public_channel_groups", "read_private_channel_groups"}...)
 			expectedPatch := &model.RolePatch{
 				Permissions: &expectedPermissions,
@@ -100,7 +84,6 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 				Times(1)
 			args := []string{mockRole.Name, newPermission}
 			cmd := &cobra.Command{}
-			cmd.Flags().Bool("ancillary", true, "")
 			err := addPermissionsCmdF(s.client, cmd, args)
 			s.Require().Nil(err)
 		})
