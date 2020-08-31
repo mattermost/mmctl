@@ -114,7 +114,7 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	// sysadmin has every permission, so no point in showing the "Used by"
 	// column.
 	if len(consolePermissionMap) > 0 && role.Name != "system_admin" {
-		fmt.Fprintf(w, "Property\tValue\tUsed by\n")
+		fmt.Fprintf(w, "\nProperty\tValue\tUsed by\n")
 		fmt.Fprintf(w, "--------\t-----\t-------\n")
 		fmt.Fprintf(w, "Name\t%s\t\n", role.Name)
 		fmt.Fprintf(w, "DisplayName\t%s\t\n", role.DisplayName)
@@ -128,7 +128,7 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			}
 		}
 	} else {
-		fmt.Fprintf(w, "Property\tValue\n")
+		fmt.Fprintf(w, "\nProperty\tValue\n")
 		fmt.Fprintf(w, "--------\t-----\n")
 		fmt.Fprintf(w, "Name\t%s\n", role.Name)
 		fmt.Fprintf(w, "DisplayName\t%s\n", role.DisplayName)
