@@ -82,8 +82,6 @@ func init() {
 		AddPermissionsCmd,
 		RemovePermissionsCmd,
 		ShowRoleCmd,
-		AssignUsersCmd,
-		UnassignUsersCmd,
 	)
 
 	RootCmd.AddCommand(PermissionsCmd)
