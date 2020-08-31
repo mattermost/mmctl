@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 	"text/tabwriter"
@@ -108,7 +107,8 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return usedByIDs
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
+	var b strings.Builder
+	w := tabwriter.NewWriter(&b, 0, 0, 1, ' ', 0)
 
 	// Only show the 3-column view if the role has sysconsole permissions
 	// sysadmin has every permission, so no point in showing the "Used by"
@@ -144,6 +144,8 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	w.Flush()
+
+	printer.PrintT(b.String(), role)
 
 	return nil
 }
