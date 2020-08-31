@@ -337,6 +337,7 @@ type ServiceSettings struct {
 	EnableBotAccountCreation                          *bool `access:"integrations"`
 	EnableSVGs                                        *bool `access:"site"`
 	EnableLatex                                       *bool `access:"site"`
+	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool
 	LocalModeSocketLocation                           *string
 }
@@ -705,6 +706,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAPIUserDeletion = NewBool(false)
 	}
 
+	if s.EnableAPIChannelDeletion == nil {
+		s.EnableAPIChannelDeletion = NewBool(false)
+	}
+
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
@@ -857,6 +862,7 @@ type ExperimentalSettings struct {
 	LinkMetadataTimeoutMilliseconds *int64  `access:"experimental,write_restrictable"`
 	RestrictSystemAdmin             *bool   `access:"experimental,write_restrictable"`
 	UseNewSAMLLibrary               *bool   `access:"experimental"`
+	CloudUserLimit                  *int64  `access:"experimental,write_restrictable"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -878,6 +884,11 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.RestrictSystemAdmin == nil {
 		s.RestrictSystemAdmin = NewBool(false)
+	}
+
+	if s.CloudUserLimit == nil {
+		// User limit 0 is treated as no limit
+		s.CloudUserLimit = NewInt64(0)
 	}
 	if s.UseNewSAMLLibrary == nil {
 		s.UseNewSAMLLibrary = NewBool(false)
@@ -1280,7 +1291,7 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.DriverName = NewString(IMAGE_DRIVER_LOCAL)
 	}
 
-	if s.Directory == nil {
+	if s.Directory == nil || *s.Directory == "" {
 		s.Directory = NewString(FILE_SETTINGS_DEFAULT_DIRECTORY)
 	}
 
@@ -3047,6 +3058,10 @@ func (s *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *s.Directory == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.directory.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -3500,5 +3515,9 @@ func (o *Config) Sanitize() {
 
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
+	}
+
+	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && len(*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword) > 0 {
+		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 }

@@ -1,33 +1,35 @@
-.. _mmctl_channel_add:
+.. _mmctl_channel_delete:
 
-mmctl channel add
------------------
+mmctl channel delete
+--------------------
 
-Add users to channel
+Delete channels
 
 Synopsis
 ~~~~~~~~
 
 
-Add some users to channel
+Permanently delete some channels.
+Permanently deletes one or multiple channels along with all related information including posts from the database.
 
 ::
 
-  mmctl channel add [channel] [users] [flags]
+  mmctl channel delete [channels] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel add myteam:mychannel user@example.com username
+    channel delete myteam:mychannel
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for add
+      --confirm   Confirm you really want to delete the channel and a DB backup has been performed.
+  -h, --help      help for delete
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -43,7 +43,8 @@ var PERMISSION_DELETE_PUBLIC_CHANNEL *Permission
 var PERMISSION_DELETE_PRIVATE_CHANNEL *Permission
 var PERMISSION_EDIT_OTHER_USERS *Permission
 var PERMISSION_READ_CHANNEL *Permission
-var PERMISSION_READ_CHANNEL_GROUPS *Permission
+var PERMISSION_READ_PUBLIC_CHANNEL_GROUPS *Permission
+var PERMISSION_READ_PRIVATE_CHANNEL_GROUPS *Permission
 var PERMISSION_READ_PUBLIC_CHANNEL *Permission
 var PERMISSION_ADD_REACTION *Permission
 var PERMISSION_REMOVE_REACTION *Permission
@@ -145,6 +146,7 @@ var PERMISSION_SYSCONSOLE_WRITE_EXPERIMENTAL *Permission
 var PERMISSION_MANAGE_SYSTEM *Permission
 
 var AllPermissions []*Permission
+var DeprecatedPermissions []*Permission
 
 var ChannelModeratedPermissions []string
 var ChannelModeratedPermissionsMap map[string]string
@@ -321,10 +323,16 @@ func initializePermissions() {
 		"authentication.permissions.read_channel.description",
 		PermissionScopeChannel,
 	}
-	PERMISSION_READ_CHANNEL_GROUPS = &Permission{
-		"read_channel_groups",
-		"authentication.permissions.read_channel_groups.name",
-		"authentication.permissions.read_channel_groups.description",
+	PERMISSION_READ_PUBLIC_CHANNEL_GROUPS = &Permission{
+		"read_public_channel_groups",
+		"authentication.permissions.read_public_channel_groups.name",
+		"authentication.permissions.read_public_channel_groups.description",
+		PermissionScopeChannel,
+	}
+	PERMISSION_READ_PRIVATE_CHANNEL_GROUPS = &Permission{
+		"read_private_channel_groups",
+		"authentication.permissions.read_private_channel_groups.name",
+		"authentication.permissions.read_private_channel_groups.description",
 		PermissionScopeChannel,
 	}
 	PERMISSION_READ_PUBLIC_CHANNEL = &Permission{
@@ -871,7 +879,6 @@ func initializePermissions() {
 		PERMISSION_JOIN_PRIVATE_TEAMS,
 		PERMISSION_EDIT_OTHER_USERS,
 		PERMISSION_READ_OTHER_USERS_TEAMS,
-		// PERMISSION_PERMANENT_DELETE_USER (deprecated)
 		PERMISSION_GET_PUBLIC_LINK,
 		PERMISSION_MANAGE_OAUTH,
 		PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH,
@@ -904,14 +911,10 @@ func initializePermissions() {
 		PERMISSION_LIST_TEAM_CHANNELS,
 		PERMISSION_JOIN_PUBLIC_CHANNELS,
 		PERMISSION_READ_PUBLIC_CHANNEL,
-		// PERMISSION_MANAGE_WEBHOOKS (deprecated)
-		// PERMISSION_MANAGE_OTHERS_WEBHOOKS (deprecated)
 		PERMISSION_MANAGE_INCOMING_WEBHOOKS,
 		PERMISSION_MANAGE_OUTGOING_WEBHOOKS,
 		PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS,
 		PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS,
-		// PERMISSION_MANAGE_EMOJIS (deprecated)
-		// PERMISSION_MANAGE_OTHERS_EMOJIS (deprecated)
 		PERMISSION_CREATE_EMOJIS,
 		PERMISSION_DELETE_EMOJIS,
 		PERMISSION_DELETE_OTHERS_EMOJIS,
@@ -933,7 +936,8 @@ func initializePermissions() {
 		PERMISSION_DELETE_PUBLIC_CHANNEL,
 		PERMISSION_DELETE_PRIVATE_CHANNEL,
 		PERMISSION_READ_CHANNEL,
-		PERMISSION_READ_CHANNEL_GROUPS,
+		PERMISSION_READ_PUBLIC_CHANNEL_GROUPS,
+		PERMISSION_READ_PRIVATE_CHANNEL_GROUPS,
 		PERMISSION_ADD_REACTION,
 		PERMISSION_REMOVE_REACTION,
 		PERMISSION_REMOVE_OTHERS_REACTIONS,
@@ -947,6 +951,14 @@ func initializePermissions() {
 		PERMISSION_DELETE_OTHERS_POSTS,
 		PERMISSION_USE_CHANNEL_MENTIONS,
 		PERMISSION_USE_GROUP_MENTIONS,
+	}
+
+	DeprecatedPermissions = []*Permission{
+		PERMISSION_PERMANENT_DELETE_USER,
+		PERMISSION_MANAGE_WEBHOOKS,
+		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
+		PERMISSION_MANAGE_EMOJIS,
+		PERMISSION_MANAGE_OTHERS_EMOJIS,
 	}
 
 	AllPermissions = []*Permission{}

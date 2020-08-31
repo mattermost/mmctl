@@ -27,15 +27,15 @@ Options
 
 ::
 
-      --email string       Required. The email address for the new user account.
-      --firstname string   Optional. The first name for the new user account.
+      --email string       Required. The email address for the new user account
+      --firstname string   Optional. The first name for the new user account
   -h, --help               help for create
-      --lastname string    Optional. The last name for the new user account.
-      --locale string      Optional. The locale (ex: en, fr) for the new user account.
-      --nickname string    Optional. The nickname for the new user account.
-      --password string    Required. The password for the new user account.
-      --system_admin       Optional. If supplied, the new user will be a system administrator. Defaults to false.
-      --username string    Required. Username for the new user account.
+      --lastname string    Optional. The last name for the new user account
+      --locale string      Optional. The locale (ex: en, fr) for the new user account
+      --nickname string    Optional. The nickname for the new user account
+      --password string    Required. The password for the new user account
+      --system_admin       Optional. If supplied, the new user will be a system administrator. Defaults to false
+      --username string    Required. Username for the new user account
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

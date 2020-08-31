@@ -58,6 +58,7 @@ var RestoreTeamsCmd = &cobra.Command{
 	Long:    "Restores archived teams.",
 	Example: "  team restore myteam",
 	Args:    cobra.MinimumNArgs(1),
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(restoreTeamsCmdF),
 }
 
@@ -94,6 +95,7 @@ var ModifyTeamsCmd = &cobra.Command{
 	Long:    "Modify teams' privacy setting to public or private",
 	Example: "  team modify myteam --private",
 	Args:    cobra.MinimumNArgs(1),
+	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(modifyTeamsCmdF),
 }
 

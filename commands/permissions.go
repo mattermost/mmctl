@@ -5,10 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
-	"sort"
-	"strings"
-	"text/tabwriter"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 
@@ -21,7 +17,7 @@ const flagAncillaryPermissions = "ancillary"
 
 var PermissionsCmd = &cobra.Command{
 	Use:   "permissions",
-	Short: "Management of permissions and roles",
+	Short: "Management of permissions",
 }
 
 var AddPermissionsCmd = &cobra.Command{
@@ -45,12 +41,13 @@ var RemovePermissionsCmd = &cobra.Command{
 }
 
 var ShowRoleCmd = &cobra.Command{
-	Use:     "show [role_name]",
-	Short:   "Show the role information",
-	Long:    "Show all the information about a role.",
-	Example: `  permissions show system_user`,
-	Args:    cobra.ExactArgs(1),
-	RunE:    withClient(showRoleCmdF),
+	Use:        "show [role_name]",
+	Deprecated: "please use \"role show\" instead",
+	Short:      "Show the role information",
+	Long:       "Show all the information about a role.",
+	Example:    `  permissions show system_user`,
+	Args:       cobra.ExactArgs(1),
+	RunE:       withClient(showRoleCmdF),
 }
 
 var AssignUsersCmd = &cobra.Command{
@@ -162,138 +159,6 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 
 	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
 		return response.Error
-	}
-
-	return nil
-}
-
-func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
-	}
-
-	sort.Strings(role.Permissions)
-
-	consolePermissionMap := map[string]bool{}
-	for _, perm := range role.Permissions {
-		if strings.HasPrefix(perm, "sysconsole_") {
-			consolePermissionMap[perm] = true
-		}
-	}
-
-	getUsedBy := func(permissionID string) []string {
-		var usedByIDs []string
-		if !strings.HasPrefix(permissionID, "sysconsole_") {
-			usedBy := map[string]bool{} // map to make a unique set
-			for key, vals := range model.SysconsoleAncillaryPermissions {
-				for _, val := range vals {
-					if val.Id == permissionID {
-						if _, ok := consolePermissionMap[key]; ok {
-							usedBy[key] = true
-						}
-					}
-				}
-			}
-			for key := range usedBy {
-				usedByIDs = append(usedByIDs, key)
-			}
-		}
-		return usedByIDs
-	}
-
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
-
-	// Only show the 3-column view if the role has sysconsole permissions
-	// sysadmin has every permission, so no point in showing the "Used by"
-	// column.
-	if len(consolePermissionMap) > 0 && role.Name != "system_admin" {
-		fmt.Fprintf(w, "Property\tValue\tUsed by\n")
-		fmt.Fprintf(w, "--------\t-----\t-------\n")
-		fmt.Fprintf(w, "Name\t%s\t\n", role.Name)
-		fmt.Fprintf(w, "DisplayName\t%s\t\n", role.DisplayName)
-		fmt.Fprintf(w, "BuiltIn\t%v\t\n", role.BuiltIn)
-		fmt.Fprintf(w, "SchemeManaged\t%v\t\n", role.SchemeManaged)
-		for i, perm := range role.Permissions {
-			if i == 0 {
-				fmt.Fprintf(w, "Permissions\t%s\t%v\n", role.Permissions[0], strings.Join(getUsedBy(role.Permissions[0]), ", "))
-			} else {
-				fmt.Fprintf(w, "\t%s\t%v\n", perm, strings.Join(getUsedBy(perm), ", "))
-			}
-		}
-	} else {
-		fmt.Fprintf(w, "Property\tValue\n")
-		fmt.Fprintf(w, "--------\t-----\n")
-		fmt.Fprintf(w, "Name\t%s\n", role.Name)
-		fmt.Fprintf(w, "DisplayName\t%s\n", role.DisplayName)
-		fmt.Fprintf(w, "BuiltIn\t%v\n", role.BuiltIn)
-		fmt.Fprintf(w, "SchemeManaged\t%v\n", role.SchemeManaged)
-		for i, perm := range role.Permissions {
-			if i == 0 {
-				fmt.Fprintf(w, "Permissions\t%s\n", role.Permissions[0])
-			} else {
-				fmt.Fprintf(w, "\t%s\n", perm)
-			}
-		}
-	}
-
-	w.Flush()
-
-	return nil
-}
-
-func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
-	}
-
-	for _, username := range args[1:] {
-		user, response := c.GetUserByUsername(username, "")
-		if response.Error != nil {
-			return response.Error
-		}
-
-		startingRoles := strings.Fields(user.Roles)
-		for _, roleName := range startingRoles {
-			if roleName == role.Name {
-				return nil
-			}
-		}
-
-		userRoles := append(startingRoles, role.Name)
-		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
-		if response.Error != nil {
-			return response.Error
-		}
-	}
-
-	return nil
-}
-
-func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	for _, username := range args[1:] {
-		user, response := c.GetUserByUsername(username, "")
-		if response.Error != nil {
-			return response.Error
-		}
-
-		userRoles := strings.Fields(user.Roles)
-		originalCount := len(userRoles)
-
-		for i := 0; i < len(userRoles); i++ {
-			if userRoles[i] == args[0] {
-				userRoles = append(userRoles[:i], userRoles[i+1:]...)
-				i--
-			}
-		}
-
-		if originalCount > len(userRoles) {
-			_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
-			if response.Error != nil {
-				return response.Error
-			}
-		}
 	}
 
 	return nil

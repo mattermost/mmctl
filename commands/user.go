@@ -67,12 +67,35 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 	RunE:    withClient(sendPasswordResetEmailCmdF),
 }
 
-var updateUserEmailCmd = &cobra.Command{
+var UpdateUserEmailCmd = &cobra.Command{
 	Use:     "email [user] [new email]",
 	Short:   "Change email of the user",
 	Long:    "Change email of the user.",
 	Example: "  user email testuser user@example.com",
 	RunE:    withClient(updateUserEmailCmdF),
+}
+
+var ChangePasswordUserCmd = &cobra.Command{
+	Use:   "change-password <user>",
+	Short: "Changes a user's password",
+	Long:  "Changes the password of a user by a new one provided. If the user is changing their own password, the flag --current must indicate the current password. The flag --hashed can be used to indicate that the new password has been introduced already hashed",
+	Example: `  # if you have system permissions, you can change other user's passwords
+  $ mmctl user change-password john_doe --password new-password
+
+  # if you are changing your own password, you need to provide the current one
+  $ mmctl user change-password my-username --current current-password --password new-password
+
+  # you can ommit these flags to introduce them interactively
+  $ mmctl user change-password my-username
+  Are you changing your own password? (YES/NO): YES
+  Current password:
+  New password:
+
+  # if you have system permissions, you can update the password with the already hashed new
+  # password. The hashing method should be the same that the server uses internally
+  $ mmctl user change-password john_doe --password HASHED_PASSWORD --hashed`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(changePasswordUserCmdF),
 }
 
 var ResetUserMfaCmd = &cobra.Command{
@@ -130,25 +153,56 @@ var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 }
 
-func init() {
-	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
-	_ = UserCreateCmd.MarkFlagRequired("username")
-	UserCreateCmd.Flags().String("email", "", "Required. The email address for the new user account.")
-	_ = UserCreateCmd.MarkFlagRequired("email")
-	UserCreateCmd.Flags().String("password", "", "Required. The password for the new user account.")
-	_ = UserCreateCmd.MarkFlagRequired("password")
-	UserCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account.")
-	UserCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account.")
-	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account.")
-	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
-	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
+var UserConvertCmd = &cobra.Command{
+	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL])",
+	Short: "Convert users to bots, or a bot to a user",
+	Long:  "Convert users to bots, or a bot to a user",
+	Example: `  # you can convert a user to a bot providing its email, id or username
+  $ mmctl user convert user@example.com --bot
 
-	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
-	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
+  # or multiple users in one go
+  $ mmctl user convert user@example.com anotherUser --bot
+
+  # you can convert a bot to a user specifying the email and password that the user will have after conversion
+  $ mmctl user convert botusername --email new.email@email.com --password password --user`,
+	RunE: withClient(userConvertCmdF),
+	Args: cobra.MinimumNArgs(1),
+}
+
+func init() {
+	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account")
+	_ = UserCreateCmd.MarkFlagRequired("username")
+	UserCreateCmd.Flags().String("email", "", "Required. The email address for the new user account")
+	_ = UserCreateCmd.MarkFlagRequired("email")
+	UserCreateCmd.Flags().String("password", "", "Required. The password for the new user account")
+	_ = UserCreateCmd.MarkFlagRequired("password")
+	UserCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account")
+	UserCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account")
+	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
+	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
+	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+
+	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
+	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+
+	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
+	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
+	UserConvertCmd.Flags().String("password", "", "The password for converted new user account. Required when \"user\" flag is set")
+	UserConvertCmd.Flags().String("username", "", "Username for the converted user account. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().String("email", "", "The email address for the converted user account. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().String("nickname", "", "The nickname for the converted user account. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().String("firstname", "", "The first name for the converted user account. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().Bool("system_admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set")
+
+	ChangePasswordUserCmd.Flags().StringP("current", "c", "", "The current password of the user. Use only if changing your own password")
+	ChangePasswordUserCmd.Flags().StringP("password", "p", "", "The new password for the user")
+	ChangePasswordUserCmd.Flags().Bool("hashed", false, "The supplied password is already hashed")
 
 	UserCmd.AddCommand(
 		UserActivateCmd,
@@ -156,13 +210,15 @@ func init() {
 		UserCreateCmd,
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
-		updateUserEmailCmd,
+		UpdateUserEmailCmd,
+		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
 		DeleteUsersCmd,
 		DeleteAllUsersCmd,
 		SearchUserCmd,
 		ListUsersCmd,
 		VerifyUserEmailWithoutTokenCmd,
+		UserConvertCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -344,6 +400,51 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	return nil
 }
 
+func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	password, _ := cmd.Flags().GetString("password")
+	current, _ := cmd.Flags().GetString("current")
+	hashed, _ := cmd.Flags().GetBool("hashed")
+
+	if password == "" {
+		var confirm string
+		fmt.Printf("Are you changing your own password? (YES/NO): ")
+		fmt.Scanln(&confirm)
+		if confirm == "YES" {
+			fmt.Printf("Current password: ")
+			var err error
+			current, err = getPasswordFromStdin()
+			if err != nil {
+				return errors.Wrap(err, "couldn't read password")
+			}
+		}
+
+		fmt.Printf("New password: ")
+		var err error
+		password, err = getPasswordFromStdin()
+		if err != nil {
+			return errors.Wrap(err, "couldn't read password")
+		}
+	}
+
+	user := getUserFromUserArg(c, args[0])
+	if user == nil {
+		return errors.New("couldn't find user '" + args[0] + "'")
+	}
+
+	if hashed {
+		if _, resp := c.UpdateUserHashedPassword(user.Id, password); resp.Error != nil {
+			return errors.Wrap(resp.Error, "changing user hashed password failed")
+		}
+	} else {
+		if _, resp := c.UpdateUserPassword(user.Id, current, password); resp.Error != nil {
+			return errors.Wrap(resp.Error, "changing user password failed")
+		}
+	}
+
+	printer.PrintT("Password for user {{.Username}} successfully changed", user)
+	return nil
+}
+
 func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("expected at least one argument. See help text for details")
@@ -521,5 +622,100 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
 	}
+	return nil
+}
+
+func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	toBot, _ := cmd.Flags().GetBool("bot")
+	toUser, _ := cmd.Flags().GetBool("user")
+
+	if !(toUser || toBot) {
+		return fmt.Errorf("either %q flag or %q flag should be provided", "user", "bot")
+	}
+
+	if toBot {
+		return convertUserToBot(c, cmd, userArgs)
+	}
+
+	return convertBotToUser(c, cmd, userArgs)
+}
+
+func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
+	users := getUsersFromUserArgs(c, userArgs)
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+		bot, resp := c.ConvertUserToBot(user.Id)
+		if resp.Error != nil {
+			printer.PrintError(resp.Error.Error())
+			continue
+		}
+
+		printer.PrintT("{{.Username}} converted to bot.", bot)
+	}
+	return nil
+}
+
+func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	user := getUserFromUserArg(c, userArgs[0])
+	if user == nil {
+		return fmt.Errorf("could not find user by %q", userArgs[0])
+	}
+
+	password, _ := cmd.Flags().GetString("password")
+	if password == "" {
+		return errors.New("password is required")
+	}
+
+	up := &model.UserPatch{Password: &password}
+
+	username, _ := cmd.Flags().GetString("username")
+	if username == "" {
+		if user.Username == "" {
+			return errors.New("username is empty")
+		}
+	} else {
+		up.Username = model.NewString(username)
+	}
+
+	email, _ := cmd.Flags().GetString("email")
+	if email == "" {
+		if user.Email == "" {
+			return errors.New("email is empty")
+		}
+	} else {
+		up.Email = model.NewString(email)
+	}
+
+	nickname, _ := cmd.Flags().GetString("nickname")
+	if nickname != "" {
+		up.Nickname = model.NewString(nickname)
+	}
+
+	firstname, _ := cmd.Flags().GetString("firstname")
+	if firstname != "" {
+		up.FirstName = model.NewString(firstname)
+	}
+
+	lastname, _ := cmd.Flags().GetString("lastname")
+	if lastname != "" {
+		up.LastName = model.NewString(lastname)
+	}
+
+	locale, _ := cmd.Flags().GetString("locale")
+	if locale != "" {
+		up.Locale = model.NewString(locale)
+	}
+
+	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+
+	user, resp := c.ConvertBotToUser(user.Id, up, systemAdmin)
+	if resp.Error != nil {
+		return resp.Error
+	}
+
+	printer.PrintT("{{.Username}} converted to user.", user)
+
 	return nil
 }

@@ -166,6 +166,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if username != "" && password == "" {
+		fmt.Printf("Password: ")
 		stdinPassword, err := getPasswordFromStdin()
 		if err != nil {
 			return errors.WithMessage(err, "couldn't read password")
@@ -226,7 +227,6 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func getPasswordFromStdin() (string, error) {
-	fmt.Printf("Password: ")
 	// syscall.Stdin is of type int in all architectures but in
 	// windows, so we have to cast it to ensure cross compatibility
 	//nolint:unconvert
@@ -314,6 +314,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 
 	if (credentials.AuthMethod == MethodPassword || credentials.AuthMethod == MethodMFA) && password == "" {
 		if password == "" {
+			fmt.Printf("Password: ")
 			stdinPassword, err := getPasswordFromStdin()
 			if err != nil {
 				return errors.WithMessage(err, "couldn't read password")

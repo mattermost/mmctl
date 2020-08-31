@@ -3,13 +3,13 @@
 mmctl permissions
 -----------------
 
-Management of permissions and roles
+Management of permissions
 
 Synopsis
 ~~~~~~~~
 
 
-Management of permissions and roles
+Management of permissions
 
 Options
 ~~~~~~~
