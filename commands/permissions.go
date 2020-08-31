@@ -108,7 +108,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		newPermissionSet = removeFromStringSlice(newPermissionSet, permissionID)
 	}
 
-	if ok, _ := cmd.Flags().GetBool(flagAncillaryPermissions); ok {
+	if ancillary, _ := cmd.Flags().GetBool(flagAncillaryPermissions); ancillary {
 		var ancillaryPermissionsStillUsed []*model.Permission
 		for _, permissionID := range newPermissionSet {
 			if ancillaryPermissions, ok := model.SysconsoleAncillaryPermissions[permissionID]; ok {
