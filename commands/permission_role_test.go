@@ -5,9 +5,7 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/mattermost/mmctl/printer"
@@ -376,6 +374,8 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 
 func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 	s.Run("Show custom role", func() {
+		printer.Clean()
+		printer.SetSingle(true)
 		commandArg := "example-role-name"
 		mockRole := &model.Role{
 			Id:   "example-mock-id",
@@ -388,21 +388,22 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 			Return(mockRole, &model.Response{Error: nil}).
 			Times(1)
 
-		output := runCapturingStdout(func() {
-			err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
-			s.Require().Nil(err)
-		})
-
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Equal(`Property      Value
 --------      -----
 Name          example-role-name
 DisplayName   
 BuiltIn       false
 SchemeManaged false
-`, output)
+`, printer.GetLines()[0])
 	})
 
 	s.Run("Show a role with a sysconsole_* permission", func() {
+		printer.Clean()
+
 		commandArg := "example-role-name"
 		mockRole := &model.Role{
 			Id:          "example-mock-id",
@@ -416,11 +417,10 @@ SchemeManaged false
 			Return(mockRole, &model.Response{Error: nil}).
 			Times(1)
 
-		output := runCapturingStdout(func() {
-			err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
-			s.Require().Nil(err)
-		})
-
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Equal(`Property      Value                 Used by
 --------      -----                 -------
 Name          example-role-name     
@@ -429,7 +429,7 @@ BuiltIn       false
 SchemeManaged false                 
 Permissions   edit_brand            sysconsole_write_site
               sysconsole_write_site 
-`, output)
+`, printer.GetLines()[0])
 	})
 
 	s.Run("Show custom role with invalid name", func() {
@@ -452,17 +452,4 @@ Permissions   edit_brand            sysconsole_write_site
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
-}
-
-func runCapturingStdout(f func()) string {
-	rescueStdout := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	f()
-
-	w.Close()
-	out, _ := ioutil.ReadAll(r)
-	os.Stdout = rescueStdout
-	return string(out)
 }
