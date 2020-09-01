@@ -280,5 +280,3 @@ workflows:
           filters:
             tags:
               only: /^b.*/
-            branches:
-              only: publish-master
