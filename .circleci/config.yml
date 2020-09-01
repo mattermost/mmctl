@@ -270,7 +270,7 @@ workflows:
             - build
           filters:
             tags:
-              only: /^v.*\d
+              only: /^v.*\d/
             branches:
               ignore: /.*/
       - publish-github-master:
@@ -279,6 +279,6 @@ workflows:
             - build
           filters:
             tags:
-              only: /^v.*\D{3,}
+              only: /^v.*\D{3,}/
             branches:
               ignore: /.*/
