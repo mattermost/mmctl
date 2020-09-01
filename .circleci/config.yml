@@ -168,7 +168,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - run: 
+      - run:
           name: Generating Coverage Results
           command: make coverage
       - *save_cache
@@ -202,6 +202,17 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
+
+  publish-github-master:
+    docker:
+      - image: cibuilds/github:0.12
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Publish Draft Pre-Release on GitHub"
+          command: |
+            ghr -draft -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
 
 workflows:
   version: 2
@@ -261,4 +272,13 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              ignore: /.*/
+              ignore: /master/
+      - publish-github-master:
+          context: matterbuild-github-token
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: /master/
