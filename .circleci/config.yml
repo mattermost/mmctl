@@ -279,6 +279,6 @@ workflows:
             - build
           filters:
             tags:
-              only: /^b.*/
+              only: /^v.*/-rc
             branches:
-              only: "publish-master"
+              only: /.*/
