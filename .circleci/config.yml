@@ -272,7 +272,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              ignore: publish-master
+              ignore: /.*/
       - publish-github-master:
           context: matterbuild-github-token
           requires:
@@ -280,3 +280,5 @@ workflows:
           filters:
             tags:
               only: /^b.*/
+            branches:
+              only: "publish-master"
