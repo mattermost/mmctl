@@ -375,7 +375,9 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 	s.Run("Show custom role", func() {
 		printer.Clean()
-		printer.SetSingle(true)
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
 		commandArg := "example-role-name"
 		mockRole := &model.Role{
 			Id:   "example-mock-id",
@@ -392,7 +394,8 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Equal(`Property      Value
+		s.Equal(`
+Property      Value
 --------      -----
 Name          example-role-name
 DisplayName   
@@ -403,6 +406,8 @@ SchemeManaged false
 
 	s.Run("Show a role with a sysconsole_* permission", func() {
 		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
 
 		commandArg := "example-role-name"
 		mockRole := &model.Role{
@@ -421,7 +426,8 @@ SchemeManaged false
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Equal(`Property      Value                 Used by
+		s.Equal(`
+Property      Value                 Used by
 --------      -----                 -------
 Name          example-role-name     
 DisplayName                         
