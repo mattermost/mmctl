@@ -212,7 +212,7 @@ jobs:
       - run:
           name: "Publish Draft Pre-Release on GitHub"
           command: |
-            ghr -draft -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
+            ghr -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
 
 workflows:
   version: 2
