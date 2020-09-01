@@ -279,6 +279,6 @@ workflows:
             - build
           filters:
             tags:
-              only: /^v.*/
+              only: /^b.*/
             branches:
               only: publish-master
