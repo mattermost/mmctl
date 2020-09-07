@@ -110,7 +110,7 @@ func NewAPIv4Client(instanceURL string, allowInsecure bool) *model.Client4 {
 
 	if !allowInsecure {
 		transport := &http.Transport{
-			TLSClientConfig: &tls.Config{
+			TLSClientConfig: &tls.Config{ // nolint:gosec
 				VerifyPeerCertificate: VerifyCertificates,
 			},
 		}

@@ -909,6 +909,36 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1)
 }
 
+// MigrateAuthToLdap mocks base method
+func (m *MockClient) MigrateAuthToLdap(arg0, arg1 string, arg2 bool) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MigrateAuthToLdap", arg0, arg1, arg2)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// MigrateAuthToLdap indicates an expected call of MigrateAuthToLdap
+func (mr *MockClientMockRecorder) MigrateAuthToLdap(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateAuthToLdap", reflect.TypeOf((*MockClient)(nil).MigrateAuthToLdap), arg0, arg1, arg2)
+}
+
+// MigrateAuthToSaml mocks base method
+func (m *MockClient) MigrateAuthToSaml(arg0 string, arg1 map[string]string, arg2 bool) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MigrateAuthToSaml", arg0, arg1, arg2)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// MigrateAuthToSaml indicates an expected call of MigrateAuthToSaml
+func (mr *MockClientMockRecorder) MigrateAuthToSaml(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MigrateAuthToSaml", reflect.TypeOf((*MockClient)(nil).MigrateAuthToSaml), arg0, arg1, arg2)
+}
+
 // MigrateIdLdap mocks base method
 func (m *MockClient) MigrateIdLdap(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
