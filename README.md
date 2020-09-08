@@ -54,10 +54,9 @@ make test
 
 To run the end to end test suite, you need to have the Mattermost server project downloaded and configured in your system. Check the [Developer Setup](https://developers.mattermost.com/contribute/server/developer-setup/) guide on how to configure a local server instance. The tests will search for a `mattermost-server` folder in the same directory where the `mmctl` is, but this can be changed through configuration if you have the project in a different path. Take a look at [the `config.mk` file](./config.mk) in this repository for instructions on how to make this change.
 
-With the `mattermost-server` folder present, the only thing that needs to be done before running the tests themselves is to start the Mattermost docker development environment. This only needs to be done once, and you just need to run:
+With the `mattermost-server` folder present, the only thing that needs to be done before running the tests themselves is to start the Mattermost docker development environment. The environment only needs to be started once, and then the tests can run as many times as needed. To start the docker environment, change to the `mattermost-server` project directory and run:
 
 ```sh
-cd /path/to/mattermost-server
 make start-docker
 ```
 
