@@ -7,7 +7,7 @@ executors:
   default:
     working_directory: ~/go/src/github.com/mattermost/mmctl
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14.8
 
 aliases:
 - &restore_cache
@@ -25,7 +25,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 1.23.0
+        default: 1.25.1
       gobin:
         type: string
         default: /go/bin
