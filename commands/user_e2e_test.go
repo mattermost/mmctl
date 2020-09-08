@@ -29,7 +29,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Activate user wis.thout permissions", func() {
+	s.Run("Activate user without permissions", func() {
 		printer.Clean()
 
 		err := userActivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
