@@ -7,7 +7,7 @@ executors:
   default:
     working_directory: ~/go/src/github.com/mattermost/mmctl
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14.8
 
 aliases:
 - &restore_cache
@@ -25,7 +25,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 1.23.0
+        default: 1.25.1
       gobin:
         type: string
         default: /go/bin
@@ -168,7 +168,7 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - run: 
+      - run:
           name: Generating Coverage Results
           command: make coverage
       - *save_cache
@@ -202,6 +202,17 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
+
+  publish-github-master:
+    docker:
+      - image: cibuilds/github:0.12
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: "Publish Draft Pre-Release on GitHub"
+          command: |
+            ghr -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
 
 workflows:
   version: 2
@@ -259,6 +270,15 @@ workflows:
             - build
           filters:
             tags:
-              only: /^v.*/
+              only: /^v.*\d/
+            branches:
+              ignore: /.*/
+      - publish-github-master:
+          context: matterbuild-github-token
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*\D{3,}/
             branches:
               ignore: /.*/
