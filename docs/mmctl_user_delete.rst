@@ -28,7 +28,7 @@ Options
 
 ::
 
-      --confirm   Confirm you really want to delete the user and a DB backup has been performed.
+      --confirm   Confirm you really want to delete the user and a DB backup has been performed
   -h, --help      help for delete
 
 Options inherited from parent commands

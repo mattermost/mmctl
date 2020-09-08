@@ -1,34 +1,33 @@
-.. _mmctl_user_deleteall:
+.. _mmctl_permissions_role_show:
 
-mmctl user deleteall
---------------------
+mmctl permissions role show
+---------------------------
 
-Delete all users and all posts. Local command only.
+Show the role information
 
 Synopsis
 ~~~~~~~~
 
 
-Permanently delete all users and all related information including posts. This command can only be run in local mode.
+Show all the information about a role.
 
 ::
 
-  mmctl user deleteall [flags]
+  mmctl permissions role show [role_name] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user deleteall
+    permissions show system_user
 
 Options
 ~~~~~~~
 
 ::
 
-      --confirm   Confirm you really want to delete the user and a DB backup has been performed
-  -h, --help      help for deleteall
+  -h, --help   help for show
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,5 +42,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl permissions role <mmctl_permissions_role.rst>`_ 	 - Management of roles
 

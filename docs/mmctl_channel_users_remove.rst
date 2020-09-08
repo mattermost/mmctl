@@ -1,33 +1,35 @@
-.. _mmctl_permissions_show:
+.. _mmctl_channel_users_remove:
 
-mmctl permissions show
-----------------------
+mmctl channel users remove
+--------------------------
 
-Show the role information
+Remove users from channel
 
 Synopsis
 ~~~~~~~~
 
 
-Show all the information about a role.
+Remove some users from channel
 
 ::
 
-  mmctl permissions show [role_name] [flags]
+  mmctl channel users remove [channel] [users] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    permissions show system_user
+    channel users remove myteam:mychannel user@example.com username
+    channel users remove myteam:mychannel --all-users
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for show
+      --all-users   Remove all users from the indicated channel.
+  -h, --help        help for remove
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions and roles
+* `mmctl channel users <mmctl_channel_users.rst>`_ 	 - Management of channel users
 

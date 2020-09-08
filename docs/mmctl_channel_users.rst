@@ -1,34 +1,22 @@
-.. _mmctl_user_deleteall:
+.. _mmctl_channel_users:
 
-mmctl user deleteall
---------------------
+mmctl channel users
+-------------------
 
-Delete all users and all posts. Local command only.
+Management of channel users
 
 Synopsis
 ~~~~~~~~
 
 
-Permanently delete all users and all related information including posts. This command can only be run in local mode.
-
-::
-
-  mmctl user deleteall [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    user deleteall
+Management of channel users
 
 Options
 ~~~~~~~
 
 ::
 
-      --confirm   Confirm you really want to delete the user and a DB backup has been performed
-  -h, --help      help for deleteall
+  -h, --help   help for users
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -43,5 +31,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl channel users add <mmctl_channel_users_add.rst>`_ 	 - Add users to channel
+* `mmctl channel users remove <mmctl_channel_users_remove.rst>`_ 	 - Remove users from channel
 
