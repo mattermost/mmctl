@@ -11,6 +11,6 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func TestMmctlSuite(t *testing.T) {
+func TestMmctlE2ESuite(t *testing.T) {
 	suite.Run(t, new(MmctlE2ETestSuite))
 }
