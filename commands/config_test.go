@@ -49,6 +49,25 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Get an int64 config value for a given key", func() {
+		printer.Clean()
+		args := []string{"FileSettings.MaxFileSize"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(outputConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(*(printer.GetLines()[0].(*int64)), int64(52428800))
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("Get a boolean config value for a given key", func() {
 		printer.Clean()
 		args := []string{"SqlSettings.Trace"}
@@ -272,6 +291,34 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		inputConfig.SetDefaults()
 		changedValue := 20
 		inputConfig.SqlSettings.MaxIdleConns = &changedValue
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(inputConfig).
+			Return(inputConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err := configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Set an int64 config value for a given key", func() {
+		printer.Clean()
+		args := []string{"FileSettings.MaxFileSize", "52428800"}
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		inputConfig := &model.Config{}
+		inputConfig.SetDefaults()
+		changedValue := int64(52428800)
+		inputConfig.FileSettings.MaxFileSize = &changedValue
 
 		s.client.
 			EXPECT().

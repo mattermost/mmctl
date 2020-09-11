@@ -120,23 +120,6 @@ jobs:
               docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
               docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
-          name: Start Mattermost
-          command: |
-            ulimit -n 8096
-            cd ~/go/src/github.com/mattermost/mattermost-server
-
-            docker run --net circleci_mm-test \
-              --name mattermost_circleci \
-              --env MM_CONFIG='mysql://mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8' \
-              --env MM_TEAMSETTINGS_MAXUSERSPERTEAM=500 \
-              -d \
-              mattermost/mattermost-enterprise-edition:master
-
-            sleep 5
-            docker logs mattermost_circleci
-
-            docker exec mattermost_circleci ./bin/mattermost sampledata -w 4 -u 60
-      - run:
           name: Run Tests
           command: |
             ulimit -n 8096
@@ -156,7 +139,6 @@ jobs:
               --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
               --env MM_EMAILSETTINGS_SMTPPORT=10025 \
               --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
-              --env MMCTL_INSTANCE_URL=http://mattermost_circleci:8065 \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
