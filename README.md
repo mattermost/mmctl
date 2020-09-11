@@ -42,19 +42,25 @@ make build
 
 `mmctl` has two types of tests: unit tests and end to end tests.
 
+### Unit tests
+
 To run the unit tests, you just need to execute:
 
 ```sh
 make test
 ```
 
-To run the end to end test suite, you need to have a Mattermost server instance running. Check the [Developer Setup](https://developers.mattermost.com/contribute/server/developer-setup/) guide on how to configure a local test server instance.
+### End to end tests
 
-Once the development server is set up, from the `mattermost-server` directory:
- - Start it with `make run`. To confirm that the instance is running correctly, you can access the web interface going to http://localhost:8065
- - Run `make test-data` to preload your server instance with initial seed data. Generated data such as users are typically used for logging, etc.
+To run the end to end test suite, you need to have the Mattermost server project downloaded and configured in your system. Check the [Developer Setup](https://developers.mattermost.com/contribute/server/developer-setup/) guide on how to configure a local server instance. The tests will search for a `mattermost-server` folder in the same directory where the `mmctl` is, but this can be changed through configuration if you have the project in a different path. Take a look at [the `config.mk` file](./config.mk) in this repository for instructions on how to make this change.
 
-Change your directory to `mmctl` and run the end to end test suite with:
+With the `mattermost-server` folder present, the only thing that needs to be done before running the tests themselves is to start the Mattermost docker development environment. The environment only needs to be started once, and then the tests can run as many times as needed. To start the docker environment, change to the `mattermost-server` project directory and run:
+
+```sh
+make start-docker
+```
+
+Change your directory back to `mmctl` and run the end to end test suite with:
 
 ```sh
 make test-e2e
