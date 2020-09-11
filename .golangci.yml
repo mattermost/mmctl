@@ -40,7 +40,6 @@ linters:
     - errcheck
     - dogsled
     - dupl
-    - goconst
     - gocritic
     - gocyclo
     - goimports

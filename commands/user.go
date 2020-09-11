@@ -828,14 +828,14 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 
 		file, err := ioutil.ReadFile(matchesFile)
 		if err != nil {
-			return errors.New("invalid users file")
+			return fmt.Errorf("could not read file: %w", err)
 		}
 		if err := json.Unmarshal(file, &matches); err != nil {
-			return errors.New("invalid users file")
+			return fmt.Errorf("invalid json: %w", err)
 		}
 	}
 
-	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap" && fromAuth != "google" && fromAuth != "office365") { // nolint:goconst
+	if len(fromAuth) == 0 || (fromAuth != "email" && fromAuth != "gitlab" && fromAuth != "ldap" && fromAuth != "google" && fromAuth != "office365") {
 		return errors.New("invalid from_auth argument")
 	}
 
@@ -856,7 +856,7 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	}
 
 	matchField := userArgs[2]
-	if len(matchField) == 0 || (matchField != "email" && matchField != "username") { // nolint:goconst
+	if len(matchField) == 0 || (matchField != "email" && matchField != "username") {
 		return errors.New("invalid match_field argument")
 	}
 
