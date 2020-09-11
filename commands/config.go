@@ -156,10 +156,11 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		}
 		val.Set(v)
 		return nil
-	case reflect.Int:
-		v, err := strconv.ParseInt(newValue.(string), 10, 64)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		bits := val.Type().Bits()
+		v, err := strconv.ParseInt(newValue.(string), 10, bits)
 		if err != nil {
-			return errors.New("target value is of type Int and provided value is not")
+			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
 		}
 		val.SetInt(v)
 		return nil
