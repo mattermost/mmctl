@@ -50,6 +50,45 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Deactivate user", func(c client.Client) {
+		printer.Clean()
+
+		_, appErr := s.th.App.UpdateActive(user, true)
+		s.Require().Nil(appErr)
+
+		err := userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Deactivate user without permissions", func() {
+		printer.Clean()
+
+		err := userDeactivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Email)
+	})
+
+	s.RunForAllClients("Deactivate nonexistent user", func(c client.Client) {
+		printer.Clean()
+
+		err := userDeactivateCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	s.SetupTestHelper().InitBasic()
 
