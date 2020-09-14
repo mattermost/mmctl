@@ -24,26 +24,37 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Nil(appErr)
 
 		err := userActivateCmdF(c, &cobra.Command{}, []string{user.Email})
-		s.Require().NoError(err)
+		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+
+		ruser, err := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err)
+		s.Require().Zero(ruser.DeleteAt)
 	})
 
 	s.Run("Activate user without permissions", func() {
 		printer.Clean()
 
+		_, appErr := s.th.App.UpdateActive(user, false)
+		s.Require().Nil(appErr)
+
 		err := userActivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().NoError(err)
+		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Email)
+
+		ruser, err := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err)
+		s.Require().NotZero(ruser.DeleteAt)
 	})
 
 	s.RunForAllClients("Activate nonexistent user", func(c client.Client) {
 		printer.Clean()
 
 		err := userActivateCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().NoError(err)
+		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
