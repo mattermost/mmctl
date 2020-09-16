@@ -443,10 +443,10 @@ github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible/go.
 github.com/mattermost/gosaml2 v0.3.2/go.mod h1:Z429EIOiEi9kbq6yHoApfzlcXpa6dzRDc6pO+Vy2Ksk=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d h1:2DV7VIlEv6J5R5o6tUcb3ZMKJYeeZuWZL7Rv1m23TgQ=
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
-github.com/mattermost/logr v1.0.9 h1:jw6f6CjPC2YfPqzpGVM/vCGuqKLJdVS400ZRTFtEQwQ=
-github.com/mattermost/logr v1.0.9/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
-github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200903174107-2baf95df1ede h1:exQL8Ul2LEZDyK2fZ61YbdeA/8bk78oSrUNdZe+x69o=
-github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200903174107-2baf95df1ede/go.mod h1:MhBkipgRBFLMYZyP1qYX1xf4j7S4cN1EdVBv2wQlFbw=
+github.com/mattermost/logr v1.0.13 h1:6F/fM3csvH6Oy5sUpJuW7YyZSzZZAhJm5VcgKMxA2P8=
+github.com/mattermost/logr v1.0.13/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
+github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200916134341-0092b8bc6f5d h1:y7m1SySgXr3s72ToPiTzyO2XF71DY+vh5MgCKFPgeoM=
+github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200916134341-0092b8bc6f5d/go.mod h1:2oP/GpC8JsHIS0bsj2eZV/ihGjAbliW05V3ehFt9GKc=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/viper v1.0.4 h1:cMYOz4PhguscGSPxrSokUtib5HrG4gCpiUh27wyA3d0=

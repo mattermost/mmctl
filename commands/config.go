@@ -5,7 +5,6 @@ package commands
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -15,10 +14,12 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/utils"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -92,8 +93,30 @@ var ConfigMigrateCmd = &cobra.Command{
 	RunE:    withClient(configMigrateCmdF),
 }
 
+var ConfigSubpathCmd = &cobra.Command{
+	Use:   "subpath",
+	Short: "Update client asset loading to use the configured subpath",
+	Long:  "Update the hard-coded production client asset paths to take into account Mattermost running on a subpath. This command needs access to the Mattermost assets directory to be able to rewrite the paths.",
+	Example: `  # you can rewrite the assets to use a subpath
+  config subpath --assets-dir /opt/mattermost/client --path /mattermost
+
+  # the subpath can have multiple steps
+  config subpath --assets-dir /opt/mattermost/client --path /my/custom/subpath
+
+  # or you can fallback to the root path passing /
+  config subpath --assets-dir /opt/mattermost/client --path /`,
+	Args: cobra.NoArgs,
+	RunE: configSubpathCmdF,
+}
+
 func init() {
-	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
+	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
+
+	ConfigSubpathCmd.Flags().StringP("assets-dir", "a", "", "directory of the Mattermost assets in the local filesystem")
+	_ = ConfigSubpathCmd.MarkFlagRequired("assets-dir")
+	ConfigSubpathCmd.Flags().StringP("path", "p", "", "path to update the assets with")
+	_ = ConfigSubpathCmd.MarkFlagRequired("path")
+
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
 		ConfigSetCmd,
@@ -102,6 +125,7 @@ func init() {
 		ConfigShowCmd,
 		ConfigReloadCmd,
 		ConfigMigrateCmd,
+		ConfigSubpathCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -443,6 +467,19 @@ func configMigrateCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	if response.Error != nil {
 		return response.Error
 	}
+
+	return nil
+}
+
+func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
+	assetsDir, _ := cmd.Flags().GetString("assets-dir")
+	path, _ := cmd.Flags().GetString("path")
+
+	if err := utils.UpdateAssetsSubpathInDir(path, assetsDir); err != nil {
+		return errors.Wrap(err, "failed to update assets subpath")
+	}
+
+	printer.Print("Config subpath successfully modified")
 
 	return nil
 }

@@ -39,4 +39,5 @@ SEE ALSO
 * `mmctl config reset <mmctl_config_reset.rst>`_ 	 - Reset config setting
 * `mmctl config set <mmctl_config_set.rst>`_ 	 - Set config setting
 * `mmctl config show <mmctl_config_show.rst>`_ 	 - Writes the server configuration to STDOUT
+* `mmctl config subpath <mmctl_config_subpath.rst>`_ 	 - Update client asset loading to use the configured subpath
 
