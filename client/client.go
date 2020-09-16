@@ -86,6 +86,7 @@ type Client interface {
 	UpdateConfig(*model.Config) (*model.Config, *model.Response)
 	PatchConfig(*model.Config) (*model.Config, *model.Response)
 	ReloadConfig() (bool, *model.Response)
+	MigrateConfig(from, to string) (bool, *model.Response)
 	SyncLdap() (bool, *model.Response)
 	MigrateIdLdap(toAttribute string) (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
@@ -108,4 +109,6 @@ type Client interface {
 	InstallPluginFromUrl(string, bool) (*model.Manifest, *model.Response)
 	InstallMarketplacePlugin(*model.InstallMarketplacePluginRequest) (*model.Manifest, *model.Response)
 	GetMarketplacePlugins(*model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.Response)
+	MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (bool, *model.Response)
+	MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (bool, *model.Response)
 }

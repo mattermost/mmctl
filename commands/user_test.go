@@ -4,7 +4,10 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
 
@@ -2279,6 +2282,179 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 			Times(1)
 
 		err := userConvertCmdF(s.client, cmd, []string{userNameArg})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
+	s.Run("Successfully convert auth to LDAP", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "ldap"
+		matchField := "username"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", false, "")
+
+		s.client.
+			EXPECT().
+			MigrateAuthToLdap(fromAuth, matchField, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Successfully convert auth to SAML", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "saml"
+
+		file, err := ioutil.TempFile("", "users.json")
+		s.Require().NoError(err)
+		defer os.Remove(file.Name())
+		usersFile := file.Name()
+
+		userData := map[string]string{
+			"usr1@email.com": "usr.one",
+			"usr2@email.com": "usr.two",
+		}
+		b, err := json.MarshalIndent(userData, "", "  ")
+		s.Require().NoError(err)
+
+		_, err = file.Write(b)
+		s.Require().NoError(err)
+
+		err = file.Sync()
+		s.Require().NoError(err)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", false, "")
+
+		s.client.
+			EXPECT().
+			MigrateAuthToSaml(fromAuth, userData, false).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err = migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, usersFile})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Successfully convert auth to SAML (auto)", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "saml"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", true, "")
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			MigrateAuthToSaml(fromAuth, map[string]string{}, true).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Invalid from auth type", func() {
+		printer.Clean()
+
+		fromAuth := "onelogin"
+		toAuth := "ldap"
+		matchField := "username"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", true, "")
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Invalid matchfiled type for migrating auth to LDAP", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "ldap"
+		matchField := "groups"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", false, "")
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Fail on convert auth to SAML due to invalid file", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "saml"
+		usersFile := "./nofile.json"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", false, "")
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, usersFile})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Failed to convert auth to LDAP from server", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "ldap"
+		matchField := "username"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", false, "")
+
+		s.client.
+			EXPECT().
+			MigrateAuthToLdap(fromAuth, matchField, false).
+			Return(false, &model.Response{Error: &model.AppError{Id: "some-error"}}).
+			Times(1)
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth, matchField})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Failed to convert auth to SAML (auto) from server", func() {
+		printer.Clean()
+
+		fromAuth := "email"
+		toAuth := "saml"
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", true, "")
+		cmd.Flags().Bool("confirm", true, "")
+
+		s.client.
+			EXPECT().
+			MigrateAuthToSaml(fromAuth, map[string]string{}, true).
+			Return(false, &model.Response{Error: &model.AppError{Id: "some-error"}}).
+			Times(1)
+
+		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 	})

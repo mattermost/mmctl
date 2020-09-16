@@ -83,6 +83,15 @@ var ConfigReloadCmd = &cobra.Command{
 	RunE:    withClient(configReloadCmdF),
 }
 
+var ConfigMigrateCmd = &cobra.Command{
+	Use:     "migrate [from_config] [to_config]",
+	Short:   "Migrate existing config between backends",
+	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
+	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Args:    cobra.ExactArgs(2),
+	RunE:    withClient(configMigrateCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 	ConfigCmd.AddCommand(
@@ -92,6 +101,7 @@ func init() {
 		ConfigResetCmd,
 		ConfigShowCmd,
 		ConfigReloadCmd,
+		ConfigMigrateCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -421,6 +431,15 @@ func parseConfigPath(configPath string) []string {
 
 func configReloadCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	_, response := c.ReloadConfig()
+	if response.Error != nil {
+		return response.Error
+	}
+
+	return nil
+}
+
+func configMigrateCmdF(c client.Client, _ *cobra.Command, args []string) error {
+	_, response := c.MigrateConfig(args[0], args[1])
 	if response.Error != nil {
 		return response.Error
 	}
