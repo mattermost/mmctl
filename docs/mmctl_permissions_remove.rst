@@ -13,7 +13,7 @@ Remove one or more permissions from an existing role (Only works in Enterprise E
 
 ::
 
-  mmctl permissions remove [role] [permission...] [flags]
+  mmctl permissions remove <role> <permission...> [flags]
 
 Examples
 ~~~~~~~~
@@ -21,6 +21,7 @@ Examples
 ::
 
     permissions remove system_user list_open_teams
+    permissions remove system_manager sysconsole_read_user_management_channels
 
 Options
 ~~~~~~~

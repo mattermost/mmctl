@@ -13,7 +13,7 @@ Show all the information about a role.
 
 ::
 
-  mmctl permissions role show [role_name] [flags]
+  mmctl permissions role show <role_name> [flags]
 
 Examples
 ~~~~~~~~

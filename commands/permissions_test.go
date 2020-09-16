@@ -6,9 +6,10 @@ package commands
 import (
 	"net/http"
 
+	gomock "github.com/golang/mock/gomock"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 
-	"github.com/golang/mock/gomock"
 	"github.com/spf13/cobra"
 )
 
@@ -55,6 +56,37 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		args := []string{"mockRole", "newPermission"}
 		err := addPermissionsCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Equal(expectedError, err)
+	})
+
+	s.Run("Adding a new sysconsole_* permission to a role", func() {
+		mockRole := &model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{},
+		}
+		newPermission := "sysconsole_read_user_management_channels"
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		s.Run("with ancillary permissions", func() {
+			expectedPermissions := append(mockRole.Permissions, []string{newPermission, "read_public_channel", "read_channel", "read_public_channel_groups", "read_private_channel_groups"}...)
+			expectedPatch := &model.RolePatch{
+				Permissions: &expectedPermissions,
+			}
+			s.client.
+				EXPECT().
+				PatchRole(mockRole.Id, expectedPatch).
+				Return(&model.Role{}, &model.Response{Error: nil}).
+				Times(1)
+			args := []string{mockRole.Name, newPermission}
+			cmd := &cobra.Command{}
+			err := addPermissionsCmdF(s.client, cmd, args)
+			s.Require().Nil(err)
+		})
 	})
 }
 
