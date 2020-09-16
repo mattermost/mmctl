@@ -98,13 +98,13 @@ var ConfigSubpathCmd = &cobra.Command{
 	Short: "Update client asset loading to use the configured subpath",
 	Long:  "Update the hard-coded production client asset paths to take into account Mattermost running on a subpath. This command needs access to the Mattermost assets directory to be able to rewrite the paths.",
 	Example: `  # you can rewrite the assets to use a subpath
-  config subpath --assets-dir /opt/mattermost/client --path /mattermost
+  mmctl config subpath --assets-dir /opt/mattermost/client --path /mattermost
 
   # the subpath can have multiple steps
-  config subpath --assets-dir /opt/mattermost/client --path /my/custom/subpath
+  mmctl config subpath --assets-dir /opt/mattermost/client --path /my/custom/subpath
 
   # or you can fallback to the root path passing /
-  config subpath --assets-dir /opt/mattermost/client --path /`,
+  mmctl config subpath --assets-dir /opt/mattermost/client --path /`,
 	Args: cobra.NoArgs,
 	RunE: configSubpathCmdF,
 }
