@@ -21,13 +21,13 @@ Examples
 ::
 
     # you can rewrite the assets to use a subpath
-    config subpath --assets-dir /opt/mattermost/client --path /mattermost
+    mmctl config subpath --assets-dir /opt/mattermost/client --path /mattermost
 
     # the subpath can have multiple steps
-    config subpath --assets-dir /opt/mattermost/client --path /my/custom/subpath
+    mmctl config subpath --assets-dir /opt/mattermost/client --path /my/custom/subpath
 
     # or you can fallback to the root path passing /
-    config subpath --assets-dir /opt/mattermost/client --path /
+    mmctl config subpath --assets-dir /opt/mattermost/client --path /
 
 Options
 ~~~~~~~
