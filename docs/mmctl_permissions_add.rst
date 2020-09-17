@@ -13,7 +13,7 @@ Add one or more permissions to an existing role (Only works in Enterprise Editio
 
 ::
 
-  mmctl permissions add [role] [permission...] [flags]
+  mmctl permissions add <role> <permission...> [flags]
 
 Examples
 ~~~~~~~~
@@ -21,6 +21,7 @@ Examples
 ::
 
     permissions add system_user list_open_teams
+    permissions add system_manager sysconsole_read_user_management_channels
 
 Options
 ~~~~~~~

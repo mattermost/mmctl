@@ -15,51 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
-	s.Run("Show custom role", func() {
-		printer.Clean()
-
-		commandArg := "example-role-name"
-		mockRole := &model.Role{
-			Id:   "example-mock-id",
-			Name: commandArg,
-		}
-
-		s.client.
-			EXPECT().
-			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
-			Times(1)
-
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Equal(mockRole, printer.GetLines()[0])
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-
-	s.Run("Show custom role with invalid name", func() {
-		printer.Clean()
-
-		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
-
-		commandArgBogus := "bogus-role-name"
-
-		// showRoleCmdF will look up role by name
-		s.client.
-			EXPECT().
-			GetRoleByName(commandArgBogus).
-			Return(nil, &model.Response{Error: expectedError}).
-			Times(1)
-
-		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
-		s.Require().NotNil(err)
-		s.Require().Equal(expectedError, err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
-	})
-}
-
 func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 	s.Run("Assigning a user to a role", func() {
 		mockRole := &model.Role{
@@ -414,5 +369,93 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		args := []string{"mock-role-id", requestedUser}
 		err := unassignUsersCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
+	s.Run("Show custom role", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		commandArg := "example-role-name"
+		mockRole := &model.Role{
+			Id:   "example-mock-id",
+			Name: commandArg,
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Equal(`
+Property      Value
+--------      -----
+Name          example-role-name
+DisplayName   
+BuiltIn       false
+SchemeManaged false
+`, printer.GetLines()[0])
+	})
+
+	s.Run("Show a role with a sysconsole_* permission", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		commandArg := "example-role-name"
+		mockRole := &model.Role{
+			Id:          "example-mock-id",
+			Name:        commandArg,
+			Permissions: []string{"sysconsole_write_site", "edit_brand"},
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Equal(`
+Property      Value                 Used by
+--------      -----                 -------
+Name          example-role-name     
+DisplayName                         
+BuiltIn       false                 
+SchemeManaged false                 
+Permissions   edit_brand            sysconsole_write_site
+              sysconsole_write_site 
+`, printer.GetLines()[0])
+	})
+
+	s.Run("Show custom role with invalid name", func() {
+		printer.Clean()
+
+		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+
+		commandArgBogus := "bogus-role-name"
+
+		// showRoleCmdF will look up role by name
+		s.client.
+			EXPECT().
+			GetRoleByName(commandArgBogus).
+			Return(nil, &model.Response{Error: expectedError}).
+			Times(1)
+
+		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError, err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }

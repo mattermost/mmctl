@@ -13,7 +13,7 @@ Unassign users from a role by username (Only works in Enterprise Edition).
 
 ::
 
-  mmctl permissions role unassign [role_name] [username...] [flags]
+  mmctl permissions role unassign <role_name> <username...> [flags]
 
 Examples
 ~~~~~~~~

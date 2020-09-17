@@ -4,11 +4,15 @@
 package commands
 
 import (
+	"fmt"
+	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +22,7 @@ var RoleCmd = &cobra.Command{
 }
 
 var ShowCmd = &cobra.Command{
-	Use:     "show [role_name]",
+	Use:     "show <role_name>",
 	Short:   "Show the role information",
 	Long:    "Show all the information about a role.",
 	Example: `  permissions show system_user`,
@@ -27,7 +31,7 @@ var ShowCmd = &cobra.Command{
 }
 
 var AssignCmd = &cobra.Command{
-	Use:   "assign [role_name] [username...]",
+	Use:   "assign <role_name> <username...>",
 	Short: "Assign users to role (EE Only)",
 	Long:  "Assign users to a role by username (Only works in Enterprise Edition).",
 	Example: `  # Assign users with usernames 'john.doe' and 'jane.doe' to the role named 'system_admin'.
@@ -42,7 +46,7 @@ var AssignCmd = &cobra.Command{
 }
 
 var UnassignCmd = &cobra.Command{
-	Use:   "unassign [role_name] [username...]",
+	Use:   "unassign <role_name> <username...>",
 	Short: "Unassign users from role (EE Only)",
 	Long:  "Unassign users from a role by username (Only works in Enterprise Edition).",
 	Example: `  # Unassign users with usernames 'john.doe' and 'jane.doe' from the role named 'system_admin'.
@@ -74,26 +78,74 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return response.Error
 	}
 
-	tpl := `Name: {{.Name}}
-Display Name: {{.DisplayName}}
-Description: {{.Description}}
-Permissions: {{.Permissions}}
-{{range .Permissions}}
-  - {{.}}
-{{end}}
-{{if .BuiltIn}}
-Built in: yes
-{{else}}
-Built in: no
-{{end}}
-{{if .SchemeManaged}}
-Scheme Managed: yes
-{{else}}
-Scheme Managed: no
-{{end}}
-`
+	sort.Strings(role.Permissions)
 
-	printer.PrintT(tpl, role)
+	consolePermissionMap := map[string]bool{}
+	for _, perm := range role.Permissions {
+		if strings.HasPrefix(perm, "sysconsole_") {
+			consolePermissionMap[perm] = true
+		}
+	}
+
+	getUsedBy := func(permissionID string) []string {
+		var usedByIDs []string
+		if !strings.HasPrefix(permissionID, "sysconsole_") {
+			usedBy := map[string]bool{} // map to make a unique set
+			for key, vals := range model.SysconsoleAncillaryPermissions {
+				for _, val := range vals {
+					if val.Id == permissionID {
+						if _, ok := consolePermissionMap[key]; ok {
+							usedBy[key] = true
+						}
+					}
+				}
+			}
+			for key := range usedBy {
+				usedByIDs = append(usedByIDs, key)
+			}
+		}
+		return usedByIDs
+	}
+
+	var b strings.Builder
+	w := tabwriter.NewWriter(&b, 0, 0, 1, ' ', 0)
+
+	// Only show the 3-column view if the role has sysconsole permissions
+	// sysadmin has every permission, so no point in showing the "Used by"
+	// column.
+	if len(consolePermissionMap) > 0 && role.Name != "system_admin" {
+		fmt.Fprintf(w, "\nProperty\tValue\tUsed by\n")
+		fmt.Fprintf(w, "--------\t-----\t-------\n")
+		fmt.Fprintf(w, "Name\t%s\t\n", role.Name)
+		fmt.Fprintf(w, "DisplayName\t%s\t\n", role.DisplayName)
+		fmt.Fprintf(w, "BuiltIn\t%v\t\n", role.BuiltIn)
+		fmt.Fprintf(w, "SchemeManaged\t%v\t\n", role.SchemeManaged)
+		for i, perm := range role.Permissions {
+			if i == 0 {
+				fmt.Fprintf(w, "Permissions\t%s\t%v\n", role.Permissions[0], strings.Join(getUsedBy(role.Permissions[0]), ", "))
+			} else {
+				fmt.Fprintf(w, "\t%s\t%v\n", perm, strings.Join(getUsedBy(perm), ", "))
+			}
+		}
+	} else {
+		fmt.Fprintf(w, "\nProperty\tValue\n")
+		fmt.Fprintf(w, "--------\t-----\n")
+		fmt.Fprintf(w, "Name\t%s\n", role.Name)
+		fmt.Fprintf(w, "DisplayName\t%s\n", role.DisplayName)
+		fmt.Fprintf(w, "BuiltIn\t%v\n", role.BuiltIn)
+		fmt.Fprintf(w, "SchemeManaged\t%v\n", role.SchemeManaged)
+		for i, perm := range role.Permissions {
+			if i == 0 {
+				fmt.Fprintf(w, "Permissions\t%s\n", role.Permissions[0])
+			} else {
+				fmt.Fprintf(w, "\t%s\n", perm)
+			}
+		}
+	}
+
+	w.Flush()
+
+	printer.PrintT(b.String(), role)
 
 	return nil
 }
