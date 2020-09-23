@@ -136,3 +136,29 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("all clients can change the email", func(c client.Client) {
+		printer.Clean()
+
+		fakeEmail := "fakeemail@fakedomain.com"
+
+		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, fakeEmail})
+		s.Require().Nil(err)
+	})
+	s.RunForAllClients("wrong number of arguments", func(c client.Client) {
+		printer.Clean()
+
+		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "expected two arguments. See help text for details")
+	})
+
+	s.RunForAllClients("not valid email", func(c client.Client) {
+		printer.Clean()
+
+		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, "not-a-valid-email"})
+		s.Require().EqualError(err, "invalid email: 'not-a-valid-email'")
+	})
+}
