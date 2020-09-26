@@ -136,3 +136,59 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Invite user", func(c client.Client) {
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+		}()
+
+		printer.Clean()
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Invites may or may not have been sent.")
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Inviting when email invitation disabled", func(c client.Client) {
+
+		printer.Clean()
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to invite user with email "+s.th.BasicUser.Email+" to team "+s.th.BasicTeam.Name+". Error: : Email invitations are disabled., ")
+	})
+
+	s.RunForSystemAdminAndLocal("Invite user not accepted domain", func(c client.Client) {
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+		}()
+
+		printer.Clean()
+
+		team := s.th.CreateTeam()
+		team.AllowedDomains = "@example.com"
+		team, appErr := s.th.App.UpdateTeam(team)
+		s.Require().Nil(appErr)
+
+		user := s.th.CreateUser()
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "Unable to invite user with email "+user.Email+" to team "+team.Name+". Error: : The following email addresses do not belong to an accepted domain: "+user.Email+". Please contact your System Administrator for details., ")
+	})
+}
