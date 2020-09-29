@@ -158,38 +158,22 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 
 	s.Run("normal user doesn't have permission to change another user's email", func() {
 		printer.Clean()
-		s.th.LoginBasic2WithClient(s.th.Client)
-		newEmail := "basicuser-change@fakedomain.com"
-		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser.Id, newEmail})
+		newEmail := "basicuser2-change@fakedomain.com"
+		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newEmail})
 		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
 
-		u, err := s.th.App.GetUser(s.th.BasicUser.Id)
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
 		s.Require().Nil(err)
 		s.Require().NotEqual(newEmail, u.Email)
-		s.Require().Equal(s.th.BasicUser.Email, u.Email)
+		s.Require().Equal(s.th.BasicUser2.Email, u.Email)
 	})
 
 	s.Run("own user can't update its own email due to security reasons", func() {
 		printer.Clean()
 
-		s.th.LoginBasic()
 		newEmail := "basicuser-change@fakedomain.com"
 		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser.Id, newEmail})
 		s.Require().EqualError(err, ": Invalid or missing password in request body., ")
 
-	})
-
-	s.RunForAllClients("wrong number of arguments", func(c client.Client) {
-		printer.Clean()
-
-		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{})
-		s.Require().EqualError(err, "expected two arguments. See help text for details")
-	})
-
-	s.RunForAllClients("not valid email", func(c client.Client) {
-		printer.Clean()
-
-		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, "not-a-valid-email"})
-		s.Require().EqualError(err, "invalid email: 'not-a-valid-email'")
 	})
 }
