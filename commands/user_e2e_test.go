@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 
@@ -141,16 +143,15 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 	s.SetupTestHelper().InitBasic()
 
 	s.RunForSystemAdminAndLocal("Invite user", func(c client.Client) {
-
-		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
-		}()
-
 		printer.Clean()
 
-		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+		}()
 
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Invites may or may not have been sent.")
@@ -158,24 +159,35 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 	})
 
 	s.RunForSystemAdminAndLocal("Inviting when email invitation disabled", func(c client.Client) {
-
 		printer.Clean()
-		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
 
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+		}()
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to invite user with email "+s.th.BasicUser.Email+" to team "+s.th.BasicTeam.Name+". Error: : Email invitations are disabled., ")
+		s.Require().Equal(
+			printer.GetErrorLines()[0],
+			fmt.Sprintf("Unable to invite user with email %s to team %s. Error: : Email invitations are disabled., ",
+				s.th.BasicUser.Email,
+				s.th.BasicTeam.Name,
+			),
+		)
 	})
 
-	s.RunForSystemAdminAndLocal("Invite user not accepted domain", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Invite user outside of accepted domain", func(c client.Client) {
+		printer.Clean()
 
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
 		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
 		}()
-
-		printer.Clean()
 
 		team := s.th.CreateTeam()
 		team.AllowedDomains = "@example.com"
@@ -183,9 +195,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		s.Require().Nil(appErr)
 
 		user := s.th.CreateUser()
-
 		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
-
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
