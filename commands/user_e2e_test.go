@@ -142,7 +142,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 	s.SetupTestHelper().InitBasic()
 
-	s.RunForSystemAdminAndLocal("Invite user", func(c client.Client) {
+	s.RunForAllClients("Invite user", func(c client.Client) {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
@@ -158,7 +158,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Inviting when email invitation disabled", func(c client.Client) {
+	s.RunForAllClients("Inviting when email invitation disabled", func(c client.Client) {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
@@ -180,7 +180,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		)
 	})
 
-	s.RunForSystemAdminAndLocal("Invite user outside of accepted domain", func(c client.Client) {
+	s.RunForAllClients("Invite user outside of accepted domain", func(c client.Client) {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
