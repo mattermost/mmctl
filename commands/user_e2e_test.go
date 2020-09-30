@@ -6,6 +6,8 @@ package commands
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
+	// "github.com/spf13/pflag"
+	"log"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -134,5 +136,65 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestListUserCmd() {
+	s.SetupTestHelper().InitBasic()
+			
+	// populate map for checking
+	userPool := map[string]bool{
+		s.th.BasicUser.Username : true,
+		s.th.BasicUser2.Username: true,
+		s.th.TeamAdminUser.Username:true,
+		s.th.SystemAdminUser.Username:true,
+	}
+	for i := 0; i < 10; i++ {			
+		usr := s.th.CreateUser()
+		userPool[usr.Username] = true
+	}
+
+	s.RunForAllClients("Get some random of user", func(c client.Client) {
+		printer.Clean()
+
+		page:= int(0)
+		perpage:= int(5)
+		all := bool(false)		
+		cmd := &cobra.Command{}
+		cmd.Flags().IntVar(&page,"page", page,"page")
+		cmd.Flags().IntVar(&perpage,"per-page", perpage,"perpage")
+		cmd.Flags().BoolVar(&all, "all",all,"all")
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 5)
+		s.Len(printer.GetErrorLines(), 0)
+		log.Println(printer.GetErrorLines())
+
+		for _,each := range printer.GetLines() {
+			eachUser := each.(*model.User)
+			s.Require().Equal(userPool[eachUser.Username], true)
+		}
+	})
+
+	s.RunForAllClients("Get list of all user", func(c client.Client) {
+		printer.Clean()
+
+		page:= int(0)
+		perpage:= int(10)
+		all := bool(true)		
+		cmd := &cobra.Command{}
+		cmd.Flags().IntVar(&page,"page", page,"page")
+		cmd.Flags().IntVar(&perpage,"per-page", perpage,"perpage")
+		cmd.Flags().BoolVar(&all, "all",all,"all")
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 14)
+		s.Len(printer.GetErrorLines(), 0)
+		for _,each := range printer.GetLines() {
+			eachUser := each.(*model.User)
+			s.Require().Equal(userPool[eachUser.Username], true)
+		}
 	})
 }
