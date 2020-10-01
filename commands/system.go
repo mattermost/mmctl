@@ -114,7 +114,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	// always return a valid response
 	_, resp := c.GetAllTeams("", 0, 0)
 	if resp.Error != nil {
-		return fmt.Errorf("unable to fetch teams information: %w", resp.Error)
+		return fmt.Errorf("unable to fetch server version: %w", resp.Error)
 	}
 
 	printer.PrintT("Server version {{.version}}", map[string]string{"version": resp.ServerVersion})
