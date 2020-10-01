@@ -147,8 +147,8 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		expectedVersion := "1.23.4.dev"
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 0).
-			Return(nil, &model.Response{Error: nil, ServerVersion: expectedVersion}).
+			GetPing().
+			Return("", &model.Response{Error: nil, ServerVersion: expectedVersion}).
 			Times(1)
 
 		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
@@ -163,8 +163,8 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams("", 0, 0).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			GetPing().
+			Return("", &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
 			Times(1)
 
 		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})

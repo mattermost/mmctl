@@ -112,7 +112,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	// use the initial "withClient" connection information as local
 	// mode doesn't need to log in, so we use an endpoint that will
 	// always return a valid response
-	_, resp := c.GetAllTeams("", 0, 0)
+	_, resp := c.GetPing()
 	if resp.Error != nil {
 		return fmt.Errorf("unable to fetch server version: %w", resp.Error)
 	}
