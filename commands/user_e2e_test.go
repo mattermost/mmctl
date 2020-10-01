@@ -170,9 +170,9 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 		log.Println(printer.GetErrorLines())
 
-		for _,each := range printer.GetLines() {
-			eachUser := each.(*model.User)
-			s.Require().Equal(userPool[eachUser.Username], true)
+		for _, u := range printer.GetLines() {
+			user := u.(*model.User)
+			s.Require().Contains(userPool, user.Username)
 		}
 	})
 
