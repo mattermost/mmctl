@@ -156,9 +156,9 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get some random of user", func(c client.Client) {
 		printer.Clean()
 
-		page:= int(0)
-		perpage:= int(5)
-		all := bool(false)		
+		var page int
+		perpage := 5
+		var all bool
 		cmd := &cobra.Command{}
 		cmd.Flags().IntVar(&page,"page", page,"page")
 		cmd.Flags().IntVar(&perpage,"per-page", perpage,"perpage")
