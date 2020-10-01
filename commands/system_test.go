@@ -139,3 +139,37 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
+	s.Run("Print server version", func() {
+		printer.Clean()
+
+		expectedVersion := "1.23.4.dev"
+		s.client.
+			EXPECT().
+			GetPing().
+			Return("", &model.Response{Error: nil, ServerVersion: expectedVersion}).
+			Times(1)
+
+		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"version": expectedVersion})
+	})
+
+	s.Run("Request to the server fails", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetPing().
+			Return("", &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			Times(1)
+
+		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
