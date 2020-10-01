@@ -168,12 +168,11 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		s.Require().Equal(s.th.BasicUser2.Email, u.Email)
 	})
 
-	s.Run("own user can't update its own email due to security reasons", func() {
+	s.Run("normal users can't update their own email due to security reasons", func() {
 		printer.Clean()
 
 		newEmail := "basicuser-change@fakedomain.com"
 		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser.Id, newEmail})
 		s.Require().EqualError(err, ": Invalid or missing password in request body., ")
-
 	})
 }
