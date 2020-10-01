@@ -46,6 +46,15 @@ var SystemClearBusyCmd = &cobra.Command{
 	RunE:    withClient(clearBusyCmdF),
 }
 
+var SystemVersionCmd = &cobra.Command{
+	Use:     "version",
+	Short:   "Prints the remote server version",
+	Long:    "Prints the version of the Mattermost application of the currently connected server",
+	Example: `  system version`,
+	Args:    cobra.NoArgs,
+	RunE:    withClient(systemVersionCmdF),
+}
+
 func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
@@ -53,6 +62,7 @@ func init() {
 		SystemGetBusyCmd,
 		SystemSetBusyCmd,
 		SystemClearBusyCmd,
+		SystemVersionCmd,
 	)
 	RootCmd.AddCommand(SystemCmd)
 }
@@ -93,5 +103,20 @@ func clearBusyCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("unable to clear busy state: %w", response.Error)
 	}
 	printer.PrintT("Busy state cleared", map[string]string{"status": "ok"})
+	return nil
+}
+
+func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	printer.SetSingle(true)
+	// server version information comes with all responses. We can't
+	// use the initial "withClient" connection information as local
+	// mode doesn't need to log in, so we use an endpoint that will
+	// always return a valid response
+	_, resp := c.GetAllTeams("", 0, 0)
+	if resp.Error != nil {
+		return fmt.Errorf("unable to fetch teams information: %w", resp.Error)
+	}
+
+	printer.PrintT("Server version {{.version}}", map[string]string{"version": resp.ServerVersion})
 	return nil
 }
