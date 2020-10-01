@@ -55,6 +55,15 @@ var SystemVersionCmd = &cobra.Command{
 	RunE:    withClient(systemVersionCmdF),
 }
 
+var SystemStatusCmd = &cobra.Command{
+	Use:     "status",
+	Short:   "Prints the status of the server",
+	Long:    "Prints the server status calculated using several basic server healthchecks",
+	Example: `  system status`,
+	Args:    cobra.NoArgs,
+	RunE:    withClient(systemStatusCmdF),
+}
+
 func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
@@ -63,6 +72,7 @@ func init() {
 		SystemSetBusyCmd,
 		SystemClearBusyCmd,
 		SystemVersionCmd,
+		SystemStatusCmd,
 	)
 	RootCmd.AddCommand(SystemCmd)
 }
@@ -118,5 +128,17 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	}
 
 	printer.PrintT("Server version {{.version}}", map[string]string{"version": resp.ServerVersion})
+	return nil
+}
+
+func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	printer.SetSingle(true)
+
+	status, resp := c.GetPingWithServerStatus()
+	if resp.Error != nil {
+		return fmt.Errorf("unable to fetch server status: %w", resp.Error)
+	}
+
+	printer.PrintT("Status: {{.status}}", map[string]string{"status": status})
 	return nil
 }
