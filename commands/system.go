@@ -49,7 +49,7 @@ var SystemClearBusyCmd = &cobra.Command{
 var SystemVersionCmd = &cobra.Command{
 	Use:     "version",
 	Short:   "Prints the remote server version",
-	Long:    "Prints the version of the Mattermost application of the currently connected server",
+	Long:    "Prints the server version of the currently connected Mattermost instance",
 	Example: `  system version`,
 	Args:    cobra.NoArgs,
 	RunE:    withClient(systemVersionCmdF),

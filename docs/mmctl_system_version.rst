@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Prints the version of the Mattermost application of the currently connected server
+Prints the server version of the currently connected Mattermost instance
 
 ::
 
