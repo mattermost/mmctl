@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Display logs in a human-readable format
+Display logs in a human-readable format. The "--format" flag cannot be used here.
 
 ::
 

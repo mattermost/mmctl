@@ -11,14 +11,23 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/mlog/human"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 )
 
 var LogsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Display logs in a human-readable format",
-	RunE:  withClient(logsCmdF),
+	Long:  "Display logs in a human-readable format. The \"--format\" flag cannot be used here.",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if cmd.Flags().Changed("format") || viper.GetString("format") == printer.FormatJSON {
+			return errors.New("format cannot be used")
+		}
+		return nil
+	},
+	RunE: withClient(logsCmdF),
 }
 
 func init() {
