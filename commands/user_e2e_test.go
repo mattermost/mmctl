@@ -136,3 +136,59 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Delete all user  as unpriviliged user", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.Client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		_, err = s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Delete all user as system admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		_, err = s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+	})
+
+	s.Run("Delete all user", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+
+		// expect users deleted
+		_, err = s.th.App.GetUser(s.th.BasicUser.Id)
+		s.Require().NotNil(err)
+	})
+}
