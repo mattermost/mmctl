@@ -136,3 +136,46 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Error when no flag provided", func(c client.Client) {
+		printer.Clean()
+
+		emailArg := "example@example.com"
+		cmd := &cobra.Command{}
+
+		err := userConvertCmdF(c, cmd, []string{emailArg})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Valid user to bot convert", func() {
+		printer.Clean()
+
+		email := s.th.BasicUser.Email
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		err := userConvertCmdF(s.th.SystemAdminClient, cmd, []string{email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Valid bot to user convert", func() {
+		printer.Clean()
+
+		bot, _ := s.th.App.CreateBot(&model.Bot{Username: "bot-username", DisplayName: "some-name", OwnerId: "some-id"})
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("user", true, "")
+		cmd.Flags().String("password", "password", "")
+
+		err := userConvertCmdF(s.th.SystemAdminClient, cmd, []string{bot.Username})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
