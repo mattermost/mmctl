@@ -51,3 +51,68 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		s.Equal("Cannot rename team '"+s.th.BasicTeam.Name+"', error : : You do not have the appropriate permissions., ", err.Error())
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Error deleting team which does not exist", func(c client.Client) {
+		printer.Clean()
+		teamName := "existingName"
+		cmd := &cobra.Command{}
+		args := []string{""}
+		args[0] = teamName
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().Bool("confirm", true, "")
+
+		_ = deleteTeamsCmdF(c, cmd, args)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to find team '"+teamName+"'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Permission error while deleting a valid team", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		args := []string{""}
+		args[0] = s.th.BasicTeam.Name
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().Bool("confirm", true, "")
+
+		_ = deleteTeamsCmdF(s.th.Client, cmd, args)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: : You do not have the appropriate permissions., ", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Delete a valid team", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		args := []string{""}
+		args[0] = s.th.BasicTeam.Name
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.th.LocalClient, cmd, args)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Equal(s.th.BasicTeam, printer.GetLines()[0])
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Permission denied error for system admin when deleting a valid team", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		args := []string{""}
+		args[0] = s.th.BasicTeam.Name
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteTeamsCmdF(s.th.SystemAdminClient, cmd, args)
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Equal(s.th.BasicTeam, printer.GetLines()[1])
+	})
+}
