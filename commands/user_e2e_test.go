@@ -154,11 +154,6 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 		}()
 
-		s.th.AddPermissionToRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.SYSTEM_ADMIN_ROLE_ID)
-		defer func() {
-			s.th.RemovePermissionFromRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.SYSTEM_ADMIN_ROLE_ID)
-		}()
-
 		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -172,11 +167,6 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 
 	s.RunForSystemAdminAndLocal("Reset mfa disabled config", func(c client.Client) {
 		printer.Clean()
-
-		s.th.AddPermissionToRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.SYSTEM_ADMIN_ROLE_ID)
-		defer func() {
-			s.th.RemovePermissionFromRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.SYSTEM_ADMIN_ROLE_ID)
-		}()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableMultifactorAuthentication
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = false })
