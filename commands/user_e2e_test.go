@@ -145,7 +145,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
 	s.Require().Nil(appErr)
 
-	s.Run("Reset user mfa", func() {
+	s.RunForSystemAdminAndLocal("Reset user mfa", func(c client.Client) {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableMultifactorAuthentication
