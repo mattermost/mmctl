@@ -163,52 +163,70 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Valid user to bot convert", func() {
+	s.RunForSystemAdminAndLocal("Valid user to bot convert", func(c client.Client) {
 		printer.Clean()
 
-		email := s.th.BasicUser.Email
+		user, _ := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+
+		email := user.Email
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("bot", true, "")
 
-		err := userConvertCmdF(s.th.SystemAdminClient, cmd, []string{email})
+		err := userConvertCmdF(c, cmd, []string{email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		bot := printer.GetLines()[0].(*model.Bot)
-		s.Equal(s.th.BasicUser.Username, bot.Username)
-		s.Equal(s.th.BasicUser.Id, bot.UserId)
-		s.Equal(s.th.BasicUser.Id, bot.OwnerId)
+		s.Equal(user.Username, bot.Username)
+		s.Equal(user.Id, bot.UserId)
+		s.Equal(user.Id, bot.OwnerId)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Valid user to bot convert", func() {
+	s.Run("Permission error for valid user to bot convert", func() {
 		printer.Clean()
 
 		email := s.th.BasicUser2.Email
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("bot", true, "")
 
-		err := userConvertCmdF(s.th.LocalClient, cmd, []string{email})
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 1)
-		bot := printer.GetLines()[0].(*model.Bot)
-		s.Equal(s.th.BasicUser2.Username, bot.Username)
-		s.Equal(s.th.BasicUser2.Id, bot.UserId)
-		s.Equal(s.th.BasicUser2.Id, bot.OwnerId)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		_ = userConvertCmdF(s.th.Client, cmd, []string{email})
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Equal(": You do not have the appropriate permissions., ", printer.GetErrorLines()[0])
 	})
 
-	s.Run("Valid bot to user convert", func() {
+	s.RunForSystemAdminAndLocal("Valid bot to user convert", func(c client.Client) {
 		printer.Clean()
 
-		bot, _ := s.th.App.CreateBot(&model.Bot{Username: "bot-username", DisplayName: "some-name", OwnerId: "some-id"})
+		username := "fakeuser" + model.NewRandomString(10)
+		bot, _ := s.th.App.CreateBot(&model.Bot{Username: username, DisplayName: username, OwnerId: username})
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("user", true, "")
 		cmd.Flags().String("password", "password", "")
 
-		err := userConvertCmdF(s.th.SystemAdminClient, cmd, []string{bot.Username})
+		err := userConvertCmdF(c, cmd, []string{bot.Username})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(*model.User)
+		s.Equal(user.Username, bot.Username)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Permission error for valid bot to user convert", func() {
+		printer.Clean()
+
+		username := "fakeuser" + model.NewRandomString(10)
+		bot, _ := s.th.App.CreateBot(&model.Bot{Username: username, DisplayName: username, OwnerId: username})
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("user", true, "")
+		cmd.Flags().String("password", "password", "")
+
+		err := userConvertCmdF(s.th.Client, cmd, []string{bot.Username})
+		s.Require().Error(err)
+		s.Equal(": You do not have the appropriate permissions., ", err.Error())
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
