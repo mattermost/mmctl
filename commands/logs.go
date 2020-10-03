@@ -21,13 +21,7 @@ var LogsCmd = &cobra.Command{
 	Use:   "logs",
 	Short: "Display logs in a human-readable format",
 	Long:  "Display logs in a human-readable format. The \"--format\" flag cannot be used here.",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if cmd.Flags().Changed("format") || viper.GetString("format") == printer.FormatJSON {
-			return errors.New("format cannot be used")
-		}
-		return nil
-	},
-	RunE: withClient(logsCmdF),
+	RunE:  withClient(logsCmdF),
 }
 
 func init() {
@@ -37,6 +31,10 @@ func init() {
 }
 
 func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if cmd.Flags().Changed("format") || viper.GetString("format") == printer.FormatJSON {
+		return errors.New("format cannot be used")
+	}
+
 	number, _ := cmd.Flags().GetInt("number")
 	logLines, response := c.GetLogs(0, number)
 	if response.Error != nil {

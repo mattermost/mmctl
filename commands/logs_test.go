@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/mmctl/client"
 )
@@ -74,6 +75,20 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
 		s.Contains(data[0], testLogrusStdout)
+	})
+
+	s.Run("Error when using json format", func() {
+		formatTmp := viper.GetString("format")
+
+		cmd := &cobra.Command{}
+		viper.Set("format", "json")
+
+		data, err := testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().Error(err)
+		s.Require().Len(data, 0)
+
+		viper.Set("format", formatTmp)
 	})
 }
 
