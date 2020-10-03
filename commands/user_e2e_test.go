@@ -149,6 +149,18 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		err := userConvertCmdF(c, cmd, []string{emailArg})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
+		s.Equal("either \"user\" flag or \"bot\" flag should be provided", err.Error())
+	})
+
+	s.RunForAllClients("Error for invalid user", func(c client.Client) {
+		printer.Clean()
+
+		emailArg := "something@something.com"
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		_ = userConvertCmdF(c, cmd, []string{emailArg})
+		s.Require().Len(printer.GetLines(), 0)
 	})
 
 	s.Run("Valid user to bot convert", func() {
@@ -161,6 +173,27 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		err := userConvertCmdF(s.th.SystemAdminClient, cmd, []string{email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
+		bot := printer.GetLines()[0].(*model.Bot)
+		s.Equal(s.th.BasicUser.Username, bot.Username)
+		s.Equal(s.th.BasicUser.Id, bot.UserId)
+		s.Equal(s.th.BasicUser.Id, bot.OwnerId)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Valid user to bot convert", func() {
+		printer.Clean()
+
+		email := s.th.BasicUser2.Email
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		err := userConvertCmdF(s.th.LocalClient, cmd, []string{email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		bot := printer.GetLines()[0].(*model.Bot)
+		s.Equal(s.th.BasicUser2.Username, bot.Username)
+		s.Equal(s.th.BasicUser2.Id, bot.UserId)
+		s.Equal(s.th.BasicUser2.Id, bot.OwnerId)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
