@@ -165,7 +165,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Require().GreaterOrEqual(printer.GetLines(), 5)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 5)
 		s.Len(printer.GetErrorLines(), 0)
 
 		for _, u := range printer.GetLines() {
@@ -187,7 +187,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Require().GreaterOrEqual(printer.GetLines(), 14)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 14)
 		s.Len(printer.GetErrorLines(), 0)
 		for _, each := range printer.GetLines() {
 			user := each.(*model.User)
