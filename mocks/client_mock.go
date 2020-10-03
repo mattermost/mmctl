@@ -610,6 +610,36 @@ func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0)
 }
 
+// GetPing mocks base method
+func (m *MockClient) GetPing() (string, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPing")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetPing indicates an expected call of GetPing
+func (mr *MockClientMockRecorder) GetPing() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPing", reflect.TypeOf((*MockClient)(nil).GetPing))
+}
+
+// GetPingWithServerStatus mocks base method
+func (m *MockClient) GetPingWithServerStatus() (string, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPingWithServerStatus")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetPingWithServerStatus indicates an expected call of GetPingWithServerStatus
+func (mr *MockClientMockRecorder) GetPingWithServerStatus() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithServerStatus", reflect.TypeOf((*MockClient)(nil).GetPingWithServerStatus))
+}
+
 // GetPlugins mocks base method
 func (m *MockClient) GetPlugins() (*model.PluginsResponse, *model.Response) {
 	m.ctrl.T.Helper()

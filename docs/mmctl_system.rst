@@ -35,4 +35,6 @@ SEE ALSO
 * `mmctl system clearbusy <mmctl_system_clearbusy.rst>`_ 	 - Clears the busy state
 * `mmctl system getbusy <mmctl_system_getbusy.rst>`_ 	 - Get the current busy state
 * `mmctl system setbusy <mmctl_system_setbusy.rst>`_ 	 - Set the busy state to true
+* `mmctl system status <mmctl_system_status.rst>`_ 	 - Prints the status of the server
+* `mmctl system version <mmctl_system_version.rst>`_ 	 - Prints the remote server version
 
