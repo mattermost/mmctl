@@ -112,4 +112,5 @@ type Client interface {
 	MigrateAuthToLdap(fromAuthService string, matchField string, force bool) (bool, *model.Response)
 	MigrateAuthToSaml(fromAuthService string, usersMap map[string]string, auto bool) (bool, *model.Response)
 	GetPing() (string, *model.Response)
+	GetPingWithServerStatus() (string, *model.Response)
 }
