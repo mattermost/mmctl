@@ -159,7 +159,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 			s.th.RemovePermissionFromRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.SYSTEM_ADMIN_ROLE_ID)
 		}()
 
-		err := resetUserMfaCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{user.Email})
+		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{user.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
