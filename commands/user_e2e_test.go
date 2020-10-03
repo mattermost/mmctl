@@ -140,7 +140,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	s.Run("Delete all user  as unpriviliged user", func() {
+	s.Run("Delete all user as unpriviliged user", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -176,6 +176,11 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 
 	s.Run("Delete all user", func() {
 		printer.Clean()
+
+		// populate with some user
+		for i := 0; i < 10; i++ {
+			s.th.CreateUser()
+		}
 
 		cmd := &cobra.Command{}
 		confirm := true
