@@ -6,7 +6,6 @@ package commands
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
-	"log"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -140,35 +139,34 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 
 func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.SetupTestHelper().InitBasic()
-			
+
 	// populate map for checking
-	userPool := map[string]bool{
-		s.th.BasicUser.Username : true,
-		s.th.BasicUser2.Username: true,
-		s.th.TeamAdminUser.Username:true,
-		s.th.SystemAdminUser.Username:true,
+	userPool := []string{
+		s.th.BasicUser.Username,
+		s.th.BasicUser2.Username,
+		s.th.TeamAdminUser.Username,
+		s.th.SystemAdminUser.Username,
 	}
-	for i := 0; i < 10; i++ {			
+	for i := 0; i < 10; i++ {
 		usr := s.th.CreateUser()
-		userPool[usr.Username] = true
+		userPool = append(userPool, usr.Username)
 	}
 
 	s.RunForAllClients("Get some random of user", func(c client.Client) {
 		printer.Clean()
 
 		var page int
-		perpage := 5
 		var all bool
+		perpage := 5
 		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page,"page", page,"page")
-		cmd.Flags().IntVar(&perpage,"per-page", perpage,"perpage")
-		cmd.Flags().BoolVar(&all, "all",all,"all")
+		cmd.Flags().IntVar(&page, "page", page, "page")
+		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
+		cmd.Flags().BoolVar(&all, "all", all, "all")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 5)
+		s.Require().GreaterOrEqual(printer.GetLines(), 5)
 		s.Len(printer.GetErrorLines(), 0)
-		log.Println(printer.GetErrorLines())
 
 		for _, u := range printer.GetLines() {
 			user := u.(*model.User)
@@ -179,21 +177,21 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 	s.RunForAllClients("Get list of all user", func(c client.Client) {
 		printer.Clean()
 
-		page:= int(0)
-		perpage:= int(10)
-		all := bool(true)		
+		var page int
+		perpage := 10
+		all := true
 		cmd := &cobra.Command{}
-		cmd.Flags().IntVar(&page,"page", page,"page")
-		cmd.Flags().IntVar(&perpage,"per-page", perpage,"perpage")
-		cmd.Flags().BoolVar(&all, "all",all,"all")
+		cmd.Flags().IntVar(&page, "page", page, "page")
+		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
+		cmd.Flags().BoolVar(&all, "all", all, "all")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 14)
+		s.Require().GreaterOrEqual(printer.GetLines(), 14)
 		s.Len(printer.GetErrorLines(), 0)
-		for _,each := range printer.GetLines() {
-			eachUser := each.(*model.User)
-			s.Require().Equal(userPool[eachUser.Username], true)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(userPool, user.Username)
 		}
 	})
 }
