@@ -77,7 +77,19 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Contains(data[0], testLogrusStdout)
 	})
 
-	s.Run("Error when using json format", func() {
+	s.Run("Error when using format flag", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().String("format", "json", "")
+		cmd.Flags().Lookup("format").Changed = true
+
+		data, err := testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().Error(err)
+		s.Require().Equal(err.Error(), "the \"--format\" flag cannot be used with this command")
+		s.Require().Len(data, 0)
+	})
+
+	s.Run("Error when setting json format with environment variable", func() {
 		formatTmp := viper.GetString("format")
 
 		cmd := &cobra.Command{}
@@ -86,6 +98,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Error(err)
+		s.Require().Equal(err.Error(), "json formatting cannot be applied on the output of this command")
 		s.Require().Len(data, 0)
 
 		viper.Set("format", formatTmp)
