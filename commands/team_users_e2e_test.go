@@ -90,6 +90,10 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 
 		_, appErr = s.th.App.AddTeamMember(team.Id, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
+		defer func() {
+			appErr = unlinkUserFromTeam(team.Id, s.th.BasicUser.Id)
+			s.Require().Nil(appErr)
+		}()
 
 		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, user.Email})
 		s.Require().Nil(err)
@@ -106,9 +110,6 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 			teamUsersID = append(teamUsersID, v.UserId)
 		}
 		s.Require().Contains(teamUsersID, user.Id)
-
-		appErr = unlinkUserFromTeam(team.Id, s.th.BasicUser.Id)
-		s.Require().Nil(appErr)
 	})
 
 	s.RunForSystemAdminAndLocal("Add user to nonexistent team", func(c client.Client) {
