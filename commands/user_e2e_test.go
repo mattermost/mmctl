@@ -150,7 +150,6 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
 	})
 
 	s.Run("Verify user email without token (without permission)", func() {
@@ -161,7 +160,6 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., ")
-
 	})
 
 	s.RunForAllClients("Verify user email without token for nonexistent user", func(c client.Client) {
