@@ -51,3 +51,55 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		s.Equal("Cannot rename team '"+s.th.BasicTeam.Name+"', error : : You do not have the appropriate permissions., ", err.Error())
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Restore team", func(c client.Client) {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		team := s.th.CreateTeam()
+		appErr := s.th.App.SoftDeleteTeam(team.Id)
+		s.Require().Nil(appErr)
+
+		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{team.Name})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		message := "Restored team '" + team.Name + "'"
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(message, printer.GetLines()[0])
+	})
+
+	s.RunForAllClients("Restore non-existent team", func(c client.Client) {
+		printer.Clean()
+
+		teamName := "non-existent-team"
+
+		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+
+		errMessage := "Unable to find team '" + teamName + "'"
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
+	})
+
+	s.Run("Restore team without permissions", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)
+		appErr := s.th.App.SoftDeleteTeam(team.Id)
+		s.Require().Nil(appErr)
+
+		err := restoreTeamsCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
+		s.Require().Nil(err)
+
+		errMessage := "Unable to find team '" + team.Name + "'"
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
+	})
+}

@@ -626,7 +626,7 @@ func (s *MmctlUnitTestSuite) TestTeamGroupListCmd() {
 		groupID2 := "group2"
 		mockError := &model.AppError{Message: "Get groups by team error"}
 
-		//grp1 := model.GroupWithSchemeAdmin{}
+		// grp1 := model.GroupWithSchemeAdmin{}
 
 		group1 := model.GroupWithSchemeAdmin{Group: model.Group{Id: groupID, DisplayName: "DisplayName1"}}
 		group2 := model.GroupWithSchemeAdmin{Group: model.Group{Id: groupID2, DisplayName: "DisplayName2"}}
