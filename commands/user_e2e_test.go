@@ -116,6 +116,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 
 	s.RunForAllClients("Search for an existing user", func(c client.Client) {
 		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
 
 		err := searchUserCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email})
 		s.Require().Nil(err)
