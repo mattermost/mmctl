@@ -136,3 +136,41 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Verify user email without token", func(c client.Client) {
+		printer.Clean()
+
+		err := verifyUserEmailWithoutTokenCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+	})
+
+	s.Run("Verify user email without token (without permission)", func() {
+		printer.Clean()
+
+		err := verifyUserEmailWithoutTokenCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., ")
+
+	})
+
+	s.RunForAllClients("Verify user email without token for nonexistent user", func(c client.Client) {
+		printer.Clean()
+
+		err := verifyUserEmailWithoutTokenCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
+	})
+}
