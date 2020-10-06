@@ -148,7 +148,8 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		s.th.SystemAdminUser.Username,
 	}
 	for i := 0; i < 10; i++ {
-		usr := s.th.CreateUser()
+		usr, err := s.th.CreateUser()
+		s.Require().Nil(err)
 		userPool = append(userPool, usr.Username)
 	}
 
