@@ -174,7 +174,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		s.Require().Nil(err)
 	})
 
-	s.Run("Delete all user", func() {
+	s.Run("Delete all users through local mode", func() {
 		printer.Clean()
 
 		// populate with some user
