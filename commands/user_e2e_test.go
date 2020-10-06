@@ -158,7 +158,8 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm",confirm,"confirm")
 
-		newUser := s.th.CreateUser()
+		newUser, appErr := s.th.CreateUser()
+		s.Require().Nil(appErr)
 		err := deleteUsersCmdF(c ,cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
