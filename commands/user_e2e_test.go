@@ -147,9 +147,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
 
 		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
 		s.Require().Nil(err)
