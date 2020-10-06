@@ -57,24 +57,22 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 	s.RunForAllClients("Error deleting team which does not exist", func(c client.Client) {
 		printer.Clean()
-		teamName := "existingName"
+		nonExistentName := "existingName"
 		cmd := &cobra.Command{}
-		args := []string{""}
-		args[0] = teamName
+		args := []string{nonExistentName}
 		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
 		_ = deleteTeamsCmdF(c, cmd, args)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find team '"+teamName+"'", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find team '"+nonExistentName+"'", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Permission error while deleting a valid team", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		args := []string{""}
-		args[0] = s.th.BasicTeam.Name
+		args := []string{s.th.BasicTeam.Name}
 		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
@@ -88,8 +86,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		args := []string{""}
-		args[0] = s.th.BasicTeam.Name
+		args := []string{s.th.BasicTeam.Name}
 		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
