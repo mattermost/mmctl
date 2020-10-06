@@ -150,9 +150,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
 
 		cmd := &cobra.Command{}
 		confirm := true
