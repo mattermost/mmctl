@@ -7,6 +7,7 @@ stages:
 
 docs:
   stage: .pre
+  image: $CI_REGISTRY/images/golang-ci:1.14.9
   script:
     - echo "Making sure docs are updated"
     - make docs
