@@ -1,3 +1,5 @@
+image: $CI_REGISTRY/images/build-ci
+
 stages:
   - .pre
   - test
@@ -5,7 +7,6 @@ stages:
 
 docs:
   stage: .pre
-  image: $CI_REGISTRY/images/build-ci
   script:
     - echo "Making sure docs are updated"
     - make docs
@@ -21,7 +22,6 @@ lint:
 
 checkout-server:
   stage: .pre
-  image: ubuntu:stable
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
     - eval $(ssh-agent -s)
