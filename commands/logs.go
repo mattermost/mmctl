@@ -34,7 +34,7 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if cmd.Flags().Changed("format") {
 		return errors.New("the \"--format\" flag cannot be used with this command")
 	} else if viper.GetString("format") == printer.FormatJSON {
-		return errors.New("json formatting cannot be applied on the output of this command")
+		return errors.New("json formatting cannot be applied on this command. Please check the value of \"MMCTL_FORMAT\"")
 	}
 
 	number, _ := cmd.Flags().GetInt("number")
