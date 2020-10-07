@@ -5,6 +5,7 @@ stages:
 
 docs:
   stage: .pre
+  image: $CI_REGISTRY/images/build-ci
   script:
     - echo "Making sure docs are updated"
     - make docs
@@ -28,11 +29,11 @@ checkout-server:
     - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan git.internal.mattermost.com >> ~/.ssh/known_hosts
+    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
     - cd ..
-    - git clone -b $CI_COMMIT_REF_NAME git@git.internal.mattermost.com:mirrors/core/mattermost-server.git
+    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
   artifacts:
     paths:
       - mattermost-server
