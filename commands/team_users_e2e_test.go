@@ -5,10 +5,9 @@ package commands
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -30,7 +29,6 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 
 	unlinkUserFromTeam := func(teamId string, userId string) error {
 		teamMembers, err := s.th.App.GetTeamMembers(teamId, 0, 10, nil)
-
 		if err != nil {
 			return err
 		}
@@ -134,6 +132,27 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 
 		nonexistentUserEmail := "nonexistent@email"
 		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Can't find user '%s'", nonexistentUserEmail))
+	})
+
+	s.Run("Add nonexistent user to team", func() {
+		printer.Clean()
+
+		appErr := unlinkUserFromTeam(team.Id, user.Id)
+		s.Require().Nil(appErr)
+
+		_, appErr = s.th.App.AddTeamMember(team.Id, s.th.BasicUser.Id)
+		s.Require().Nil(appErr)
+		defer func() {
+			appErr = unlinkUserFromTeam(team.Id, s.th.BasicUser.Id)
+			s.Require().Nil(appErr)
+		}()
+
+		nonexistentUserEmail := "nonexistent@email"
+		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
