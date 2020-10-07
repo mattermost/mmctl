@@ -34,7 +34,8 @@ checkout-server:
     - chmod 644 ~/.ssh/known_hosts
   script:
     - cd ..
-    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
+    - ls -al
+    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
   artifacts:
     paths:
       - mattermost-server
