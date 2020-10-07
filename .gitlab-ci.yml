@@ -1,0 +1,48 @@
+stages:
+  - .pre
+  - test
+  - publish-s3
+
+docs:
+  stage: .pre
+  script:
+    - echo "Making sure docs are updated"
+    - make docs
+    - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+
+lint:
+  stage: .pre
+  image: golangci/golangci-lint:v1.25.1
+  script:
+    - echo "Installing mattermost-govet"
+    - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+    - make check
+
+checkout-server:
+  stage: .pre
+  image: ubuntu:stable
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+
+    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan git.internal.mattermost.com >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - cd ..
+    - git clone -b $CI_COMMIT_REF_NAME git@git.internal.mattermost.com:mirrors/core/mattermost-server.git
+  artifacts:
+    paths:
+      - mattermost-server
+    expire_in: 3 hours
+
+test:
+  stage: test
+  image: ubuntu-1604:201903-01
+  script:
+    - cd ..
+    - ls -al
+  dependencies:
+    - checkout-server
