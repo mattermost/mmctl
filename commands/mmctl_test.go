@@ -20,18 +20,16 @@ type MmctlUnitTestSuite struct {
 	client   *mocks.MockClient
 }
 
-func (s *MmctlUnitTestSuite) SetupSuite() {
-	printer.SetFormat(printer.FormatJSON)
-}
-
 func (s *MmctlUnitTestSuite) SetupTest() {
+	printer.Clean()
+	printer.SetFormat(printer.FormatJSON)
+
 	s.mockCtrl = gomock.NewController(s.T())
 	s.client = mocks.NewMockClient(s.mockCtrl)
 }
 
 func (s *MmctlUnitTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
-	printer.Clean()
 }
 
 type MmctlE2ETestSuite struct {
@@ -39,13 +37,12 @@ type MmctlE2ETestSuite struct {
 	th *api4.TestHelper
 }
 
-func (s *MmctlE2ETestSuite) SetupSuite() {
+func (s *MmctlE2ETestSuite) SetupTest() {
+	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {
-	printer.Clean()
-
 	// if a test helper was used, we run the teardown and remove it
 	// from the structure to avoid reusing the same helper between
 	// tests
