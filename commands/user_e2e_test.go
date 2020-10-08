@@ -158,7 +158,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		userPool = append(userPool, usr.Username)
 	}
 
-	s.RunForAllClients("Get some random of user", func(c client.Client) {
+	s.RunForAllClients("Get some random user", func(c client.Client) {
 		printer.Clean()
 
 		var page int
