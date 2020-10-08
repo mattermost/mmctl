@@ -1,12 +1,11 @@
 image: $CI_REGISTRY/images/build-ci
 
 stages:
-  - .pre
   - test
   - publish-s3
 
 docs:
-  stage: .pre
+  stage: test
   image: $CI_REGISTRY/images/golang-ci:1.14.9
   script:
     - echo "Making sure docs are updated"
@@ -14,7 +13,7 @@ docs:
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
 
 lint:
-  stage: .pre
+  stage: test
   image: golangci/golangci-lint:v1.25.1
   script:
     - echo "Installing mattermost-govet"
@@ -22,7 +21,7 @@ lint:
     - make check
 
 checkout-server:
-  stage: .pre
+  stage: test
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
     - eval $(ssh-agent -s)
@@ -56,5 +55,13 @@ test:
     - cd ..
     - ls -al
     - docker-compose version
+    - cd mattermost-server/build
+    - docker-compose --no-ansi run --rm start_dependencies
+    - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+    - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+    - docker-compose --no-ansi ps
+    - sleep 5
+    - docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+    - docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
   dependencies:
     - checkout-server
