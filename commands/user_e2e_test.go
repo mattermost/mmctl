@@ -187,7 +187,12 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 
 		// populate with some user
 		for i := 0; i < 10; i++ {
-			err := s.th.CreateUser()
+			userData := model.User{
+				Username: "fakeuser" + model.NewRandomString(10),
+				Password: "Pa$$word11",
+				Email:    s.th.GenerateTestEmail(),
+			}
+			_, err := s.th.App.CreateUser(&userData)
 			s.Require().Nil(err)
 		}
 
