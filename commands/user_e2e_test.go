@@ -187,7 +187,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 
 		// populate with some user
 		for i := 0; i < 10; i++ {
-			_, err := s.th.CreateUser()
+			err := s.th.CreateUser()
 			s.Require().Nil(err)
 		}
 
