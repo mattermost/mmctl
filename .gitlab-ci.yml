@@ -38,12 +38,14 @@ checkout-server:
     - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
   artifacts:
     paths:
-      - mattermost-server
+      - ../mattermost-server
     expire_in: 3 hours
 
 test:
   stage: test
   image: $CI_REGISTRY/images/docker-ci
+  tags:
+    - docker
   services:
     - docker:19.03.12-dind
   variables:
