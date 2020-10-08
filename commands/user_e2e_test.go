@@ -150,9 +150,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableMultifactorAuthentication
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
-		}()
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 
 		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{user.Email})
 		s.Require().Nil(err)
