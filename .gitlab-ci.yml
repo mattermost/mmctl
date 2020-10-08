@@ -43,9 +43,16 @@ checkout-server:
 
 test:
   stage: test
-  image: ubuntu-1604:201903-01
+  image: $CI_REGISTRY/images/docker-ci
+  services:
+    - docker:19.03.12-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
   script:
     - cd ..
     - ls -al
+    - docker-compose version
   dependencies:
     - checkout-server
