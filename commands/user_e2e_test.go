@@ -148,7 +148,12 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		s.th.SystemAdminUser.Username,
 	}
 	for i := 0; i < 10; i++ {
-		usr, err := s.th.CreateUser()
+		userData := model.User{
+			Username: "fakeuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+		}
+		usr, err := s.th.App.CreateUser(&userData)
 		s.Require().Nil(err)
 		userPool = append(userPool, usr.Username)
 	}
