@@ -200,5 +200,4 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Email))
 	})
-
 }
