@@ -99,17 +99,24 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 	s.Run("Permission denied error for system admin when deleting a valid team", func() {
 		printer.Clean()
-
+		teamName := "teamname"
+		teamDisplayname := "Mock Display Name"
 		cmd := &cobra.Command{}
-		args := []string{""}
-		args[0] = s.th.BasicTeam.Name
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", teamDisplayname, "")
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+
+		printer.Clean()
+		args := []string{teamName}
+		cmd = &cobra.Command{}
 		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
-		err := deleteTeamsCmdF(s.th.SystemAdminClient, cmd, args)
+		err = deleteTeamsCmdF(s.th.SystemAdminClient, cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal(s.th.BasicTeam, printer.GetLines()[1])
+		s.Equal("Unable to delete team '"+teamName+"' error: : Permanent team deletion feature is not enabled. Please contact your System Administrator., ", printer.GetErrorLines()[0])
 	})
 }
