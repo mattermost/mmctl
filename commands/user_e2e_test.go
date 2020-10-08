@@ -4,9 +4,9 @@
 package commands
 
 import (
-	"os"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
@@ -141,7 +141,6 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
-
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 	s.SetupTestHelper().InitBasic()
 
@@ -154,15 +153,20 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm",confirm,"confirm")
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser, appErr := s.th.CreateUser()
+		userData := model.User{
+			Email:    s.th.GenerateTestEmail(),
+			Username: "fakeuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+		}
+		newUser, appErr := s.th.App.CreateUser(&userData)
 		s.Require().Nil(appErr)
-		err := deleteUsersCmdF(c ,cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
-		
+
 		deletedUser := printer.GetLines()[0].(*model.User)
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
@@ -188,23 +192,23 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		tmpfile, err := ioutil.TempFile("", "inputfile")
 		s.Require().Nil(err)
 		defer os.Remove(tmpfile.Name()) // remove temp file
-	
-		_,err = tmpfile.Write(content)
+
+		_, err = tmpfile.Write(content)
 		s.Require().Nil(err)
-		_,err = tmpfile.Seek(0, 0)
+		_, err = tmpfile.Seek(0, 0)
 		s.Require().Nil(err)
-		
+
 		// replace stdin to do input in testing
 		oldStdin := os.Stdin
 		defer func() { os.Stdin = oldStdin }() // restore
 		os.Stdin = tmpfile
 
 		newUser := s.th.CreateUser()
-		err = deleteUsersCmdF(c ,cmd, []string{newUser.Email})
+		err = deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
-		
+
 		deletedUser := printer.GetLines()[0].(*model.User)
 		s.Require().Equal(newUser.Username, deletedUser.Username)
 
@@ -226,9 +230,9 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm",confirm,"confirm")
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		err := deleteUsersCmdF(s.th.Client ,cmd, []string{emailArg})
+		err := deleteUsersCmdF(s.th.Client, cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -246,10 +250,10 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm",confirm,"confirm")
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser()
-		err := deleteUsersCmdF(s.th.Client ,cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(s.th.Client, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -272,10 +276,10 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		cmd := &cobra.Command{}
 		confirm := true
-		cmd.Flags().BoolVar(&confirm, "confirm",confirm,"confirm")
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		newUser := s.th.CreateUser()
-		err := deleteUsersCmdF(s.th.SystemAdminClient ,cmd, []string{newUser.Email})
+		err := deleteUsersCmdF(s.th.SystemAdminClient, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -285,5 +289,33 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		user, err := s.th.App.GetUser(newUser.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(newUser.Username, user.Username)
+	})
+
+	s.Run("Delete user with disabled config as local client", func() {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
+		}()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		newUser := s.th.CreateUser()
+		err := deleteUsersCmdF(s.th.LocalClient, cmd, []string{newUser.Email})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+
+		deletedUser := printer.GetLines()[0].(*model.User)
+		s.Require().Equal(newUser.Username, deletedUser.Username)
+
+		// expect user deleted
+		_, err = s.th.App.GetUser(newUser.Id)
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
 	})
 }
