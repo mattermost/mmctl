@@ -81,6 +81,8 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: : You do not have the appropriate permissions., ", printer.GetErrorLines()[0])
+		team, _ := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Equal(team.Name, s.th.BasicTeam.Name)
 	})
 
 	s.RunForSystemAdminAndLocal("Delete a valid team", func(c client.Client) {
@@ -135,7 +137,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		s.Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: : Permanent team deletion feature is not enabled. Please contact your System Administrator., ", printer.GetErrorLines()[0])
 
 		// verify team still exists
-		team, _ := s.th.LocalClient.GetTeamByName(s.th.BasicTeam.Name, "")
+		team, _ := s.th.App.GetTeam(s.th.BasicTeam.Id)
 		s.Equal(team.Name, s.th.BasicTeam.Name)
 
 		// Delete should succeed for local client
