@@ -79,6 +79,13 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		team := printer.GetLines()[0].(*model.Team)
 		s.Require().Equal(s.th.BasicTeam.Name, team.Name)
 		s.Require().Len(printer.GetErrorLines(), 0)
+
+		basicTeam, err := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(err)
+		s.Require().NotZero(basicTeam.DeleteAt)
+
+		err = s.th.App.RestoreTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(err)
 	})
 
 	s.Run("Archive team without permissions", func() {
@@ -89,5 +96,9 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions.")
+
+		basicTeam, err := s.th.App.GetTeam(s.th.BasicTeam.Id)
+		s.Require().Nil(err)
+		s.Require().Zero(basicTeam.DeleteAt)
 	})
 }
