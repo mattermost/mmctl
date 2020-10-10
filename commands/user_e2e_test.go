@@ -164,7 +164,6 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
 		s.Require().Nil(err)
-		s.Require().NotEqual(newEmail, u.Email)
 		s.Require().Equal(s.th.BasicUser2.Email, u.Email)
 	})
 
