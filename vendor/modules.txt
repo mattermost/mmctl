@@ -1,3 +1,5 @@
+# github.com/Masterminds/semver/v3 v3.1.0
+github.com/Masterminds/semver/v3
 # github.com/Masterminds/squirrel v1.4.0
 github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1
@@ -6,6 +8,45 @@ github.com/NYTimes/gziphandler
 github.com/RoaringBitmap/roaring
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 github.com/avct/uasurfer
+# github.com/aws/aws-sdk-go v1.31.4
+github.com/aws/aws-sdk-go/aws
+github.com/aws/aws-sdk-go/aws/awserr
+github.com/aws/aws-sdk-go/aws/awsutil
+github.com/aws/aws-sdk-go/aws/client
+github.com/aws/aws-sdk-go/aws/client/metadata
+github.com/aws/aws-sdk-go/aws/corehandlers
+github.com/aws/aws-sdk-go/aws/credentials
+github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
+github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
+github.com/aws/aws-sdk-go/aws/credentials/processcreds
+github.com/aws/aws-sdk-go/aws/credentials/stscreds
+github.com/aws/aws-sdk-go/aws/csm
+github.com/aws/aws-sdk-go/aws/defaults
+github.com/aws/aws-sdk-go/aws/ec2metadata
+github.com/aws/aws-sdk-go/aws/endpoints
+github.com/aws/aws-sdk-go/aws/request
+github.com/aws/aws-sdk-go/aws/session
+github.com/aws/aws-sdk-go/aws/signer/v4
+github.com/aws/aws-sdk-go/internal/context
+github.com/aws/aws-sdk-go/internal/ini
+github.com/aws/aws-sdk-go/internal/sdkio
+github.com/aws/aws-sdk-go/internal/sdkmath
+github.com/aws/aws-sdk-go/internal/sdkrand
+github.com/aws/aws-sdk-go/internal/sdkuri
+github.com/aws/aws-sdk-go/internal/shareddefaults
+github.com/aws/aws-sdk-go/internal/strings
+github.com/aws/aws-sdk-go/internal/sync/singleflight
+github.com/aws/aws-sdk-go/private/protocol
+github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
+github.com/aws/aws-sdk-go/private/protocol/jsonrpc
+github.com/aws/aws-sdk-go/private/protocol/query
+github.com/aws/aws-sdk-go/private/protocol/query/queryutil
+github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
+github.com/aws/aws-sdk-go/service/marketplacemetering
+github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface
+github.com/aws/aws-sdk-go/service/sts
+github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/blang/semver v3.5.1+incompatible
@@ -156,6 +197,8 @@ github.com/hashicorp/yamux
 github.com/inconshreveable/mousetrap
 # github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 github.com/jaytaylor/html2text
+# github.com/jmespath/go-jmespath v0.3.0
+github.com/jmespath/go-jmespath
 # github.com/jmoiron/sqlx v1.2.0
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
@@ -191,7 +234,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200916134341-0092b8bc6f5d
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201007095934-0e140dad2fae
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing
@@ -206,6 +249,7 @@ github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
 github.com/mattermost/mattermost-server/v5/plugin
 github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock
+github.com/mattermost/mattermost-server/v5/services/awsmeter
 github.com/mattermost/mattermost-server/v5/services/cache
 github.com/mattermost/mattermost-server/v5/services/configservice
 github.com/mattermost/mattermost-server/v5/services/filesstore
@@ -321,6 +365,8 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
+# github.com/reflog/dateconstraints v0.2.1
+github.com/reflog/dateconstraints
 # github.com/rs/cors v1.7.0
 github.com/rs/cors
 # github.com/rs/xid v1.2.1
