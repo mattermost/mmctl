@@ -17,14 +17,17 @@ import (
 
 func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.SetupTestHelper().InitBasic()
-		initChannelName := api4.GenerateTestChannelName()
-		channel, appErr := s.th.App.CreateChannel(&model.Channel{
-			TeamId:      s.th.BasicTeam.Id,
-			Name:        initChannelName,
-			DisplayName: "dName_" + initChannelName,
-			Type:        model.CHANNEL_OPEN,
-		}, false)
-		s.Require().Nil(appErr)
+	initChannelName := api4.GenerateTestChannelName()
+	var appErr *model.AppError
+	var channel *model.Channel
+	var team *model.Team
+	channel, appErr = s.th.App.CreateChannel(&model.Channel{
+		TeamId:      s.th.BasicTeam.Id,
+		Name:        initChannelName,
+		DisplayName: "dName_" + initChannelName,
+		Type:        model.CHANNEL_OPEN,
+	}, false)
+	s.Require().Nil(appErr)
 
 	s.RunForAllClients("Move nonexistent team", func(c client.Client) {
 		printer.Clean()
@@ -40,7 +43,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		printer.Clean()
 
 		testTeamName := api4.GenerateTestTeamName()
-		team, appErr := s.th.App.CreateTeam(&model.Team{
+		team, appErr = s.th.App.CreateTeam(&model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
@@ -82,7 +85,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		s.SetupTestHelper().InitBasic()
 		initChannelName := api4.GenerateTestChannelName()
-		channel, appErr := s.th.App.CreateChannel(&model.Channel{
+		channel, appErr = s.th.App.CreateChannel(&model.Channel{
 			TeamId:      s.th.BasicTeam.Id,
 			Name:        initChannelName,
 			DisplayName: "dName_" + initChannelName,
@@ -106,7 +109,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		printer.Clean()
 
 		testTeamName := api4.GenerateTestTeamName()
-		team, appErr := s.th.App.CreateTeam(&model.Team{
+		team, appErr = s.th.App.CreateTeam(&model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
