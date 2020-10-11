@@ -42,7 +42,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		testTeamName := api4.GenerateTestTeamName()
 		team, appErr := s.th.App.CreateTeam(&model.Team{
 			Name:        testTeamName,
-			DisplayName: "dn_" + testTeamName,
+			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
 		})
 		s.Require().Nil(appErr)
@@ -77,7 +77,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", "no-channel"), printer.GetErrorLines()[0])
 	})
 
-	s.RunForSystemAdminAndLocal("Moving channel which is already moved to same team", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Moving channel which is already moved to particular team", func(c client.Client) {
 		printer.Clean()
 
 		s.SetupTestHelper().InitBasic()
@@ -102,13 +102,13 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Moving existing channel for a particular team should fail for client", func() {
+	s.Run("Move existing channel to specified team should fail for client", func() {
 		printer.Clean()
 
 		testTeamName := api4.GenerateTestTeamName()
 		team, appErr := s.th.App.CreateTeam(&model.Team{
 			Name:        testTeamName,
-			DisplayName: "dn_" + testTeamName,
+			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
 		})
 		s.Require().Nil(appErr)
