@@ -19,11 +19,10 @@ const (
 	MethodPassword = "P"
 	MethodToken    = "T"
 	MethodMFA      = "M"
-)
 
-const (
-	configFileName = ".mmctl"
-	xdgConfigHome  = ".config"
+	configFileName   = ".mmctl"
+	xdgConfigHome    = ".config"
+	xdgConfigHomeKey = "XDG_CONFIG_HOME"
 )
 
 type Credentials struct {
@@ -37,17 +36,27 @@ type Credentials struct {
 
 type CredentialsList map[string]*Credentials
 
+var currentUser *user.User
+
+func init() {
+	newUser, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	SetUser(newUser)
+}
+
 func getDefaultConfigPath() string {
-	return filepath.Join("$HOME", xdgConfigHome, "mmctl")
+	configPath := filepath.Join("$HOME", xdgConfigHome, "mmctl")
+	if p, ok := os.LookupEnv(xdgConfigHomeKey); ok {
+		configPath = p
+	}
+	return configPath
 }
 
 func resolveConfigFilePath() (string, error) {
-	u, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-
-	configPath := strings.Replace(viper.GetString("config"), "$HOME", u.HomeDir, 1)
+	configPath := strings.Replace(viper.GetString("config"), "$HOME", currentUser.HomeDir, 1)
 
 	// probe user-defined or xdg-compliant default config path
 	if _, err := os.Stat(filepath.Join(configPath, configFileName)); err != nil {
@@ -55,7 +64,7 @@ func resolveConfigFilePath() (string, error) {
 			return "", err
 		}
 		// conditionally fall back to legacy config path
-		configPath = u.HomeDir
+		configPath = currentUser.HomeDir
 	}
 
 	return filepath.Join(configPath, configFileName), nil
@@ -187,4 +196,8 @@ func CleanCredentials() error {
 		return err
 	}
 	return nil
+}
+
+func SetUser(newUser *user.User) {
+	currentUser = newUser
 }
