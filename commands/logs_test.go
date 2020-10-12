@@ -98,7 +98,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Error(err)
-		s.Require().Equal(err.Error(), "json formatting cannot be applied on the output of this command")
+		s.Require().Equal(err.Error(), "json formatting cannot be applied on this command. Please check the value of \"MMCTL_FORMAT\"")
 		s.Require().Len(data, 0)
 
 		viper.Set("format", formatTmp)
