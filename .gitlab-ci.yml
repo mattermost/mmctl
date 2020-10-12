@@ -1,8 +1,27 @@
 image: $CI_REGISTRY/images/build-ci
 
 stages:
+  - pretest
   - test
   - publish-s3
+
+checkout-server:
+  stage: pretest
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+
+    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
+  artifacts:
+    paths:
+      - mattermost-server
+    expire_in: 3 hours
 
 docs:
   stage: test
@@ -19,24 +38,6 @@ lint:
     - echo "Installing mattermost-govet"
     - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
     - make check
-
-checkout-server:
-  stage: test
-  before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
-    - eval $(ssh-agent -s)
-
-    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-  script:
-    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
-  artifacts:
-    paths:
-      - mattermost-server
-    expire_in: 3 hours
 
 test:
   stage: test
