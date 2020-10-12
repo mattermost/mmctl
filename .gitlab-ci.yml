@@ -53,7 +53,7 @@ test:
   script:
     - ls -al
     - pwd
-    - echo $HOME
+    - echo MM_SERVER_PATH ?= ${PWD}/mattermost-server > config.override.mk
     - docker-compose version
     - cd mattermost-server/build
     - docker-compose --no-ansi run --rm start_dependencies
