@@ -62,7 +62,7 @@ test:
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
         -v /builds/mirrors/core:/mattermost \
-        -w /mmctl \
+        -w /mattermost \
         mattermost/mattermost-build-server:20200731_golang-1.14.6 \
         bash -c 'ulimit -n 8096; cd mmctl; ls -al; make test-all'
     - docker logs -f server
