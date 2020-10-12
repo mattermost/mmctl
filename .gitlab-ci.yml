@@ -2,7 +2,7 @@ image: $CI_REGISTRY/images/build-ci
 
 stages:
   - test
-  - publish-s3
+  - build
 
 docs:
   stage: test
@@ -12,6 +12,12 @@ docs:
     - make docs
     - which git
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+
+coverage:
+  stage: test
+  image: $CI_REGISTRY/images/golang-ci:1.14.9
+  script:
+    - make coverage
 
 lint:
   stage: test
@@ -66,3 +72,11 @@ test:
         mattermost/mattermost-build-server:20200731_golang-1.14.6 \
         bash -c 'ulimit -n 8096; cd mmctl; ls -al; make test-all'
     - docker logs -f server
+
+build:
+  stage: build
+  image: $CI_REGISTRY/images/golang-ci:1.14.9
+  script:
+    - make package
+  dependencies:
+    - lint
