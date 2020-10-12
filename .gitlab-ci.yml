@@ -65,7 +65,7 @@ test:
     - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
     - ulimit -n 8096
     - >
-      docker run -it --net build_mm-test \
+      docker run -d --net build_mm-test \
         --env-file=dotenv/test.env \
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
