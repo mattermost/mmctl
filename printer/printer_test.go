@@ -35,8 +35,7 @@ func TestPrintT(t *testing.T) {
 		assert.Len(t, GetLines(), 1)
 
 		Flush()
-		// TODO: eli remove
-		assert.NotEqual(t, "testing template 123", printer.Lines[0])
+		assert.Equal(t, "testing template 123", printer.Lines[0])
 	})
 
 	t.Run("should fail to execute, no method or field", func(t *testing.T) {
