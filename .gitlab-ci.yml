@@ -1,27 +1,8 @@
 image: $CI_REGISTRY/images/build-ci
 
 stages:
-  - pretest
   - test
   - publish-s3
-
-checkout-server:
-  stage: pretest
-  before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
-    - eval $(ssh-agent -s)
-
-    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-  script:
-    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
-  artifacts:
-    paths:
-      - mattermost-server
-    expire_in: 3 hours
 
 docs:
   stage: test
@@ -29,6 +10,7 @@ docs:
   script:
     - echo "Making sure docs are updated"
     - make docs
+    - which git
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
 
 lint:
@@ -50,12 +32,20 @@ test:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+
+    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - ls -al
-    - pwd
-    - echo MM_SERVER_PATH ?= ${PWD}/mattermost-server > config.override.mk
     - docker-compose version
-    - cd mattermost-server/build
+    - cd ..
+    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
+    - cd build
     - docker-compose --no-ansi run --rm start_dependencies
     - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
     - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
@@ -64,16 +54,15 @@ test:
     - docker network ls
     - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
     - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+
     - ulimit -n 8096
     - >
       docker run --name server -d --net build_mm-test \
         --env-file=dotenv/test.env \
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
-        -v /builds/mirrors/core/mmctl:/mmctl \
+        -v /builds/mirrors/core:/mattermost \
         -w /mmctl \
         mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-        bash -c 'ulimit -n 8096; ls -al; make test-all'
+        bash -c 'ulimit -n 8096; cd mmctl; ls -al; make test-all'
     - docker logs -f server
-  dependencies:
-    - checkout-server
