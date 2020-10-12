@@ -32,12 +32,10 @@ checkout-server:
     - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - cd ..
-    - ls -al
     - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
   artifacts:
     paths:
-      - ../mattermost-server
+      - mattermost-server
     expire_in: 3 hours
 
 test:
@@ -52,7 +50,6 @@ test:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
   script:
-    - cd ..
     - ls -al
     - docker-compose version
     - cd mattermost-server/build
