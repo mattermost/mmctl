@@ -75,7 +75,7 @@ test:
         bash -c 'ulimit -n 8096; cd mmctl; ls -al; make test-all'
     - docker logs -f server
     - docker inspect server --format='{{.State.ExitCode}}'
-    - if [[ $(docker inspect server --format='{{.State.ExitCode}}') == 1 ]];then exit 1; fi
+    - if [[ $(docker inspect server --format='{{.State.ExitCode}}') != 0 ]];then exit 1; fi
 
 build:
   stage: build
