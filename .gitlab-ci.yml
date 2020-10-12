@@ -61,7 +61,7 @@ test:
     - sleep 5
     - docker network ls
     - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-    - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://postgres:5432; do echo waiting for mysql; sleep 5; done;"
+#    - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://postgres:5432; do echo waiting for postgres; sleep 5; done;"
     - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
     - ulimit -n 8096
     - >
