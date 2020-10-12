@@ -18,6 +18,8 @@ coverage:
   image: $CI_REGISTRY/images/golang-ci:1.14.9
   script:
     - make coverage
+#    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_ID -Z || echo 'Codecov upload failed'
+  allow_failure: true
 
 lint:
   stage: test
@@ -72,6 +74,8 @@ test:
         mattermost/mattermost-build-server:20200731_golang-1.14.6 \
         bash -c 'ulimit -n 8096; cd mmctl; ls -al; make test-all'
     - docker logs -f server
+    - docker inspect server --format='{{.State.ExitCode}}'
+    - if [[ $(docker inspect server --format='{{.State.ExitCode}}') == 1 ]];then exit 1; fi
 
 build:
   stage: build
