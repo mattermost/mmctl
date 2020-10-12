@@ -155,13 +155,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		userData := model.User{
-			Email:    s.th.GenerateTestEmail(),
-			Username: "fakeuser" + model.NewRandomString(10),
-			Password: "Pa$$word11",
-		}
-		newUser, appErr := s.th.App.CreateUser(&userData)
-		s.Require().Nil(appErr)
+		newUser := s.th.CreateUser()
 		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
@@ -232,7 +226,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		err := deleteUsersCmdF(s.th.Client, cmd, []string{emailArg})
+		err := deleteUsersCmdF(c, cmd, []string{emailArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
@@ -265,7 +259,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(newUser.Username, user.Username)
 	})
 
-	s.Run("Delete user with disabled config", func() {
+	s.Run("Delete user with disabled config as system admin", func() {
 		printer.Clean()
 
 		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
