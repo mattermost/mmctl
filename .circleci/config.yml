@@ -123,7 +123,7 @@ jobs:
           name: Run Tests
           command: |
             ulimit -n 8096
-
+            cd ../mattermost-server/build
             docker run -it --net circleci_mm-test \
               --env-file=dotenv/test.env \
               --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
