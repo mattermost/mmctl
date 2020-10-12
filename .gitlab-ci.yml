@@ -18,7 +18,7 @@ coverage:
   image: $CI_REGISTRY/images/golang-ci:1.14.9
   script:
     - make coverage
-#    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_ID -Z || echo 'Codecov upload failed'
+    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_ID -Z || echo 'Codecov upload failed'
   allow_failure: true
 
 lint:
@@ -83,3 +83,7 @@ build:
     - make package
   dependencies:
     - lint
+  artifacts:
+    paths:
+      - build
+    expire_in: 3 hours
