@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	s.SetupTestHelper().InitBasic()
 
