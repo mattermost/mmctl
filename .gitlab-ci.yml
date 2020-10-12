@@ -53,6 +53,7 @@ test:
   script:
     - ls -al
     - pwd
+    - echo $HOME
     - docker-compose version
     - cd mattermost-server/build
     - docker-compose --no-ansi run --rm start_dependencies
@@ -69,7 +70,7 @@ test:
         --env-file=dotenv/test.env \
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
-        -v ~:/mmctl \
+        -v /builds/mirrors/core/mmctl:/mmctl \
         -w /mmctl \
         mattermost/mattermost-build-server:20200731_golang-1.14.6 \
         bash -c 'ulimit -n 8096; ls -al; make test-all'
