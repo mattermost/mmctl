@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"sort"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 
@@ -14,23 +16,54 @@ import (
 func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 	s.SetupTestHelper().InitBasic()
 
+	var assertChannelNames = func(want []string, lines []interface{}) {
+		var got []string
+		for i := 0; i < len(lines); i++ {
+			got = append(got, lines[i].(*model.Channel).Name)
+		}
+
+		sort.Strings(want)
+		sort.Strings(got)
+
+		s.Equal(want, got)
+	}
+
 	s.Run("List channels/Client", func() {
 		printer.Clean()
+		wantNames := append(
+			s.th.App.DefaultChannelNames(),
+			[]string{
+				s.th.BasicChannel.Name,
+				s.th.BasicChannel2.Name,
+				s.th.BasicDeletedChannel.Name,
+				s.th.BasicPrivateChannel.Name,
+			}...,
+		)
 
 		err := listChannelsCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Equal(6, len(printer.GetLines()))
-		s.assertOutputDisplaysChannels()
+		assertChannelNames(wantNames, printer.GetLines())
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
 	s.RunForSystemAdminAndLocal("List channels", func(c client.Client) {
 		printer.Clean()
+		wantNames := append(
+			s.th.App.DefaultChannelNames(),
+			[]string{
+				s.th.BasicChannel.Name,
+				s.th.BasicChannel2.Name,
+				s.th.BasicDeletedChannel.Name,
+				s.th.BasicPrivateChannel.Name,
+				s.th.BasicPrivateChannel2.Name,
+			}...,
+		)
 
 		err := listChannelsCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name})
 		s.Require().Nil(err)
 		s.Equal(7, len(printer.GetLines()))
-		s.assertOutputDisplaysChannels()
+		assertChannelNames(wantNames, printer.GetLines())
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
