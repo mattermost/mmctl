@@ -77,20 +77,3 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 		s.Equal("Unable to find team '"+team+"'", printer.GetErrorLines()[0])
 	})
 }
-
-func (s *MmctlE2ETestSuite) assertOutputDisplaysChannels() {
-	validChannelNames := append(
-		[]string{
-			s.th.BasicChannel.Name,
-			s.th.BasicChannel2.Name,
-			s.th.BasicPrivateChannel.Name,
-			s.th.BasicPrivateChannel2.Name,
-			s.th.BasicDeletedChannel.Name,
-		},
-		s.th.App.DefaultChannelNames()...,
-	)
-
-	for i := range printer.GetLines() {
-		s.Contains(validChannelNames, (printer.GetLines()[i].(*model.Channel)).Name)
-	}
-}
