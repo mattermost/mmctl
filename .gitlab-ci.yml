@@ -87,3 +87,8 @@ build:
     paths:
       - build
     expire_in: 3 hours
+#  only:
+#    - tags
+#    - master
+
+include: /.gitlab-ci/private.yml

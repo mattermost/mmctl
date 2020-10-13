@@ -1,0 +1,23 @@
+stages:
+  - publish
+
+publish-s3:
+  stage: publish
+  image: $CI_REGISTRY/aws-ci:1.0.2
+  script:
+    - aws --version
+    - aws s3 ls
+  dependencies:
+    - build
+
+publish-github-master:
+  stage: publish
+  image: goreleaser/goreleaser:v0.144.1
+  script:
+    - goreleaser --version
+  dependencies:
+    - build
+#    - gh --version
+#    - gh --prerelease --repo mattermost/mmctl create --target
+#  publish-github-release
+
