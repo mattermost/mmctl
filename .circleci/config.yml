@@ -146,44 +146,44 @@ jobs:
       - codecov/upload:
         file:  coverage.txt
 
-  build:
-    executor:
-      name: default
-    steps:
-      - checkout
-      - run:
-          name: "Validate lint"
-          command: |
-            echo "Installing mattermost-govet"
-            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
-      - install-golangci-lint
-      - run: make package
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build
-
-  publish-github-release:
-    docker:
-      - image: cibuilds/github:0.12
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
-
-  publish-github-master:
-    docker:
-      - image: cibuilds/github:0.12
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: "Publish Draft Pre-Release on GitHub"
-          command: |
-            ghr -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
+#  build:
+#    executor:
+#      name: default
+#    steps:
+#      - checkout
+#      - run:
+#          name: "Validate lint"
+#          command: |
+#            echo "Installing mattermost-govet"
+#            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+#      - install-golangci-lint
+#      - run: make package
+#      - persist_to_workspace:
+#          root: .
+#          paths:
+#            - build
+#
+#  publish-github-release:
+#    docker:
+#      - image: cibuilds/github:0.12
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run:
+#          name: "Publish Release on GitHub"
+#          command: |
+#            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
+#
+#  publish-github-master:
+#    docker:
+#      - image: cibuilds/github:0.12
+#    steps:
+#      - attach_workspace:
+#          at: .
+#      - run:
+#          name: "Publish Draft Pre-Release on GitHub"
+#          command: |
+#            ghr -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
 
 workflows:
   version: 2
@@ -198,58 +198,58 @@ workflows:
       - test:
           requires:
             - setup
-  tagged-build:
-    jobs:
-      - docs:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - lint:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - setup:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - test:
-          requires:
-              - setup
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - build:
-          requires:
-            - lint
-            - test
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - publish-github-release:
-          context: matterbuild-github-token
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*\d/
-            branches:
-              ignore: /.*/
-      - publish-github-master:
-          context: matterbuild-github-token
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*\D{3,}/
-            branches:
-              ignore: /.*/
+#  tagged-build:
+#    jobs:
+#      - docs:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - lint:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - setup:
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - test:
+#          requires:
+#              - setup
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - build:
+#          requires:
+#            - lint
+#            - test
+#          filters:
+#            tags:
+#              only: /^v.*/
+#            branches:
+#              ignore: /.*/
+#      - publish-github-release:
+#          context: matterbuild-github-token
+#          requires:
+#            - build
+#          filters:
+#            tags:
+#              only: /^v.*\d/
+#            branches:
+#              ignore: /.*/
+#      - publish-github-master:
+#          context: matterbuild-github-token
+#          requires:
+#            - build
+#          filters:
+#            tags:
+#              only: /^v.*\D{3,}/
+#            branches:
+#              ignore: /.*/

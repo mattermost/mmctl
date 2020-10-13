@@ -84,7 +84,7 @@ build:
       - build
     expire_in: 3 hours
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "gitlab"' #TODO change to master
+    - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
     - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
@@ -111,7 +111,7 @@ s3:
     - test
     - build
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "gitlab"' #TODO change to master
+    - if: '$CI_COMMIT_REF_NAME == "master"'
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
     - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
@@ -121,7 +121,7 @@ github-master:
   image: $CI_REGISTRY/images/ghr-ci:v0.13.0
   script:
     - ghr --version
-    - ghr -prerelease -draft -t ${GITHUB_TOKEN} -u mattermost -r mmctl -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
+    - ghr -prerelease -t ${GITHUB_TOKEN} -u mattermost -r mmctl -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
   dependencies:
     - docs
     - coverage
@@ -129,7 +129,7 @@ github-master:
     - test
     - build
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "gitlab"' #TODO - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
 
 github-release:
   stage: publish
