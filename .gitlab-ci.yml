@@ -101,9 +101,9 @@ s3:
     - if [[ $CI_COMMIT_REF_NAME =~ /^v/ ]]; then BUCKET_PATH=mmctl/${CI_COMMIT_REF_NAME#v}; else BUCKET_PATH=mmctl/$CI_COMMIT_REF_NAME; fi
     - aws --version
     - aws s3 cp build s3://$BUCKET/$BUCKET_PATH --recursive
-  #    - ID=$(aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/$BUCKET_PATH" | jq -r '.Invalidation.Id')
-  #    - aws configure set preview.cloudfront true
-  #    - aws cloudfront wait invalidation-completed --id $ID --distribution-id $DISTRIBUTION
+    - ID=$(aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/$BUCKET_PATH" | jq -r '.Invalidation.Id')
+    - aws configure set preview.cloudfront true
+    - aws cloudfront wait invalidation-completed --id $ID --distribution-id $DISTRIBUTION
   dependencies:
     - docs
     - coverage
