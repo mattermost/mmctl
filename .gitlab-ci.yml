@@ -89,7 +89,7 @@ build:
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
     - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
 
-publish-s3:
+s3:
   stage: publish
   image: $CI_REGISTRY/images/aws-ci:1.0.2
   variables:
@@ -100,7 +100,7 @@ publish-s3:
     # remove v. e.g.: v5.28 -> 5.28
     - if [[ $CI_COMMIT_REF_NAME =~ /^v/ ]]; then BUCKET_PATH=mmctl/${CI_COMMIT_REF_NAME#v}; else BUCKET_PATH=mmctl/$CI_COMMIT_REF_NAME; fi
     - aws --version
-    - aws s3 cp mmctl/build s3://$BUCKET/$BUCKET_PATH --recursive
+    - aws s3 cp build s3://$BUCKET/$BUCKET_PATH --recursive
   #    - ID=$(aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/$BUCKET_PATH" | jq -r '.Invalidation.Id')
   #    - aws configure set preview.cloudfront true
   #    - aws cloudfront wait invalidation-completed --id $ID --distribution-id $DISTRIBUTION
@@ -116,12 +116,12 @@ publish-s3:
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
     - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
 
-publish-github-master:
+github-master:
   stage: publish
   image: $CI_REGISTRY/images/ghr-ci:v0.13.0
   script:
     - ghr --version
-    - ghr -prerelease -draft -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r mattermost/mmctl -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
+    - ghr -prerelease -draft -t ${GITHUB_TOKEN} -u mattermost -r mmctl -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
   dependencies:
     - docs
     - coverage
@@ -131,12 +131,11 @@ publish-github-master:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "gitlab"' #TODO - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
 
-publish-github-release:
+github-release:
   stage: publish
   image: $CI_REGISTRY/images/ghr-ci:v0.13.0
   script:
-    - ghr --version
-    - ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r mattermost/mmctl  -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
+    - ghr -t ${GITHUB_TOKEN} -u mattermost -r mmctl  -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
   dependencies:
     - docs
     - coverage
