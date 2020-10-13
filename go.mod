@@ -7,7 +7,7 @@ require (
 	github.com/golang/mock v1.3.1
 	github.com/magefile/mage v1.9.0
 	github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible // indirect
-	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20200916134341-0092b8bc6f5d
+	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201007095934-0e140dad2fae
 	github.com/pkg/errors v0.9.1
 	github.com/poy/onpar v1.0.0 // indirect
 	github.com/spf13/cobra v1.0.0
