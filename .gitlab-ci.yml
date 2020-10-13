@@ -3,6 +3,7 @@ image: $CI_REGISTRY/images/build-ci
 stages:
   - test
   - build
+  - publish
 
 docs:
   stage: test

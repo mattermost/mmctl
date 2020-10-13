@@ -1,6 +1,3 @@
-stages:
-  - publish
-
 publish-s3:
   stage: publish
   image: $CI_REGISTRY/aws-ci:1.0.2
