@@ -44,9 +44,9 @@ publish-github-master:
 publish-github-release:
   stage: publish
   image: $CI_REGISTRY/images/ghr-ci:v0.13.0
-    script:
-      - ghr --version
-      - ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r mattermost/mmctl  -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
+  script:
+    - ghr --version
+    - ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r mattermost/mmctl  -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
   dependencies:
     - docs
     - coverage
