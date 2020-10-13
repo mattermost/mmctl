@@ -88,8 +88,10 @@ build:
     paths:
       - build
     expire_in: 3 hours
-#  only:
-#    - tags
-#    - master
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "gitlab"' #TODO change to master
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
 
 include: /.gitlab-ci/private.yml
