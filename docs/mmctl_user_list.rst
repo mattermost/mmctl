@@ -31,7 +31,7 @@ Options
   -h, --help           help for list
       --page int       Page number to fetch for the list of users
       --per-page int   Number of users to be fetched (default 200)
-      --team string    Team name to get users of
+      --team string    Get users belonging to given team
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
