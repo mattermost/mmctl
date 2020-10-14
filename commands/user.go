@@ -670,8 +670,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
-
-	team, err := command.Flags().GetString("team")
+	teamName, err := command.Flags().GetString("team")
 	if err != nil {
 		return err
 	}
@@ -680,15 +679,24 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		page = 0
 	}
 
+	var team *model.Team
+	if teamName != "" {
+		var resp *model.Response
+		team, resp = c.GetTeamByName(teamName, "")
+		if resp.Error != nil {
+			return errors.Wrap(resp.Error, fmt.Sprintf("Failed to get Id for team %s", teamName))
+		}
+	}
+
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 
 	for {
 		var users []*model.User
 		var res *model.Response
-		if team != "" {
-			users, res = c.GetUsersInTeam(team, page, perPage, "")
+		if team != nil {
+			users, res = c.GetUsersInTeam(team.Id, page, perPage, "")
 			if res.Error != nil {
-				return errors.Wrap(res.Error, fmt.Sprintf("Failed to fetch users for team %s", team))
+				return errors.Wrap(res.Error, fmt.Sprintf("Failed to fetch users for team %s", teamName))
 			}
 		} else {
 			users, res = c.GetUsers(page, perPage, "")
