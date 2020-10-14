@@ -28,7 +28,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 	channel, appErr := s.th.App.CreateChannel(&model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
-		DisplayName: "db_" + channelName,
+		DisplayName: "dn_" + channelName,
 		Type:        model.CHANNEL_OPEN,
 	}, false)
 	s.Require().Nil(appErr)
@@ -39,7 +39,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		nonexistentChannelName := "nonexistent"
 		err := channelUsersAddCmdF(c, &cobra.Command{}, []string{nonexistentChannelName, user.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("unable to find channel \"%s\"", nonexistentChannelName), err.Error())
+		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -57,7 +57,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		nonexistentChannelName := "nonexistent"
 		err := channelUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{nonexistentChannelName, user.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("unable to find channel \"%s\"", nonexistentChannelName), err.Error())
+		s.Require().Equal(fmt.Sprintf("unable to find channel %q", nonexistentChannelName), err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
