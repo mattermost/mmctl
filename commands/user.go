@@ -239,6 +239,7 @@ func init() {
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+	ListUsersCmd.Flags().String("team", "", "Team name to get users of")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -670,6 +671,11 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		return err
 	}
 
+	team, err := command.Flags().GetString("team")
+	if err != nil {
+		return err
+	}
+
 	if showAll {
 		page = 0
 	}
@@ -677,9 +683,18 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 
 	for {
-		users, res := c.GetUsers(page, perPage, "")
-		if res.Error != nil {
-			return errors.Wrap(res.Error, "Failed to fetch users")
+		var users []*model.User
+		var res *model.Response
+		if team != "" {
+			users, res = c.GetUsersInTeam(team, page, perPage, "")
+			if res.Error != nil {
+				return errors.Wrap(res.Error, fmt.Sprintf("Failed to fetch users for team %s", team))
+			}
+		} else {
+			users, res = c.GetUsers(page, perPage, "")
+			if res.Error != nil {
+				return errors.Wrap(res.Error, "Failed to fetch users")
+			}
 		}
 		if len(users) == 0 {
 			break
