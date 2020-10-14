@@ -867,7 +867,7 @@ func (mr *MockClientMockRecorder) GetUsers(arg0, arg1, arg2 interface{}) *gomock
 // GetUsersInTeam mocks base method
 func (m *MockClient) GetUsersInTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.User, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUsersInTeam", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetUsersInTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.User)
 	ret1, _ := ret[1].(*model.Response)
 	return ret0, ret1

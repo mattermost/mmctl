@@ -1785,11 +1785,12 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		email := "example@example.com"
 		mockUser := model.User{Username: "ExampleUser", Email: email}
+		resultID := "teamId"
 
 		page := 0
 		perPage := 1
 		showAll := false
-		team := "test"
+		team := "teamName"
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
@@ -1797,7 +1798,13 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 
 		s.client.
 			EXPECT().
-			GetUsersInTeam(team, page, perPage, "").
+			GetTeamByName(team, "").
+			Return(&model.Team{Id: resultID}, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeam(resultID, page, perPage, "").
 			Return([]*model.User{&mockUser}, &model.Response{Error: nil}).
 			Times(1)
 
