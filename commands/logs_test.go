@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/mattermost/mmctl/client"
 )
@@ -74,6 +75,33 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(data, 1)
 		s.Contains(data[0], testLogrusStdout)
+	})
+
+	s.Run("Error when using format flag", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().String("format", "json", "")
+		cmd.Flags().Lookup("format").Changed = true
+
+		data, err := testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().Error(err)
+		s.Require().Equal(err.Error(), "the \"--format\" flag cannot be used with this command")
+		s.Require().Len(data, 0)
+	})
+
+	s.Run("Error when setting json format with environment variable", func() {
+		formatTmp := viper.GetString("format")
+
+		cmd := &cobra.Command{}
+		viper.Set("format", "json")
+
+		data, err := testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().Error(err)
+		s.Require().Equal(err.Error(), "json formatting cannot be applied on this command. Please check the value of \"MMCTL_FORMAT\"")
+		s.Require().Len(data, 0)
+
+		viper.Set("format", formatTmp)
 	})
 }
 
