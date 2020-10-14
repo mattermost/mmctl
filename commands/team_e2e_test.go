@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -57,8 +58,6 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 	s.RunForAllClients("Restore team", func(c client.Client) {
 		printer.Clean()
-		printer.SetFormat(printer.FormatPlain)
-		defer printer.SetFormat(printer.FormatJSON)
 
 		team := s.th.CreateTeam()
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
@@ -67,10 +66,8 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{team.Name})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
-
-		message := "Restored team '" + team.Name + "'"
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(message, printer.GetLines()[0])
+		s.Require().Zero(printer.GetLines()[0].(*model.Team).DeleteAt)
 	})
 
 	s.RunForAllClients("Restore non-existent team", func(c client.Client) {
@@ -88,8 +85,6 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 	s.Run("Restore team without permissions", func() {
 		printer.Clean()
-		printer.SetFormat(printer.FormatPlain)
-		defer printer.SetFormat(printer.FormatJSON)
 
 		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
