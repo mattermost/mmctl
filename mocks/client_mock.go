@@ -864,6 +864,21 @@ func (mr *MockClientMockRecorder) GetUsers(arg0, arg1, arg2 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsers", reflect.TypeOf((*MockClient)(nil).GetUsers), arg0, arg1, arg2)
 }
 
+// GetUsersInTeam mocks base method
+func (m *MockClient) GetUsersInTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersInTeam", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUsersInTeam mocks base method
+func (mr *MockClientMockRecorder) GetUsersInTeam(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInTeam", reflect.TypeOf((*MockClient)(nil).GetUsersInTeam), arg0, arg1, arg2, arg3)
+}
+
 // GetUsersByIds mocks base method
 func (m *MockClient) GetUsersByIds(arg0 []string) ([]*model.User, *model.Response) {
 	m.ctrl.T.Helper()
