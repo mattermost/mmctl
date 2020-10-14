@@ -68,9 +68,9 @@ test:
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
         -v /builds/mirrors/core:/mattermost \
-        -w /mattermost \
+        -w /mattermost/mmctl \
         mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-        bash -c 'ulimit -n 8096; cd mmctl; ls -al; make test-all'
+        bash -c 'ulimit -n 8096; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
 
@@ -100,7 +100,10 @@ s3:
     # remove v. e.g.: v5.28 -> 5.28
     - if [[ $CI_COMMIT_REF_NAME =~ /^v/ ]]; then BUCKET_PATH=mmctl/${CI_COMMIT_REF_NAME#v}; else BUCKET_PATH=mmctl/$CI_COMMIT_REF_NAME; fi
     - aws --version
+    - touch upload-in-progress
+    - aws s3 cp upload-in-progress s3://$BUCKET/$BUCKET_PATH/upload-in-progress
     - aws s3 cp build s3://$BUCKET/$BUCKET_PATH --recursive
+    - aws s3 rm s3://$BUCKET/$BUCKET_PATH/upload-in-progress
     - ID=$(aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/$BUCKET_PATH" | jq -r '.Invalidation.Id')
     - aws configure set preview.cloudfront true
     - aws cloudfront wait invalidation-completed --id $ID --distribution-id $DISTRIBUTION
