@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/model"
