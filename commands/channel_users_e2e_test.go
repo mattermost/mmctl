@@ -17,7 +17,6 @@ import (
 func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	s.th.CreateUser()
 	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
