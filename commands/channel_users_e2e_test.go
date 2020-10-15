@@ -46,10 +46,10 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("Remove user from nonexistent channel/Client", func() {
 		printer.Clean()
 
-		_, appErr := s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
+		_, appErr = s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
 		s.Require().Nil(appErr)
 		defer func() {
-			appErr := s.th.App.RemoveUserFromChannel(s.th.BasicUser.Id, s.th.SystemAdminUser.Id, channel)
+			appErr = s.th.App.RemoveUserFromChannel(s.th.BasicUser.Id, s.th.SystemAdminUser.Id, channel)
 			s.Require().Nil(appErr)
 		}()
 
@@ -75,10 +75,10 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("Remove nonexistent user from channel/Client", func() {
 		printer.Clean()
 
-		_, appErr := s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
+		_, appErr = s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
 		s.Require().Nil(appErr)
 		defer func() {
-			appErr := s.th.App.RemoveUserFromChannel(s.th.BasicUser.Id, s.th.SystemAdminUser.Id, channel)
+			appErr = s.th.App.RemoveUserFromChannel(s.th.BasicUser.Id, s.th.SystemAdminUser.Id, channel)
 			s.Require().Nil(appErr)
 		}()
 
@@ -110,7 +110,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("Remove user from channel/Client", func() {
 		printer.Clean()
 
-		_, appErr := s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
+		_, appErr = s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
 		s.Require().Nil(appErr)
 		defer func() {
 			appErr = s.th.App.RemoveUserFromChannel(s.th.BasicUser.Id, s.th.SystemAdminUser.Id, channel)
@@ -137,7 +137,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.RunForSystemAdminAndLocal("Remove user from channel", func(c client.Client) {
 		printer.Clean()
 
-		_, appErr := s.th.App.AddChannelMember(user.Id, channel, "", "")
+		_, appErr = s.th.App.AddChannelMember(user.Id, channel, "", "")
 		s.Require().Nil(appErr)
 		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
