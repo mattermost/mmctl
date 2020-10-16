@@ -11,6 +11,8 @@ docs:
     - echo "Making sure docs are updated"
     - make docs
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+  except:
+    - tags
 
 coverage:
   stage: test
@@ -18,6 +20,8 @@ coverage:
   script:
     - make coverage
     - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_IID -Z || echo 'Codecov upload failed'
+  except:
+    - tags
 
 lint:
   stage: test
@@ -26,6 +30,8 @@ lint:
     - echo "Installing mattermost-govet"
     - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
     - make check
+  except:
+    - tags
 
 test:
   stage: test
@@ -75,6 +81,8 @@ test:
         bash -c 'ulimit -n 8096; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
+  except:
+    - tags
 
 build:
   stage: test
