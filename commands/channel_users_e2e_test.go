@@ -93,9 +93,10 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("Remove user from channel without permission/Client", func() {
 		printer.Clean()
 
+		var members *model.ChannelMembers
 		_, appErr = s.th.App.AddChannelMember(user.Id, channel, "", "")
 		s.Require().Nil(appErr)
-		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(*members, 1)
 		s.Require().Equal(user.Id, (*members)[0].UserId)
@@ -117,9 +118,10 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 			s.Require().Nil(appErr)
 		}()
 
+		var members *model.ChannelMembers
 		_, appErr = s.th.App.AddChannelMember(user.Id, channel, "", "")
 		s.Require().Nil(appErr)
-		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(*members, 1)
 		s.Require().Equal(user.Id, (*members)[0].UserId)
