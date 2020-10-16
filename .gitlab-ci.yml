@@ -47,6 +47,8 @@ test:
     - chmod 700 ~/.ssh
     - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
+
+    - docker login -u $CI_JOB_USER -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - docker-compose version
     - cd ..
@@ -69,7 +71,7 @@ test:
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
         -v /builds/mirrors/core:/mattermost \
         -w /mattermost/mmctl \
-        mattermost/mattermost-build-server:20201016_golang-1.14.9 \
+        $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9 \
         bash -c 'ulimit -n 8096; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
