@@ -6,7 +6,7 @@ stages:
 
 docs:
   stage: test
-  image: $CI_REGISTRY/images/golang-ci:1.14.9
+  image: $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9
   script:
     - echo "Making sure docs are updated"
     - make docs
@@ -14,7 +14,7 @@ docs:
 
 coverage:
   stage: test
-  image: $CI_REGISTRY/images/golang-ci:1.14.9
+  image: $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9
   script:
     - make coverage
     - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_IID -Z || echo 'Codecov upload failed'
@@ -69,14 +69,14 @@ test:
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
         -v /builds/mirrors/core:/mattermost \
         -w /mattermost/mmctl \
-        mattermost/mattermost-build-server:20200731_golang-1.14.6 \
+        mattermost/mattermost-build-server:20201016_golang-1.14.9 \
         bash -c 'ulimit -n 8096; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
 
 build:
   stage: test
-  image: $CI_REGISTRY/images/golang-ci:1.14.9
+  image: $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9
   script:
     - make package
   artifacts:
