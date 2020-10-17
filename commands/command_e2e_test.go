@@ -42,7 +42,7 @@ func (s *MmctlE2ETestSuite) TestMoveCommandCmdF() {
 			&cobra.Command{},
 			[]string{s.th.BasicTeam.Name, "nothing"})
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("unable to find command 'nothing'"), err.Error())
+		s.Require().Equal("unable to find command 'nothing'", err.Error())
 	})
 
 	s.RunForAllClients("move existing command to existing team", func(c client.Client) {
