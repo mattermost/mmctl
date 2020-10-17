@@ -83,7 +83,6 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		teamID := s.th.BasicTeam.Id
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("private", true, "")
-		s.th.LoginBasic()
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 		s.Require().NoError(err)
 		s.Require().Equal(
