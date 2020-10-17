@@ -61,10 +61,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.SetupTestHelper().InitBasic()
 	initChannelName := api4.GenerateTestChannelName()
-	var appErr *model.AppError
-	var channel *model.Channel
-	var team *model.Team
-	channel, appErr = s.th.App.CreateChannel(&model.Channel{
+	channel, appErr := s.th.App.CreateChannel(&model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        initChannelName,
 		DisplayName: "dName_" + initChannelName,
@@ -86,6 +83,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		printer.Clean()
 
 		testTeamName := api4.GenerateTestTeamName()
+		var team *model.Team
 		team, appErr = s.th.App.CreateTeam(&model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
@@ -95,8 +93,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		args := []string{team.Id, channel.Id}
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", team.Id, "")
-		cmd.Flags().String("channel", channel.Id, "")
 
 		err := moveChannelCmdF(c, cmd, args)
 
@@ -106,6 +102,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		actualChannel, ok := printer.GetLines()[0].(*model.Channel)
 		s.Require().True(ok)
 		s.Require().Equal(channel.Name, actualChannel.Name)
+		s.Require().Equal(team.Id, actualChannel.TeamId)
 	})
 
 	s.RunForSystemAdminAndLocal("Moving team to non existing channel", func(c client.Client) {
@@ -113,8 +110,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		args := []string{s.th.BasicTeam.Id, "no-channel"}
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", s.th.BasicTeam.Id, "")
-		cmd.Flags().String("channel", "no-channel", "")
 
 		err := moveChannelCmdF(c, cmd, args)
 		s.Require().Nil(err)
@@ -139,8 +134,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		args := []string{channel.TeamId, channel.Id}
 
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", channel.TeamId, "")
-		cmd.Flags().String("channel", channel.Name, "")
 
 		err := moveChannelCmdF(c, cmd, args)
 		s.Require().Nil(err)
@@ -152,6 +145,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		printer.Clean()
 
 		testTeamName := api4.GenerateTestTeamName()
+		var team *model.Team
 		team, appErr = s.th.App.CreateTeam(&model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
@@ -161,8 +155,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		args := []string{team.Id, channel.Id}
 		cmd := &cobra.Command{}
-		cmd.Flags().String("team", team.Id, "")
-		cmd.Flags().String("channel", channel.Id, "")
 
 		err := moveChannelCmdF(s.th.Client, cmd, args)
 
