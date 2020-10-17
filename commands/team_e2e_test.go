@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/model"
-	
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 )
@@ -67,10 +69,14 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.TEAM_INVITE, t.Type)
+		s.Require().Equal(s.th.BasicTeam, printer.GetLines()[0])
 
 		// teardown
 		appErr = s.th.App.UpdateTeamPrivacy(teamID, model.TEAM_OPEN, true)
 		s.Require().Nil(appErr)
+		t, err = s.th.App.GetTeam(teamID)
+		s.Require().Nil(appErr)
+		s.th.BasicTeam = t
 	})
 	s.Run("user that creates the team can't set team's privacy due to permissions", func() {
 		printer.Clean()
@@ -80,7 +86,10 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		s.th.LoginBasic()
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 		s.Require().NoError(err)
-
+		s.Require().Equal(
+			fmt.Sprintf("Unable to modify team '%s' error: : You do not have the appropriate permissions., ", s.th.BasicTeam.Name),
+			printer.GetErrorLines()[0],
+		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.TEAM_OPEN, t.Type)
@@ -93,6 +102,10 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		s.th.LoginBasic2()
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 		s.Require().NoError(err)
+		s.Require().Equal(
+			fmt.Sprintf("Unable to modify team '%s' error: : You do not have the appropriate permissions., ", s.th.BasicTeam.Name),
+			printer.GetErrorLines()[0],
+		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.TEAM_OPEN, t.Type)
