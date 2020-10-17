@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -22,7 +25,7 @@ func (s *MmctlE2ETestSuite) TestMoveCommandCmdF() {
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "trigger",
 	}
-	command ,_ := s.th.SystemAdminClient.CreateCommand(newCmd)
+	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
 
 	s.RunForAllClients("move command to non existing team", func(c client.Client) {
 		printer.Clean()
