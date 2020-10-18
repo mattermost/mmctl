@@ -20,26 +20,26 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginId      = "jira"
+			pluginID      = "jira"
 			pluginVersion = "3.0.0"
 		)
 
-		defer removePluginIfInstalled(s, pluginId)
+		defer removePluginIfInstalled(s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId, pluginVersion})
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID, pluginVersion})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 
 		manifest := printer.GetLines()[0].(*model.Manifest)
-		s.Require().Equal(pluginId, manifest.Id)
+		s.Require().Equal(pluginID, manifest.Id)
 		s.Require().Equal(pluginVersion, manifest.Version)
 
 		plugins, appErr := s.th.App.GetPlugins()
 		s.Require().Nil(appErr)
 		s.Require().Len(plugins.Active, 0)
 		s.Require().Len(plugins.Inactive, 1)
-		s.Require().Equal(pluginId, plugins.Inactive[0].Id)
+		s.Require().Equal(pluginID, plugins.Inactive[0].Id)
 		s.Require().Equal(pluginVersion, plugins.Inactive[0].Version)
 	})
 
@@ -47,13 +47,13 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginId      = "jira"
+			pluginID      = "jira"
 			pluginVersion = "3.0.0"
 		)
 
-		defer removePluginIfInstalled(s, pluginId)
+		defer removePluginIfInstalled(s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginId, pluginVersion})
+		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginID, pluginVersion})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -69,25 +69,25 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginId = "jira"
+			pluginID = "jira"
 		)
 
-		defer removePluginIfInstalled(s, pluginId)
+		defer removePluginIfInstalled(s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId})
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 
 		manifest := printer.GetLines()[0].(*model.Manifest)
-		s.Require().Equal(pluginId, manifest.Id)
+		s.Require().Equal(pluginID, manifest.Id)
 		s.Require().NotEmpty(manifest.Version)
 
 		plugins, appErr := s.th.App.GetPlugins()
 		s.Require().Nil(appErr)
 		s.Require().Len(plugins.Active, 0)
 		s.Require().Len(plugins.Inactive, 1)
-		s.Require().Equal(pluginId, plugins.Inactive[0].Id)
+		s.Require().Equal(pluginID, plugins.Inactive[0].Id)
 		s.Require().NotEmpty(plugins.Inactive[0].Version)
 	})
 
@@ -95,13 +95,13 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginId      = "jira"
+			pluginID      = "jira"
 			pluginVersion = "invalid-version"
 		)
 
-		defer removePluginIfInstalled(s, pluginId)
+		defer removePluginIfInstalled(s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId, pluginVersion})
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID, pluginVersion})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "Could not find the requested marketplace plugin.")
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -117,14 +117,14 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginId = "a-nonexistent-plugin"
+			pluginID = "a-nonexistent-plugin"
 		)
 
-		defer removePluginIfInstalled(s, pluginId)
+		defer removePluginIfInstalled(s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId})
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), fmt.Sprintf(`couldn't find a plugin with id "%s"`, pluginId))
+		s.Require().Contains(err.Error(), fmt.Sprintf(`couldn't find a plugin with id "%s"`, pluginID))
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 
