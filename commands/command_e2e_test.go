@@ -249,3 +249,63 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		s.Require().Equal(int64(0), rcommand.DeleteAt)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	// create new command
+	newCmd := &model.Command{
+		CreatorId: s.th.BasicUser.Id,
+		TeamId:    s.th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger",
+	}
+
+	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
+
+	s.RunForAllClients("modifyCommandCmdF", func(c client.Client) {
+		printer.Clean()
+		// Reset the cmd and parse to force Flag.Changed to be true.
+		cmd := CommandModifyCmd
+		cmd.ResetFlags()
+		addCommandFieldsFlags(cmd)
+		err := cmd.ParseFlags([]string{
+			command.Id,
+		})
+		s.Require().Nil(err)
+
+		err = modifyCommandCmdF(s.th.SystemAdminClient, cmd, []string{command.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("modifyCommandCmdF with not existed command", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+
+		err := modifyCommandCmdF(s.th.SystemAdminClient, cmd, []string{"nothing"})
+		s.Require().NotNil(err)
+		s.Require().Equal("unable to find command 'nothing'", err.Error())
+	})
+
+	s.RunForAllClients("modifyCommandCmdF with a space in trigger word", func(c client.Client) {
+		printer.Clean()
+		// Reset the cmd and parse to force Flag.Changed to be true.
+		cmd := CommandModifyCmd
+		cmd.ResetFlags()
+		addCommandFieldsFlags(cmd)
+		err := cmd.ParseFlags([]string{
+			command.Id,
+			"--trigger-word=modified with space",
+		})
+		s.Require().Nil(err)
+
+		err = modifyCommandCmdF(s.th.SystemAdminClient, cmd, []string{command.Id})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+		s.EqualError(err, "a trigger word must not contain spaces")
+	})
+}
