@@ -1,0 +1,143 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package commands
+
+import (
+	"fmt"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
+)
+
+func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("install a plugin", func(c client.Client) {
+		printer.Clean()
+
+		const (
+			pluginId      = "jira"
+			pluginVersion = "3.0.0"
+		)
+
+		defer removePluginIfInstalled(s, pluginId)
+
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId, pluginVersion})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		manifest := printer.GetLines()[0].(*model.Manifest)
+		s.Require().Equal(pluginId, manifest.Id)
+		s.Require().Equal(pluginVersion, manifest.Version)
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
+		s.Require().Equal(pluginId, plugins.Inactive[0].Id)
+		s.Require().Equal(pluginVersion, plugins.Inactive[0].Version)
+	})
+
+	s.Run("install a plugin without permissions", func() {
+		printer.Clean()
+
+		const (
+			pluginId      = "jira"
+			pluginVersion = "3.0.0"
+		)
+
+		defer removePluginIfInstalled(s, pluginId)
+
+		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginId, pluginVersion})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 0)
+	})
+
+	s.RunForSystemAdminAndLocal("install a plugin without version", func(c client.Client) {
+		printer.Clean()
+
+		const (
+			pluginId = "jira"
+		)
+
+		defer removePluginIfInstalled(s, pluginId)
+
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+
+		manifest := printer.GetLines()[0].(*model.Manifest)
+		s.Require().Equal(pluginId, manifest.Id)
+		s.Require().NotEmpty(manifest.Version)
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
+		s.Require().Equal(pluginId, plugins.Inactive[0].Id)
+		s.Require().NotEmpty(plugins.Inactive[0].Version)
+	})
+
+	s.RunForSystemAdminAndLocal("install a plugin with invalid version", func(c client.Client) {
+		printer.Clean()
+
+		const (
+			pluginId      = "jira"
+			pluginVersion = "invalid-version"
+		)
+
+		defer removePluginIfInstalled(s, pluginId)
+
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId, pluginVersion})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "Could not find the requested marketplace plugin.")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 0)
+	})
+
+	s.RunForSystemAdminAndLocal("install a nonexistent plugin", func(c client.Client) {
+		printer.Clean()
+
+		const (
+			pluginId = "a-nonexistent-plugin"
+		)
+
+		defer removePluginIfInstalled(s, pluginId)
+
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginId})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), fmt.Sprintf(`couldn't find a plugin with id "%s"`, pluginId))
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 0)
+	})
+}
+
+func removePluginIfInstalled(s *MmctlE2ETestSuite, pluginID string) {
+	appErr := s.th.App.RemovePlugin(pluginID)
+	if appErr != nil {
+		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
+	}
+}
