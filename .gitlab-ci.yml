@@ -1,0 +1,156 @@
+image: $CI_REGISTRY/images/build-ci
+
+stages:
+  - test
+  - publish
+
+docs:
+  stage: test
+  image: $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9
+  script:
+    - echo "Making sure docs are updated"
+    - make docs
+    - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+  except:
+    - tags
+
+coverage:
+  stage: test
+  image: $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9
+  script:
+    - make coverage
+    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_IID -Z || echo 'Codecov upload failed'
+  except:
+    - tags
+
+lint:
+  stage: test
+  image: golangci/golangci-lint:v1.25.1
+  script:
+    - echo "Installing mattermost-govet"
+    - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
+    - make check
+  except:
+    - tags
+
+test:
+  stage: test
+  image: $CI_REGISTRY/images/docker-ci
+  tags:
+    - docker
+  services:
+    - docker:19.03.12-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+
+    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker-compose version
+    - cd ..
+    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
+    - cd mattermost-server/build
+    - docker-compose --no-ansi run --rm start_dependencies
+    - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+    - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+    - docker-compose --no-ansi ps
+    - sleep 5
+    - docker network ls
+    - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+    - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+
+    - ulimit -n 8096
+    - >
+      docker run --name server -d --net build_mm-test \
+        --env-file=dotenv/test.env \
+        --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+        --env MM_SQLSETTINGS_DATASOURCE=postgres \
+        -v /builds/mirrors/core:/mattermost \
+        -w /mattermost/mmctl \
+        $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9 \
+        bash -c 'ulimit -n 8096; make test-all'
+    - docker logs -f server
+    - exit $(docker inspect server --format='{{.State.ExitCode}}')
+  except:
+    - tags
+
+build:
+  stage: test
+  image: $CI_REGISTRY/images/mattermost-build-server:20201016_golang-1.14.9
+  script:
+    - make package
+  artifacts:
+    paths:
+      - build
+    expire_in: 3 hours
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
+
+s3:
+  stage: publish
+  image: $CI_REGISTRY/images/aws-ci:1.0.2
+  variables:
+    AWS_DEFAULT_REGION: us-east-1
+    BUCKET: releases.mattermost.com
+    DISTRIBUTION: E38T4CYCA0KCH8
+  script:
+    # remove v. e.g.: v5.28 -> 5.28
+    - if [[ $CI_COMMIT_REF_NAME =~ /^v/ ]]; then BUCKET_PATH=mmctl/${CI_COMMIT_REF_NAME#v}; else BUCKET_PATH=mmctl/$CI_COMMIT_REF_NAME; fi
+    - aws --version
+    - aws s3 cp build s3://$BUCKET/$BUCKET_PATH --recursive
+    - ID=$(aws cloudfront create-invalidation --distribution-id $DISTRIBUTION --paths "/$BUCKET_PATH" | jq -r '.Invalidation.Id')
+    - aws configure set preview.cloudfront true
+    - aws cloudfront wait invalidation-completed --id $ID --distribution-id $DISTRIBUTION
+  dependencies:
+    - docs
+    - coverage
+    - lint
+    - test
+    - build
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
+
+github-master:
+  stage: publish
+  image: $CI_REGISTRY/images/ghr-ci:v0.13.0
+  script:
+    - ghr --version
+    - ghr -prerelease -t ${GITHUB_TOKEN} -u mattermost -r mmctl -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
+  dependencies:
+    - docs
+    - coverage
+    - lint
+    - test
+    - build
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
+
+github-release:
+  stage: publish
+  image: $CI_REGISTRY/images/ghr-ci:v0.13.0
+  script:
+    - ghr -t ${GITHUB_TOKEN} -u mattermost -r mmctl  -c ${CI_COMMIT_SHA} -delete ${CI_COMMIT_TAG} build
+  dependencies:
+    - docs
+    - coverage
+    - lint
+    - test
+    - build
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
