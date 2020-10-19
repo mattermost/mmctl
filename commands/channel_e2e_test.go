@@ -167,11 +167,11 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("Deleted channel '" + channel.Name + "'", printer.GetLines()[0])
+		s.Require().Equal(fmt.Sprintf("Deleted channel '%s'", channel.Name), printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		channel, err = s.th.App.GetChannel(channel.Id)
+		channel, _ = s.th.App.GetChannel(channel.Id)
 
 		s.Require().Nil(channel)
 		s.Require().Len(printer.GetLines(), 0)
@@ -192,7 +192,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Equal("Unable to find channel '" + team.Id  +":" + otherChannel.Id + "'", printer.GetErrorLines()[0])
 
 		printer.Clean()
-		channel, err := s.th.App.GetChannel(otherChannel.Id)
+		channel, _ := s.th.App.GetChannel(otherChannel.Id)
 
 		s.Require().NotNil(channel)
 		s.Require().Len(printer.GetLines(), 0)
@@ -200,10 +200,10 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	})
 
 	s.RunForAllClients("Delete not existing channel", func(c client.Client) {
-		notExistingChannelId := "not-existing-channel-id"
+		notExistingChannelID := "not-existing-channel-id"
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
-		args := []string{team.Id + ":" + notExistingChannelId}
+		args := []string{team.Id + ":" + notExistingChannelID}
 
 		printer.Clean()
 		err := deleteChannelsCmdF(c, cmd, args)
@@ -211,10 +211,10 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find channel '" + team.Id  +":" + notExistingChannelId + "'", printer.GetErrorLines()[0])
+		s.Require().Equal("Unable to find channel '" + team.Id  +":" + notExistingChannelID + "'", printer.GetErrorLines()[0])
 
 		printer.Clean()
-		channel, err := s.th.App.GetChannel(notExistingChannelId)
+		channel, _ := s.th.App.GetChannel(notExistingChannelID)
 
 		s.Require().Nil(channel)
 		s.Require().Len(printer.GetLines(), 0)
