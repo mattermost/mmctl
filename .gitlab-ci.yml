@@ -58,7 +58,7 @@ test:
   script:
     - docker-compose version
     - cd ..
-    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
+    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b release-5.29 git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
     - cd mattermost-server/build
     - docker-compose --no-ansi run --rm start_dependencies
     - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
