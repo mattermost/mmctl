@@ -189,7 +189,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find channel '" + team.Id  +":" + otherChannel.Id + "'", printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, otherChannel.Id), printer.GetErrorLines()[0])
 
 		printer.Clean()
 		channel, _ := s.th.App.GetChannel(otherChannel.Id)
@@ -211,7 +211,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("Unable to find channel '" + team.Id  +":" + notExistingChannelID + "'", printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, notExistingChannelID), printer.GetErrorLines()[0])
 
 		printer.Clean()
 		channel, _ := s.th.App.GetChannel(notExistingChannelID)
