@@ -23,7 +23,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8ca32a50-2a1e-4f79-bca4-5825e368b31a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/commands/channel_e2e_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/commands/channel_e2e_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
