@@ -47,13 +47,13 @@ func (s *MmctlE2ETestSuite) TestBotEnableCmd() {
 	s.Run("enable a bot without permissions", func() {
 		printer.Clean()
 
-		bot, appErr := s.th.App.CreateBot(&model.Bot{Username: model.NewId(), OwnerId: user.Id})
+		newBot, appErr := s.th.App.CreateBot(&model.Bot{Username: model.NewId(), OwnerId: user.Id})
 		s.Require().Nil(appErr)
 
-		_, appErr = s.th.App.UpdateBotActive(bot.UserId, false)
+		_, appErr = s.th.App.UpdateBotActive(newBot.UserId, false)
 		s.Require().Nil(appErr)
 
-		err := botEnableCmdF(s.th.Client, &cobra.Command{}, []string{bot.UserId})
+		err := botEnableCmdF(s.th.Client, &cobra.Command{}, []string{newBot.UserId})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
