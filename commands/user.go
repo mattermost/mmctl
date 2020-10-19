@@ -460,10 +460,6 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("invalid email: '" + newEmail + "'")
 	}
 
-	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
-	}
-
 	user := getUserFromUserArg(c, args[0])
 	if user == nil {
 		return errors.New("unable to find user '" + args[0] + "'")

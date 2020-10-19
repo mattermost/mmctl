@@ -141,6 +141,45 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("admin and local user can change user email", func(c client.Client) {
+		printer.Clean()
+		oldEmail := s.th.BasicUser2.Email
+		newEmail := "basicuser2@fakedomain.com"
+		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Email, newEmail})
+		s.Require().Nil(err)
+
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(newEmail, u.Email)
+
+		u.Email = oldEmail
+		_, err = s.th.App.UpdateUser(u, false)
+		s.Require().Nil(err)
+	})
+
+	s.Run("normal user doesn't have permission to change another user's email", func() {
+		printer.Clean()
+		newEmail := "basicuser2-change@fakedomain.com"
+		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newEmail})
+		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
+
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(s.th.BasicUser2.Email, u.Email)
+	})
+
+	s.Run("normal users can't update their own email due to security reasons", func() {
+		printer.Clean()
+
+		newEmail := "basicuser-change@fakedomain.com"
+		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser.Id, newEmail})
+		s.Require().EqualError(err, ": Invalid or missing password in request body., ")
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 	s.SetupTestHelper().InitBasic()
 
