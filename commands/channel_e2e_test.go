@@ -200,7 +200,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	})
 
 	s.RunForAllClients("Delete not existing channel", func(c client.Client) {
-		notExistingChannelID := "not-existing-channel-id"
+		notExistingChannelID := "not-existing-channel-ID"
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("confirm", true, "")
 		args := []string{team.Id + ":" + notExistingChannelID}
