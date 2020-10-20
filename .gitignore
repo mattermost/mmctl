@@ -1,7 +1,7 @@
 mmctl
 bin
 build
-.idea
+
 # Editor files
 .vscode
 

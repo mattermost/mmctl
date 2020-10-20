@@ -171,11 +171,10 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		printer.Clean()
-		channel, _ = s.th.App.GetChannel(channel.Id)
+		_, err = s.th.App.GetChannel(channel.Id)
 
-		s.Require().Nil(channel)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("GetChannel: Unable to find the existing channel., resource: Channel id: %s", channel.Id), err.Error())
 	})
 
 	s.Run("Delete channel without permissions", func() {
@@ -189,14 +188,13 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Nil(err)
 		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, otherChannel.Id), printer.GetErrorLines()[0])
 
-		printer.Clean()
-		channel, _ := s.th.App.GetChannel(otherChannel.Id)
+		channel, err := s.th.App.GetChannel(otherChannel.Id)
 
+		s.Require().Nil(err)
 		s.Require().NotNil(channel)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.RunForAllClients("Delete not existing channel", func(c client.Client) {
@@ -214,10 +212,10 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, notExistingChannelID), printer.GetErrorLines()[0])
 
 		printer.Clean()
-		channel, _ := s.th.App.GetChannel(notExistingChannelID)
+		channel, err := s.th.App.GetChannel(notExistingChannelID)
 
 		s.Require().Nil(channel)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("GetChannel: Unable to find the existing channel., resource: Channel id: %s", notExistingChannelID), err.Error())
 	})
 }
