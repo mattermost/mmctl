@@ -141,6 +141,111 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Should not create a user w/o username", func(c client.Client) {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().String("email", email, "")
+
+		err := userCreateCmdF(c, cmd, []string{})
+		s.EqualError(err, "Username is required: flag accessed but not defined: username")
+		s.Require().Empty(printer.GetLines())
+		_, err = s.th.App.GetUserByEmail(email)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "SqlUserStore.GetByEmail: Unable to find the user., email="+email+", sql: no rows in result set")
+	})
+
+	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
+		printer.Clean()
+		username := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", username, "")
+		cmd.Flags().String("password", "somepass", "")
+
+		err := userCreateCmdF(c, cmd, []string{})
+		s.EqualError(err, "Email is required: flag accessed but not defined: email")
+		s.Require().Empty(printer.GetLines())
+		_, err = s.th.App.GetUserByUsername(username)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "SqlUserStore.GetByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., sql: no rows in result set")
+	})
+
+	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", model.NewId(), "")
+		cmd.Flags().String("email", email, "")
+
+		err := userCreateCmdF(c, cmd, []string{})
+		s.EqualError(err, "Password is required: flag accessed but not defined: password")
+		s.Require().Empty(printer.GetLines())
+		_, err = s.th.App.GetUserByEmail(email)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "SqlUserStore.GetByEmail: Unable to find the user., email="+email+", sql: no rows in result set")
+	})
+
+	s.Run("Should create a user but w/o system_admin privileges", func() {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		username := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", username, "")
+		cmd.Flags().String("email", email, "")
+		cmd.Flags().String("password", "password", "")
+		cmd.Flags().Bool("system_admin", true, "")
+
+		err := userCreateCmdF(s.th.Client, cmd, []string{})
+		s.EqualError(err, "Unable to update user roles. Error: : You do not have the appropriate permissions., ")
+		s.Require().Empty(printer.GetLines())
+		user, err := s.th.App.GetUserByEmail(email)
+		s.Require().Nil(err)
+		s.Equal(username, user.Username)
+		s.Equal(false, user.IsSystemAdmin())
+	})
+
+	s.RunForSystemAdminAndLocal("Should create new system_admin user given required params", func(c client.Client) {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		username := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", username, "")
+		cmd.Flags().String("email", email, "")
+		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().Bool("system_admin", true, "")
+
+		err := userCreateCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user, err := s.th.App.GetUserByEmail(email)
+		s.Require().Nil(err)
+		s.Equal(username, user.Username)
+		s.Equal(true, user.IsSystemAdmin())
+	})
+
+	s.RunForAllClients("Should create new user given required params", func(c client.Client) {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		username := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", username, "")
+		cmd.Flags().String("email", email, "")
+		cmd.Flags().String("password", "somepass", "")
+
+		err := userCreateCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user, err := s.th.App.GetUserByEmail(email)
+		s.Require().Nil(err)
+		s.Equal(username, user.Username)
+		s.Equal(false, user.IsSystemAdmin())
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	s.SetupTestHelper().InitBasic()
 
