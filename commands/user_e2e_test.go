@@ -244,6 +244,26 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Equal(username, user.Username)
 		s.Equal(false, user.IsSystemAdmin())
 	})
+
+	s.RunForSystemAdminAndLocal("Should create new user with the email already verified only for admin or local mode", func(c client.Client) {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		username := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", username, "")
+		cmd.Flags().String("email", email, "")
+		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().Bool("email_verified", true, "")
+
+		err := userCreateCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user, err := s.th.App.GetUserByEmail(email)
+		s.Require().Nil(err)
+		s.Equal(username, user.Username)
+		s.Equal(false, user.IsSystemAdmin())
+		s.Equal(true, user.EmailVerified)
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
