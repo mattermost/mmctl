@@ -243,7 +243,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Nil(err)
 		s.Equal(username, user.Username)
 		s.Equal(false, user.IsSystemAdmin())
-  })
+  	})
 }
 
 func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
