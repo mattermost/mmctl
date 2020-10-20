@@ -28,7 +28,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 	_, appErr = s.th.App.AddUserToTeam(teamOfBasicUser.Id, s.th.BasicUser.Id, "")
 	s.Require().Nil(appErr)
 
-	s.RunForSystemAdminAndLocal("Archive nonexistent command", func(c client.Client) {
+	s.RunForAllClients("Archive nonexistent command", func(c client.Client) {
 		printer.Clean()
 
 		nonexistentCommandID := "nonexistent-command-id"
