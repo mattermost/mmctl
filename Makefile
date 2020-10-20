@@ -23,7 +23,7 @@ install: vendor check
 	go install -ldflags '$(LDFLAGS)' -mod=vendor
 
 .PHONY: package
-package: vendor check
+package: vendor
 	mkdir -p build
 
 	@echo Build Linux amd64
