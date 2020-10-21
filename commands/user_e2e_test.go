@@ -141,6 +141,42 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Verify user email without token", func(c client.Client) {
+		printer.Clean()
+
+		err := verifyUserEmailWithoutTokenCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Verify user email without token (without permission)", func() {
+		printer.Clean()
+
+		err := verifyUserEmailWithoutTokenCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., ")
+	})
+
+	s.RunForAllClients("Verify user email without token for nonexistent user", func(c client.Client) {
+		printer.Clean()
+
+		err := verifyUserEmailWithoutTokenCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 	s.SetupTestHelper().InitBasic()
 
@@ -455,5 +491,85 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Delete all user as unpriviliged user should not work", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.Client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		})
+		s.Require().Nil(err)
+		s.Require().NotZero(len(users))
+	})
+
+	s.Run("Delete all user as system admin through the port API should not work", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		})
+		s.Require().Nil(err)
+		s.Require().NotZero(len(users))
+	})
+
+	s.Run("Delete all users through local mode should work correctly", func() {
+		printer.Clean()
+
+		// populate with some user
+		for i := 0; i < 10; i++ {
+			userData := model.User{
+				Username: "fakeuser" + model.NewRandomString(10),
+				Password: "Pa$$word11",
+				Email:    s.th.GenerateTestEmail(),
+			}
+			_, err := s.th.App.CreateUser(&userData)
+			s.Require().Nil(err)
+		}
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		// delete all users only works on local mode
+		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+
+		// expect users deleted
+		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		})
+		s.Require().Nil(err)
+		s.Require().Zero(len(users))
 	})
 }
