@@ -53,6 +53,112 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Should not create a team w/o name", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("display_name", "somedisplayname", "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.EqualError(err, "name is required")
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForAllClients("Should not create a team w/o display_name", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", model.NewId(), "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.EqualError(err, "display Name is required")
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.Run("Should create a new team w/ email using LocalClient", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		email := "someemail@example.com"
+		cmd.Flags().String("email", email, "")
+
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.Equal(email, newTeam.Email)
+	})
+
+	s.Run("Should create a new team w/ assigned email using SystemAdminClient", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		email := "someemail@example.com"
+		cmd.Flags().String("email", email, "")
+
+		err := createTeamCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.NotEqual(email, newTeam.Email)
+	})
+
+	s.Run("Should create a new team w/ assigned email using Client", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		email := "someemail@example.com"
+		cmd.Flags().String("email", email, "")
+
+		err := createTeamCmdF(s.th.Client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.NotEqual(email, newTeam.Email)
+	})
+
+	s.RunForAllClients("Should create a new open team", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.Equal(newTeam.Type, model.TEAM_OPEN)
+	})
+
+	s.RunForAllClients("Should create a new private team", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().Bool("private", true, "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.Equal(newTeam.Type, model.TEAM_INVITE)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 	s.SetupTestHelper().InitBasic()
 
