@@ -133,9 +133,6 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	printer.SetFormat(printer.FormatPlain)
-	defer printer.SetFormat(printer.FormatJSON)
-
 	previousConfig := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
 	defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousConfig })
@@ -167,10 +164,9 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Deleted channel '%s'", channel.Name), printer.GetLines()[0])
+		s.Require().Equal(channel, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		printer.Clean()
 		_, err = s.th.App.GetChannel(channel.Id)
 
 		s.Require().NotNil(err)
@@ -211,7 +207,6 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, notExistingChannelID), printer.GetErrorLines()[0])
 
-		printer.Clean()
 		channel, err := s.th.App.GetChannel(notExistingChannelID)
 
 		s.Require().Nil(channel)
