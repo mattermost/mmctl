@@ -493,3 +493,83 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Delete all user as unpriviliged user should not work", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.Client, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		})
+		s.Require().Nil(err)
+		s.Require().NotZero(len(users))
+	})
+
+	s.Run("Delete all user as system admin through the port API should not work", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		err := deleteAllUsersCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+
+		// expect users not deleted
+		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		})
+		s.Require().Nil(err)
+		s.Require().NotZero(len(users))
+	})
+
+	s.Run("Delete all users through local mode should work correctly", func() {
+		printer.Clean()
+
+		// populate with some user
+		for i := 0; i < 10; i++ {
+			userData := model.User{
+				Username: "fakeuser" + model.NewRandomString(10),
+				Password: "Pa$$word11",
+				Email:    s.th.GenerateTestEmail(),
+			}
+			_, err := s.th.App.CreateUser(&userData)
+			s.Require().Nil(err)
+		}
+
+		cmd := &cobra.Command{}
+		confirm := true
+		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
+
+		// delete all users only works on local mode
+		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
+
+		// expect users deleted
+		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+			Page:    0,
+			PerPage: 10,
+		})
+		s.Require().Nil(err)
+		s.Require().Zero(len(users))
+	})
+}
