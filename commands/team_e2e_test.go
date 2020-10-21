@@ -242,3 +242,49 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		s.Require().Zero(basicTeam.DeleteAt)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Restore team", func(c client.Client) {
+		printer.Clean()
+
+		team := s.th.CreateTeam()
+		appErr := s.th.App.SoftDeleteTeam(team.Id)
+		s.Require().Nil(appErr)
+
+		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{team.Name})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Zero(printer.GetLines()[0].(*model.Team).DeleteAt)
+	})
+
+	s.RunForAllClients("Restore non-existent team", func(c client.Client) {
+		printer.Clean()
+
+		teamName := "non-existent-team"
+
+		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+
+		errMessage := "Unable to find team '" + teamName + "'"
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
+	})
+
+	s.Run("Restore team without permissions", func() {
+		printer.Clean()
+
+		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)
+		appErr := s.th.App.SoftDeleteTeam(team.Id)
+		s.Require().Nil(appErr)
+
+		err := restoreTeamsCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
+		s.Require().Nil(err)
+
+		errMessage := "Unable to find team '" + team.Name + "'"
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
+	})
+}
