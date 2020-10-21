@@ -53,6 +53,112 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Should not create a team w/o name", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("display_name", "somedisplayname", "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.EqualError(err, "name is required")
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.RunForAllClients("Should not create a team w/o display_name", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", model.NewId(), "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.EqualError(err, "display Name is required")
+		s.Require().Empty(printer.GetLines())
+	})
+
+	s.Run("Should create a new team w/ email using LocalClient", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		email := "someemail@example.com"
+		cmd.Flags().String("email", email, "")
+
+		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.Equal(email, newTeam.Email)
+	})
+
+	s.Run("Should create a new team w/ assigned email using SystemAdminClient", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		email := "someemail@example.com"
+		cmd.Flags().String("email", email, "")
+
+		err := createTeamCmdF(s.th.SystemAdminClient, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.NotEqual(email, newTeam.Email)
+	})
+
+	s.Run("Should create a new team w/ assigned email using Client", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		email := "someemail@example.com"
+		cmd.Flags().String("email", email, "")
+
+		err := createTeamCmdF(s.th.Client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.NotEqual(email, newTeam.Email)
+	})
+
+	s.RunForAllClients("Should create a new open team", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.Equal(newTeam.Type, model.TEAM_OPEN)
+	})
+
+	s.RunForAllClients("Should create a new private team", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		teamName := model.NewId()
+		cmd.Flags().String("name", teamName, "")
+		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().Bool("private", true, "")
+
+		err := createTeamCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		newTeam, err := s.th.App.GetTeamByName(teamName)
+		s.Require().Nil(err)
+		s.Equal(newTeam.Type, model.TEAM_INVITE)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
 	s.SetupTestHelper().InitBasic()
 
@@ -134,5 +240,51 @@ func (s *MmctlE2ETestSuite) TestArchiveTeamsCmd() {
 		basicTeam, err := s.th.App.GetTeam(s.th.BasicTeam.Id)
 		s.Require().Nil(err)
 		s.Require().Zero(basicTeam.DeleteAt)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Restore team", func(c client.Client) {
+		printer.Clean()
+
+		team := s.th.CreateTeam()
+		appErr := s.th.App.SoftDeleteTeam(team.Id)
+		s.Require().Nil(appErr)
+
+		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{team.Name})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Zero(printer.GetLines()[0].(*model.Team).DeleteAt)
+	})
+
+	s.RunForAllClients("Restore non-existent team", func(c client.Client) {
+		printer.Clean()
+
+		teamName := "non-existent-team"
+
+		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{teamName})
+		s.Require().Nil(err)
+
+		errMessage := "Unable to find team '" + teamName + "'"
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
+	})
+
+	s.Run("Restore team without permissions", func() {
+		printer.Clean()
+
+		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)
+		appErr := s.th.App.SoftDeleteTeam(team.Id)
+		s.Require().Nil(appErr)
+
+		err := restoreTeamsCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
+		s.Require().Nil(err)
+
+		errMessage := "Unable to find team '" + team.Name + "'"
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
 	})
 }
