@@ -23,6 +23,16 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.RunForSystemAdminAndLocal("Expect error when using a nonexistent key", func(c client.Client) {
+		printer.Clean()
+
+		args := []string{"NonExistent.Key"}
+		err := configGetCmdF(c, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("Get config value for a given key without permissions", func() {
 		printer.Clean()
 
