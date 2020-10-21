@@ -4,9 +4,8 @@
 package commands
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -51,6 +50,41 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Equal("Cannot rename team '"+s.th.BasicTeam.Name+"', error : : You do not have the appropriate permissions., ", err.Error())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestSearchTeamCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Search for existing team", func(c client.Client) {
+		printer.Clean()
+
+		err := searchTeamCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		team := printer.GetLines()[0].(*model.Team)
+		s.Equal(s.th.BasicTeam.Name, team.Name)
+	})
+
+	s.Run("Search for existing team with Client", func() {
+		printer.Clean()
+
+		err := searchTeamCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Equal("Unable to find team '"+s.th.BasicTeam.Name+"'", printer.GetErrorLines()[0])
+	})
+
+	s.RunForAllClients("Search of nonexistent team", func(c client.Client) {
+		printer.Clean()
+
+		teamnameArg := "nonexistentteam"
+		err := searchTeamCmdF(c, &cobra.Command{}, []string{teamnameArg})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Equal("Unable to find team '"+teamnameArg+"'", printer.GetErrorLines()[0])
 	})
 }
 
