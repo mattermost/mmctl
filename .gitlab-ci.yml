@@ -17,15 +17,6 @@ docs:
   except:
     - tags
 
-coverage:
-  stage: test
-  image: mattermost/mattermost-build-server:20201020_golang-1.14.9
-  script:
-    - make coverage
-    - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -n $CI_PIPELINE_IID -Z || echo 'Codecov upload failed'
-  except:
-    - tags
-
 lint:
   stage: test
   image: golangci/golangci-lint:v1.25.1
