@@ -1,5 +1,3 @@
-image: $CI_REGISTRY/images/build-ci
-
 stages:
   - test
   - publish
