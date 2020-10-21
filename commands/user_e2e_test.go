@@ -140,7 +140,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	s.Run("Delete all user as unpriviliged user", func() {
+	s.Run("Delete all user as unpriviliged user should not work", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -161,7 +161,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		s.Require().NotZero(len(users))
 	})
 
-	s.Run("Delete all user as system admin", func() {
+	s.Run("Delete all user as system admin through the port API should not work", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -182,7 +182,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		s.Require().NotZero(len(users))
 	})
 
-	s.Run("Delete all users through local mode", func() {
+	s.Run("Delete all users through local mode should work correctly", func() {
 		printer.Clean()
 
 		// populate with some user
