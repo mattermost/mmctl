@@ -38,7 +38,7 @@ lint:
 
 test:
   stage: test
-  image: $CI_REGISTRY/images/docker-ci
+  image: $CI_REGISTRY/images/docker-ci:19.03.12-2
   tags:
     - docker
   services:
