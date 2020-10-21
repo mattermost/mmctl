@@ -155,7 +155,6 @@ Validates that all users in the channel belong to the target team. Incoming/Outg
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel move newteam oldteam:mychannel",
 	Args:    cobra.MinimumNArgs(2),
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(moveChannelCmdF),
 }
 
