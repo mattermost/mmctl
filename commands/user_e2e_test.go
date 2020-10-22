@@ -141,6 +141,73 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Invite user", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Invites may or may not have been sent.")
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Inviting when email invitation disabled", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+		}()
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(
+			printer.GetErrorLines()[0],
+			fmt.Sprintf("Unable to invite user with email %s to team %s. Error: : Email invitations are disabled., ",
+				s.th.BasicUser.Email,
+				s.th.BasicTeam.Name,
+			),
+		)
+	})
+
+	s.RunForAllClients("Invite user outside of accepted domain", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+		}()
+
+		team := s.th.CreateTeam()
+		team.AllowedDomains = "@example.com"
+		team, appErr := s.th.App.UpdateTeam(team)
+		s.Require().Nil(appErr)
+
+		user := s.th.CreateUser()
+		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0],
+			fmt.Sprintf(`Unable to invite user with email %s to team %s. Error: : The following email addresses do not belong to an accepted domain: %s. Please contact your System Administrator for details., `,
+				user.Email,
+				team.Name,
+				user.Email,
+			))
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 	s.SetupTestHelper().InitBasic()
 
