@@ -76,7 +76,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 
 		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
-		s.Require().Equal(`: Channel does not exist., `, err.Error())
+		s.Require().Equal(`: app.channel.get_by_name.missing.app_error, `, err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -216,7 +216,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		DisplayName: "dName_" + initChannelName,
 		Type:        model.CHANNEL_OPEN,
 	}, false)
-	s.Require().NoError(appErr)
+	s.Require().Nil(appErr)
 
 	s.RunForAllClients("Move nonexistent team", func(c client.Client) {
 		printer.Clean()
@@ -238,7 +238,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
 		})
-		s.Require().NoError(appErr)
+		s.Require().Nil(appErr)
 
 		args := []string{team.Id, channel.Id}
 		cmd := &cobra.Command{}
@@ -278,7 +278,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 			DisplayName: "dName_" + initChannelName,
 			Type:        model.CHANNEL_OPEN,
 		}, false)
-		s.Require().NoError(appErr)
+		s.Require().Nil(appErr)
 
 		args := []string{channel.TeamId, channel.Id}
 
@@ -300,7 +300,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
 		})
-		s.Require().NoError(appErr)
+		s.Require().Nil(appErr)
 
 		args := []string{team.Id, channel.Id}
 		cmd := &cobra.Command{}
