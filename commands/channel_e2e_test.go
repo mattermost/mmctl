@@ -222,7 +222,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		printer.Clean()
 
 		err := moveChannelCmdF(c, &cobra.Command{}, []string{"test"})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Equal(`unable to find destination team "test"`, err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -238,7 +238,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 			DisplayName: "dName_" + testTeamName,
 			Type:        model.TEAM_OPEN,
 		})
-		s.Require().Nil(appErr)
+		s.Require().NoError(appErr)
 
 		args := []string{team.Id, channel.Id}
 		cmd := &cobra.Command{}
