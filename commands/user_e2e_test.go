@@ -141,6 +141,67 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Reset user mfa", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableMultifactorAuthentication
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
+
+		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// make sure user is updated after reset mfa
+		ruser, err := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err)
+		s.Require().NotEqual(ruser.UpdateAt, user.UpdateAt)
+	})
+
+	s.RunForSystemAdminAndLocal("Reset mfa disabled config", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableMultifactorAuthentication
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
+		}()
+
+		userMfaInactive, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: false})
+		s.Require().Nil(appErr)
+
+		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{userMfaInactive.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : Multi-factor authentication has been disabled on this server., `, userMfaInactive.Email))
+	})
+
+	s.Run("Reset user mfa without permission", func() {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableMultifactorAuthentication
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
+		}()
+
+		err := resetUserMfaCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Email))
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.SetupTestHelper().InitBasic()
 
