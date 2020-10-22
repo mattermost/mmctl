@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Display logs in a human-readable format
+Display logs in a human-readable format. As the logs format depends on the server, the "--format" flag cannot be used with this command.
 
 ::
 
