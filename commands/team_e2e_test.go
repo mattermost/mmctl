@@ -66,15 +66,11 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		err := modifyTeamsCmdF(c, cmd, []string{teamID})
 		s.Require().NoError(err)
 
-		t, appErr := s.th.App.GetTeam(teamID)
-		s.Require().Nil(appErr)
-		s.Require().Equal(model.TEAM_INVITE, t.Type)
-		s.Require().Equal(s.th.BasicTeam, printer.GetLines()[0])
-
+		s.Require().Equal(model.TEAM_INVITE, printer.GetLines()[0].(*model.Team).Type)
 		// teardown
-		appErr = s.th.App.UpdateTeamPrivacy(teamID, model.TEAM_OPEN, true)
+		appErr := s.th.App.UpdateTeamPrivacy(teamID, model.TEAM_OPEN, true)
 		s.Require().Nil(appErr)
-		t, err = s.th.App.GetTeam(teamID)
+		t, err := s.th.App.GetTeam(teamID)
 		s.Require().Nil(err)
 		s.th.BasicTeam = t
 	})
