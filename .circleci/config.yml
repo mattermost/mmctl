@@ -25,7 +25,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 1.25.1
+        default: 1.31.0
       gobin:
         type: string
         default: /go/bin
@@ -123,22 +123,11 @@ jobs:
           name: Run Tests
           command: |
             ulimit -n 8096
-
+            cd ../mattermost-server/build
             docker run -it --net circleci_mm-test \
-              --env TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
-              --env TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-              --env TEST_DATABASE_MYSQL_ROOT_PASSWD=mostest \
-              --env CI_INBUCKET_HOST=inbucket \
-              --env CI_MINIO_HOST=minio \
-              --env CI_INBUCKET_PORT=10080 \
-              --env CI_MINIO_PORT=9000 \
-              --env CI_INBUCKET_SMTP_PORT=10025 \
-              --env CI_LDAP_HOST=openldap \
-              --env IS_CI="true" \
-              --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8" \
-              --env MM_EMAILSETTINGS_SMTPSERVER=inbucket \
-              --env MM_EMAILSETTINGS_SMTPPORT=10025 \
-              --env MM_ELASTICSEARCHSETTINGS_CONNECTIONURL=http://elasticsearch:9200 \
+              --env-file=dotenv/test.env \
+              --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+              --env MM_SQLSETTINGS_DATASOURCE=postgres \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
@@ -157,45 +146,6 @@ jobs:
       - codecov/upload:
         file:  coverage.txt
 
-  build:
-    executor:
-      name: default
-    steps:
-      - checkout
-      - run:
-          name: "Validate lint"
-          command: |
-            echo "Installing mattermost-govet"
-            GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
-      - install-golangci-lint
-      - run: make package
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build
-
-  publish-github-release:
-    docker:
-      - image: cibuilds/github:0.12
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
-
-  publish-github-master:
-    docker:
-      - image: cibuilds/github:0.12
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: "Publish Draft Pre-Release on GitHub"
-          command: |
-            ghr -prerelease -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} build
-
 workflows:
   version: 2
   untagged-build:
@@ -209,58 +159,3 @@ workflows:
       - test:
           requires:
             - setup
-  tagged-build:
-    jobs:
-      - docs:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - lint:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - setup:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - test:
-          requires:
-              - setup
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - build:
-          requires:
-            - lint
-            - test
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
-      - publish-github-release:
-          context: matterbuild-github-token
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*\d/
-            branches:
-              ignore: /.*/
-      - publish-github-master:
-          context: matterbuild-github-token
-          requires:
-            - build
-          filters:
-            tags:
-              only: /^v.*\D{3,}/
-            branches:
-              ignore: /.*/
