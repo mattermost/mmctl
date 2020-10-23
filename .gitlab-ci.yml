@@ -58,7 +58,7 @@ test:
         --env-file=dotenv/test.env \
         --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
-        -v /builds/mirrors/core:/mattermost \
+        -v /builds/${CI_PROJECT_NAMESPACE}:/mattermost \
         -w /mattermost/mmctl \
         mattermost/mattermost-build-server:20201020_golang-1.14.9 \
         bash -c 'ulimit -n 8096; ls -al; make test-all'
