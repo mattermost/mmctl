@@ -61,7 +61,7 @@ test:
         -v /builds/mirrors/core:/mattermost \
         -w /mattermost/mmctl \
         mattermost/mattermost-build-server:20201020_golang-1.14.9 \
-        bash -c 'ulimit -n 8096; make test-all'
+        bash -c 'ulimit -n 8096; ls -al; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
   except:
