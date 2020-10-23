@@ -38,19 +38,10 @@ test:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
-  before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
-    - eval $(ssh-agent -s)
-
-    - echo "$SSH_PRIVATE_KEY_GITLAB" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
   script:
     - docker-compose version
     - cd ..
-    - git clone -b $CI_COMMIT_REF_NAME git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git || git clone -b master git@$CI_SERVER_HOST:mirrors/core/mattermost-server.git
+    - git clone -b $CI_COMMIT_REF_NAME https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/mattermost/ci-only/mattermost-server.git || git clone -b master https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/mattermost/ci-only/mattermost-server.git
     - cd mattermost-server/build
     - docker-compose --no-ansi run --rm start_dependencies
     - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
