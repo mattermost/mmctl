@@ -29,7 +29,7 @@ lint:
 
 test:
   stage: test
-  image: $CI_REGISTRY/images/docker-ci:19.03.12-2
+  image: mattermost/mattermost-build-docker:19.03.12
   tags:
     - docker
   services:
@@ -47,8 +47,6 @@ test:
     - chmod 700 ~/.ssh
     - ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
-
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - docker-compose version
     - cd ..
