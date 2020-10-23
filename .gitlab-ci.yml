@@ -29,7 +29,7 @@ lint:
 
 test:
   stage: test
-  image: mattermost/mattermost-build-docker:19.03.12
+  image: mattermost/mattermost-build-docker:20201023_19.03.12
   tags:
     - docker
   services:
