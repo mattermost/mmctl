@@ -281,7 +281,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForAllClients("modifyCommandCmdF with not existed command", func(c client.Client) {
+	s.RunForAllClients("modifyCommandCmdF for command that does not exist", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
 
