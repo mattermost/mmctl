@@ -263,15 +263,23 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 	}
 
 	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
+	copy := command
+	originalURL := newCmd.URL
 
 	s.RunForAllClients("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()
+
+		command = copy
+		s.Require().Equal(command.URL, originalURL)
+
 		// Reset the cmd and parse to force Flag.Changed to be true.
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
 		addCommandFieldsFlags(cmd)
+		url := command.URL + "_modified"
 		err := cmd.ParseFlags([]string{
 			command.Id,
+			"--url=" + url,
 		})
 		s.Require().Nil(err)
 
@@ -279,6 +287,9 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
+
+		check := getCommandFromCommandArg(s.th.SystemAdminClient, command.Id)
+		s.Require().Equal(check.URL, url)
 	})
 
 	s.RunForAllClients("modifyCommandCmdF for command that does not exist", func(c client.Client) {
