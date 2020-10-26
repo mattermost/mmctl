@@ -625,19 +625,19 @@ func (mr *MockClientMockRecorder) GetPing() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPing", reflect.TypeOf((*MockClient)(nil).GetPing))
 }
 
-// GetPingWithServerStatus mocks base method
-func (m *MockClient) GetPingWithServerStatus() (string, *model.Response) {
+// GetPingWithFullServerStatus mocks base method
+func (m *MockClient) GetPingWithFullServerStatus() (map[string]string, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPingWithServerStatus")
-	ret0, _ := ret[0].(string)
+	ret := m.ctrl.Call(m, "GetPingWithFullServerStatus")
+	ret0, _ := ret[0].(map[string]string)
 	ret1, _ := ret[1].(*model.Response)
 	return ret0, ret1
 }
 
-// GetPingWithServerStatus indicates an expected call of GetPingWithServerStatus
-func (mr *MockClientMockRecorder) GetPingWithServerStatus() *gomock.Call {
+// GetPingWithFullServerStatus indicates an expected call of GetPingWithFullServerStatus
+func (mr *MockClientMockRecorder) GetPingWithFullServerStatus() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithServerStatus", reflect.TypeOf((*MockClient)(nil).GetPingWithServerStatus))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPingWithFullServerStatus", reflect.TypeOf((*MockClient)(nil).GetPingWithFullServerStatus))
 }
 
 // GetPlugins mocks base method
