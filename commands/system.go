@@ -134,11 +134,20 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	status, resp := c.GetPingWithServerStatus()
+	status, resp := c.GetPingWithFullServerStatus()
 	if resp.Error != nil {
 		return fmt.Errorf("unable to fetch server status: %w", resp.Error)
 	}
 
-	printer.PrintT("Status: {{.status}}", map[string]string{"status": status})
+	printer.PrintT(`Server status: {{.status}}
+Android Latest Version: {{.AndroidLatestVersion}}
+Android Minimum Version: {{.AndroidMinVersion}}
+Desktop Latest Version: {{.DesktopLatestVersion}}
+Desktop Minimum Version: {{.DesktopMinVersion}}
+Ios Latest Version: {{.IosLatestVersion}}
+Ios Minimum Version: {{.IosMinVersion}}
+Database Status: {{.database_status}}
+Filestore Status: {{.filestore_status}}`, status)
+
 	return nil
 }
