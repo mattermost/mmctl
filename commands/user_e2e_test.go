@@ -141,6 +141,138 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestListUserCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	// populate map for checking
+	userPool := []string{
+		s.th.BasicUser.Username,
+		s.th.BasicUser2.Username,
+		s.th.TeamAdminUser.Username,
+		s.th.SystemAdminUser.Username,
+	}
+	for i := 0; i < 10; i++ {
+		userData := model.User{
+			Username: "fakeuser" + model.NewRandomString(10),
+			Password: "Pa$$word11",
+			Email:    s.th.GenerateTestEmail(),
+		}
+		usr, err := s.th.App.CreateUser(&userData)
+		s.Require().Nil(err)
+		userPool = append(userPool, usr.Username)
+	}
+
+	s.RunForAllClients("Get some random user", func(c client.Client) {
+		printer.Clean()
+
+		var page int
+		var all bool
+		perpage := 5
+		cmd := &cobra.Command{}
+		cmd.Flags().IntVar(&page, "page", page, "page")
+		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
+		cmd.Flags().BoolVar(&all, "all", all, "all")
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 5)
+		s.Len(printer.GetErrorLines(), 0)
+
+		for _, u := range printer.GetLines() {
+			user := u.(*model.User)
+			s.Require().Contains(userPool, user.Username)
+		}
+	})
+
+	s.RunForAllClients("Get list of all user", func(c client.Client) {
+		printer.Clean()
+
+		var page int
+		perpage := 10
+		all := true
+		cmd := &cobra.Command{}
+		cmd.Flags().IntVar(&page, "page", page, "page")
+		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
+		cmd.Flags().BoolVar(&all, "all", all, "all")
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 14)
+		s.Len(printer.GetErrorLines(), 0)
+		for _, each := range printer.GetLines() {
+			user := each.(*model.User)
+			s.Require().Contains(userPool, user.Username)
+		}
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Invite user", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Invites may or may not have been sent.")
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("Inviting when email invitation disabled", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+		}()
+
+		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(
+			printer.GetErrorLines()[0],
+			fmt.Sprintf("Unable to invite user with email %s to team %s. Error: : Email invitations are disabled., ",
+				s.th.BasicUser.Email,
+				s.th.BasicTeam.Name,
+			),
+		)
+	})
+
+	s.RunForAllClients("Invite user outside of accepted domain", func(c client.Client) {
+		printer.Clean()
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableEmailInvitations
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = true })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
+		}()
+
+		team := s.th.CreateTeam()
+		team.AllowedDomains = "@example.com"
+		team, appErr := s.th.App.UpdateTeam(team)
+		s.Require().Nil(appErr)
+
+		user := s.th.CreateUser()
+		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(printer.GetErrorLines()[0],
+			fmt.Sprintf(`Unable to invite user with email %s to team %s. Error: : The following email addresses do not belong to an accepted domain: %s. Please contact your System Administrator for details., `,
+				user.Email,
+				team.Name,
+				user.Email,
+			))
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 	s.SetupTestHelper().InitBasic()
 
@@ -253,7 +385,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "SqlUserStore.GetByEmail: Unable to find the user., email="+email+", sql: no rows in result set")
+		s.Require().Contains("SqlUserStore.GetByEmail: store.sql_user.missing_account.const, email="+email+", sql: no rows in result set", err.Error())
 	})
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
@@ -268,7 +400,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "SqlUserStore.GetByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., sql: no rows in result set")
+		s.Require().Contains("SqlUserStore.GetByUsername: store.sql_user.get_by_username.app_error, sql: no rows in result set", err.Error())
 	})
 
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
@@ -283,7 +415,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "SqlUserStore.GetByEmail: Unable to find the user., email="+email+", sql: no rows in result set")
+		s.Require().Contains("SqlUserStore.GetByEmail: store.sql_user.missing_account.const, email="+email+", sql: no rows in result set", err.Error())
 	})
 
 	s.Run("Should create a user but w/o system_admin privileges", func() {
@@ -408,7 +540,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete user confirm using prompt", func(c client.Client) {
@@ -450,7 +582,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -551,7 +683,101 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Error when no flag provided", func(c client.Client) {
+		printer.Clean()
+
+		emailArg := "example@example.com"
+		cmd := &cobra.Command{}
+
+		err := userConvertCmdF(c, cmd, []string{emailArg})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Equal("either \"user\" flag or \"bot\" flag should be provided", err.Error())
+	})
+
+	s.RunForAllClients("Error for invalid user", func(c client.Client) {
+		printer.Clean()
+
+		emailArg := "something@something.com"
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		_ = userConvertCmdF(c, cmd, []string{emailArg})
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Valid user to bot convert", func(c client.Client) {
+		printer.Clean()
+
+		user, _ := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+
+		email := user.Email
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		err := userConvertCmdF(c, cmd, []string{email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		bot := printer.GetLines()[0].(*model.Bot)
+		s.Equal(user.Username, bot.Username)
+		s.Equal(user.Id, bot.UserId)
+		s.Equal(user.Id, bot.OwnerId)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Permission error for valid user to bot convert", func() {
+		printer.Clean()
+
+		email := s.th.BasicUser2.Email
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bot", true, "")
+
+		_ = userConvertCmdF(s.th.Client, cmd, []string{email})
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Equal(": You do not have the appropriate permissions., ", printer.GetErrorLines()[0])
+	})
+
+	s.RunForSystemAdminAndLocal("Valid bot to user convert", func(c client.Client) {
+		printer.Clean()
+
+		username := "fakeuser" + model.NewRandomString(10)
+		bot, _ := s.th.App.CreateBot(&model.Bot{Username: username, DisplayName: username, OwnerId: username})
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("user", true, "")
+		cmd.Flags().String("password", "password", "")
+
+		err := userConvertCmdF(c, cmd, []string{bot.Username})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		user := printer.GetLines()[0].(*model.User)
+		s.Equal(user.Username, bot.Username)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Permission error for valid bot to user convert", func() {
+		printer.Clean()
+
+		username := "fakeuser" + model.NewRandomString(10)
+		bot, _ := s.th.App.CreateBot(&model.Bot{Username: username, DisplayName: username, OwnerId: username})
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("user", true, "")
+		cmd.Flags().String("password", "password", "")
+
+		err := userConvertCmdF(s.th.Client, cmd, []string{bot.Username})
+		s.Require().Error(err)
+		s.Equal(": You do not have the appropriate permissions., ", err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
 
