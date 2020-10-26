@@ -6,14 +6,91 @@ package commands
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-
+	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
+
+	"github.com/spf13/cobra"
 )
 
+func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForAllClients("Search nonexistent channel", func(c client.Client) {
+		printer.Clean()
+
+		err := searchChannelCmdF(c, &cobra.Command{}, []string{"test"})
+		s.Require().NotNil(err)
+		s.Require().Equal(`channel "test" was not found in any team`, err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Search existing channel", func(c client.Client) {
+		printer.Clean()
+
+		err := searchChannelCmdF(c, &cobra.Command{}, []string{s.th.BasicChannel.Name})
+		s.Require().Nil(err)
+
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualChannel, ok := printer.GetLines()[0].(*model.Channel)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicChannel.Name, actualChannel.Name)
+	})
+
+	s.RunForSystemAdminAndLocal("Search existing channel of a team", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", s.th.BasicChannel.TeamId, "")
+
+		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
+		s.Require().Nil(err)
+
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualChannel, ok := printer.GetLines()[0].(*model.Channel)
+		s.Require().True(ok)
+		s.Require().Equal(s.th.BasicChannel.Name, actualChannel.Name)
+	})
+
+	s.RunForSystemAdminAndLocal("Search existing channel that does not belong to a team", func(c client.Client) {
+		printer.Clean()
+
+		testTeamName := api4.GenerateTestTeamName()
+
+		team, appErr := s.th.App.CreateTeam(&model.Team{
+			Name:        testTeamName,
+			DisplayName: "dn_" + testTeamName,
+			Type:        model.TEAM_OPEN,
+		})
+		s.Require().Nil(appErr)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", team.Id, "")
+
+		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
+		s.Require().NotNil(err)
+		s.Require().Equal(`: Channel does not exist., `, err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Search existing channel should fail for Client", func() {
+		printer.Clean()
+
+		err := searchChannelCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicChannel.Name})
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("channel \"%s\" was not found in any team", s.th.BasicChannel.Name), err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
 func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	s.SetupTestHelper().InitBasic()
 
@@ -127,5 +204,111 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 		s.Require().Nil(err)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to unarchive channel '%s:%s'", s.th.BasicTeam.Id, s.th.BasicChannel.Name))
 		s.Require().Contains(printer.GetErrorLines()[0], "Unable to unarchive channel. The channel is not archived.")
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
+	s.SetupTestHelper().InitBasic()
+	initChannelName := api4.GenerateTestChannelName()
+	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+		TeamId:      s.th.BasicTeam.Id,
+		Name:        initChannelName,
+		DisplayName: "dName_" + initChannelName,
+		Type:        model.CHANNEL_OPEN,
+	}, false)
+	s.Require().Nil(appErr)
+
+	s.RunForAllClients("Move nonexistent team", func(c client.Client) {
+		printer.Clean()
+
+		err := moveChannelCmdF(c, &cobra.Command{}, []string{"test"})
+		s.Require().Error(err)
+		s.Require().Equal(`unable to find destination team "test"`, err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Move existing channel to specified team", func(c client.Client) {
+		printer.Clean()
+
+		testTeamName := api4.GenerateTestTeamName()
+		var team *model.Team
+		team, appErr = s.th.App.CreateTeam(&model.Team{
+			Name:        testTeamName,
+			DisplayName: "dName_" + testTeamName,
+			Type:        model.TEAM_OPEN,
+		})
+		s.Require().Nil(appErr)
+
+		args := []string{team.Id, channel.Id}
+		cmd := &cobra.Command{}
+
+		err := moveChannelCmdF(c, cmd, args)
+
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		actualChannel, ok := printer.GetLines()[0].(*model.Channel)
+		s.Require().True(ok)
+		s.Require().Equal(channel.Name, actualChannel.Name)
+		s.Require().Equal(team.Id, actualChannel.TeamId)
+	})
+
+	s.RunForSystemAdminAndLocal("Moving team to non existing channel", func(c client.Client) {
+		printer.Clean()
+
+		args := []string{s.th.BasicTeam.Id, "no-channel"}
+		cmd := &cobra.Command{}
+
+		err := moveChannelCmdF(c, cmd, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", "no-channel"), printer.GetErrorLines()[0])
+	})
+
+	s.RunForSystemAdminAndLocal("Moving channel which is already moved to particular team", func(c client.Client) {
+		printer.Clean()
+
+		s.SetupTestHelper().InitBasic()
+		initChannelName := api4.GenerateTestChannelName()
+		channel, appErr = s.th.App.CreateChannel(&model.Channel{
+			TeamId:      s.th.BasicTeam.Id,
+			Name:        initChannelName,
+			DisplayName: "dName_" + initChannelName,
+			Type:        model.CHANNEL_OPEN,
+		}, false)
+		s.Require().Nil(appErr)
+
+		args := []string{channel.TeamId, channel.Id}
+
+		cmd := &cobra.Command{}
+
+		err := moveChannelCmdF(c, cmd, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Move existing channel to specified team should fail for client", func() {
+		printer.Clean()
+
+		testTeamName := api4.GenerateTestTeamName()
+		var team *model.Team
+		team, appErr = s.th.App.CreateTeam(&model.Team{
+			Name:        testTeamName,
+			DisplayName: "dName_" + testTeamName,
+			Type:        model.TEAM_OPEN,
+		})
+		s.Require().Nil(appErr)
+
+		args := []string{team.Id, channel.Id}
+		cmd := &cobra.Command{}
+
+		err := moveChannelCmdF(s.th.Client, cmd, args)
+		s.Require().Error(err)
+		s.Require().Equal(fmt.Sprintf("unable to find destination team %q", team.Id), err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
