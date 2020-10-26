@@ -47,7 +47,7 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		s.Equal("Unable to list plugins. Error: : Plugins have been disabled. Please check your logs for details., ", err.Error())
 	})
 
-	s.RunForSystemAdminAndLocal("No error when appropriate permissions are available", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Success when appropriate permissions are available", func(c client.Client) {
 		printer.Clean()
 
 	  s.th.App.UpdateConfig(func(cfg *model.Config) {
