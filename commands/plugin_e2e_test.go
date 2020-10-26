@@ -4,10 +4,11 @@
 package commands
 
 import (
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
-	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
@@ -20,7 +21,7 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
-	 	})
+		})
 
 		cmd := &cobra.Command{}
 
@@ -33,9 +34,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 	s.RunForSystemAdminAndLocal("Error when plugins are disabled", func(c client.Client) {
 		printer.Clean()
 
-	  s.th.App.UpdateConfig(func(cfg *model.Config) {
-       *cfg.PluginSettings.Enable = false
-    })
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
 
 		cmd := &cobra.Command{}
 
@@ -48,9 +49,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 	s.RunForSystemAdminAndLocal("Success when appropriate permissions are available", func(c client.Client) {
 		printer.Clean()
 
-	  s.th.App.UpdateConfig(func(cfg *model.Config) {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
-	 	})
+		})
 
 		cmd := &cobra.Command{}
 
@@ -61,9 +62,9 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 	s.RunForSystemAdminAndLocal("Print json plugins", func(c client.Client) {
 		printer.Clean()
 
-	  s.th.App.UpdateConfig(func(cfg *model.Config) {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
-	 	}) 
+		})
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("format", "json", "")
@@ -76,10 +77,10 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 	s.RunForSystemAdminAndLocal("Print the plain enabled and disabled plugins", func(c client.Client) {
 		printer.Clean()
 
-	  s.th.App.UpdateConfig(func(cfg *model.Config) {
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
-		 })
-		 
+		})
+
 		cmd := &cobra.Command{}
 
 		err := pluginListCmdF(c, cmd, []string{pluginArg})
@@ -87,6 +88,3 @@ func (s *MmctlE2ETestSuite) TestPluginListCmdF() {
 		s.Require().Nil(err)
 	})
 }
-
-
-
