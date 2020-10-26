@@ -5,15 +5,80 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/mattermost/mattermost-server/v5/api4"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
-
-	"github.com/spf13/cobra"
 )
+
+func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	var assertChannelNames = func(want []string, lines []interface{}) {
+		var got []string
+		for i := 0; i < len(lines); i++ {
+			got = append(got, lines[i].(*model.Channel).Name)
+		}
+
+		sort.Strings(want)
+		sort.Strings(got)
+
+		s.Equal(want, got)
+	}
+
+	s.Run("List channels/Client", func() {
+		printer.Clean()
+		wantNames := append(
+			s.th.App.DefaultChannelNames(),
+			[]string{
+				s.th.BasicChannel.Name,
+				s.th.BasicChannel2.Name,
+				s.th.BasicDeletedChannel.Name,
+				s.th.BasicPrivateChannel.Name,
+			}...,
+		)
+
+		err := listChannelsCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name})
+		s.Require().Nil(err)
+		s.Equal(6, len(printer.GetLines()))
+		assertChannelNames(wantNames, printer.GetLines())
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("List channels", func(c client.Client) {
+		printer.Clean()
+		wantNames := append(
+			s.th.App.DefaultChannelNames(),
+			[]string{
+				s.th.BasicChannel.Name,
+				s.th.BasicChannel2.Name,
+				s.th.BasicDeletedChannel.Name,
+				s.th.BasicPrivateChannel.Name,
+				s.th.BasicPrivateChannel2.Name,
+			}...,
+		)
+
+		err := listChannelsCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name})
+		s.Require().Nil(err)
+		s.Equal(7, len(printer.GetLines()))
+		assertChannelNames(wantNames, printer.GetLines())
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForAllClients("List channels for non existent team", func(c client.Client) {
+		printer.Clean()
+		team := "non-existent-team"
+
+		err := listChannelsCmdF(c, &cobra.Command{}, []string{team})
+		s.Require().Nil(err)
+		s.Len(printer.GetErrorLines(), 1)
+		s.Equal("Unable to find team '"+team+"'", printer.GetErrorLines()[0])
+	})
+}
 
 func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 	s.SetupTestHelper().InitBasic()
@@ -91,6 +156,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
 func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	s.SetupTestHelper().InitBasic()
 
