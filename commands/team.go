@@ -58,7 +58,6 @@ var RestoreTeamsCmd = &cobra.Command{
 	Long:    "Restores archived teams.",
 	Example: "  team restore myteam",
 	Args:    cobra.MinimumNArgs(1),
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(restoreTeamsCmdF),
 }
 
@@ -95,7 +94,6 @@ var ModifyTeamsCmd = &cobra.Command{
 	Long:    "Modify teams' privacy setting to public or private",
 	Example: "  team modify myteam --private",
 	Args:    cobra.MinimumNArgs(1),
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(modifyTeamsCmdF),
 }
 
@@ -345,10 +343,10 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if _, response := c.UpdateTeamPrivacy(team.Id, privacy); response.Error != nil {
+		if updatedTeam, response := c.UpdateTeamPrivacy(team.Id, privacy); response.Error != nil {
 			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
-			printer.PrintT("Modified team '{{.Name}}'", team)
+			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
 		}
 	}
 
