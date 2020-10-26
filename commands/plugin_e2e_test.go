@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"os"
-	"io/ioutil"
 	"github.com/spf13/cobra"
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
