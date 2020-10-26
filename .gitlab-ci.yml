@@ -4,7 +4,7 @@ stages:
 
 include:
   project: mattermost/ci/mmctl
-  ref: master
+  ref: add-security-automation
   file: private.yml
 
 docs:
