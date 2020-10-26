@@ -385,7 +385,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "SqlUserStore.GetByEmail: Unable to find the user., email="+email+", sql: no rows in result set")
+		s.Require().Contains("SqlUserStore.GetByEmail: store.sql_user.missing_account.const, email="+email+", sql: no rows in result set", err.Error())
 	})
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
@@ -400,7 +400,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "SqlUserStore.GetByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., sql: no rows in result set")
+		s.Require().Contains("SqlUserStore.GetByUsername: store.sql_user.get_by_username.app_error, sql: no rows in result set", err.Error())
 	})
 
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
@@ -415,7 +415,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "SqlUserStore.GetByEmail: Unable to find the user., email="+email+", sql: no rows in result set")
+		s.Require().Contains("SqlUserStore.GetByEmail: store.sql_user.missing_account.const, email="+email+", sql: no rows in result set", err.Error())
 	})
 
 	s.Run("Should create a user but w/o system_admin privileges", func() {
@@ -540,7 +540,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete user confirm using prompt", func(c client.Client) {
@@ -582,7 +582,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -683,7 +683,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "SqlUserStore.Get: Unable to find the user., user_id=store.sql_user.missing_account.const, sql: no rows in result set")
+		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
 	})
 }
 
