@@ -234,7 +234,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201026144558-8f895908fcb2
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201027094120-f5531a5a437f
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing
