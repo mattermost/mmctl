@@ -81,4 +81,3 @@ build:
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
     - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
     - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
-    - if: '$CI_COMMIT_REF_NAME == "poc"' #todo
