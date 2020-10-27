@@ -15,7 +15,7 @@ import (
 func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	s.RunForSystemAdminAndLocal("List commands for a non existing team", func(c client.Client) {
+	s.RunForAllClients("List commands for a non existing team", func(c client.Client) {
 		printer.Clean()
 
 		nonexistentTeamID := "nonexistent-team-id"
@@ -63,8 +63,6 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 	})
 
 	s.Run("List all commands from all teams", func() {
-		printer.Clean()
-
 		// add team1
 		team1, appErr := s.th.App.CreateTeam(&model.Team{
 			DisplayName: "dn_" + model.NewId(),
@@ -117,11 +115,15 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			s.Require().Nil(appErr)
 		}()
 
-		err := listCommandCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 2)
-		s.ElementsMatch([]*model.Command{command1, command2}, printer.GetLines())
-		s.Len(printer.GetErrorLines(), 0)
+		s.RunForSystemAdminAndLocal("List all commands from all teams", func(c client.Client) {
+			printer.Clean()
+
+			err := listCommandCmdF(c, &cobra.Command{}, []string{})
+			s.Require().Nil(err)
+			s.Len(printer.GetLines(), 2)
+			s.ElementsMatch([]*model.Command{command1, command2}, printer.GetLines())
+			s.Len(printer.GetErrorLines(), 0)
+		})
 	})
 
 	s.Run("List commands for a specific team without permission", func() {
