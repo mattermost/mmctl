@@ -178,10 +178,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 	s.Run("Print server status", func() {
 		printer.Clean()
 
-		expectedStatus := "OK"
+		expectedStatus := map[string]string{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithServerStatus().
+			GetPingWithFullServerStatus().
 			Return(expectedStatus, &model.Response{Error: nil}).
 			Times(1)
 
@@ -189,7 +189,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": expectedStatus})
+		s.Require().Equal(printer.GetLines()[0], expectedStatus)
 	})
 
 	s.Run("Request to the server fails", func() {
@@ -197,8 +197,8 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithServerStatus().
-			Return("", &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			GetPingWithFullServerStatus().
+			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
 			Times(1)
 
 		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})

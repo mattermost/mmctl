@@ -385,7 +385,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains("SqlUserStore.GetByEmail: store.sql_user.missing_account.const, email="+email+", sql: no rows in result set", err.Error())
+		s.Require().Contains(err.Error(), "GetUserByEmail: Unable to find the user., resource: User id: email="+email)
 	})
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
@@ -400,7 +400,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
 		s.Require().NotNil(err)
-		s.Require().Contains("SqlUserStore.GetByUsername: store.sql_user.get_by_username.app_error, sql: no rows in result set", err.Error())
+		s.Require().Contains(err.Error(), "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., resource: User id: username="+username)
 	})
 
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
@@ -415,7 +415,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains("SqlUserStore.GetByEmail: store.sql_user.missing_account.const, email="+email+", sql: no rows in result set", err.Error())
+		s.Require().Contains(err.Error(), "GetUserByEmail: Unable to find the user., resource: User id: email="+email)
 	})
 
 	s.Run("Should create a user but w/o system_admin privileges", func() {
@@ -472,6 +472,26 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Nil(err)
 		s.Equal(username, user.Username)
 		s.Equal(false, user.IsSystemAdmin())
+	})
+
+	s.RunForSystemAdminAndLocal("Should create new user with the email already verified only for admin or local mode", func(c client.Client) {
+		printer.Clean()
+		email := s.th.GenerateTestEmail()
+		username := model.NewId()
+		cmd := &cobra.Command{}
+		cmd.Flags().String("username", username, "")
+		cmd.Flags().String("email", email, "")
+		cmd.Flags().String("password", "somepass", "")
+		cmd.Flags().Bool("email_verified", true, "")
+
+		err := userCreateCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		user, err := s.th.App.GetUserByEmail(email)
+		s.Require().Nil(err)
+		s.Equal(username, user.Username)
+		s.Equal(false, user.IsSystemAdmin())
+		s.Equal(true, user.EmailVerified)
 	})
 }
 
@@ -540,7 +560,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
+		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
 	})
 
 	s.RunForSystemAdminAndLocal("Delete user confirm using prompt", func(c client.Client) {
@@ -582,7 +602,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
+		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -683,7 +703,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal("SqlUserStore.Get: store.sql_user.missing_account.const, user_id=store.sql_user.missing_account.const, sql: no rows in result set", err.Error())
+		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
 	})
 }
 

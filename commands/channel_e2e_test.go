@@ -273,6 +273,202 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	previousConfig := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
+	defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousConfig })
+
+	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	s.Require().Nil(appErr)
+
+	team, appErr := s.th.App.CreateTeam(&model.Team{
+		DisplayName: "Best Team",
+		Name:        "best-team",
+		Type:        model.TEAM_OPEN,
+		Email:       s.th.GenerateTestEmail(),
+	})
+	s.Require().Nil(appErr)
+
+	otherChannel, appErr := s.th.App.CreateChannel(&model.Channel{Type: model.CHANNEL_OPEN, Name: "channel_you_are_not_authorized_to", CreatorId: user.Id}, true)
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Delete channel", func(c client.Client) {
+		channel, appErr := s.th.App.CreateChannel(&model.Channel{Type: model.CHANNEL_OPEN, Name: "channel_name", CreatorId: user.Id}, true)
+		s.Require().Nil(appErr)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + channel.Id}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(c, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(channel, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		_, err = s.th.App.GetChannel(channel.Id)
+
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("GetChannel: Unable to find the existing channel., resource: Channel id: %s", channel.Id), err.Error())
+	})
+
+	s.Run("Delete channel without permissions", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + otherChannel.Id}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(s.th.Client, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Nil(err)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, otherChannel.Id), printer.GetErrorLines()[0])
+
+		channel, err := s.th.App.GetChannel(otherChannel.Id)
+
+		s.Require().Nil(err)
+		s.Require().NotNil(channel)
+	})
+
+	s.RunForAllClients("Delete not existing channel", func(c client.Client) {
+		notExistingChannelID := "not-existing-channel-ID"
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + notExistingChannelID}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(c, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, notExistingChannelID), printer.GetErrorLines()[0])
+
+		channel, err := s.th.App.GetChannel(notExistingChannelID)
+
+		s.Require().Nil(channel)
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("GetChannel: Unable to find the existing channel., resource: Channel id: %s", notExistingChannelID), err.Error())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	initChannelName := api4.GenerateTestChannelName()
+	initChannelDisplayName := "dn_" + initChannelName
+
+	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+		TeamId:      s.th.BasicTeam.Id,
+		Name:        initChannelName,
+		DisplayName: initChannelDisplayName,
+		Type:        model.CHANNEL_OPEN,
+	}, false)
+	s.Require().Nil(appErr)
+
+	s.RunForAllClients("Rename nonexistent channel", func(c client.Client) {
+		printer.Clean()
+
+		nonexistentChannelName := api4.GenerateTestChannelName()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "name", "")
+		cmd.Flags().String("display_name", "name", "")
+
+		err := renameChannelCmdF(c, cmd, []string{s.th.BasicTeam.Id + ":" + nonexistentChannelName})
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("unable to find channel from \"%s:%s\"", s.th.BasicTeam.Id, nonexistentChannelName), err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Rename channel", func(c client.Client) {
+		printer.Clean()
+
+		newChannelName := api4.GenerateTestChannelName()
+		newChannelDisplayName := "dn_" + newChannelName
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", newChannelName, "")
+		cmd.Flags().String("display_name", newChannelDisplayName, "")
+
+		err := renameChannelCmdF(c, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
+		s.Require().Nil(err)
+
+		s.Require().Len(printer.GetLines(), 1)
+		printedChannel, ok := printer.GetLines()[0].(*model.Channel)
+		s.Require().True(ok, "unexpected printer output type")
+
+		s.Require().Equal(newChannelName, printedChannel.Name)
+		s.Require().Equal(newChannelDisplayName, printedChannel.DisplayName)
+
+		rchannel, err := s.th.App.GetChannel(channel.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(newChannelName, rchannel.Name)
+		s.Require().Equal(newChannelDisplayName, rchannel.DisplayName)
+	})
+
+	s.Run("Rename channel without permission", func() {
+		printer.Clean()
+
+		channelInit, appErr := s.th.App.GetChannel(channel.Id)
+		s.Require().Nil(appErr)
+
+		newChannelName := api4.GenerateTestChannelName()
+		newChannelDisplayName := "dn_" + newChannelName
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", newChannelName, "")
+		cmd.Flags().String("display_name", newChannelDisplayName, "")
+
+		err := renameChannelCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(fmt.Sprintf("cannot rename channel \"%s\", error: : You do not have the appropriate permissions., ", channelInit.Name), err.Error())
+
+		rchannel, err := s.th.App.GetChannel(channel.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(channelInit.Name, rchannel.Name)
+		s.Require().Equal(channelInit.DisplayName, rchannel.DisplayName)
+	})
+
+	s.Run("Rename channel with permission", func() {
+		printer.Clean()
+
+		_, appErr := s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
+		s.Require().Nil(appErr)
+
+		newChannelName := api4.GenerateTestChannelName()
+		newChannelDisplayName := "dn_" + newChannelName
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", newChannelName, "")
+		cmd.Flags().String("display_name", newChannelDisplayName, "")
+
+		err := renameChannelCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
+		s.Require().Nil(err)
+
+		s.Require().Len(printer.GetLines(), 1)
+		printedChannel, ok := printer.GetLines()[0].(*model.Channel)
+		s.Require().True(ok, "unexpected printer output type")
+
+		s.Require().Equal(newChannelName, printedChannel.Name)
+		s.Require().Equal(newChannelDisplayName, printedChannel.DisplayName)
+
+		rchannel, err := s.th.App.GetChannel(channel.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(newChannelName, rchannel.Name)
+		s.Require().Equal(newChannelDisplayName, rchannel.DisplayName)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.SetupTestHelper().InitBasic()
 	initChannelName := api4.GenerateTestChannelName()
