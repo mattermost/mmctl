@@ -21,6 +21,7 @@ var MakeSystemAdminCmd = &cobra.Command{
 	Long:    "Make some users system admins",
 	Example: "  roles system_admin user1",
 	RunE:    withClient(makeSystemAdminCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var MakeMemberCmd = &cobra.Command{
@@ -29,6 +30,7 @@ var MakeMemberCmd = &cobra.Command{
 	Long:    "Remove system admin privileges from some users.",
 	Example: "  roles member user1",
 	RunE:    withClient(makeMemberCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 func init() {
@@ -41,10 +43,6 @@ func init() {
 
 func makeSystemAdminCmdF(c client.Client, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
-
-	if len(args) < 1 {
-		return errors.New("enter at least one user")
-	}
 
 	users := getUsersFromUserArgs(c, args)
 	for i, user := range users {
@@ -67,11 +65,11 @@ func makeSystemAdminCmdF(c client.Client, command *cobra.Command, args []string)
 
 		if !systemAdmin {
 			newRoles = append(newRoles, model.SYSTEM_ADMIN_ROLE_ID)
-			_, response := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " "))
-			if response.Error != nil {
+			if _, response := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); response.Error != nil {
 				return errors.New("Unable to update user roles. Error: " + response.Error.Error())
 			}
-			printer.PrintT("System admin role assigned to user {{.Username}}", user)
+			updatedUser := getUserFromUserArg(c, user.Id)
+			printer.PrintT("System admin role assigned to user {{.Username}}", updatedUser)
 		}
 
 	}
@@ -81,10 +79,6 @@ func makeSystemAdminCmdF(c client.Client, command *cobra.Command, args []string)
 
 func makeMemberCmdF(c client.Client, command *cobra.Command, args []string) error {
 	printer.SetSingle(true)
-
-	if len(args) < 1 {
-		return errors.New("enter at least one user")
-	}
 
 	users := getUsersFromUserArgs(c, args)
 	for i, user := range users {
@@ -107,11 +101,11 @@ func makeMemberCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 		if systemAdmin {
 			newRoles = append(newRoles, model.SYSTEM_USER_ROLE_ID)
-			_, response := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " "))
-			if response.Error != nil {
+			if _, response := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); response.Error != nil {
 				return errors.New("Unable to update user roles. Error: " + response.Error.Error())
 			}
-			printer.PrintT("System admin role revoked for user {{.Username}}", user)
+			updatedUser := getUserFromUserArg(c, user.Id)
+			printer.PrintT("System admin role revoked for user {{.Username}}", updatedUser)
 		}
 
 	}
