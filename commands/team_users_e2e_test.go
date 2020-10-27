@@ -159,3 +159,69 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Can't find user '%s'", nonexistentUserEmail))
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Remove user from team", func(c client.Client) {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		team := model.Team{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        api4.GenerateTestTeamName(),
+			Email:       s.th.GenerateTestEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+		_, appErr = s.th.App.CreateTeamWithUser(&team, user.Id)
+		s.Require().Nil(appErr)
+
+		err := teamUsersRemoveCmdF(c, &cobra.Command{}, []string{team.Name, user.Username})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		teamMembers, err := s.th.App.GetTeamMembers(team.Id, 0, 10, nil)
+		s.Require().Nil(err)
+		s.Require().NotNil(teamMembers)
+		s.Require().Len(teamMembers, 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Remove user from non-existent team", func(c client.Client) {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		nonexistentTeamName := model.NewId()
+		err := teamUsersRemoveCmdF(c, &cobra.Command{}, []string{nonexistentTeamName, user.Username})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), fmt.Sprintf("Unable to find team '%s'", nonexistentTeamName))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Remove user from team without permissions", func() {
+		printer.Clean()
+
+		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+
+		team := model.Team{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        api4.GenerateTestTeamName(),
+			Email:       s.th.GenerateTestEmail(),
+			Type:        model.TEAM_OPEN,
+		}
+		_, appErr = s.th.App.CreateTeamWithUser(&team, user.Id)
+		s.Require().Nil(appErr)
+
+		err := teamUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{team.Name, user.Username})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), fmt.Sprintf("Unable to find team '%s'", team.Name))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
