@@ -1,3 +1,12 @@
 mmctl
 bin
 build
+
+# Editor files
+.vscode
+.idea
+
+coverage.txt
+mmctl.md5.txt
+
+config.override.mk

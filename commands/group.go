@@ -1,10 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
-	"fmt"
+	"github.com/mattermost/mattermost-server/v5/model"
 
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -44,6 +47,7 @@ var ChannelGroupDisableCmd = &cobra.Command{
 	RunE:    withClient(channelGroupDisableCmdF),
 }
 
+// ChannelGroupStatusCmd is a command which outputs group constrain status for a channel
 var ChannelGroupStatusCmd = &cobra.Command{
 	Use:     "status [team]:[channel]",
 	Short:   "Show's the group constrain status for the specified channel",
@@ -130,7 +134,7 @@ func listLdapGroupsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	for _, group := range groups {
-		fmt.Println(group)
+		printer.PrintT("{{.DisplayName}}", group)
 	}
 
 	return nil
@@ -142,7 +146,14 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByChannel(channel.Id, 0, 10)
+	groupOpts := &model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+
+	groups, _, res := c.GetGroupsByChannel(channel.Id, *groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -174,15 +185,17 @@ func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string)
 }
 
 func channelGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
 	if channel.GroupConstrained != nil && *channel.GroupConstrained {
-		fmt.Println("Enabled")
+		printer.Print("Enabled")
 	} else {
-		fmt.Println("Disabled")
+		printer.Print("Disabled")
 	}
 
 	return nil
@@ -194,13 +207,19 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByChannel(channel.Id, 0, 9999)
+	groupOpts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 9999,
+		},
+	}
+	groups, _, res := c.GetGroupsByChannel(channel.Id, groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
 
 	for _, group := range groups {
-		fmt.Println(group.DisplayName)
+		printer.PrintT("{{.DisplayName}}", group)
 	}
 
 	return nil
@@ -212,7 +231,13 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByTeam(team.Id, 0, 10)
+	groupOpts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 10,
+		},
+	}
+	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
@@ -244,15 +269,17 @@ func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) er
 }
 
 func teamGroupStatusCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
 	if team.GroupConstrained != nil && *team.GroupConstrained {
-		fmt.Println("Enabled")
+		printer.Print("Enabled")
 	} else {
-		fmt.Println("Disabled")
+		printer.Print("Disabled")
 	}
 
 	return nil
@@ -264,13 +291,19 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	groups, res := c.GetGroupsByTeam(team.Id, 0, 9999)
+	groupOpts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 9999,
+		},
+	}
+	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
 	if res.Error != nil {
 		return res.Error
 	}
 
 	for _, group := range groups {
-		fmt.Println(group.DisplayName)
+		printer.PrintT("{{.DisplayName}}", group)
 	}
 
 	return nil

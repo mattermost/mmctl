@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -20,7 +23,7 @@ var BashCmd = &cobra.Command{
 
 To configure your bash shell to load completions for each session, add the above line to your ~/.bashrc
 `,
-	Run: bashCmdF,
+	RunE: bashCmdF,
 }
 
 var ZshCmd = &cobra.Command{
@@ -32,7 +35,7 @@ var ZshCmd = &cobra.Command{
 
 To configure your zsh shell to load completions for each session, add the above line to your ~/.zshrc
 `,
-	Run: zshCmdF,
+	RunE: zshCmdF,
 }
 
 func init() {
@@ -44,11 +47,11 @@ func init() {
 	RootCmd.AddCommand(CompletionCmd)
 }
 
-func bashCmdF(cmd *cobra.Command, args []string) {
-	RootCmd.GenBashCompletion(os.Stdout)
+func bashCmdF(cmd *cobra.Command, args []string) error {
+	return RootCmd.GenBashCompletion(os.Stdout)
 }
 
-func zshCmdF(cmd *cobra.Command, args []string) {
+func zshCmdF(cmd *cobra.Command, args []string) error {
 	zshInitialization := `
 __mmctl_bash_source() {
 	alias shopt=':'
@@ -187,7 +190,15 @@ BASH_COMPLETION_EOF
 __mmctl_bash_source <(__mmctl_convert_bash_to_zsh)
 `
 
-	os.Stdout.Write([]byte(zshInitialization))
-	RootCmd.GenBashCompletion(os.Stdout)
-	os.Stdout.Write([]byte(zshTail))
+	if _, err := os.Stdout.Write([]byte(zshInitialization)); err != nil {
+		return err
+	}
+	if err := RootCmd.GenBashCompletion(os.Stdout); err != nil {
+		return err
+	}
+	if _, err := os.Stdout.Write([]byte(zshTail)); err != nil {
+		return err
+	}
+
+	return nil
 }
