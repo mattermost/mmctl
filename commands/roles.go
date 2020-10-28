@@ -1,12 +1,17 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
-	"errors"
+	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
+
 	"github.com/spf13/cobra"
 )
 
@@ -15,99 +20,92 @@ var RolesCmd = &cobra.Command{
 	Short: "Management of user roles",
 }
 
-var MakeSystemAdminCmd = &cobra.Command{
+var RolesSystemAdminCmd = &cobra.Command{
 	Use:     "system_admin [users]",
 	Short:   "Set a user as system admin",
 	Long:    "Make some users system admins",
 	Example: "  roles system_admin user1",
-	RunE:    withClient(makeSystemAdminCmdF),
+	RunE:    withClient(rolesSystemAdminCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
 
-var MakeMemberCmd = &cobra.Command{
+var RolesMemberCmd = &cobra.Command{
 	Use:     "member [users]",
 	Short:   "Remove system admin privileges",
 	Long:    "Remove system admin privileges from some users.",
 	Example: "  roles member user1",
-	RunE:    withClient(makeMemberCmdF),
+	RunE:    withClient(rolesMemberCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
 
 func init() {
 	RolesCmd.AddCommand(
-		MakeSystemAdminCmd,
-		MakeMemberCmd,
+		RolesSystemAdminCmd,
+		RolesMemberCmd,
 	)
+
 	RootCmd.AddCommand(RolesCmd)
 }
 
-func makeSystemAdminCmdF(c client.Client, command *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
+func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args)
 	for i, user := range users {
 		if user == nil {
-			return errors.New("Unable to find user '" + args[i] + "'")
+			printer.PrintError(fmt.Sprintf("unable to find user %q", args[i]))
+			continue
 		}
 
 		systemAdmin := false
-		var newRoles []string
-
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
-			switch role {
-			case model.SYSTEM_ADMIN_ROLE_ID:
+			if role == model.SYSTEM_ADMIN_ROLE_ID {
 				systemAdmin = true
-			default:
-				newRoles = append(newRoles, role)
 			}
 		}
 
 		if !systemAdmin {
-			newRoles = append(newRoles, model.SYSTEM_ADMIN_ROLE_ID)
-			if _, response := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); response.Error != nil {
-				return errors.New("Unable to update user roles. Error: " + response.Error.Error())
+			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
+			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); resp.Error != nil {
+				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
+				continue
 			}
-			updatedUser := getUserFromUserArg(c, user.Id)
-			printer.PrintT("System admin role assigned to user {{.Username}}", updatedUser)
-		}
 
+			printer.Print(fmt.Sprintf("System admin role assigned to user %q", args[i]))
+		}
 	}
 
 	return nil
 }
 
-func makeMemberCmdF(c client.Client, command *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
+func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args)
 	for i, user := range users {
 		if user == nil {
-			return errors.New("Unable to find user '" + args[i] + "'")
+			printer.PrintError(fmt.Sprintf("unable to find user %q", args[i]))
+			continue
 		}
 
-		systemAdmin := true
+		shouldRemoveSysadmin := false
 		var newRoles []string
 
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
 			switch role {
 			case model.SYSTEM_ADMIN_ROLE_ID:
-				systemAdmin = true
+				shouldRemoveSysadmin = true
 			default:
 				newRoles = append(newRoles, role)
 			}
 		}
 
-		if systemAdmin {
-			newRoles = append(newRoles, model.SYSTEM_USER_ROLE_ID)
-			if _, response := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); response.Error != nil {
-				return errors.New("Unable to update user roles. Error: " + response.Error.Error())
+		if shouldRemoveSysadmin {
+			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); resp.Error != nil {
+				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
+				continue
 			}
-			updatedUser := getUserFromUserArg(c, user.Id)
-			printer.PrintT("System admin role revoked for user {{.Username}}", updatedUser)
-		}
 
+			printer.Print(fmt.Sprintf("System admin role revoked for user %q", args[i]))
+		}
 	}
 
 	return nil
