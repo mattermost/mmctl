@@ -43,11 +43,21 @@ var UserDeactivateCmd = &cobra.Command{
 }
 
 var UserCreateCmd = &cobra.Command{
-	Use:     "create",
-	Short:   "Create a user",
-	Long:    "Create a user",
-	Example: `  user create --email user@example.com --username userexample --password Password1`,
-	RunE:    withClient(userCreateCmdF),
+	Use:   "create",
+	Short: "Create a user",
+	Long:  "Create a user",
+	Example: `  # You can create a user
+  $ mmctl user create --email user@example.com --username userexample --password Password1
+
+  # You can define optional fields like first name, last name and nick name too
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --firstname User --lastname Example --nickname userex
+
+  # Also you can create the user as system administrator
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin
+
+  # Finally you can verify user on creation if you have enough permissions
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin --email-verified`,
+	RunE: withClient(userCreateCmdF),
 }
 
 var UserInviteCmd = &cobra.Command{
@@ -221,6 +231,7 @@ func init() {
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+	UserCreateCmd.Flags().Bool("email_verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -364,15 +375,17 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	lastname, _ := cmd.Flags().GetString("lastname")
 	locale, _ := cmd.Flags().GetString("locale")
 	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+	emailVerified, _ := cmd.Flags().GetBool("email_verified")
 
 	user := &model.User{
-		Username:  username,
-		Email:     email,
-		Password:  password,
-		Nickname:  nickname,
-		FirstName: firstname,
-		LastName:  lastname,
-		Locale:    locale,
+		Username:      username,
+		Email:         email,
+		Password:      password,
+		Nickname:      nickname,
+		FirstName:     firstname,
+		LastName:      lastname,
+		Locale:        locale,
+		EmailVerified: emailVerified,
 	}
 
 	ruser, response := c.CreateUser(user)
