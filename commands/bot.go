@@ -158,7 +158,7 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	for {
 		var bots []*model.Bot
 		var res *model.Response
-		if all { //nolint:ifElseChain
+		if all { //nolint:gocritic
 			bots, res = c.GetBotsIncludeDeleted(page, perPage, "")
 		} else if orphaned {
 			bots, res = c.GetBotsOrphaned(page, perPage, "")

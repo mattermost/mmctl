@@ -343,10 +343,10 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if _, response := c.UpdateTeamPrivacy(team.Id, privacy); response.Error != nil {
+		if updatedTeam, response := c.UpdateTeamPrivacy(team.Id, privacy); response.Error != nil {
 			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + response.Error.Error())
 		} else {
-			printer.PrintT("Modified team '{{.Name}}'", team)
+			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
 		}
 	}
 
