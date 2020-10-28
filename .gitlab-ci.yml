@@ -11,6 +11,7 @@ docs:
   stage: test
   image: mattermost/mattermost-build-server:20201020_golang-1.14.9
   script:
+    - echo $CI_COMMIT_REF_NAME
     - echo "Making sure docs are updated"
     - make docs
     - if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
