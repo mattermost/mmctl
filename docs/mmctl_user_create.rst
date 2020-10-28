@@ -20,7 +20,17 @@ Examples
 
 ::
 
-    user create --email user@example.com --username userexample --password Password1
+    # You can create a user
+    $ mmctl user create --email user@example.com --username userexample --password Password1
+
+    # You can define optional fields like first name, last name and nick name too
+    $ mmctl user create --email user@example.com --username userexample --password Password1 --firstname User --lastname Example --nickname userex
+
+    # Also you can create the user as system administrator
+    $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin
+
+    # Finally you can verify user on creation if you have enough permissions
+    $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin --email-verified
 
 Options
 ~~~~~~~
@@ -28,6 +38,7 @@ Options
 ::
 
       --email string       Required. The email address for the new user account
+      --email_verified     Optional. If supplied, the new user will have the email verified. Defaults to false
       --firstname string   Optional. The first name for the new user account
   -h, --help               help for create
       --lastname string    Optional. The last name for the new user account
