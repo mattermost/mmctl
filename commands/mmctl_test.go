@@ -91,3 +91,11 @@ func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Cli
 		fn(s.th.LocalClient)
 	})
 }
+
+//RunUnauthentictedClient runs a test using unauthenticated client
+// register in the TestHelper
+func (s *MmctlE2ETestSuite) RunUnauthenticatedClient(testName string, fn func(client.Client)) {
+	s.Run(testName+"/Client", func() {
+		fn(s.th.Client)
+	})
+}
