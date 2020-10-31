@@ -265,7 +265,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
 	copy := command
 	originalURL := newCmd.URL
-
+	index := 0
 	s.RunForAllClients("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()
 
@@ -276,7 +276,8 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		cmd := CommandModifyCmd
 		cmd.ResetFlags()
 		addCommandFieldsFlags(cmd)
-		url := command.URL + "_modified"
+		url := fmt.Sprintf("%s-%d", command.URL, index)
+		index += 1
 		err := cmd.ParseFlags([]string{
 			command.Id,
 			"--url=" + url,
