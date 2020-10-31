@@ -277,7 +277,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		cmd.ResetFlags()
 		addCommandFieldsFlags(cmd)
 		url := fmt.Sprintf("%s-%d", command.URL, index)
-		index += 1
+		index++
 		err := cmd.ParseFlags([]string{
 			command.Id,
 			"--url=" + url,
