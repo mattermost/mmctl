@@ -289,7 +289,9 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 
-		check := getCommandFromCommandArg(s.th.SystemAdminClient, command.Id)
+		changedCommand, err := s.th.App.GetCommand(command.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(url, changedCommand.URL)
 		s.Require().Equal(check.URL, url)
 	})
 
@@ -297,7 +299,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 
-		err := modifyCommandCmdF(s.th.SystemAdminClient, cmd, []string{"nothing"})
+		err := modifyCommandCmdF(c, cmd, []string{"nothing"})
 		s.Require().NotNil(err)
 		s.Require().Equal("unable to find command 'nothing'", err.Error())
 	})
@@ -314,7 +316,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		})
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.th.SystemAdminClient, cmd, []string{command.Id})
+		err = modifyCommandCmdF(c, cmd, []string{command.Id})
 		s.Require().NotNil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
