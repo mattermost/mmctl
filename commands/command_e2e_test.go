@@ -284,7 +284,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		})
 		s.Require().Nil(err)
 
-		err = modifyCommandCmdF(s.th.SystemAdminClient, cmd, []string{command.Id})
+		err = modifyCommandCmdF(c, cmd, []string{command.Id})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
