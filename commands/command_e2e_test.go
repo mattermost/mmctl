@@ -266,7 +266,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 	copy := command
 	originalURL := newCmd.URL
 	index := 0
-	s.RunForAllClients("modifyCommandCmdF", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()
 
 		command = copy
@@ -292,10 +292,9 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		changedCommand, err := s.th.App.GetCommand(command.Id)
 		s.Require().Nil(err)
 		s.Require().Equal(url, changedCommand.URL)
-		s.Require().Equal(check.URL, url)
 	})
 
-	s.RunForAllClients("modifyCommandCmdF for command that does not exist", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("modifyCommandCmdF for command that does not exist", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
 
@@ -304,7 +303,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		s.Require().Equal("unable to find command 'nothing'", err.Error())
 	})
 
-	s.RunForAllClients("modifyCommandCmdF with a space in trigger word", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("modifyCommandCmdF with a space in trigger word", func(c client.Client) {
 		printer.Clean()
 		// Reset the cmd and parse to force Flag.Changed to be true.
 		cmd := CommandModifyCmd
