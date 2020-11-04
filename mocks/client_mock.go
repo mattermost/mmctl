@@ -879,6 +879,21 @@ func (mr *MockClientMockRecorder) GetUsersByIds(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersByIds", reflect.TypeOf((*MockClient)(nil).GetUsersByIds), arg0)
 }
 
+// GetUsersInTeam mocks base method
+func (m *MockClient) GetUsersInTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.User, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersInTeam", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUsersInTeam indicates an expected call of GetUsersInTeam
+func (mr *MockClientMockRecorder) GetUsersInTeam(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInTeam", reflect.TypeOf((*MockClient)(nil).GetUsersInTeam), arg0, arg1, arg2, arg3)
+}
+
 // InstallMarketplacePlugin mocks base method
 func (m *MockClient) InstallMarketplacePlugin(arg0 *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.Response) {
 	m.ctrl.T.Helper()
