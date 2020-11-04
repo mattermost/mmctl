@@ -91,6 +91,7 @@ type Client interface {
 	MigrateIdLdap(toAttribute string) (bool, *model.Response)
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response)
 	GetUsersByIds(userIds []string) ([]*model.User, *model.Response)
+	GetUsersInTeam(teamId string, page, perPage int, etag string) ([]*model.User, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
 	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
