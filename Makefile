@@ -85,21 +85,21 @@ test: test-unit
 .PHONY: test-unit
 test-unit:
 	@echo Running unit tests
-	$(GO) test -mod=vendor -race -v -tags unit $(GO_PACKAGES)
+	$(GO) test -mod=vendor -timeout 30m -race -v -tags unit $(GO_PACKAGES)
 
 .PHONY: test-e2e
 test-e2e:
 	@echo Running e2e tests
-	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test -mod=vendor -race -v -tags e2e $(GO_PACKAGES)
+	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test -mod=vendor -timeout 30m -race -v -tags e2e $(GO_PACKAGES)
 
 .PHONY: test-all
 test-all:
 	@echo Running all tests
-	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test -mod=vendor -race -v -tags 'unit e2e' $(GO_PACKAGES)
+	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test -mod=vendor -timeout 30m -race -v -tags 'unit e2e' $(GO_PACKAGES)
 
 .PHONY: coverage
 coverage:
-	$(GO) test -mod=vendor -race -tags unit -coverprofile=coverage.txt ./...
+	$(GO) test -mod=vendor -timeout 30m -race -tags unit -coverprofile=coverage.txt ./...
 	$(GO) tool cover -html=coverage.txt
 
 .PHONY: check
