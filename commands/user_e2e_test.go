@@ -168,10 +168,12 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		var page int
 		var all bool
 		perpage := 5
+		team := ""
 		cmd := &cobra.Command{}
 		cmd.Flags().IntVar(&page, "page", page, "page")
 		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
 		cmd.Flags().BoolVar(&all, "all", all, "all")
+		cmd.Flags().StringVar(&team, "team", team, "team")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -190,10 +192,12 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		var page int
 		perpage := 10
 		all := true
+		team := ""
 		cmd := &cobra.Command{}
 		cmd.Flags().IntVar(&page, "page", page, "page")
 		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
 		cmd.Flags().BoolVar(&all, "all", all, "all")
+		cmd.Flags().StringVar(&team, "team", team, "team")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
