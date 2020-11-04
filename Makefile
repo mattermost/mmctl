@@ -14,6 +14,10 @@ all: build
 -include config.override.mk
 include config.mk
 
+ifneq ($(wildcard ${MM_SERVER_PATH}/../enterprise/.*),)
+	TESTFLAGS += -ldflags '-X "github.com/mattermost/mmctl/commands.EnableEnterpriseTests=true"'
+endif
+
 .PHONY: build
 build: vendor check
 	go build -ldflags '$(LDFLAGS)' -mod=vendor
