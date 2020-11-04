@@ -121,6 +121,7 @@ jobs:
               docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
           name: Run Tests
+          no_output_timeout: 30m
           command: |
             ulimit -n 8096
             cd ../mattermost-server/build
