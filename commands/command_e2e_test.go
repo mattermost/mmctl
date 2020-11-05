@@ -263,14 +263,9 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 	}
 
 	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
-	copy := command
-	originalURL := newCmd.URL
 	index := 0
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()
-
-		command = copy
-		s.Require().Equal(command.URL, originalURL)
 
 		// Reset the cmd and parse to force Flag.Changed to be true.
 		cmd := CommandModifyCmd
