@@ -26,6 +26,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 	s.RunForSystemAdminAndLocal("admin and local can't add plugins if the config doesn't allow it", func(c client.Client) {
 		printer.Clean()
+
 		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetErrorLines()))
@@ -34,9 +35,15 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 	s.RunForSystemAdminAndLocal("admin and local can add a plugin if the config allows it", func(c client.Client) {
 		printer.Clean()
+
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+			*cfg.PluginSettings.EnableUploads = false
 		})
 
 		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
@@ -54,28 +61,24 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		appErr = s.th.App.RemovePlugin(pInfo.Id)
 		s.Require().Nil(appErr)
 
-		s.th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = false
-			*cfg.PluginSettings.EnableUploads = false
-		})
 	})
 
 	s.Run("normal user can't add plugin", func() {
 		printer.Clean()
+
 		s.th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+			*cfg.PluginSettings.EnableUploads = false
 		})
 
 		err := pluginAddCmdF(s.th.Client, &cobra.Command{}, []string{pluginPath})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetErrorLines()))
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions")
-
-		// teardown
-		s.th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = false
-			*cfg.PluginSettings.EnableUploads = false
-		})
 	})
 }
