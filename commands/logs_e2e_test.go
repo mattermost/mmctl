@@ -12,11 +12,11 @@ import (
 func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	s.RunForAllClients("Display single log line", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Display single log line", func(c client.Client) {
 		cmd := &cobra.Command{}
 		cmd.Flags().Int("number", 1, "")
 
-		data, err := testLogsCmdF(s.th.SystemAdminClient, cmd, []string{})
+		data, err := testLogsCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(data, 2)
 		s.Contains(data[1], "info app/plugin.go:223 Syncing plugins from the file store")
