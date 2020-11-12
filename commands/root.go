@@ -21,8 +21,8 @@ func Run(args []string) error {
 	viper.SetDefault("local-socket-path", model.LOCAL_MODE_SOCKET_PATH)
 	viper.AutomaticEnv()
 
-	RootCmd.PersistentFlags().String("config", getDefaultConfigPath(), fmt.Sprintf("path to search for '%s' configuration file", configFileName))
-	_ = viper.BindPFlag("config", RootCmd.PersistentFlags().Lookup("config"))
+	RootCmd.PersistentFlags().String("config-path", getDefaultConfigPath(), fmt.Sprintf("path to search for '%s' configuration file", configFileName))
+	_ = viper.BindPFlag("config-path", RootCmd.PersistentFlags().Lookup("config-path"))
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	_ = viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
 	RootCmd.PersistentFlags().Bool("strict", false, "will only run commands if the mmctl version matches the server one")

@@ -26,25 +26,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		panic(err)
 	}
 
-	t.Run("should return the default xdg config location if it exists and nothing else is set", func(t *testing.T) {
-		tmp, _ := ioutil.TempDir("", "mmctl-")
-		defer os.RemoveAll(tmp)
-		testUser.HomeDir = tmp
-		SetUser(testUser)
-
-		expected := fmt.Sprintf("%s/.config/mmctl/.mmctl", testUser.HomeDir)
-
-		viper.Set("config", getDefaultConfigPath())
-		if err := createFile(expected); err != nil {
-			panic(err)
-		}
-
-		p, err := resolveConfigFilePath()
-		require.Nil(t, err)
-		require.Equal(t, expected, p)
-	})
-
-	t.Run("should return legacy config location if default one does not exists", func(t *testing.T) {
+	t.Run("should return the default config location if nothing else is set", func(t *testing.T) {
 		tmp, _ := ioutil.TempDir("", "mmctl-")
 		defer os.RemoveAll(tmp)
 		testUser.HomeDir = tmp
@@ -52,7 +34,10 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		expected := fmt.Sprintf("%s/.mmctl", testUser.HomeDir)
 
-		viper.Set("config", getDefaultConfigPath())
+		viper.Set("config-path", getDefaultConfigPath())
+		if err := createFile(expected); err != nil {
+			panic(err)
+		}
 
 		p, err := resolveConfigFilePath()
 		require.Nil(t, err)
@@ -65,10 +50,10 @@ func TestResolveConfigFilePath(t *testing.T) {
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
-		expected := fmt.Sprintf("%s/test/.mmctl", testUser.HomeDir)
+		expected := filepath.Join(testUser.HomeDir, ".config", "mmctl", ".mmctl")
 
-		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Dir(expected))
-		viper.Set("config", getDefaultConfigPath())
+		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Join(testUser.HomeDir, ".config"))
+		viper.Set("config-path", getDefaultConfigPath())
 		if err := createFile(expected); err != nil {
 			panic(err)
 		}
@@ -88,7 +73,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		expected := fmt.Sprintf("%s/.mmctl", tmp)
 
 		_ = os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-		viper.Set("config", tmp)
+		viper.Set("config-path", tmp)
 		if err := createFile(expected); err != nil {
 			panic(err)
 		}
