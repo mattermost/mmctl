@@ -58,7 +58,6 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		pInfo := res.Inactive[0]
 		appErr = s.th.App.RemovePlugin(pInfo.Id)
 		s.Require().Nil(appErr)
-
 	})
 
 	s.Run("normal user can't add plugin", func() {
