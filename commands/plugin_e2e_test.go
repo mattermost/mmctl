@@ -20,9 +20,7 @@ import (
 func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	mmPath := os.Getenv("MM_SERVER_PATH")
-	pluginPath := filepath.Join(mmPath, "../mmctl/commands/test_files/testplugin.tar.gz")
-	fmt.Println(pluginPath)
+	pluginPath := filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
 
 	s.RunForSystemAdminAndLocal("admin and local can't add plugins if the config doesn't allow it", func(c client.Client) {
 		printer.Clean()
