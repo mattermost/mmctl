@@ -249,3 +249,71 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		s.Require().Equal(int64(0), rcommand.DeleteAt)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	// create new command
+	newCmd := &model.Command{
+		CreatorId: s.th.BasicUser.Id,
+		TeamId:    s.th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "trigger",
+	}
+
+	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
+	index := 0
+	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
+		printer.Clean()
+
+		// Reset the cmd and parse to force Flag.Changed to be true.
+		cmd := CommandModifyCmd
+		cmd.ResetFlags()
+		addCommandFieldsFlags(cmd)
+		url := fmt.Sprintf("%s-%d", command.URL, index)
+		index++
+		err := cmd.ParseFlags([]string{
+			command.Id,
+			"--url=" + url,
+		})
+		s.Require().Nil(err)
+
+		err = modifyCommandCmdF(c, cmd, []string{command.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+
+		changedCommand, err := s.th.App.GetCommand(command.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(url, changedCommand.URL)
+	})
+
+	s.RunForSystemAdminAndLocal("modifyCommandCmdF for command that does not exist", func(c client.Client) {
+		printer.Clean()
+		cmd := &cobra.Command{}
+
+		err := modifyCommandCmdF(c, cmd, []string{"nothing"})
+		s.Require().NotNil(err)
+		s.Require().Equal("unable to find command 'nothing'", err.Error())
+	})
+
+	s.RunForSystemAdminAndLocal("modifyCommandCmdF with a space in trigger word", func(c client.Client) {
+		printer.Clean()
+		// Reset the cmd and parse to force Flag.Changed to be true.
+		cmd := CommandModifyCmd
+		cmd.ResetFlags()
+		addCommandFieldsFlags(cmd)
+		err := cmd.ParseFlags([]string{
+			command.Id,
+			"--trigger-word=modified with space",
+		})
+		s.Require().Nil(err)
+
+		err = modifyCommandCmdF(c, cmd, []string{command.Id})
+		s.Require().NotNil(err)
+		s.Len(printer.GetLines(), 0)
+		s.Len(printer.GetErrorLines(), 0)
+		s.EqualError(err, "a trigger word must not contain spaces")
+	})
+}
