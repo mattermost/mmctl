@@ -55,7 +55,7 @@ var ResetCmd = &cobra.Command{
 	Example: `  # Reset the permissions of the 'system_read_only_admin' role.
   permissions reset system_read_only_admin`,
 	Args: cobra.ExactArgs(1),
-	RunE: withClient(resetCmdF),
+	RunE: withClient(resetPermissionsCmdF),
 }
 
 func init() {
@@ -137,7 +137,7 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 	return nil
 }
 
-func resetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	role, response := c.GetRoleByName(args[0])
 	if response.Error != nil {
 		return response.Error
@@ -145,7 +145,7 @@ func resetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	defaultRole, ok := model.MakeDefaultRoles()[role.Name]
 	if !ok {
-		return fmt.Errorf("no default permissions available for role %q; no changes saved", role.Id)
+		return fmt.Errorf("no default permissions available for role")
 	}
 
 	patchRole := model.RolePatch{
