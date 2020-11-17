@@ -9,7 +9,7 @@ include:
 
 docs:
   stage: test
-  image: mattermost/mattermost-build-server:20201020_golang-1.14.9
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201020_golang-1.14.9
   script:
     - echo $CI_COMMIT_REF_NAME
     - echo "Making sure docs are updated"
@@ -20,7 +20,7 @@ docs:
 
 lint:
   stage: test
-  image: golangci/golangci-lint:v1.25.1
+  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.25.1-1
   script:
     - echo "Installing mattermost-govet"
     - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
@@ -30,11 +30,12 @@ lint:
 
 test:
   stage: test
-  image: mattermost/mattermost-build-docker:20201023_19.03.12
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+      alias: docker
   tags:
     - docker
-  services:
-    - docker:19.03.12-dind
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
@@ -70,7 +71,7 @@ test:
 
 build:
   stage: test
-  image: mattermost/mattermost-build-server:20201020_golang-1.14.9
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201020_golang-1.14.9
   script:
     - make package
   artifacts:
