@@ -96,10 +96,22 @@ func RegisterJobsActiveUsersInterface(f func(*App) tjobs.ActiveUsersJobInterface
 	jobsActiveUsersInterface = f
 }
 
+var jobsCloudInterface func(*Server) ejobs.CloudJobInterface
+
+func RegisterJobsCloudInterface(f func(*Server) ejobs.CloudJobInterface) {
+	jobsCloudInterface = f
+}
+
 var jobsExpiryNotifyInterface func(*App) tjobs.ExpiryNotifyJobInterface
 
 func RegisterJobsExpiryNotifyJobInterface(f func(*App) tjobs.ExpiryNotifyJobInterface) {
 	jobsExpiryNotifyInterface = f
+}
+
+var jobsImportProcessInterface func(*App) tjobs.ImportProcessInterface
+
+func RegisterJobsImportProcessInterface(f func(*App) tjobs.ImportProcessInterface) {
+	jobsImportProcessInterface = f
 }
 
 var productNoticesJobInterface func(*App) tjobs.ProductNoticesJobInterface
