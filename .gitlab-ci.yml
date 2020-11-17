@@ -9,7 +9,7 @@ include:
 
 docs:
   stage: test
-  image: mattermost/mattermost-build-server:20201020_golang-1.14.9
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201020_golang-1.14.9
   script:
     - echo $CI_COMMIT_REF_NAME
     - echo "Making sure docs are updated"
@@ -70,7 +70,7 @@ test:
 
 build:
   stage: test
-  image: mattermost/mattermost-build-server:20201020_golang-1.14.9
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201020_golang-1.14.9
   script:
     - make package
   artifacts:
