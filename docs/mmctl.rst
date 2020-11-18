@@ -16,7 +16,7 @@ Options
 
 ::
 
-      --config-path string           path to search for '.mmctl' configuration file (default "$HOME")
+      --config-path string           path to search for '.mmctl' configuration file (default "$HOME/.config/mmctl")
       --format string                the format of the command output [plain, json] (default "plain")
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
