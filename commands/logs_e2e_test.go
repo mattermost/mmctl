@@ -21,12 +21,12 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.Require().Len(data, 2)
 	})
 
-	s.RunForAllClients("Display in logrus for formatting", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Display in logrus for formatting", func(c client.Client) {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("logrus", true, "")
 		cmd.Flags().Int("number", 1, "")
 
-		data, err := testLogsCmdF(s.th.SystemAdminClient, cmd, []string{})
+		data, err := testLogsCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(data, 2)
 		s.Contains(data[1], "time=")
