@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
@@ -322,5 +324,72 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		_, appErr = s.th.App.GetBot(newBot.UserId, false)
 		s.Require().NotNil(appErr)
 		s.Require().Equal("store.sql_bot.get.missing.app_error", appErr.Id)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestBotAssignCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Assign Bot", func(c client.Client) {
+		printer.Clean()
+
+		botOwner, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteUser(botOwner)
+			s.Require().Nil(err)
+		}()
+
+		newBotOwner, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteUser(newBotOwner)
+			s.Require().Nil(err)
+		}()
+
+		bot, appErr := s.th.App.CreateBot(&model.Bot{Username: model.NewId(), OwnerId: botOwner.Id})
+		s.Require().Nil(appErr)
+		s.Require().Equal(bot.OwnerId, botOwner.Id)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botAssignCmdF(c, &cobra.Command{}, []string{bot.UserId, newBotOwner.Id})
+		s.Require().Nil(err)
+		s.Require().Equal(1, len(printer.GetLines()))
+		newBot, ok := printer.GetLines()[0].(*model.Bot)
+		s.True(ok)
+		s.Require().Equal(newBotOwner.Id, newBot.OwnerId)
+	})
+
+	s.Run("Assign Bot without permission", func() {
+		printer.Clean()
+
+		botOwner, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteUser(botOwner)
+			s.Require().Nil(err)
+		}()
+
+		newBotOwner, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		s.Require().Nil(appErr)
+		defer func() {
+			err := s.th.App.PermanentDeleteUser(newBotOwner)
+			s.Require().Nil(err)
+		}()
+
+		bot, appErr := s.th.App.CreateBot(&model.Bot{Username: model.NewId(), OwnerId: botOwner.Id})
+		s.Require().Nil(appErr)
+		s.Require().Equal(bot.OwnerId, botOwner.Id)
+		defer func() {
+			err := s.th.App.PermanentDeleteBot(bot.UserId)
+			s.Require().Nil(err)
+		}()
+
+		err := botAssignCmdF(s.th.Client, &cobra.Command{}, []string{bot.UserId, newBotOwner.Id})
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, fmt.Sprintf(`can not assign bot '%s' to user '%s'`, bot.UserId, newBotOwner.Id), err.Error())
 	})
 }
