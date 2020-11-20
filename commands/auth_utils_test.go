@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -32,13 +31,12 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		viper.Set("config-path", getDefaultConfigPath())
 
-		expected := filepath.Join(testUser.HomeDir, ".config", "mmctl", configFileName)
+		expected := filepath.Join(testUser.HomeDir, ".config", configFileName)
 
 		err := createFile(expected)
 		require.NoError(t, err)
 
-		p, err := resolveConfigFilePath()
-		require.NoError(t, err)
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 
@@ -48,15 +46,14 @@ func TestResolveConfigFilePath(t *testing.T) {
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
-		expected := filepath.Join(testUser.HomeDir, configFileName)
+		expected := filepath.Join(testUser.HomeDir, "."+configFileName)
 		// create $HOME/.mmctl
 		err := createFile(expected)
 		require.NoError(t, err)
 
 		viper.Set("config-path", getDefaultConfigPath())
 
-		p, err := resolveConfigFilePath()
-		require.NoError(t, err)
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 
@@ -66,7 +63,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
-		expected := filepath.Join(testUser.HomeDir, ".config", "mmctl", ".mmctl")
+		expected := filepath.Join(testUser.HomeDir, ".config", "mmctl")
 
 		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Join(testUser.HomeDir, ".config"))
 		viper.Set("config-path", getDefaultConfigPath())
@@ -74,8 +71,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		err := createFile(expected)
 		require.NoError(t, err)
 
-		p, err := resolveConfigFilePath()
-		require.NoError(t, err)
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 
@@ -86,7 +82,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		testUser.HomeDir = "path/should/be/ignored"
 		SetUser(testUser)
 
-		expected := fmt.Sprintf("%s/.mmctl", tmp)
+		expected := filepath.Join(tmp, configFileName)
 
 		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		require.NoError(t, err)
@@ -95,8 +91,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		err = createFile(expected)
 		require.NoError(t, err)
 
-		p, err := resolveConfigFilePath()
-		require.NoError(t, err)
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 }

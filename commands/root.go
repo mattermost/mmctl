@@ -21,7 +21,7 @@ func Run(args []string) error {
 	viper.SetDefault("local-socket-path", model.LOCAL_MODE_SOCKET_PATH)
 	viper.AutomaticEnv()
 
-	RootCmd.PersistentFlags().String("config-path", getDefaultConfigPath(), fmt.Sprintf("path to search for '%s' configuration file", configFileName))
+	RootCmd.PersistentFlags().String("config-path", xdgConfigHomeVar, fmt.Sprintf("path to the configuration directory. If \"%s/.%s\" exists it will take precedence over the default value", userHomeVar, configFileName))
 	_ = viper.BindPFlag("config-path", RootCmd.PersistentFlags().Lookup("config-path"))
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	_ = viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
