@@ -26,9 +26,9 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 
 		err := importUploadCmdF(s.th.Client, &cobra.Command{}, []string{importFilePath})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to create upload: : You do not have the appropriate permissions., ", err.Error())
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal("failed to create upload session: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("invalid file", func(c client.Client) {
@@ -37,8 +37,8 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 		err := importUploadCmdF(s.th.Client, &cobra.Command{}, []string{"invalid_file"})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to open import file: open invalid_file: no such file or directory", err.Error())
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("full upload", func(c client.Client) {
@@ -52,7 +52,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 		err := importUploadCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(importName, printer.GetLines()[0].(*model.UploadSession).Filename)
 		s.Require().Equal(importName, printer.GetLines()[1].(*model.FileInfo).Name)
 	})
@@ -81,7 +81,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 		err := importUploadCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(importName, printer.GetLines()[0].(*model.FileInfo).Name)
 	})
 }
@@ -98,8 +98,8 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 		err := importProcessCmdF(s.th.Client, &cobra.Command{}, []string{"importName"})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to create import process job: : You do not have the appropriate permissions., ", err.Error())
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("process file", func(c client.Client) {
@@ -113,7 +113,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 		err := importUploadCmdF(c, cmd, []string{importFilePath})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 
 		us := printer.GetLines()[0].(*model.UploadSession)
 		printer.Clean()
@@ -121,7 +121,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 		err = importProcessCmdF(c, cmd, []string{us.Id + "_" + importName})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(us.Id+"_"+importName, printer.GetLines()[0].(*model.Job).Data["import_file"])
 	})
 }
@@ -138,8 +138,8 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 		err := importListAvailableCmdF(s.th.Client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to list imports: : You do not have the appropriate permissions., ", err.Error())
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("no imports", func(c client.Client) {
@@ -148,7 +148,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 		err := importListAvailableCmdF(c, &cobra.Command{}, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Equal("No import files found", printer.GetLines()[0])
 	})
 
@@ -171,7 +171,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 		err := importListAvailableCmdF(c, cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), len(imports))
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		for i, name := range printer.GetLines() {
 			s.Require().Equal(imports[i], name.(string))
 		}
@@ -187,7 +187,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		err := importListIncompleteCmdF(c, &cobra.Command{}, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Equal("No incomplete import uploads found", printer.GetLines()[0])
 	})
 
@@ -241,32 +241,82 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		err := importListIncompleteCmdF(c, cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 2)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(us1, printer.GetLines()[0].(*model.UploadSession))
 		s.Require().Equal(us3, printer.GetLines()[1].(*model.UploadSession))
 	})
 }
 
-func (s *MmctlE2ETestSuite) TestImportListJobsCmdF() {
+func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		err := importListJobsCmdF(s.th.Client, &cobra.Command{}, nil)
+		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
+		s.Require().NotNil(err)
+		s.Require().Equal("failed to get import job: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
+		printer.Clean()
+
+		err := importJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
+		s.Require().NotNil(err)
+		s.Require().Equal("failed to get import job: : Unable to get the job., ", err.Error())
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
+		printer.Clean()
+
+		job, appErr := s.th.App.CreateJob(&model.Job{
+			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Data: map[string]string{"import_file": "import1.zip"},
+		})
+		s.Require().Nil(appErr)
+
+		err := importJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
+		s.Require().Nil(err)
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(job, printer.GetLines()[0].(*model.Job))
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("no permissions", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", 200, "")
+		cmd.Flags().Bool("all", false, "")
+
+		err := importJobListCmdF(s.th.Client, cmd, nil)
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to get import jobs: : You do not have the appropriate permissions., ", err.Error())
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("no import jobs", func(c client.Client) {
 		printer.Clean()
 
-		err := importListJobsCmdF(c, &cobra.Command{}, nil)
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", 200, "")
+		cmd.Flags().Bool("all", false, "")
+
+		err := importJobListCmdF(c, cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Equal("No import jobs found", printer.GetLines()[0])
 	})
 
@@ -274,8 +324,10 @@ func (s *MmctlE2ETestSuite) TestImportListJobsCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		limit := 2
-		cmd.Flags().Int("limit", limit, "")
+		perPage := 2
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", perPage, "")
+		cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(&model.Job{
 			Type: model.JOB_TYPE_IMPORT_PROCESS,
@@ -299,10 +351,10 @@ func (s *MmctlE2ETestSuite) TestImportListJobsCmdF() {
 		})
 		s.Require().Nil(appErr)
 
-		err := importListJobsCmdF(c, cmd, nil)
+		err := importJobListCmdF(c, cmd, nil)
 		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), limit)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), perPage)
+		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(job3, printer.GetLines()[0].(*model.Job))
 		s.Require().Equal(job2, printer.GetLines()[1].(*model.Job))
 	})

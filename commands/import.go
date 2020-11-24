@@ -17,8 +17,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const fakeUserID = "nouser"
-
 var ImportCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Management of imports",
@@ -33,8 +31,9 @@ var ImportUploadCmd = &cobra.Command{
 }
 
 var ImportListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List import files",
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List import files",
 }
 
 var ImportListAvailableCmd = &cobra.Command{
@@ -45,6 +44,11 @@ var ImportListAvailableCmd = &cobra.Command{
 	RunE:    withClient(importListAvailableCmdF),
 }
 
+var ImportJobCmd = &cobra.Command{
+	Use:   "job",
+	Short: "List and show import jobs",
+}
+
 var ImportListIncompleteCmd = &cobra.Command{
 	Use:     "incomplete",
 	Short:   "List incomplete import files uploads",
@@ -53,12 +57,21 @@ var ImportListIncompleteCmd = &cobra.Command{
 	RunE:    withClient(importListIncompleteCmdF),
 }
 
-var ImportListJobsCmd = &cobra.Command{
-	Use:     "jobs [importJobID]",
-	Example: " import list jobs",
+var ImportJobListCmd = &cobra.Command{
+	Use:     "list",
+	Example: " import job list",
 	Short:   "List import jobs",
-	Args:    cobra.MaximumNArgs(1),
-	RunE:    withClient(importListJobsCmdF),
+	Aliases: []string{"ls"},
+	Args:    cobra.NoArgs,
+	RunE:    withClient(importJobListCmdF),
+}
+
+var ImportJobShowCmd = &cobra.Command{
+	Use:     "show [importJobID]",
+	Example: " import job show",
+	Short:   "Show import job",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(importJobShowCmdF),
 }
 
 var ImportProcessCmd = &cobra.Command{
@@ -72,16 +85,24 @@ var ImportProcessCmd = &cobra.Command{
 func init() {
 	ImportUploadCmd.Flags().Bool("resume", false, "Set to true to resume an incomplete import upload.")
 	ImportUploadCmd.Flags().String("upload", "", "The ID of the import upload to resume.")
-	ImportListJobsCmd.Flags().Int("limit", 10, "The maximum number of jobs to show.")
+
+	ImportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
+	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
+	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
+
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
 		ImportListIncompleteCmd,
-		ImportListJobsCmd,
+	)
+	ImportJobCmd.AddCommand(
+		ImportJobListCmd,
+		ImportJobShowCmd,
 	)
 	ImportCmd.AddCommand(
 		ImportUploadCmd,
 		ImportListCmd,
 		ImportProcessCmd,
+		ImportJobCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
 }
@@ -90,7 +111,7 @@ func importListIncompleteCmdF(c client.Client, command *cobra.Command, args []st
 	isLocal, _ := command.Flags().GetBool("local")
 	userID := "me"
 	if isLocal {
-		userID = fakeUserID
+		userID = model.UploadNoUserID
 	}
 
 	uploads, resp := c.GetUploadsForUser(userID)
@@ -98,21 +119,18 @@ func importListIncompleteCmdF(c client.Client, command *cobra.Command, args []st
 		return fmt.Errorf("failed to get uploads: %w", resp.Error)
 	}
 
-	var imports []*model.UploadSession
-	for i := range uploads {
-		if uploads[i].Type == model.UploadTypeImport {
-			imports = append(imports, uploads[i])
+	var hasImports bool
+	for _, us := range uploads {
+		if us.Type == model.UploadTypeImport {
+			completedPct := float64(us.FileOffset) / float64(us.FileSize) * 100
+			printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Name: {{.Filename}}\n  Uploaded: {{.FileOffset}}/{{.FileSize}} (%0.0f%%)\n", completedPct), us)
+			hasImports = true
 		}
 	}
 
-	if len(imports) == 0 {
+	if !hasImports {
 		printer.Print("No incomplete import uploads found")
 		return nil
-	}
-
-	for _, us := range imports {
-		completedPct := float64(us.FileOffset) / float64(us.FileSize) * 100
-		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Name: {{.Filename}}\n  Uploaded: {{.FileOffset}}/{{.FileSize}} (%0.0f%%)\n", completedPct), us)
 	}
 
 	return nil
@@ -156,12 +174,12 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 	if shouldResume {
 		uploadID, err := command.Flags().GetString("upload")
 		if err != nil || !model.IsValidId(uploadID) {
-			return errors.New("required upload ID is missing or invalid")
+			return errors.New("upload session ID is missing or invalid")
 		}
 
 		us, resp = c.GetUpload(uploadID)
 		if resp.Error != nil {
-			return fmt.Errorf("failed to get upload: %w", resp.Error)
+			return fmt.Errorf("failed to get upload session: %w", resp.Error)
 		}
 
 		if us.FileSize != info.Size() {
@@ -175,7 +193,7 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 		isLocal, _ := command.Flags().GetBool("local")
 		userID := "me"
 		if isLocal {
-			userID = fakeUserID
+			userID = model.UploadNoUserID
 		}
 
 		us, resp = c.CreateUpload(&model.UploadSession{
@@ -185,10 +203,10 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 			UserId:   userID,
 		})
 		if resp.Error != nil {
-			return fmt.Errorf("failed to create upload: %w", resp.Error)
+			return fmt.Errorf("failed to create upload session: %w", resp.Error)
 		}
 
-		printer.PrintT("Upload successfully created, ID: {{.Id}} ", us)
+		printer.PrintT("Upload session successfully created, ID: {{.Id}} ", us)
 	}
 
 	finfo, resp := c.UploadData(us.Id, file)
@@ -219,32 +237,63 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	return nil
 }
 
-func importListJobsCmdF(c client.Client, command *cobra.Command, args []string) error {
-	var jobs []*model.Job
-	var resp *model.Response
-	if len(args) == 1 {
-		var job *model.Job
-		job, resp = c.GetJob(args[0])
-		if resp.Error != nil {
-			return fmt.Errorf("failed to get import job: %w", resp.Error)
-		}
-		jobs = append(jobs, job)
-	} else {
-		numJobs, _ := command.Flags().GetInt("limit")
-		jobs, resp = c.GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, numJobs)
+func printJob(job *model.Job) {
+	printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
+		time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
+}
+
+func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
+	job, resp := c.GetJob(args[0])
+	if resp.Error != nil {
+		return fmt.Errorf("failed to get import job: %w", resp.Error)
+	}
+
+	printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
+		time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
+
+	return nil
+}
+
+func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
+	page, err := command.Flags().GetInt("page")
+	if err != nil {
+		return err
+	}
+	perPage, err := command.Flags().GetInt("per-page")
+	if err != nil {
+		return err
+	}
+	showAll, err := command.Flags().GetBool("all")
+	if err != nil {
+		return err
+	}
+
+	if showAll {
+		page = 0
+	}
+
+	for {
+		jobs, resp := c.GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, page, perPage)
 		if resp.Error != nil {
 			return fmt.Errorf("failed to get import jobs: %w", resp.Error)
 		}
 
 		if len(jobs) == 0 {
-			printer.Print("No import jobs found")
+			if !showAll || page == 0 {
+				printer.Print("No import jobs found")
+			}
 			return nil
 		}
-	}
 
-	for _, job := range jobs {
-		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
-			time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
+		for _, job := range jobs {
+			printJob(job)
+		}
+
+		if !showAll {
+			break
+		}
+
+		page++
 	}
 
 	return nil

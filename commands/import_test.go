@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -66,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
+		s.Empty(printer.GetErrorLines())
 		s.Equal("No incomplete import uploads found", printer.GetLines()[0])
 	})
 
@@ -96,31 +98,71 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
-		s.Len(printer.GetErrorLines(), 0)
+		s.Empty(printer.GetErrorLines())
 		s.Equal(mockUploads[0], printer.GetLines()[0].(*model.UploadSession))
 		s.Equal(mockUploads[2], printer.GetLines()[1].(*model.UploadSession))
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestImportListJobsCmdF() {
+func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
+	s.Run("not found", func() {
+		printer.Clean()
+
+		jobID := model.NewId()
+
+		s.client.
+			EXPECT().
+			GetJob(jobID).
+			Return(nil, &model.Response{Error: model.NewAppError("not found", "", nil, "not found", http.StatusNotFound)}).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{jobID})
+		s.Require().NotNil(err)
+		s.Empty(printer.GetLines())
+		s.Empty(printer.GetErrorLines())
+	})
+
+	s.Run("found", func() {
+		printer.Clean()
+		mockJob := &model.Job{
+			Id: model.NewId(),
+		}
+
+		s.client.
+			EXPECT().
+			GetJob(mockJob.Id).
+			Return(mockJob, &model.Response{Error: nil}).
+			Times(1)
+
+		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 	s.Run("no import jobs", func() {
 		printer.Clean()
 		var mockJobs []*model.Job
 
 		cmd := &cobra.Command{}
-		limit := 10
-		cmd.Flags().Int("limit", limit, "")
+		perPage := 10
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", perPage, "")
+		cmd.Flags().Bool("all", false, "")
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, limit).
+			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, perPage).
 			Return(mockJobs, &model.Response{Error: nil}).
 			Times(1)
 
-		err := importListJobsCmdF(s.client, cmd, nil)
+		err := importJobListCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
+		s.Empty(printer.GetErrorLines())
 		s.Equal("No import jobs found", printer.GetLines()[0])
 	})
 
@@ -139,41 +181,24 @@ func (s *MmctlUnitTestSuite) TestImportListJobsCmdF() {
 		}
 
 		cmd := &cobra.Command{}
-		limit := 3
-		cmd.Flags().Int("limit", limit, "")
+		perPage := 3
+		cmd.Flags().Int("page", 0, "")
+		cmd.Flags().Int("per-page", perPage, "")
+		cmd.Flags().Bool("all", false, "")
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, limit).
+			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, perPage).
 			Return(mockJobs, &model.Response{Error: nil}).
 			Times(1)
 
-		err := importListJobsCmdF(s.client, cmd, nil)
+		err := importJobListCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), len(mockJobs))
-		s.Len(printer.GetErrorLines(), 0)
+		s.Empty(printer.GetErrorLines())
 		for i, line := range printer.GetLines() {
 			s.Equal(mockJobs[i], line.(*model.Job))
 		}
-	})
-
-	s.Run("specified import job", func() {
-		printer.Clean()
-		mockJob := &model.Job{
-			Id: model.NewId(),
-		}
-
-		s.client.
-			EXPECT().
-			GetJob(mockJob.Id).
-			Return(mockJob, &model.Response{Error: nil}).
-			Times(1)
-
-		err := importListJobsCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
-		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
 }
 
@@ -194,6 +219,6 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 	err := importProcessCmdF(s.client, &cobra.Command{}, []string{importFile})
 	s.Require().Nil(err)
 	s.Len(printer.GetLines(), 1)
-	s.Len(printer.GetErrorLines(), 0)
+	s.Empty(printer.GetErrorLines())
 	s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 }
