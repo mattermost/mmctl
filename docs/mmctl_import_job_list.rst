@@ -1,22 +1,36 @@
-.. _mmctl_import_list:
+.. _mmctl_import_job_list:
 
-mmctl import list
------------------
+mmctl import job list
+---------------------
 
-List import files
+List import jobs
 
 Synopsis
 ~~~~~~~~
 
 
-List import files
+List import jobs
+
+::
+
+  mmctl import job list [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+   import job list
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+      --all            Fetch all import jobs. --page flag will be ignore if provided
+  -h, --help           help for list
+      --page int       Page number to fetch for the list of import jobs
+      --per-page int   Number of import jobs to be fetched (default 200)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,7 +46,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
-* `mmctl import list available <mmctl_import_list_available.rst>`_ 	 - List available import files
-* `mmctl import list incomplete <mmctl_import_list_incomplete.rst>`_ 	 - List incomplete import files uploads
+* `mmctl import job <mmctl_import_job.rst>`_ 	 - List and show import jobs
 

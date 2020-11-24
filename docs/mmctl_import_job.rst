@@ -1,22 +1,22 @@
-.. _mmctl_import_list:
+.. _mmctl_import_job:
 
-mmctl import list
------------------
+mmctl import job
+----------------
 
-List import files
+List and show import jobs
 
 Synopsis
 ~~~~~~~~
 
 
-List import files
+List and show import jobs
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+  -h, --help   help for job
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +33,6 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
-* `mmctl import list available <mmctl_import_list_available.rst>`_ 	 - List available import files
-* `mmctl import list incomplete <mmctl_import_list_incomplete.rst>`_ 	 - List incomplete import files uploads
+* `mmctl import job list <mmctl_import_job_list.rst>`_ 	 - List import jobs
+* `mmctl import job show <mmctl_import_job_show.rst>`_ 	 - Show import job
 

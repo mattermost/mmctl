@@ -33,6 +33,7 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl import job <mmctl_import_job.rst>`_ 	 - List and show import jobs
 * `mmctl import list <mmctl_import_list.rst>`_ 	 - List import files
 * `mmctl import process <mmctl_import_process.rst>`_ 	 - Start an import job
 * `mmctl import upload <mmctl_import_upload.rst>`_ 	 - Upload import files

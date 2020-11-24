@@ -1,34 +1,33 @@
-.. _mmctl_import_list_jobs:
+.. _mmctl_import_job_show:
 
-mmctl import list jobs
-----------------------
+mmctl import job show
+---------------------
 
-List import jobs
+Show import job
 
 Synopsis
 ~~~~~~~~
 
 
-List import jobs
+Show import job
 
 ::
 
-  mmctl import list jobs [importJobID] [flags]
+  mmctl import job show [importJobID] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-   import list jobs
+   import job show
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help        help for jobs
-      --limit int   The maximum number of jobs to show. (default 10)
+  -h, --help   help for show
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,5 +43,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl import list <mmctl_import_list.rst>`_ 	 - List import files
+* `mmctl import job <mmctl_import_job.rst>`_ 	 - List and show import jobs
 
