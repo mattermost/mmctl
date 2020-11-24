@@ -17,10 +17,6 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 
 	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
-	defer func() {
-		err := s.th.App.PermanentDeleteUser(user)
-		s.Assert().Nil(err)
-	}()
 
 	s.Run("Should not allow normal user to assign a role", func() {
 		printer.Clean()
@@ -47,5 +43,14 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+
+		roles := user.Roles
+
+		u, err2 := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err2)
+		s.Require().True(u.IsInRole(model.SYSTEM_MANAGER_ROLE_ID))
+
+		_, err2 = s.th.App.UpdateUserRoles(user.Id, roles, false)
+		s.Require().Nil(err2)
 	})
 }
