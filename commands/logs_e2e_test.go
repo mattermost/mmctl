@@ -33,4 +33,12 @@ func (s *MmctlE2ETestSuite) TestlogsCmdF() {
 		s.Contains(data[1], "level=")
 		s.Contains(data[1], "msg=")
 	})
+
+	s.Run("Should not allow normal user to retrieve logs", func() {
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("number", 1, "")
+
+		_, err := testLogsCmdF(s.th.Client, cmd, []string{})
+		s.Require().Error(err)
+	})
 }
