@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
@@ -39,7 +42,7 @@ func init() {
 
 func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
-		return errors.New("Enter one license file to upload")
+		return errors.New("enter one license file to upload")
 	}
 
 	fileBytes, err := ioutil.ReadFile(args[0])

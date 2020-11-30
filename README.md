@@ -1,8 +1,10 @@
-# mmctl ![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/mattermost/mmctl)](https://goreportcard.com/report/github.com/mattermost/mmctl)
+# mmctl
 
-A remote CLI tool for
-[Mattermost](https://github.com/mattermost/mattermost-server): the
-Open Source, self-hosted Slack-alternative.
+![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg)
+[![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mmctl/master.svg)](https://codecov.io/gh/mattermost/mmctl/branch/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mattermost/mmctl)](https://goreportcard.com/report/github.com/mattermost/mmctl)
+
+A remote CLI tool for [Mattermost](https://github.com/mattermost/mattermost-server): the Open Source, self-hosted Slack-alternative.
 
 ## Install
 
@@ -14,8 +16,7 @@ go get -u github.com/mattermost/mmctl
 
 ### Install shell completions
 
-To install the shell completions for bash, add the following line to
-your `~/.bashrc` or `~/.profile` file:
+To install the shell completions for bash, add the following line to your `~/.bashrc` or `~/.profile` file:
 
 ```sh
 source <(mmctl completion bash)
@@ -29,9 +30,7 @@ source <(mmctl completion zsh)
 
 ## Compile
 
-First we have to install the dependencies of the project. `mmctl` uses
-go modules to manage the dependencies, so you need to have installed
-go 1.11 or greater.
+First we have to install the dependencies of the project. `mmctl` depends on go version 1.13.3 or greater.
 
 We can compile the binary with:
 
@@ -39,7 +38,37 @@ We can compile the binary with:
 make build
 ```
 
+## Running the tests
+
+`mmctl` has two types of tests: unit tests and end to end tests.
+
+### Unit tests
+
+To run the unit tests, you just need to execute:
+
+```sh
+make test
+```
+
+### End to end tests
+
+To run the end to end test suite, you need to have the Mattermost server project downloaded and configured in your system. Check the [Developer Setup](https://developers.mattermost.com/contribute/server/developer-setup/) guide on how to configure a local server instance. The tests will search for a `mattermost-server` folder in the same directory where the `mmctl` is, but this can be changed through configuration if you have the project in a different path. Take a look at [the `config.mk` file](./config.mk) in this repository for instructions on how to make this change.
+
+With the `mattermost-server` folder present, the only thing that needs to be done before running the tests themselves is to start the Mattermost docker development environment. The environment only needs to be started once, and then the tests can run as many times as needed. To start the docker environment, change to the `mattermost-server` project directory and run:
+
+```sh
+make start-docker
+```
+
+Change your directory back to `mmctl` and run the end to end test suite with:
+
+```sh
+make test-e2e
+```
+
 ## Usage
+
+For the usage of all the commands, use the `--help` flag or check [the tool's documentation](./docs/mmctl.rst).
 
 ```sh
 Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com
@@ -102,6 +131,8 @@ email: john.doe@example.com
 auth_service:
 ```
 
+**NOTE:** `mmctl` is designed to run against a specific version of the `mattermost-server` and its API. If run against a server with a different version, `mmctl` will show a warning and will try to execute the commands. To ensure that the commands won't run if the server version is not supported, please use the `--strict` flag or set the `MMCTL_STRICT=true` environment variable.
+
 ## Login methods
 
 ### Password
@@ -110,8 +141,7 @@ auth_service:
 $ mmctl auth login https://community.mattermost.com --name community --username my-username --password mysupersecret
 ```
 
-The `login` command can also work interactively, so if you leave any
-needed flag empty, `mmctl` will ask you for it interactively:
+The `login` command can also work interactively, so if you leave any needed flag empty, `mmctl` will ask you for it interactively:
 
 ```sh
 $ mmctl auth login https://community.mattermost.com
@@ -122,8 +152,7 @@ Password:
 
 ### MFA
 
-If you want to login with MFA, you just need to use the `--mfa-token`
-flag:
+If you want to login with MFA, you just need to use the `--mfa-token` flag:
 
 ```sh
 $ mmctl auth login https://community.mattermost.com --name community --username my-username --password mysupersecret --mfa-token 123456
@@ -131,8 +160,7 @@ $ mmctl auth login https://community.mattermost.com --name community --username 
 
 ### Access tokens
 
-Instead of using username and password to log in, you can generate and
-use a personal access token to authenticate with a server:
+Instead of using username and password to log in, you can generate and use a personal access token to authenticate with a server:
 
 ```sh
 $ mmctl auth login https://community.mattermost.com --name community --access-token MY_ACCESS_TOKEN

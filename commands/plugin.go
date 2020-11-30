@@ -1,12 +1,15 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package commands
 
 import (
-	"errors"
 	"os"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +24,20 @@ var PluginAddCmd = &cobra.Command{
 	Long:    "Add plugins to your Mattermost server.",
 	Example: `  plugin add hovercardexample.tar.gz pluginexample.tar.gz`,
 	RunE:    withClient(pluginAddCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
+var PluginInstallURLCmd = &cobra.Command{
+	Use:   "install-url <url>...",
+	Short: "Install plugin from url",
+	Long:  "Supply one or multiple URLs to plugins compressed in a .tar.gz file. Plugins must be enabled in the server's config settings",
+	Example: `  # You can install one plugin
+  $ mmctl plugin install-url https://example.com/mattermost-plugin.tar.gz
+
+  # Or install multiple in one go
+  $ mmctl plugin install-url https://example.com/mattermost-plugin-one.tar.gz https://example.com/mattermost-plugin-two.tar.gz`,
+	RunE: withClient(pluginInstallURLCmdF),
+	Args: cobra.MinimumNArgs(1),
 }
 
 var PluginDeleteCmd = &cobra.Command{
@@ -29,6 +46,7 @@ var PluginDeleteCmd = &cobra.Command{
 	Long:    "Delete previously uploaded plugins from your Mattermost server.",
 	Example: `  plugin delete hovercardexample pluginexample`,
 	RunE:    withClient(pluginDeleteCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginEnableCmd = &cobra.Command{
@@ -37,6 +55,7 @@ var PluginEnableCmd = &cobra.Command{
 	Long:    "Enable plugins for use on your Mattermost server.",
 	Example: `  plugin enable hovercardexample pluginexample`,
 	RunE:    withClient(pluginEnableCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginDisableCmd = &cobra.Command{
@@ -45,19 +64,23 @@ var PluginDisableCmd = &cobra.Command{
 	Long:    "Disable plugins. Disabled plugins are immediately removed from the user interface and logged out of all sessions.",
 	Example: `  plugin disable hovercardexample pluginexample`,
 	RunE:    withClient(pluginDisableCmdF),
+	Args:    cobra.MinimumNArgs(1),
 }
 
 var PluginListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List plugins",
-	Long:    "List all active and inactive plugins installed on your Mattermost server.",
+	Long:    "List all enabled and disabled plugins installed on your Mattermost server.",
 	Example: `  plugin list`,
 	RunE:    withClient(pluginListCmdF),
 }
 
 func init() {
+	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
+
 	PluginCmd.AddCommand(
 		PluginAddCmd,
+		PluginInstallURLCmd,
 		PluginDeleteCmd,
 		PluginEnableCmd,
 		PluginDisableCmd,
@@ -67,10 +90,6 @@ func init() {
 }
 
 func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for i, plugin := range args {
 		fileReader, err := os.Open(plugin)
 		if err != nil {
@@ -88,11 +107,22 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
+func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	force, _ := cmd.Flags().GetBool("force")
+
+	for _, plugin := range args {
+		manifest, resp := c.InstallPluginFromUrl(plugin, force)
+		if resp.Error != nil {
+			printer.PrintError("Unable to install plugin from URL \"" + plugin + "\". Error: " + resp.Error.Error())
+		} else {
+			printer.PrintT("Plugin {{.Name}} successfully installed", manifest)
+		}
 	}
 
+	return nil
+}
+
+func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	for _, plugin := range args {
 		if _, response := c.RemovePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + response.Error.Error())
@@ -105,10 +135,6 @@ func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for _, plugin := range args {
 		if _, response := c.EnablePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to enable plugin: " + plugin + ". Error: " + response.Error.Error())
@@ -121,10 +147,6 @@ func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func pluginDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
 	for _, plugin := range args {
 		if _, response := c.DisablePlugin(plugin); response.Error != nil {
 			printer.PrintError("Unable to disable plugin: " + plugin + ". Error: " + response.Error.Error())
@@ -143,15 +165,15 @@ func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	format, _ := cmd.Flags().GetString("format")
-	if format == printer.FORMAT_JSON {
+	if format == printer.FormatJSON {
 		printer.Print(pluginsResp)
 	} else {
-		printer.Print("Listing active plugins")
+		printer.Print("Listing enabled plugins")
 		for _, plugin := range pluginsResp.Active {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
 		}
 
-		printer.Print("Listing inactive plugins")
+		printer.Print("Listing disabled plugins")
 		for _, plugin := range pluginsResp.Inactive {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
 		}

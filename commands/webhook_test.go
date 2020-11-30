@@ -3,30 +3,21 @@ package commands
 import (
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/printer"
 	"github.com/spf13/cobra"
 )
 
-const (
-	teamID                     = "teamID"
-	incomingWebhookID          = "incomingWebhookID"
-	incomingWebhookDisplayName = "incomingWebhookDisplayName"
-	outgoingWebhookID          = "outgoingWebhookID"
-	outgoingWebhookDisplayName = "outgoingWebhookDisplayName"
-	channelID                  = "channelID"
-	userID                     = "userID"
-	emailID                    = "emailID"
-	userName                   = "userName"
-	displayName                = "displayName"
-	triggerWhen                = "exact"
-	nonExistentID              = "nonExistentID"
-)
-
 func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
+	teamID := "teamID"
+	incomingWebhookID := "incomingWebhookID"
+	incomingWebhookDisplayName := "incomingWebhookDisplayName"
+	outgoingWebhookID := "outgoingWebhookID"
+	outgoingWebhookDisplayName := "outgoingWebhookDisplayName"
 
 	s.Run("Listing all webhooks", func() {
 		printer.Clean()
+
 		mockTeam := model.Team{
 			Id: teamID,
 		}
@@ -63,11 +54,11 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[0])
 		s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[1])
-
 	})
 
 	s.Run("List webhooks by team", func() {
 		printer.Clean()
+
 		mockTeam := model.Team{
 			Id: teamID,
 		}
@@ -103,11 +94,11 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(&mockIncomingWebhook, printer.GetLines()[0])
 		s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[1])
-
 	})
 
 	s.Run("Unable to list webhooks", func() {
 		printer.Clean()
+
 		mockTeam := model.Team{
 			Id: teamID,
 		}
@@ -141,6 +132,12 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
+	incomingWebhookID := "incomingWebhookID"
+	channelID := "channelID"
+	userID := "userID"
+	emailID := "emailID"
+	userName := "userName"
+	displayName := "displayName"
 
 	cmd := &cobra.Command{}
 	cmd.Flags().String("channel", channelID, "")
@@ -189,7 +186,6 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(&returnedIncomingWebhook, printer.GetLines()[0])
-
 	})
 
 	s.Run("Incoming webhook creation error", func() {
@@ -237,6 +233,10 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
+	incomingWebhookID := "incomingWebhookID"
+	channelID := "channelID"
+	userName := "userName"
+	displayName := "displayName"
 
 	s.Run("Sucessfully modify incoming webhook", func() {
 		printer.Clean()
@@ -315,10 +315,16 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to modify incoming webhook", printer.GetErrorLines()[0])
 	})
-
 }
 
 func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
+	teamID := "teamID"
+	outgoingWebhookID := "outgoingWebhookID"
+	userID := "userID"
+	emailID := "emailID"
+	userName := "userName"
+	triggerWhen := "exact"
+
 	cmd := &cobra.Command{}
 	cmd.Flags().String("team", teamID, "")
 	cmd.Flags().String("user", emailID, "")
@@ -326,6 +332,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 	s.Run("Successfully create outgoing webhook", func() {
 		printer.Clean()
+
 		mockTeam := model.Team{
 			Id: teamID,
 		}
@@ -373,6 +380,7 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 
 	s.Run("Create outgoing webhook error", func() {
 		printer.Clean()
+
 		mockTeam := model.Team{
 			Id: teamID,
 		}
@@ -418,6 +426,8 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
+	outgoingWebhookID := "outgoingWebhookID"
+
 	s.Run("Successfully modify outgoing webhook", func() {
 		printer.Clean()
 
@@ -453,7 +463,6 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(&updatedOutgoingWebhook, printer.GetLines()[0])
-
 	})
 
 	s.Run("Modify outgoing webhook error", func() {
@@ -489,11 +498,12 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to modify outgoing webhook", printer.GetErrorLines()[0])
-
 	})
 }
 
 func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
+	incomingWebhookID := "incomingWebhookID"
+	outgoingWebhookID := "outgoingWebhookID"
 
 	s.Run("Successfully delete incoming webhook", func() {
 		printer.Clean()
@@ -548,7 +558,6 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(&mockOutgoingWebhook, printer.GetLines()[0])
-
 	})
 
 	s.Run("delete incoming webhook error", func() {
@@ -574,7 +583,6 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to delete webhook '"+incomingWebhookID+"'", printer.GetErrorLines()[0])
-
 	})
 
 	s.Run("delete outgoing webhook error", func() {
@@ -610,6 +618,10 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
+	incomingWebhookID := "incomingWebhookID"
+	outgoingWebhookID := "outgoingWebhookID"
+	nonExistentID := "nonExistentID"
+
 	s.Run("Successfully show incoming webhook", func() {
 		printer.Clean()
 

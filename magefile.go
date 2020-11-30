@@ -1,4 +1,7 @@
-//+build mage
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// +build mage
 
 package main
 
@@ -15,6 +18,12 @@ import (
 var Default = Build
 
 var GOPATH = os.Getenv("GOPATH")
+
+var Aliases = map[string]interface{}{
+	"test": Test.Unit,
+}
+
+type Test mg.Namespace
 
 func gopath(path string) string {
 	return GOPATH + path
@@ -120,7 +129,9 @@ func Govet() error {
 		return err
 	}
 
-	sh.RunV("go", "get", "golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow")
+	if err := sh.RunWith(map[string]string{"GO111MODULE": "off"}, "go", "get", "golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow"); err != nil {
+		return err
+	}
 
 	args := append([]string{"vet"}, packages...)
 	sh.RunV("go", args...)
@@ -132,14 +143,38 @@ func Govet() error {
 	return nil
 }
 
-// Runs the test suite
-func Test() error {
-	fmt.Println("Running tests")
+// Runs the unit test suite (Alias: test)
+func (Test) Unit() error {
+	fmt.Println("Running unit tests")
 	packages, err := getPackages()
 	if err != nil {
 		return err
 	}
-	args := append([]string{"test", "-race", "-v"}, packages...)
+	args := append([]string{"test", "-mod=vendor", "-race", "-v", "-count", "1", "-tags", "unit"}, packages...)
+	sh.RunV("go", args...)
+	return nil
+}
+
+// Runs e2e the test suite
+func (Test) E2e() error {
+	fmt.Println("Running e2e tests")
+	packages, err := getPackages()
+	if err != nil {
+		return err
+	}
+	args := append([]string{"test", "-mod=vendor", "-race", "-v", "-count", "1", "-tags", "e2e"}, packages...)
+	sh.RunV("go", args...)
+	return nil
+}
+
+// Runs all test suites
+func (Test) All() error {
+	fmt.Println("Running all tests")
+	packages, err := getPackages()
+	if err != nil {
+		return err
+	}
+	args := append([]string{"test", "-mod=vendor", "-race", "-v", "-count", "1", "-tags", "unit e2e"}, packages...)
 	sh.RunV("go", args...)
 	return nil
 }

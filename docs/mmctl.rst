@@ -1,0 +1,51 @@
+.. _mmctl:
+
+mmctl
+-----
+
+Remote client for the Open Source, self-hosted Slack-alternative
+
+Synopsis
+~~~~~~~~
+
+
+Mattermost offers workplace messaging across web, PC and phones with archiving, search and integration with your existing systems. Documentation available at https://docs.mattermost.com
+
+Options
+~~~~~~~
+
+::
+
+      --config string                path to search for '.mmctl' configuration file (default "$HOME/.config/mmctl")
+      --format string                the format of the command output [plain, json] (default "plain")
+  -h, --help                         help for mmctl
+      --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+      --local                        allows communicating with the server through a unix socket
+      --strict                       will only run commands if the mmctl version matches the server one
+
+SEE ALSO
+~~~~~~~~
+
+* `mmctl auth <mmctl_auth.rst>`_ 	 - Manages the credentials of the remote Mattermost instances
+* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
+* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl command <mmctl_command.rst>`_ 	 - Management of slash commands
+* `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
+* `mmctl config <mmctl_config.rst>`_ 	 - Configuration
+* `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
+* `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
+* `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
+* `mmctl ldap <mmctl_ldap.rst>`_ 	 - LDAP related utilities
+* `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
+* `mmctl logs <mmctl_logs.rst>`_ 	 - Display logs in a human-readable format
+* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
+* `mmctl plugin <mmctl_plugin.rst>`_ 	 - Management of plugins
+* `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
+* `mmctl roles <mmctl_roles.rst>`_ 	 - Management of user roles
+* `mmctl system <mmctl_system.rst>`_ 	 - System management
+* `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
+* `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl version <mmctl_version.rst>`_ 	 - Prints the version of mmctl.
+* `mmctl websocket <mmctl_websocket.rst>`_ 	 - Display websocket in a human-readable format
+
