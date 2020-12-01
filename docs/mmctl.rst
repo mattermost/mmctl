@@ -47,5 +47,6 @@ SEE ALSO
 * `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
 * `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 * `mmctl version <mmctl_version.rst>`_ 	 - Prints the version of mmctl.
+* `mmctl webhook <mmctl_webhook.rst>`_ 	 - Management of webhooks
 * `mmctl websocket <mmctl_websocket.rst>`_ 	 - Display websocket in a human-readable format
 

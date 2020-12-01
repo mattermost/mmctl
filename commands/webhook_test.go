@@ -4,7 +4,9 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
+
 	"github.com/spf13/cobra"
 )
 
@@ -238,7 +240,7 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 	userName := "userName"
 	displayName := "displayName"
 
-	s.Run("Sucessfully modify incoming webhook", func() {
+	s.Run("Successfully modify incoming webhook", func() {
 		printer.Clean()
 
 		mockIncomingWebhook := model.IncomingWebhook{
