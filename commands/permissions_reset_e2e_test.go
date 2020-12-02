@@ -65,7 +65,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		// try to reset the permissions
 		err2 := resetPermissionsCmdF(c, &cobra.Command{}, []string{model.SYSTEM_USER_MANAGER_ROLE_ID})
 		s.Require().Nil(err2)
-		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
 		// ensure reset was successful

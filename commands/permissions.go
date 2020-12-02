@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -152,9 +153,12 @@ func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		Permissions: &defaultRole.Permissions,
 	}
 
-	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
+	role, response = c.PatchRole(role.Id, &patchRole)
+	if response.Error != nil {
 		return response.Error
 	}
+
+	printer.PrintT(prettyRole(role), nil)
 
 	return nil
 }
