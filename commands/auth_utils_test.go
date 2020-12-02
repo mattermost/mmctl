@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -22,40 +21,39 @@ func TestResolveConfigFilePath(t *testing.T) {
 	}()
 
 	testUser, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(t, err)
 
-	t.Run("should return the default xdg config location if it exists and nothing else is set", func(t *testing.T) {
+	t.Run("should return the default config location if nothing else is set", func(t *testing.T) {
 		tmp, _ := ioutil.TempDir("", "mmctl-")
 		defer os.RemoveAll(tmp)
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
-		expected := fmt.Sprintf("%s/.config/mmctl/.mmctl", testUser.HomeDir)
+		viper.Set("config-path", getDefaultConfigPath())
 
-		viper.Set("config", getDefaultConfigPath())
-		if err := createFile(expected); err != nil {
-			panic(err)
-		}
+		expected := filepath.Join(testUser.HomeDir, ".config", configFileName)
 
-		p, err := resolveConfigFilePath()
-		require.Nil(t, err)
+		err := createFile(expected)
+		require.NoError(t, err)
+
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 
-	t.Run("should return legacy config location if default one does not exists", func(t *testing.T) {
+	t.Run("should return the home directory if config file exists there", func(t *testing.T) {
 		tmp, _ := ioutil.TempDir("", "mmctl-")
 		defer os.RemoveAll(tmp)
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
-		expected := fmt.Sprintf("%s/.mmctl", testUser.HomeDir)
+		expected := filepath.Join(testUser.HomeDir, "."+configFileName)
+		// create $HOME/.mmctl
+		err := createFile(expected)
+		require.NoError(t, err)
 
-		viper.Set("config", getDefaultConfigPath())
+		viper.Set("config-path", getDefaultConfigPath())
 
-		p, err := resolveConfigFilePath()
-		require.Nil(t, err)
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 
@@ -65,36 +63,35 @@ func TestResolveConfigFilePath(t *testing.T) {
 		testUser.HomeDir = tmp
 		SetUser(testUser)
 
-		expected := fmt.Sprintf("%s/test/.mmctl", testUser.HomeDir)
+		expected := filepath.Join(testUser.HomeDir, ".config", "mmctl")
 
-		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Dir(expected))
-		viper.Set("config", getDefaultConfigPath())
-		if err := createFile(expected); err != nil {
-			panic(err)
-		}
+		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Join(testUser.HomeDir, ".config"))
+		viper.Set("config-path", getDefaultConfigPath())
 
-		p, err := resolveConfigFilePath()
-		require.Nil(t, err)
+		err := createFile(expected)
+		require.NoError(t, err)
+
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 
-	t.Run("should return the user-defined cofnig path if one is set", func(t *testing.T) {
+	t.Run("should return the user-defined config path if one is set", func(t *testing.T) {
 		tmp, _ := ioutil.TempDir("", "mmctl-")
 		defer os.RemoveAll(tmp)
 
 		testUser.HomeDir = "path/should/be/ignored"
 		SetUser(testUser)
 
-		expected := fmt.Sprintf("%s/.mmctl", tmp)
+		expected := filepath.Join(tmp, configFileName)
 
-		_ = os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-		viper.Set("config", tmp)
-		if err := createFile(expected); err != nil {
-			panic(err)
-		}
+		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
+		require.NoError(t, err)
+		viper.Set("config-path", tmp)
 
-		p, err := resolveConfigFilePath()
-		require.Nil(t, err)
+		err = createFile(expected)
+		require.NoError(t, err)
+
+		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
 	})
 }

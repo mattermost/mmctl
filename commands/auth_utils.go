@@ -20,9 +20,9 @@ const (
 	MethodToken    = "T"
 	MethodMFA      = "M"
 
-	configFileName   = ".mmctl"
-	xdgConfigHome    = ".config"
-	xdgConfigHomeKey = "XDG_CONFIG_HOME"
+	userHomeVar      = "$HOME"
+	configFileName   = "mmctl"
+	xdgConfigHomeVar = "$XDG_CONFIG_HOME"
 )
 
 type Credentials struct {
@@ -48,35 +48,38 @@ func init() {
 }
 
 func getDefaultConfigPath() string {
-	configPath := filepath.Join("$HOME", xdgConfigHome, "mmctl")
-	if p, ok := os.LookupEnv(xdgConfigHomeKey); ok {
-		configPath = p
+	configPath := currentUser.HomeDir
+	// We use the existing $HOME/.mmctl file if it exists.
+	// If not, we try to read XDG_CONFIG_HOME and if we fail,
+	// we fallback to $HOME/.config/mmctl.
+	if _, err := os.Stat(filepath.Join(currentUser.HomeDir, "."+configFileName)); os.IsNotExist(err) {
+		if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
+			configPath = p
+		} else {
+			configPath = filepath.Join(currentUser.HomeDir, ".config")
+		}
 	}
 	return configPath
 }
 
-func resolveConfigFilePath() (string, error) {
-	configPath := strings.Replace(viper.GetString("config"), "$HOME", currentUser.HomeDir, 1)
-
-	// probe user-defined or xdg-compliant default config path
-	if _, err := os.Stat(filepath.Join(configPath, configFileName)); err != nil {
-		if !os.IsNotExist(err) {
-			return "", err
-		}
-		// conditionally fall back to legacy config path
-		configPath = currentUser.HomeDir
+func resolveConfigFilePath() string {
+	configPath := getDefaultConfigPath()
+	if p := viper.GetString("config-path"); p != xdgConfigHomeVar {
+		configPath = strings.Replace(viper.GetString("config-path"), userHomeVar, currentUser.HomeDir, 1)
 	}
 
-	return filepath.Join(configPath, configFileName), nil
+	f := configFileName
+	if configPath == currentUser.HomeDir {
+		f = "." + configFileName
+	}
+
+	return filepath.Join(configPath, f)
 }
 
 func ReadCredentialsList() (*CredentialsList, error) {
-	configPath, err := resolveConfigFilePath()
-	if err != nil {
-		return nil, err
-	}
+	configPath := resolveConfigFilePath()
 
-	if _, err = os.Stat(configPath); err != nil {
+	if _, err := os.Stat(configPath); err != nil {
 		return nil, errors.WithMessage(err, "cannot read user credentials, maybe you need to use login first")
 	}
 
@@ -124,6 +127,9 @@ func GetCredentials(name string) (*Credentials, error) {
 func SaveCredentials(credentials Credentials) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
+		if err := os.MkdirAll(strings.TrimSuffix(resolveConfigFilePath(), configFileName), 0700); err != nil {
+			return err
+		}
 		credentialsList = &CredentialsList{}
 		credentials.Active = true
 	}
@@ -133,23 +139,11 @@ func SaveCredentials(credentials Credentials) error {
 }
 
 func SaveCredentialsList(credentialsList *CredentialsList) error {
-	configPath, err := resolveConfigFilePath()
-	if err != nil {
-		return err
-	}
-
-	if _, err := os.Stat(configPath); err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-		if err := os.MkdirAll(configPath, 0700); err != nil {
-			return errors.WithMessage(err, "cannot create config directory")
-		}
-	}
+	configPath := resolveConfigFilePath()
 
 	marshaledCredentialsList, _ := json.MarshalIndent(credentialsList, "", "    ")
 
-	if err := ioutil.WriteFile(filepath.Join(configPath, configFileName), marshaledCredentialsList, 0600); err != nil {
+	if err := ioutil.WriteFile(configPath, marshaledCredentialsList, 0600); err != nil {
 		return errors.WithMessage(err, "cannot save the credentials")
 	}
 
@@ -180,10 +174,7 @@ func SetCurrent(name string) error {
 }
 
 func CleanCredentials() error {
-	configFilePath, err := resolveConfigFilePath()
-	if err != nil {
-		return err
-	}
+	configFilePath := resolveConfigFilePath()
 
 	if _, err := os.Stat(configFilePath); err != nil {
 		if os.IsNotExist(err) {
