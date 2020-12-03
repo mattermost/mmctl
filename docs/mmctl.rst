@@ -16,7 +16,7 @@ Options
 
 ::
 
-      --config string                path to search for '.mmctl' configuration file (default "$HOME/.config/mmctl")
+      --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
       --format string                the format of the command output [plain, json] (default "plain")
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
@@ -48,5 +48,6 @@ SEE ALSO
 * `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
 * `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 * `mmctl version <mmctl_version.rst>`_ 	 - Prints the version of mmctl.
+* `mmctl webhook <mmctl_webhook.rst>`_ 	 - Management of webhooks
 * `mmctl websocket <mmctl_websocket.rst>`_ 	 - Display websocket in a human-readable format
 
