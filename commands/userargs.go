@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -50,4 +51,60 @@ func checkSlash(arg string) bool {
 func checkDots(arg string) bool {
 	unescapedArg, _ := url.PathUnescape(arg)
 	return strings.Contains(unescapedArg, "..")
+}
+
+func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error) {
+	users := make([]*model.User, 0, len(userArgs))
+	errors := make([]error, 0)
+	for _, userArg := range userArgs {
+		user, err := getUserFromArg(c, userArg)
+		if err != nil {
+			errors = append(errors, err)
+		} else {
+			users = append(users, user)
+		}
+	}
+	if len(errors) > 0 {
+		var summary ErrEntitySummary
+		for _, e := range errors {
+			summary.Errors = append(summary.Errors, e.Error())
+		}
+		return users, summary
+	}
+	return users, nil
+}
+
+func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
+	var (
+		user     *model.User
+		response *model.Response
+	)
+	if !checkDots(userArg) {
+		user, response = c.GetUserByEmail(userArg, "")
+		if response.Error != nil && response.Error.StatusCode != http.StatusNotFound {
+			return nil, response.Error
+		}
+	}
+
+	if !checkSlash(userArg) {
+		if user == nil {
+			user, response = c.GetUserByUsername(userArg, "")
+			if response.Error != nil && response.Error.StatusCode != http.StatusNotFound {
+				return nil, response.Error
+			}
+		}
+
+		if user == nil {
+			user, response = c.GetUser(userArg, "")
+			if response.Error != nil && response.Error.StatusCode != http.StatusNotFound {
+				return nil, response.Error
+			}
+		}
+	}
+
+	if user == nil {
+		return nil, ErrEntityNotFound{ID: userArg}
+	}
+
+	return user, nil
 }
