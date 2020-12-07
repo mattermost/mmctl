@@ -1,7 +1,7 @@
 .. _mmctl_user_name:
 
 mmctl user name
-----------------
+---------------
 
 Change name of the user
 
