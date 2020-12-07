@@ -87,6 +87,14 @@ var UpdateUserEmailCmd = &cobra.Command{
 	RunE:    withClient(updateUserEmailCmdF),
 }
 
+var UpdateUserNameCmd = &cobra.Command{
+	Use:     "name [user] [new name]",
+	Short:   "Change name of the user",
+	Long:    "Change name of the user.",
+	Example: "  user name testuser newname",
+	RunE:    withClient(updateUserNameCmdF),
+}
+
 var ChangePasswordUserCmd = &cobra.Command{
 	Use:   "change-password <user>",
 	Short: "Changes a user's password",
@@ -303,6 +311,7 @@ Global Flags:
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
 		UpdateUserEmailCmd,
+		UpdateUserNameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
 		DeleteUsersCmd,
@@ -480,6 +489,36 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	user.Email = newEmail
+
+	ruser, response := c.UpdateUser(user)
+	if response.Error != nil {
+		return errors.New(response.Error.Error())
+	}
+
+	printer.PrintT("User {{.Username}} updated successfully", ruser)
+
+	return nil
+}
+
+func updateUserNameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
+	if len(args) != 2 {
+		return errors.New("expected two arguments. See help text for details")
+	}
+
+	newName := args[1]
+
+	if !model.IsValidUsername(newName) {
+		return errors.New("invalid name: '" + newName + "'")
+	}
+
+	user := getUserFromUserArg(c, args[0])
+	if user == nil {
+		return errors.New("unable to find user '" + args[0] + "'")
+	}
+
+	user.Username = newName
 
 	ruser, response := c.UpdateUser(user)
 	if response.Error != nil {
