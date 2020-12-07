@@ -324,7 +324,12 @@ func userActivateCmdF(c client.Client, command *cobra.Command, args []string) er
 }
 
 func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
-	users := getUsersFromUserArgs(c, userArgs)
+	users, summary := getUsersFromArgs(c, userArgs)
+	if summary != nil {
+		for _, e := range summary.Errors {
+			printer.PrintError(e.Error())
+		}
+	}
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
@@ -474,9 +479,9 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("invalid email: '" + newEmail + "'")
 	}
 
-	user := getUserFromUserArg(c, args[0])
-	if user == nil {
-		return errors.New("unable to find user '" + args[0] + "'")
+	user, err := getUserFromArg(c, args[0])
+	if err != nil {
+		return err
 	}
 
 	user.Email = newEmail
@@ -517,9 +522,9 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		}
 	}
 
-	user := getUserFromUserArg(c, args[0])
-	if user == nil {
-		return errors.New("couldn't find user '" + args[0] + "'")
+	user, err := getUserFromArg(c, args[0])
+	if err != nil {
+		return err
 	}
 
 	if hashed {
@@ -541,13 +546,14 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	users := getUsersFromUserArgs(c, args)
+	users, summary := getUsersFromArgs(c, args)
+	if summary != nil {
+		for _, e := range summary.Errors {
+			printer.PrintError(e.Error())
+		}
+	}
 
 	for i, user := range users {
-		if user == nil {
-			printer.PrintError("Unable to find user '" + args[i] + "'")
-			continue
-		}
 		if _, response := c.UpdateUserMfa(user.Id, "", false); response.Error != nil {
 			printer.PrintError("Unable to reset user '" + args[i] + "' MFA. Error: " + response.Error.Error())
 		}
@@ -584,7 +590,12 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	users := getUsersFromUserArgs(c, args)
+	users, summary := getUsersFromArgs(c, args)
+	if summary != nil {
+		for _, e := range summary.Errors {
+			printer.PrintError(e.Error())
+		}
+	}
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
@@ -632,7 +643,12 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	users := getUsersFromUserArgs(c, args)
+	users, summary := getUsersFromArgs(c, args)
+	if summary != nil {
+		for _, e := range summary.Errors {
+			printer.PrintError(e.Error())
+		}
+	}
 
 	for i, user := range users {
 		tpl := `id: {{.Id}}
@@ -645,10 +661,6 @@ email: {{.Email}}
 auth_service: {{.AuthService}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
-		}
-		if user == nil {
-			printer.PrintError("Unable to find user '" + args[i] + "'")
-			continue
 		}
 
 		printer.PrintT(tpl, user)
@@ -722,13 +734,14 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	users := getUsersFromUserArgs(c, userArgs)
-	for i, user := range users {
-		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
-			continue
+	users, summary := getUsersFromArgs(c, userArgs)
+	if summary != nil {
+		for _, e := range summary.Errors {
+			printer.PrintError(e.Error())
 		}
+	}
 
+	for _, user := range users {
 		if newUser, resp := c.VerifyUserEmailWithoutToken(user.Id); resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
 		} else {
@@ -754,11 +767,13 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 }
 
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
-	users := getUsersFromUserArgs(c, userArgs)
-	for _, user := range users {
-		if user == nil {
-			continue
+	users, summary := getUsersFromArgs(c, userArgs)
+	if summary != nil {
+		for _, e := range summary.Errors {
+			printer.PrintError(e.Error())
 		}
+	}
+	for _, user := range users {
 		bot, resp := c.ConvertUserToBot(user.Id)
 		if resp.Error != nil {
 			printer.PrintError(resp.Error.Error())
@@ -771,9 +786,9 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	user := getUserFromUserArg(c, userArgs[0])
-	if user == nil {
-		return fmt.Errorf("could not find user by %q", userArgs[0])
+	user, err := getUserFromArg(c, userArgs[0])
+	if err != nil {
+		return err
 	}
 
 	password, _ := cmd.Flags().GetString("password")

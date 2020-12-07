@@ -53,7 +53,7 @@ func checkDots(arg string) bool {
 	return strings.Contains(unescapedArg, "..")
 }
 
-func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error) {
+func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, *FindEntitySummary) {
 	users := make([]*model.User, 0, len(userArgs))
 	errors := make([]error, 0)
 	for _, userArg := range userArgs {
@@ -65,9 +65,8 @@ func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error)
 		}
 	}
 	if len(errors) > 0 {
-		var summary ErrEntitySummary
-		for _, e := range errors {
-			summary.Errors = append(summary.Errors, e.Error())
+		summary := &FindEntitySummary{
+			Errors: errors,
 		}
 		return users, summary
 	}
@@ -81,7 +80,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	)
 	if !checkDots(userArg) {
 		user, response = c.GetUserByEmail(userArg, "")
-		if response.Error != nil && response.Error.StatusCode != http.StatusNotFound {
+		if isSevereError(response) {
 			return nil, response.Error
 		}
 	}
@@ -89,22 +88,26 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	if !checkSlash(userArg) {
 		if user == nil {
 			user, response = c.GetUserByUsername(userArg, "")
-			if response.Error != nil && response.Error.StatusCode != http.StatusNotFound {
+			if isSevereError(response) {
 				return nil, response.Error
 			}
 		}
 
 		if user == nil {
 			user, response = c.GetUser(userArg, "")
-			if response.Error != nil && response.Error.StatusCode != http.StatusNotFound {
+			if isSevereError(response) {
 				return nil, response.Error
 			}
 		}
 	}
 
 	if user == nil {
-		return nil, ErrEntityNotFound{ID: userArg}
+		return nil, ErrEntityNotFound{Type: "user", ID: userArg}
 	}
 
 	return user, nil
+}
+
+func isSevereError(r *model.Response) bool {
+	return r != nil && r.Error != nil && (r.Error.StatusCode != http.StatusNotFound && r.Error.StatusCode != http.StatusBadRequest)
 }

@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
+		s.Require().Equal("user nonexistent@email not found", printer.GetErrorLines()[0])
 	})
 }
 
@@ -111,7 +111,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
+		s.Require().Equal("user nonexistent@email not found", printer.GetErrorLines()[0])
 	})
 }
 
@@ -137,7 +137,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
+		s.Equal(fmt.Sprintf("user %s not found", emailArg), printer.GetErrorLines()[0])
 	})
 }
 
@@ -370,7 +370,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "can't find user 'nonexistent@email'")
+		s.Require().Equal("user nonexistent@email not found", printer.GetErrorLines()[0])
 	})
 }
 
@@ -627,7 +627,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to find user '"+emailArg+"'", printer.GetErrorLines()[0])
+		s.Equal(fmt.Sprintf("user %s not found", emailArg), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete user without permission", func() {

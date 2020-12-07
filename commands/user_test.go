@@ -758,7 +758,7 @@ func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
 
 		err := changePasswordUserCmdF(s.client, cmd, []string{arg})
 		s.Require().Error(err)
-		s.Require().EqualError(err, "couldn't find user 'example@example.com'")
+		s.Require().EqualError(err, "user example@example.com not found")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -2088,7 +2088,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("can't find user '%v'", nonexistentEmail).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("user %v not found", nonexistentEmail).Error(), printer.GetErrorLines()[0])
 	})
 }
 
