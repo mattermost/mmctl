@@ -1,12 +1,12 @@
 package commands
 
 import (
-	"sort"
+	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
-	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
@@ -23,11 +23,13 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		expectedPermissions := []string{model.PERMISSION_USE_GROUP_MENTIONS.Id, model.PERMISSION_USE_CHANNEL_MENTIONS.Id}
 		role.Permissions = expectedPermissions
 		role, err = s.th.App.UpdateRole(role)
+		s.Require().Nil(err)
 
 		// reset to defaults when we're done
 		defer func() {
 			role.Permissions = defaultPermissions
-			s.th.App.UpdateRole(role)
+			_, err = s.th.App.UpdateRole(role)
+			s.Require().Nil(err)
 		}()
 
 		// try to reset the permissions
@@ -57,7 +59,8 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		// reset to defaults when we're done
 		defer func() {
 			role.Permissions = defaultPermissions
-			s.th.App.UpdateRole(role)
+			_, err = s.th.App.UpdateRole(role)
+			s.Require().Nil(err)
 		}()
 
 		// try to reset the permissions
