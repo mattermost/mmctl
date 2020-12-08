@@ -39,9 +39,7 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		// ensure reset didn't happen
 		roleAfterResetAttempt, err := s.th.App.GetRoleByName(model.SYSTEM_USER_MANAGER_ROLE_ID)
 		s.Require().Nil(err)
-		sort.Strings(expectedPermissions)
-		sort.Strings(roleAfterResetAttempt.Permissions)
-		s.Require().Equal(expectedPermissions, roleAfterResetAttempt.Permissions)
+		s.Require().ElementsMatch(expectedPermissions, roleAfterResetAttempt.Permissions)
 	})
 
 	s.RunForSystemAdminAndLocal("Reset a role's permissions", func(c client.Client) {
@@ -71,8 +69,6 @@ func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
 		// ensure reset was successful
 		roleAfterResetAttempt, err := s.th.App.GetRoleByName(model.SYSTEM_USER_MANAGER_ROLE_ID)
 		s.Require().Nil(err)
-		sort.Strings(defaultPermissions)
-		sort.Strings(roleAfterResetAttempt.Permissions)
-		s.Require().Equal(defaultPermissions, roleAfterResetAttempt.Permissions)
+		s.Require().ElementsMatch(defaultPermissions, roleAfterResetAttempt.Permissions)
 	})
 }
