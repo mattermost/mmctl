@@ -38,6 +38,8 @@ test:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - docker-compose version
     - cd ..
@@ -60,7 +62,7 @@ test:
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
         -v /builds/${CI_PROJECT_NAMESPACE}:/mattermost \
         -w /mattermost/mmctl \
-        mattermost/mattermost-build-server:20201020_golang-1.14.9 \
+        $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201023_golang-1.14.6 \
         bash -c 'ulimit -n 8096; ls -al; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
