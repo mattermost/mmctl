@@ -1,22 +1,34 @@
-.. _mmctl_permissions:
+.. _mmctl_permissions_reset:
 
-mmctl permissions
------------------
+mmctl permissions reset
+-----------------------
 
-Management of permissions
+Reset default permissions for role (EE Only)
 
 Synopsis
 ~~~~~~~~
 
 
-Management of permissions
+Reset the given role's permissions to the set that was originally released with
+
+::
+
+  mmctl permissions reset <role_name> [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    # Reset the permissions of the 'system_read_only_admin' role.
+    $ mmctl permissions reset system_read_only_admin
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for permissions
+  -h, --help   help for reset
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,9 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl permissions add <mmctl_permissions_add.rst>`_ 	 - Add permissions to a role (EE Only)
-* `mmctl permissions remove <mmctl_permissions_remove.rst>`_ 	 - Remove permissions from a role (EE Only)
-* `mmctl permissions reset <mmctl_permissions_reset.rst>`_ 	 - Reset default permissions for role (EE Only)
-* `mmctl permissions role <mmctl_permissions_role.rst>`_ 	 - Management of roles
+* `mmctl permissions <mmctl_permissions.rst>`_ 	 - Management of permissions
 

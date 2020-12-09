@@ -72,12 +72,7 @@ func init() {
 	)
 }
 
-func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
-	}
-
+func prettyRole(role *model.Role) string {
 	sort.Strings(role.Permissions)
 
 	consolePermissionMap := map[string]bool{}
@@ -145,7 +140,16 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	w.Flush()
 
-	printer.PrintT(b.String(), role)
+	return b.String()
+}
+
+func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	role, response := c.GetRoleByName(args[0])
+	if response.Error != nil {
+		return response.Error
+	}
+
+	printer.PrintT(prettyRole(role), nil)
 
 	return nil
 }
