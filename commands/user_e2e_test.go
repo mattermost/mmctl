@@ -567,6 +567,25 @@ func (s *MmctlE2ETestSuite) TestUpdateUserNameCmd() {
 		s.Require().Nil(err)
 		s.Require().Equal(s.th.BasicUser2.Username, u.Username)
 	})
+
+	s.Run("Can't change by a invalid username", func() {
+		printer.Clean()
+		newName := "invalid username"
+		err := updateUserNameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newName})
+		s.Require().EqualError(err, "invalid name: '"+newName+"'")
+
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(s.th.BasicUser2.Username, u.Username)
+	})
+
+	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
+		printer.Clean()
+		oldName := "nonexistentuser"
+		newName := "basicusernamechange"
+		err := updateUserNameCmdF(s.th.Client, &cobra.Command{}, []string{oldName, newName})
+		s.Require().EqualError(err, "unable to find user '"+oldName+"'")
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
