@@ -83,6 +83,21 @@ func (mr *MockClientMockRecorder) AssignBot(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignBot", reflect.TypeOf((*MockClient)(nil).AssignBot), arg0, arg1)
 }
 
+// CancelJob mocks base method
+func (m *MockClient) CancelJob(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CancelJob", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CancelJob indicates an expected call of CancelJob
+func (mr *MockClientMockRecorder) CancelJob(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CancelJob", reflect.TypeOf((*MockClient)(nil).CancelJob), arg0)
+}
+
 // CheckIntegrity mocks base method
 func (m *MockClient) CheckIntegrity() ([]model.IntegrityCheckResult, *model.Response) {
 	m.ctrl.T.Helper()
@@ -203,6 +218,21 @@ func (mr *MockClientMockRecorder) CreateIncomingWebhook(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateIncomingWebhook", reflect.TypeOf((*MockClient)(nil).CreateIncomingWebhook), arg0)
 }
 
+// CreateJob mocks base method
+func (m *MockClient) CreateJob(arg0 *model.Job) (*model.Job, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateJob", arg0)
+	ret0, _ := ret[0].(*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CreateJob indicates an expected call of CreateJob
+func (mr *MockClientMockRecorder) CreateJob(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateJob", reflect.TypeOf((*MockClient)(nil).CreateJob), arg0)
+}
+
 // CreateOutgoingWebhook mocks base method
 func (m *MockClient) CreateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response) {
 	m.ctrl.T.Helper()
@@ -246,6 +276,21 @@ func (m *MockClient) CreateTeam(arg0 *model.Team) (*model.Team, *model.Response)
 func (mr *MockClientMockRecorder) CreateTeam(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeam", reflect.TypeOf((*MockClient)(nil).CreateTeam), arg0)
+}
+
+// CreateUpload mocks base method
+func (m *MockClient) CreateUpload(arg0 *model.UploadSession) (*model.UploadSession, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUpload", arg0)
+	ret0, _ := ret[0].(*model.UploadSession)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// CreateUpload indicates an expected call of CreateUpload
+func (mr *MockClientMockRecorder) CreateUpload(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUpload", reflect.TypeOf((*MockClient)(nil).CreateUpload), arg0)
 }
 
 // CreateUser mocks base method
@@ -670,6 +715,51 @@ func (mr *MockClientMockRecorder) GetIncomingWebhooksForTeam(arg0, arg1, arg2, a
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingWebhooksForTeam", reflect.TypeOf((*MockClient)(nil).GetIncomingWebhooksForTeam), arg0, arg1, arg2, arg3)
 }
 
+// GetJob mocks base method
+func (m *MockClient) GetJob(arg0 string) (*model.Job, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetJob", arg0)
+	ret0, _ := ret[0].(*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetJob indicates an expected call of GetJob
+func (mr *MockClientMockRecorder) GetJob(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJob", reflect.TypeOf((*MockClient)(nil).GetJob), arg0)
+}
+
+// GetJobs mocks base method
+func (m *MockClient) GetJobs(arg0, arg1 int) ([]*model.Job, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1)
+	ret0, _ := ret[0].([]*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetJobs indicates an expected call of GetJobs
+func (mr *MockClientMockRecorder) GetJobs(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobs", reflect.TypeOf((*MockClient)(nil).GetJobs), arg0, arg1)
+}
+
+// GetJobsByType mocks base method
+func (m *MockClient) GetJobsByType(arg0 string, arg1, arg2 int) ([]*model.Job, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetJobsByType", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*model.Job)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetJobsByType indicates an expected call of GetJobsByType
+func (mr *MockClientMockRecorder) GetJobsByType(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetJobsByType", reflect.TypeOf((*MockClient)(nil).GetJobsByType), arg0, arg1, arg2)
+}
+
 // GetLdapGroups mocks base method
 func (m *MockClient) GetLdapGroups() ([]*model.Group, *model.Response) {
 	m.ctrl.T.Helper()
@@ -954,6 +1044,36 @@ func (mr *MockClientMockRecorder) GetTeamByName(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamByName", reflect.TypeOf((*MockClient)(nil).GetTeamByName), arg0, arg1)
 }
 
+// GetUpload mocks base method
+func (m *MockClient) GetUpload(arg0 string) (*model.UploadSession, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUpload", arg0)
+	ret0, _ := ret[0].(*model.UploadSession)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUpload indicates an expected call of GetUpload
+func (mr *MockClientMockRecorder) GetUpload(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpload", reflect.TypeOf((*MockClient)(nil).GetUpload), arg0)
+}
+
+// GetUploadsForUser mocks base method
+func (m *MockClient) GetUploadsForUser(arg0 string) ([]*model.UploadSession, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUploadsForUser", arg0)
+	ret0, _ := ret[0].([]*model.UploadSession)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// GetUploadsForUser indicates an expected call of GetUploadsForUser
+func (mr *MockClientMockRecorder) GetUploadsForUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUploadsForUser", reflect.TypeOf((*MockClient)(nil).GetUploadsForUser), arg0)
+}
+
 // GetUser mocks base method
 func (m *MockClient) GetUser(arg0, arg1 string) (*model.User, *model.Response) {
 	m.ctrl.T.Helper()
@@ -1117,6 +1237,21 @@ func (m *MockClient) ListCommands(arg0 string, arg1 bool) ([]*model.Command, *mo
 func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1)
+}
+
+// ListImports mocks base method
+func (m *MockClient) ListImports() ([]string, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListImports")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ListImports indicates an expected call of ListImports
+func (mr *MockClientMockRecorder) ListImports() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListImports", reflect.TypeOf((*MockClient)(nil).ListImports))
 }
 
 // MigrateAuthToLdap mocks base method
@@ -1747,6 +1882,21 @@ func (m *MockClient) UpdateUserRoles(arg0, arg1 string) (bool, *model.Response) 
 func (mr *MockClientMockRecorder) UpdateUserRoles(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRoles", reflect.TypeOf((*MockClient)(nil).UpdateUserRoles), arg0, arg1)
+}
+
+// UploadData mocks base method
+func (m *MockClient) UploadData(arg0 string, arg1 io.Reader) (*model.FileInfo, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UploadData", arg0, arg1)
+	ret0, _ := ret[0].(*model.FileInfo)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// UploadData indicates an expected call of UploadData
+func (mr *MockClientMockRecorder) UploadData(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadData", reflect.TypeOf((*MockClient)(nil).UploadData), arg0, arg1)
 }
 
 // UploadLicenseFile mocks base method

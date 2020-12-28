@@ -4,9 +4,12 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -46,11 +49,22 @@ var ShowRoleCmd = &cobra.Command{
 	RunE:       withClient(showRoleCmdF),
 }
 
+var ResetCmd = &cobra.Command{
+	Use:   "reset <role_name>",
+	Short: "Reset default permissions for role (EE Only)",
+	Long:  "Reset the given role's permissions to the set that was originally released with",
+	Example: `  # Reset the permissions of the 'system_read_only_admin' role.
+  $ mmctl permissions reset system_read_only_admin`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(resetPermissionsCmdF),
+}
+
 func init() {
 	PermissionsCmd.AddCommand(
 		AddPermissionsCmd,
 		RemovePermissionsCmd,
 		ShowRoleCmd,
+		ResetCmd,
 	)
 
 	RootCmd.AddCommand(PermissionsCmd)
@@ -120,6 +134,31 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
 		return response.Error
 	}
+
+	return nil
+}
+
+func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	role, response := c.GetRoleByName(args[0])
+	if response.Error != nil {
+		return response.Error
+	}
+
+	defaultRole, ok := model.MakeDefaultRoles()[role.Name]
+	if !ok {
+		return fmt.Errorf("no default permissions available for role")
+	}
+
+	patchRole := model.RolePatch{
+		Permissions: &defaultRole.Permissions,
+	}
+
+	role, response = c.PatchRole(role.Id, &patchRole)
+	if response.Error != nil {
+		return response.Error
+	}
+
+	printer.PrintT(prettyRole(role), nil)
 
 	return nil
 }
