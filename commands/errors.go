@@ -2,6 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // FindEntitySummary is thrown when at least, one error is found
@@ -19,4 +22,8 @@ type ErrEntityNotFound struct {
 
 func (e ErrEntityNotFound) Error() string {
 	return fmt.Sprintf("%s %s not found", e.Type, e.ID)
+}
+
+func isErrorSevere(r *model.Response) bool {
+	return r != nil && r.Error != nil && (r.Error.StatusCode != http.StatusNotFound && r.Error.StatusCode != http.StatusBadRequest)
 }

@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -80,7 +79,7 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	)
 	if !checkDots(userArg) {
 		user, response = c.GetUserByEmail(userArg, "")
-		if isSevereError(response) {
+		if isErrorSevere(response) {
 			return nil, response.Error
 		}
 	}
@@ -88,14 +87,14 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	if !checkSlash(userArg) {
 		if user == nil {
 			user, response = c.GetUserByUsername(userArg, "")
-			if isSevereError(response) {
+			if isErrorSevere(response) {
 				return nil, response.Error
 			}
 		}
 
 		if user == nil {
 			user, response = c.GetUser(userArg, "")
-			if isSevereError(response) {
+			if isErrorSevere(response) {
 				return nil, response.Error
 			}
 		}
@@ -106,8 +105,4 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	}
 
 	return user, nil
-}
-
-func isSevereError(r *model.Response) bool {
-	return r != nil && r.Error != nil && (r.Error.StatusCode != http.StatusNotFound && r.Error.StatusCode != http.StatusBadRequest)
 }

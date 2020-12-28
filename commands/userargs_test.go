@@ -95,7 +95,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		s.Require().Equal(": forbidden, ", summary.Errors[0].Error())
 	})
 	s.Run("success", func() {
-		successEmail := "forbidden@forbidden.com"
+		successEmail := "success@success.com"
 		successUser := &model.User{Email: successEmail}
 		printer.Clean()
 		s.client.
