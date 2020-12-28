@@ -336,7 +336,7 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 			continue
 		}
 
-		err := changeUserActiveStatus(c, user, userArgs[i], active)
+		err := changeUserActiveStatus(c, user, active)
 
 		if err != nil {
 			printer.PrintError(err.Error())
@@ -344,12 +344,12 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 	}
 }
 
-func changeUserActiveStatus(c client.Client, user *model.User, userArg string, activate bool) error {
+func changeUserActiveStatus(c client.Client, user *model.User, activate bool) error {
 	if !activate && user.IsSSOUser() {
-		printer.Print("You must also deactivate user " + userArg + " in the SSO provider or they will be reactivated on next login or sync.")
+		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
-		return fmt.Errorf("unable to change activation status of user: %v", userArg)
+		return fmt.Errorf("unable to change activation status of user: %v", user.Id)
 	}
 
 	return nil
@@ -553,9 +553,9 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		}
 	}
 
-	for i, user := range users {
+	for _, user := range users {
 		if _, response := c.UpdateUserMfa(user.Id, "", false); response.Error != nil {
-			printer.PrintError("Unable to reset user '" + args[i] + "' MFA. Error: " + response.Error.Error())
+			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + response.Error.Error())
 		}
 	}
 
