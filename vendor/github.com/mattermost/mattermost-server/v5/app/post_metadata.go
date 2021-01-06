@@ -31,7 +31,7 @@ const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 1 * time.Hour
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
-var linkCache = cache.NewLRU(&cache.LRUOptions{
+var linkCache = cache.NewLRU(cache.LRUOptions{
 	Size: LINK_CACHE_SIZE,
 })
 
@@ -534,9 +534,8 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 		// one of these required fields exists before returning the OpenGraph data
 		if og.Title != "" || og.Type != "" || og.URL != "" {
 			return og, nil, nil
-		} else {
-			return nil, nil, nil
 		}
+		return nil, nil, nil
 	} else {
 		// Not an image or web page with OpenGraph information
 		return nil, nil, nil

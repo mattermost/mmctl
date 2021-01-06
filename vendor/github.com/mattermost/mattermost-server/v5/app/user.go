@@ -213,7 +213,7 @@ func (s *Server) IsFirstUserAccount() bool {
 	if cachedSessions == 0 {
 		count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true})
 		if err != nil {
-			mlog.Error("There was a error fetching if first user account", mlog.Err(err))
+			mlog.Debug("There was an error fetching if first user account", mlog.Err(err))
 			return false
 		}
 		if count <= 0 {
@@ -299,7 +299,6 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 
 	ruser, nErr := a.Srv().Store.User().Save(user)
 	if nErr != nil {
-		mlog.Error("Couldn't save the user", mlog.Err(nErr))
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -335,18 +334,21 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	return ruser, nil
 }
 
-func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
+func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	if !*a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	provider := einterfaces.GetOauthProvider(service)
-	if provider == nil {
-		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
+	provider, e := a.getSSOProvider(service)
+	if e != nil {
+		return nil, e
 	}
-	user, err1 := provider.GetUserFromJson(userData)
+	user, err1 := provider.GetUserFromJson(userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusInternalServerError)
+	}
+	if user.AuthService == "" {
+		user.AuthService = service
 	}
 
 	suchan := make(chan store.StoreResult, 1)
@@ -1494,7 +1496,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, nil
 	}
 
-	if user.AuthData != nil && len(*user.AuthData) != 0 {
+	if user.AuthData != nil && *user.AuthData != "" {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
@@ -1990,8 +1992,8 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 	return autocomplete, nil
 }
 
-func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string) *model.AppError {
-	oauthUser, err1 := provider.GetUserFromJson(userData)
+func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterfaces.OauthProvider, service string, tokenUser *model.User) *model.AppError {
+	oauthUser, err1 := provider.GetUserFromJson(userData, tokenUser)
 	if err1 != nil {
 		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, err1.Error(), http.StatusBadRequest)
 	}
@@ -2371,8 +2373,8 @@ func (a *App) ConvertBotToUser(bot *model.Bot, userPatch *model.UserPatch, sysad
 	return user, nil
 }
 
-func (a *App) GetThreadsForUser(userId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
-	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userId, options)
+func (a *App) GetThreadsForUser(userId, teamId string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+	threads, err := a.Srv().Store.Thread().GetThreadsForUser(userId, teamId, options)
 	if err != nil {
 		return nil, model.NewAppError("GetThreadsForUser", "app.user.get_threads_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -2383,13 +2385,12 @@ func (a *App) GetThreadsForUser(userId string, options model.GetUserThreadsOpts)
 	return threads, nil
 }
 
-func (a *App) UpdateThreadsReadForUser(userId string, timestamp int64) *model.AppError {
-	nErr := a.Srv().Store.Thread().MarkAllAsRead(userId, timestamp)
+func (a *App) UpdateThreadsReadForUser(userId, teamId string) *model.AppError {
+	nErr := a.Srv().Store.Thread().MarkAllAsRead(userId, teamId)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_READ_CHANGED, "", "", userId, nil)
-	message.Add("timestamp", timestamp)
 	a.Publish(message)
 	return nil
 }
@@ -2406,8 +2407,31 @@ func (a *App) UpdateThreadFollowForUser(userId, threadId string, state bool) *mo
 	return nil
 }
 
-func (a *App) UpdateThreadReadForUser(userId, threadId string, timestamp int64) *model.AppError {
-	nErr := a.Srv().Store.Thread().MarkAsRead(userId, threadId, timestamp)
+func (a *App) UpdateThreadReadForUser(userId, teamId, threadId string, timestamp int64) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+	membership, nErr := a.Srv().Store.Thread().GetMembershipForUser(userId, threadId)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+	post, err := a.GetSinglePost(threadId)
+	if err != nil {
+		return err
+	}
+
+	membership.UnreadMentions, err = a.countThreadMentions(user, post, teamId, timestamp)
+	if err != nil {
+		return err
+	}
+	membership.Following = true
+	_, nErr = a.Srv().Store.Thread().UpdateMembership(membership)
+	if nErr != nil {
+		return model.NewAppError("UpdateThreadsReadForUser", "app.user.update_threads_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
+	nErr = a.Srv().Store.Thread().MarkAsRead(userId, threadId, timestamp)
 	if nErr != nil {
 		return model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}

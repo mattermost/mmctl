@@ -238,8 +238,13 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func printJob(job *model.Job) {
-	printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
-		time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
+	if job.StartAt > 0 {
+		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
+			time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
+	} else {
+		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n\n",
+			time.Unix(job.CreateAt/1000, 0)), job)
+	}
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
@@ -248,13 +253,12 @@ func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 		return fmt.Errorf("failed to get import job: %w", resp.Error)
 	}
 
-	printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
-		time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
+	printJob(job)
 
 	return nil
 }
 
-func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
+func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error {
 	page, err := command.Flags().GetInt("page")
 	if err != nil {
 		return err
@@ -273,14 +277,14 @@ func importJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	for {
-		jobs, resp := c.GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, page, perPage)
+		jobs, resp := c.GetJobsByType(jobType, page, perPage)
 		if resp.Error != nil {
-			return fmt.Errorf("failed to get import jobs: %w", resp.Error)
+			return fmt.Errorf("failed to get jobs: %w", resp.Error)
 		}
 
 		if len(jobs) == 0 {
 			if !showAll || page == 0 {
-				printer.Print("No import jobs found")
+				printer.Print("No jobs found")
 			}
 			return nil
 		}
@@ -297,4 +301,8 @@ func importJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	return nil
+}
+
+func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
+	return jobListCmdF(c, command, model.JOB_TYPE_IMPORT_PROCESS)
 }

@@ -138,4 +138,7 @@ type Client interface {
 	GetOutgoingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*model.OutgoingWebhook, *model.Response)
 	RegenOutgoingHookToken(hookId string) (*model.OutgoingWebhook, *model.Response)
 	DeleteOutgoingWebhook(hookId string) (bool, *model.Response)
+	ListExports() ([]string, *model.Response)
+	DeleteExport(name string) (bool, *model.Response)
+	DownloadExport(name string, wr io.Writer, offset int64) (int64, *model.Response)
 }

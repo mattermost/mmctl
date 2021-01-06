@@ -119,6 +119,8 @@ github.com/couchbase/vellum/utf8
 github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
+# github.com/dgrijalva/jwt-go v3.2.0+incompatible
+github.com/dgrijalva/jwt-go
 # github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
 github.com/dgryski/dgoogauth
 # github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
@@ -237,13 +239,13 @@ github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
 # github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
 github.com/mattermost/gorp
-# github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
+# github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 github.com/mattermost/ldap
 # github.com/mattermost/logr v1.0.13
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201204150807-d137cf0aa5b2
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210105114834-d357b20d2253
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing
