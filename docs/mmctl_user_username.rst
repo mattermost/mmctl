@@ -1,33 +1,33 @@
-.. _mmctl_user_name:
+.. _mmctl_user_username:
 
-mmctl user name
----------------
+mmctl user username
+-------------------
 
-Change name of the user
+Change username of the user
 
 Synopsis
 ~~~~~~~~
 
 
-Change name of the user.
+Change username of the user.
 
 ::
 
-  mmctl user name [user] [new name] [flags]
+  mmctl user username [user] [new username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user name testuser newname
+    user username testuser newusername
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for name
+  -h, --help   help for username
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
