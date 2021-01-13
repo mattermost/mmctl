@@ -538,14 +538,14 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	})
 }
 
-func (s *MmctlE2ETestSuite) TestUpdateUserNameCmd() {
+func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 	s.SetupTestHelper().InitBasic()
 
 	s.RunForSystemAdminAndLocal("admin and local user can change user name", func(c client.Client) {
 		printer.Clean()
 		oldName := s.th.BasicUser2.Username
 		newName := "basicusernamechange"
-		err := updateUserNameCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Username, newName})
+		err := updateUsernameCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Username, newName})
 		s.Require().Nil(err)
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
@@ -559,8 +559,8 @@ func (s *MmctlE2ETestSuite) TestUpdateUserNameCmd() {
 
 	s.Run("normal user doesn't have permission to change another user's name", func() {
 		printer.Clean()
-		newName := "basicusernamechange"
-		err := updateUserNameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newName})
+		newUsername := "basicusernamechange"
+		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
 		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
@@ -570,9 +570,9 @@ func (s *MmctlE2ETestSuite) TestUpdateUserNameCmd() {
 
 	s.Run("Can't change by a invalid username", func() {
 		printer.Clean()
-		newName := "invalid username"
-		err := updateUserNameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newName})
-		s.Require().EqualError(err, "invalid name: '"+newName+"'")
+		newUsername := "invalid username"
+		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
+		s.Require().EqualError(err, "invalid username: '"+newUsername+"'")
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
 		s.Require().Nil(err)
@@ -582,8 +582,8 @@ func (s *MmctlE2ETestSuite) TestUpdateUserNameCmd() {
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
 		printer.Clean()
 		oldName := "nonexistentuser"
-		newName := "basicusernamechange"
-		err := updateUserNameCmdF(s.th.Client, &cobra.Command{}, []string{oldName, newName})
+		newUsername := "basicusernamechange"
+		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{oldName, newUsername})
 		s.Require().EqualError(err, "unable to find user '"+oldName+"'")
 	})
 }
