@@ -134,7 +134,7 @@ func InitClientWithUsernameAndPassword(username, password, instanceURL string, a
 
 	_, response := client.Login(username, password)
 	if response.Error != nil {
-		return nil, "", response.Error
+		return nil, "", checkInsecureTLSError(response.Error, allowInsecureTLS)
 	}
 	return client, response.ServerVersion, nil
 }
@@ -143,7 +143,7 @@ func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowIn
 	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
 	_, response := client.LoginWithMFA(username, password, mfaToken)
 	if response.Error != nil {
-		return nil, "", response.Error
+		return nil, "", checkInsecureTLSError(response.Error, allowInsecureTLS)
 	}
 	return client, response.ServerVersion, nil
 }
@@ -155,10 +155,8 @@ func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allo
 	client.AuthToken = credentials.AuthToken
 
 	_, response := client.GetMe("")
-	if response.Error != nil && strings.Contains(response.Error.DetailedError, "tls: protocol version not supported") && !allowInsecureTLS {
-		return nil, "", errors.New("won't perform action through an insecure TLS connection. Please add --insecure-tls-version to bypass this check")
-	} else if response.Error != nil {
-		return nil, "", response.Error
+	if response.Error != nil {
+		return nil, "", checkInsecureTLSError(response.Error, allowInsecureTLS)
 	}
 
 	return client, response.ServerVersion, nil
@@ -190,4 +188,12 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 	}
 
 	return model.NewAPIv4SocketClient(socketPath), nil
+}
+
+func checkInsecureTLSError(err *model.AppError, allowInsecureTLS bool) error {
+	if (strings.Contains(err.DetailedError, "tls: protocol version not supported") ||
+		strings.Contains(err.DetailedError, "tls: server selected unsupported protocol version")) && !allowInsecureTLS {
+		return errors.New("won't perform action through an insecure TLS connection. Please add --insecure-tls-version to bypass this check")
+	}
+	return err
 }
