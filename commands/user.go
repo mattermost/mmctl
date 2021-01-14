@@ -92,7 +92,7 @@ var UpdateUsernameCmd = &cobra.Command{
 	Short:   "Change username of the user",
 	Long:    "Change username of the user.",
 	Example: "  user username testuser newusername",
-	Args:	 cobra.ExactArgs(2),
+	Args:    cobra.ExactArgs(2),
 	RunE:    withClient(updateUsernameCmdF),
 }
 
