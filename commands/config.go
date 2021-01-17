@@ -366,12 +366,14 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		editor = defaultEditor
 	}
 
+	fmt.Println(editor)
 	editorCmd := exec.Command(editor, file.Name())
 	editorCmd.Stdout = os.Stdout
 	editorCmd.Stdin = os.Stdin
 	editorCmd.Stderr = os.Stderr
 
 	if cmdErr := editorCmd.Run(); cmdErr != nil {
+		fmt.Println(cmdErr.Error())
 		return cmdErr
 	}
 
