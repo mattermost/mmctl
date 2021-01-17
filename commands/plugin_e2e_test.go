@@ -257,7 +257,8 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 		})
 
 		defer func() {
-                        _ = pluginDeleteCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{jiraPluginID})
+			errDelete := pluginDeleteCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{jiraPluginID})
+			s.Require().Nil(errDelete)
 			s.th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.PluginSettings.Enable = false
 				*cfg.PluginSettings.EnableUploads = false
