@@ -148,7 +148,8 @@ rm $1'old'`
 		_, err = file.Write([]byte(content))
 		s.Require().Nil(err)
 		editorCmd := exec.Command("chmod", "+x", file.Name()) //nolint:gosec
-		s.Require().Nil(editorCmd.Run())
+		err = editorCmd.Run()
+		s.Require().Nil(err)
 
 		os.Setenv("EDITOR", file.Name())
 
