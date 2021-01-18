@@ -48,5 +48,6 @@ SEE ALSO
 * `mmctl user reset_password <mmctl_user_reset_password.rst>`_ 	 - Send users an email to reset their password
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
+* `mmctl user username <mmctl_user_username.rst>`_ 	 - Change username of the user
 * `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Verify email of users
 
