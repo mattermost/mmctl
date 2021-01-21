@@ -122,14 +122,8 @@ func (s *MmctlE2ETestSuite) TestConfigEditCmd() {
 	s.RunForSystemAdminAndLocal("Edit a key in config", func(c client.Client) {
 		printer.Clean()
 
-		// check the value before editing
-		args := []string{"ServiceSettings.EnableSVGs"}
-		err := configGetCmdF(c, &cobra.Command{}, args)
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().False(*printer.GetLines()[0].(*bool))
-		s.Require().Len(printer.GetErrorLines(), 0)
-		printer.Clean()
+		// ensure the value before editing
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableSVGs = false })
 
 		// create a shell script to edit config
 		content := `#! /bin/bash
@@ -141,9 +135,6 @@ rm $1'old'`
 		defer func() {
 			file.Close()
 			os.Remove(file.Name())
-			resetCmd := &cobra.Command{}
-			resetCmd.Flags().Bool("confirm", true, "")
-			s.Require().Nil(configResetCmdF(c, resetCmd, []string{"ServiceSettings"}))
 		}()
 		_, err = file.Write([]byte(content))
 		s.Require().Nil(err)
@@ -158,8 +149,7 @@ rm $1'old'`
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		config, ok := printer.GetLines()[0].(*model.Config)
-		s.Require().True(ok)
+		config := s.th.App.Config()
 		s.Require().True(*config.ServiceSettings.EnableSVGs)
 	})
 
@@ -168,6 +158,7 @@ rm $1'old'`
 
 		err := configEditCmdF(s.th.Client, nil, nil)
 		s.Require().NotNil(err)
+		s.Require().Error(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
