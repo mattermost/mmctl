@@ -510,8 +510,6 @@ github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d h1:2DV7VIlEv6J5R5o
 github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
 github.com/mattermost/logr v1.0.13 h1:6F/fM3csvH6Oy5sUpJuW7YyZSzZZAhJm5VcgKMxA2P8=
 github.com/mattermost/logr v1.0.13/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
-github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201203103800-df906cad9d9f h1:30dc/sNNx5PvvsgVwt7fSNtI2pZENkryYw0WX9peE4s=
-github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201203103800-df906cad9d9f/go.mod h1:RPc/J9C/hGeXvzW4pTVOd15VJIvGUK5UQuIx+T2Df34=
 github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201204150807-d137cf0aa5b2 h1:lCEk+ktwowDmAMQIx0AyzPawXmt46Yp8Y2VE0oSiUTg=
 github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201204150807-d137cf0aa5b2/go.mod h1:RPc/J9C/hGeXvzW4pTVOd15VJIvGUK5UQuIx+T2Df34=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=

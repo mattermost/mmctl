@@ -538,6 +538,56 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("admin and local user can change user name", func(c client.Client) {
+		printer.Clean()
+		oldName := s.th.BasicUser2.Username
+		newName := "basicusernamechange"
+		err := updateUsernameCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Username, newName})
+		s.Require().Nil(err)
+
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(newName, u.Username)
+
+		u.Username = oldName
+		_, err = s.th.App.UpdateUser(u, false)
+		s.Require().Nil(err)
+	})
+
+	s.Run("normal user doesn't have permission to change another user's name", func() {
+		printer.Clean()
+		newUsername := "basicusernamechange"
+		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
+		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
+
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(s.th.BasicUser2.Username, u.Username)
+	})
+
+	s.Run("Can't change by a invalid username", func() {
+		printer.Clean()
+		newUsername := "invalid username"
+		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
+		s.Require().EqualError(err, "invalid username: '"+newUsername+"'")
+
+		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
+		s.Require().Nil(err)
+		s.Require().Equal(s.th.BasicUser2.Username, u.Username)
+	})
+
+	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
+		printer.Clean()
+		oldName := "nonexistentuser"
+		newUsername := "basicusernamechange"
+		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{oldName, newUsername})
+		s.Require().EqualError(err, "unable to find user '"+oldName+"'")
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 	s.SetupTestHelper().InitBasic()
 

@@ -1,37 +1,33 @@
-.. _mmctl_plugin_marketplace_install:
+.. _mmctl_user_username:
 
-mmctl plugin marketplace install
---------------------------------
+mmctl user username
+-------------------
 
-Install a plugin from the marketplace
+Change username of the user
 
 Synopsis
 ~~~~~~~~
 
 
-Installs a plugin listed in the marketplace server
+Change username of the user.
 
 ::
 
-  mmctl plugin marketplace install <id> [version] [flags]
+  mmctl user username [user] [new username] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    # you can specify with both the plugin id and its version
-    $ mmctl plugin marketplace install jitsi 2.0.0
-
-    # if you don't specify the version, the latest one will be installed
-    $ mmctl plugin marketplace install jitsi
+    user username testuser newusername
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for install
+  -h, --help   help for username
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl plugin marketplace <mmctl_plugin_marketplace.rst>`_ 	 - Management of marketplace plugins
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 
