@@ -23,11 +23,10 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Return(nil, &model.Response{Error: notFoundErr}).
 			Times(1)
 
-		teams, summary := getTeamsFromArgs(s.client, []string{notFoundTeam})
+		teams, err := getTeamsFromArgs(s.client, []string{notFoundTeam})
 		s.Require().Len(teams, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(fmt.Sprintf("team %v not found", notFoundTeam), summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", notFoundTeam), err.Error())
 	})
 	s.Run("bad request", func() {
 		badRequestTeam := "badrequest"
@@ -44,11 +43,10 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Return(nil, &model.Response{Error: badRequestErr}).
 			Times(1)
 
-		teams, summary := getTeamsFromArgs(s.client, []string{badRequestTeam})
+		teams, err := getTeamsFromArgs(s.client, []string{badRequestTeam})
 		s.Require().Len(teams, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(fmt.Sprintf("team %v not found", badRequestTeam), summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", badRequestTeam), err.Error())
 	})
 	s.Run("forbidden", func() {
 		forbidden := "forbidden"
@@ -60,11 +58,10 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Return(nil, &model.Response{Error: forbiddenErr}).
 			Times(1)
 
-		teams, summary := getTeamsFromArgs(s.client, []string{forbidden})
+		teams, err := getTeamsFromArgs(s.client, []string{forbidden})
 		s.Require().Len(teams, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(": team forbidden, ", summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal("1 error occurred:\n\t* : team forbidden, \n\n", err.Error())
 	})
 	s.Run("internal server error", func() {
 		errTeam := "internalServerError"
@@ -76,11 +73,10 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Return(nil, &model.Response{Error: internalServerErrorErr}).
 			Times(1)
 
-		teams, summary := getTeamsFromArgs(s.client, []string{errTeam})
+		teams, err := getTeamsFromArgs(s.client, []string{errTeam})
 		s.Require().Len(teams, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(": team internalServerError, ", summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal("1 error occurred:\n\t* : team internalServerError, \n\n", err.Error())
 	})
 	s.Run("success", func() {
 		successID := "success@success.com"

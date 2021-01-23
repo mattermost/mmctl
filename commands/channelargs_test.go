@@ -18,11 +18,10 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Return(nil, &model.Response{Error: notFoundErr}).
 			Times(1)
 
-		channels, summary := getChannelsFromArgs(s.client, []string{notFoundChannel})
+		channels, err := getChannelsFromArgs(s.client, []string{notFoundChannel})
 		s.Require().Len(channels, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(fmt.Sprintf("channel %v not found", notFoundChannel), summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", notFoundChannel), err.Error())
 	})
 	s.Run("bad request", func() {
 		badRequestChannel := "badrequest"
@@ -34,11 +33,10 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Return(nil, &model.Response{Error: badRequestErr}).
 			Times(1)
 
-		channels, summary := getChannelsFromArgs(s.client, []string{badRequestChannel})
+		channels, err := getChannelsFromArgs(s.client, []string{badRequestChannel})
 		s.Require().Len(channels, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(fmt.Sprintf("channel %v not found", badRequestChannel), summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", badRequestChannel), err.Error())
 	})
 	s.Run("forbidden", func() {
 		forbidden := "forbidden"
@@ -50,11 +48,10 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Return(nil, &model.Response{Error: forbiddenErr}).
 			Times(1)
 
-		channels, summary := getChannelsFromArgs(s.client, []string{forbidden})
+		channels, err := getChannelsFromArgs(s.client, []string{forbidden})
 		s.Require().Len(channels, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(": channel forbidden, ", summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal("1 error occurred:\n\t* : channel forbidden, \n\n", err.Error())
 	})
 	s.Run("internal server error", func() {
 		errChannel := "internalServerError"
@@ -66,11 +63,10 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Return(nil, &model.Response{Error: internalServerErrorErr}).
 			Times(1)
 
-		channels, summary := getChannelsFromArgs(s.client, []string{errChannel})
+		channels, err := getChannelsFromArgs(s.client, []string{errChannel})
 		s.Require().Len(channels, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(": channel internalServerError, ", summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal("1 error occurred:\n\t* : channel internalServerError, \n\n", err.Error())
 	})
 	s.Run("success", func() {
 		successID := "success"

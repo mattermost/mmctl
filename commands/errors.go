@@ -24,6 +24,32 @@ func (e ErrEntityNotFound) Error() string {
 	return fmt.Sprintf("%s %s not found", e.Type, e.ID)
 }
 
-func isErrorSevere(r *model.Response) bool {
-	return r != nil && r.Error != nil && (r.Error.StatusCode != http.StatusNotFound && r.Error.StatusCode != http.StatusBadRequest)
+type NotFoundError struct {
+	Msg string
+}
+
+func (e *NotFoundError) Error() string {
+	return e.Msg
+}
+
+type BadRequestError struct {
+	Msg string
+}
+
+func (e *BadRequestError) Error() string {
+	return e.Msg
+}
+
+// ExtractErrorFromResponse extracts the error from the response,
+// encapsulating it if matches the common cases, such as when it's
+// not found, and when we've made a bad request
+func ExtractErrorFromResponse(r *model.Response) error {
+	switch r.Error.StatusCode {
+	case http.StatusNotFound:
+		return &NotFoundError{Msg: r.Error.Error()}
+	case http.StatusBadRequest:
+		return &BadRequestError{Msg: r.Error.Error()}
+	default:
+		return r.Error
+	}
 }

@@ -70,7 +70,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("user %v not found", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to activate user", func() {
@@ -175,8 +175,8 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Errorf("user %v not found", emailArgs[1]).Error(), printer.GetErrorLines()[0])
-		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser3.Id).Error(), printer.GetErrorLines()[1])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to change activation status of user: %v", mockUser3.Id), printer.GetErrorLines()[1])
 	})
 }
 
@@ -230,7 +230,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("user %v not found", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Errorf("1 error occurred:\n\t* user %v not found\n\n", emailArg).Error(), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to deactivate user", func() {
@@ -360,7 +360,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+mockUser2.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Errorf("user %v not found", emailArgs[1]).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %v not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
 		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser3.Id).Error(), printer.GetErrorLines()[1])
 	})
 }
@@ -408,7 +408,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		err := deleteUsersCmdF(s.client, cmd, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Equal(fmt.Sprintf("user %s not found", arg), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", arg), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete users should delete users", func() {
@@ -599,7 +599,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Equal("user example@example.com not found", printer.GetErrorLines()[0])
+		s.Require().Equal("1 error occurred:\n\t* user example@example.com not found\n\n", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Avoid path traversal", func() {
@@ -608,7 +608,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().Nil(err)
-		s.Require().Equal("user test/../hello?@mattermost.com not found", printer.GetErrorLines()[0])
+		s.Require().Equal("1 error occurred:\n\t* user test/../hello?@mattermost.com not found\n\n", printer.GetErrorLines()[0])
 	})
 }
 
@@ -1555,7 +1555,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "user userId not found")
+		s.Require().Equal(printer.GetErrorLines()[0], "1 error occurred:\n\t* user userId not found\n\n")
 	})
 
 	s.Run("One user, unable to reset", func() {
@@ -1635,7 +1635,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Sprintf("user %s not found", users[3]), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", users[3]), printer.GetErrorLines()[0])
 		s.Require().Equal("Unable to reset user '"+users[1]+"' MFA. Error: "+mockError.Error(), printer.GetErrorLines()[1])
 	})
 }
@@ -1954,7 +1954,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("user %v not found", arg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", arg), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete multiple users", func() {
@@ -2090,7 +2090,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("user %v not found", nonexistentEmail).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", nonexistentEmail), printer.GetErrorLines()[0])
 	})
 }
 

@@ -4,6 +4,9 @@
 package commands
 
 import (
+	"errors"
+
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
@@ -32,26 +35,20 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 	return team
 }
 
-func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, *FindEntitySummary) {
+func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error) {
 	var (
 		teams  []*model.Team
-		errors []error
+		result *multierror.Error
 	)
 	for _, arg := range teamArgs {
 		team, err := getTeamFromArg(c, arg)
 		if err != nil {
-			errors = append(errors, err)
+			result = multierror.Append(result, err)
 		} else {
 			teams = append(teams, team)
 		}
 	}
-	if len(errors) > 0 {
-		summary := &FindEntitySummary{
-			Errors: errors,
-		}
-		return teams, summary
-	}
-	return teams, nil
+	return teams, result.ErrorOrNil()
 }
 
 func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
@@ -63,15 +60,29 @@ func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 		response *model.Response
 	)
 	team, response = c.GetTeam(teamArg, "")
-	if isErrorSevere(response) {
-		return nil, response.Error
+	if response != nil && response.Error != nil {
+		err := ExtractErrorFromResponse(response)
+		var (
+			nfErr         *NotFoundError
+			badRequestErr *BadRequestError
+		)
+		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
+			return nil, err
+		}
 	}
 	if team != nil {
 		return team, nil
 	}
 	team, response = c.GetTeamByName(teamArg, "")
-	if isErrorSevere(response) {
-		return nil, response.Error
+	if response != nil && response.Error != nil {
+		err := ExtractErrorFromResponse(response)
+		var (
+			nfErr         *NotFoundError
+			badRequestErr *BadRequestError
+		)
+		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
+			return nil, err
+		}
 	}
 	if team == nil {
 		return nil, ErrEntityNotFound{Type: "team", ID: teamArg}

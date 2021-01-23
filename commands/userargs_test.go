@@ -30,11 +30,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			Return(nil, &model.Response{Error: notFoundErr}).
 			Times(1)
 
-		users, summary := getUsersFromArgs(s.client, []string{notFoundEmail})
+		users, err := getUsersFromArgs(s.client, []string{notFoundEmail})
 		s.Require().Len(users, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(fmt.Sprintf("user %v not found", notFoundEmail), summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", notFoundEmail), err.Error())
 	})
 
 	s.Run("bad request don't throw unexpected error", func() {
@@ -57,11 +56,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			Return(nil, &model.Response{Error: badRequestErr}).
 			Times(1)
 
-		users, summary := getUsersFromArgs(s.client, []string{badRequestEmail})
+		users, err := getUsersFromArgs(s.client, []string{badRequestEmail})
 		s.Require().Len(users, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(fmt.Sprintf("user %v not found", badRequestEmail), summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", badRequestEmail), err.Error())
 	})
 
 	s.Run("unexpected error throws according error", func() {
@@ -73,11 +71,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			GetUserByEmail(unexpectedErrEmail, "").
 			Return(nil, &model.Response{Error: unexpectedErr}).
 			Times(1)
-		users, summary := getUsersFromArgs(s.client, []string{unexpectedErrEmail})
+		users, err := getUsersFromArgs(s.client, []string{unexpectedErrEmail})
 		s.Require().Len(users, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(": internal server error, ", summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal("1 error occurred:\n\t* : internal server error, \n\n", err.Error())
 	})
 	s.Run("forbidden error stops searching", func() {
 		forbiddenErrEmail := "forbidden@forbidden.com"
@@ -88,11 +85,10 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			GetUserByEmail(forbiddenErrEmail, "").
 			Return(nil, &model.Response{Error: forbiddenErr}).
 			Times(1)
-		users, summary := getUsersFromArgs(s.client, []string{forbiddenErrEmail})
+		users, err := getUsersFromArgs(s.client, []string{forbiddenErrEmail})
 		s.Require().Len(users, 0)
-		s.Require().NotNil(summary)
-		s.Require().Len(summary.Errors, 1)
-		s.Require().Equal(": forbidden, ", summary.Errors[0].Error())
+		s.Require().NotNil(err)
+		s.Require().Equal("1 error occurred:\n\t* : forbidden, \n\n", err.Error())
 	})
 	s.Run("success", func() {
 		successEmail := "success@success.com"
@@ -103,8 +99,8 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 			GetUserByEmail(successEmail, "").
 			Return(successUser, nil).
 			Times(1)
-		users, summary := getUsersFromArgs(s.client, []string{successEmail})
-		s.Require().Nil(summary)
+		users, err := getUsersFromArgs(s.client, []string{successEmail})
+		s.Require().Nil(err)
 		s.Require().Len(users, 1)
 		s.Require().Equal(successUser, users[0])
 	})

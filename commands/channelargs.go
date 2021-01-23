@@ -4,8 +4,10 @@
 package commands
 
 import (
+	"errors"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
@@ -57,26 +59,20 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 	return channel
 }
 
-func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, *FindEntitySummary) {
+func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, error) {
 	var (
 		channels []*model.Channel
-		errors   []error
+		result   *multierror.Error
 	)
 	for _, channelArg := range channelArgs {
 		channel, err := getChannelFromArg(c, channelArg)
 		if err != nil {
-			errors = append(errors, err)
+			result = multierror.Append(result, err)
 		} else {
 			channels = append(channels, channel)
 		}
 	}
-	if len(errors) > 0 {
-		summary := &FindEntitySummary{
-			Errors: errors,
-		}
-		return channels, summary
-	}
-	return channels, nil
+	return channels, result.ErrorOrNil()
 }
 
 func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
@@ -97,16 +93,30 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 			return nil, err
 		}
 		channel, response = c.GetChannelByNameIncludeDeleted(channelArg, team.Id, "")
-		if isErrorSevere(response) {
-			return nil, response.Error
+		if response != nil && response.Error != nil {
+			err = ExtractErrorFromResponse(response)
+			var (
+				nfErr         *NotFoundError
+				badRequestErr *BadRequestError
+			)
+			if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
+				return nil, err
+			}
 		}
 	}
 	if channel != nil {
 		return channel, nil
 	}
 	channel, response = c.GetChannel(channelArg, "")
-	if isErrorSevere(response) {
-		return nil, response.Error
+	if response != nil && response.Error != nil {
+		err := ExtractErrorFromResponse(response)
+		var (
+			nfErr         *NotFoundError
+			badRequestErr *BadRequestError
+		)
+		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
+			return nil, err
+		}
 	}
 	if channel == nil {
 		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
