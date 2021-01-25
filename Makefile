@@ -104,7 +104,7 @@ test-all:
 
 .PHONY: coverage
 coverage:
-	$(GO) test $(TESTFLAGS) -tags unit -coverprofile=coverage.txt ./...
+	MM_SERVER_PATH=${MM_SERVER_PATH} $(GO) test $(TESTFLAGS) -tags 'unit e2e' -coverprofile=coverage.txt ./...
 	$(GO) tool cover -html=coverage.txt
 
 .PHONY: check
