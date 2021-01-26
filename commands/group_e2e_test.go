@@ -82,3 +82,80 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 		s.Require().True(ch.IsGroupConstrained())
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	channelName := api4.GenerateTestChannelName()
+	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+		TeamId:      s.th.BasicTeam.Id,
+		Name:        channelName,
+		DisplayName: "dn_" + channelName,
+		Type:        model.CHANNEL_OPEN,
+	}, false)
+	s.Require().Nil(appErr)
+	defer func() {
+		err := s.th.App.DeleteChannel(channel, "")
+		s.Require().Nil(err)
+	}()
+
+	id := model.NewId()
+	group, appErr := s.th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	s.Require().Nil(appErr)
+	defer func() {
+		_, err := s.th.App.DeleteGroup(group.Id)
+		s.Require().Nil(err)
+	}()
+
+	_, appErr = s.th.App.UpsertGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	s.Require().Nil(appErr)
+	defer func() {
+		_, err := s.th.App.DeleteGroupSyncable(group.Id, channel.Id, model.GroupSyncableTypeChannel)
+		s.Require().Nil(err)
+	}()
+
+	channel.GroupConstrained = model.NewBool(true)
+	defer func() {
+		_, err := s.th.App.UpdateChannel(channel)
+		s.Require().Nil(err)
+	}()
+
+	s.Run("Should not allow regular user to disable group for channel", func() {
+		printer.Clean()
+
+		err := channelGroupEnableCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Should disable group sync for the channel", func(c client.Client) {
+		printer.Clean()
+
+		err := channelGroupDisableCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
+		s.Require().NoError(err)
+
+		channel.GroupConstrained = model.NewBool(true)
+		defer func() {
+			_, err := s.th.App.UpdateChannel(channel)
+			s.Require().Nil(err)
+		}()
+
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		ch, appErr := s.th.App.GetChannel(channel.Id)
+		s.Require().Nil(appErr)
+		s.Require().False(ch.IsGroupConstrained())
+	})
+}
