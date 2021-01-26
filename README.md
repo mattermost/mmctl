@@ -28,43 +28,6 @@ For zsh, add the following line to file `~/.zshrc`:
 source <(mmctl completion zsh)
 ```
 
-## Compile
-
-First we have to install the dependencies of the project. `mmctl` depends on go version 1.13.3 or greater.
-
-We can compile the binary with:
-
-```sh
-make build
-```
-
-## Running the tests
-
-`mmctl` has two types of tests: unit tests and end to end tests.
-
-### Unit tests
-
-To run the unit tests, you just need to execute:
-
-```sh
-make test
-```
-
-### End to end tests
-
-To run the end to end test suite, you need to have the Mattermost server project downloaded and configured in your system. Check the [Developer Setup](https://developers.mattermost.com/contribute/server/developer-setup/) guide on how to configure a local server instance. The tests will search for a `mattermost-server` folder in the same directory where the `mmctl` is, but this can be changed through configuration if you have the project in a different path. Take a look at [the `config.mk` file](./config.mk) in this repository for instructions on how to make this change.
-
-With the `mattermost-server` folder present, the only thing that needs to be done before running the tests themselves is to start the Mattermost docker development environment. The environment only needs to be started once, and then the tests can run as many times as needed. To start the docker environment, change to the `mattermost-server` project directory and run:
-
-```sh
-make start-docker
-```
-
-Change your directory back to `mmctl` and run the end to end test suite with:
-
-```sh
-make test-e2e
-```
 
 ## Usage
 
@@ -164,4 +127,45 @@ Instead of using username and password to log in, you can generate and use a per
 
 ```sh
 $ mmctl auth login https://community.mattermost.com --name community --access-token MY_ACCESS_TOKEN
+```
+
+
+# Development
+
+## Compile
+
+First we have to install the dependencies of the project. `mmctl` depends on go version 1.13.3 or greater.
+
+We can compile the binary with:
+
+```sh
+make build
+```
+
+## Running the tests
+
+`mmctl` has two types of tests: unit tests and end to end tests.
+
+### Unit tests
+
+To run the unit tests, you just need to execute:
+
+```sh
+make test
+```
+
+### End to end tests
+
+To run the end to end test suite, you need to have the Mattermost server project downloaded and configured in your system. Check the [Developer Setup](https://developers.mattermost.com/contribute/server/developer-setup/) guide on how to configure a local server instance. The tests will search for a `mattermost-server` folder in the same directory where the `mmctl` is, but this can be changed through configuration if you have the project in a different path. Take a look at [the `config.mk` file](./config.mk) in this repository for instructions on how to make this change.
+
+With the `mattermost-server` folder present, the only thing that needs to be done before running the tests themselves is to start the Mattermost docker development environment. The environment only needs to be started once, and then the tests can run as many times as needed. To start the docker environment, change to the `mattermost-server` project directory and run:
+
+```sh
+make start-docker
+```
+
+Change your directory back to `mmctl` and run the end to end test suite with:
+
+```sh
+make test-e2e
 ```
