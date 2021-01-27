@@ -6,7 +6,6 @@ package commands
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
@@ -138,9 +137,7 @@ rm $1'old'`
 		}()
 		_, err = file.Write([]byte(content))
 		s.Require().Nil(err)
-		editorCmd := exec.Command("chmod", "+x", file.Name()) //nolint:gosec
-		err = editorCmd.Run()
-		s.Require().Nil(err)
+		s.Require().Nil(os.Chmod(file.Name(), 0700))
 
 		os.Setenv("EDITOR", file.Name())
 
