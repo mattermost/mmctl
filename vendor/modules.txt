@@ -6,6 +6,8 @@ github.com/Masterminds/squirrel
 github.com/NYTimes/gziphandler
 # github.com/RoaringBitmap/roaring v0.5.1
 github.com/RoaringBitmap/roaring
+# github.com/armon/go-metrics v0.3.4
+github.com/armon/go-metrics
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 github.com/avct/uasurfer
 # github.com/aws/aws-sdk-go v1.35.5
@@ -47,6 +49,8 @@ github.com/aws/aws-sdk-go/service/marketplacemetering
 github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
+# github.com/beevik/etree v1.1.0
+github.com/beevik/etree
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/blang/semver v3.5.1+incompatible
@@ -129,6 +133,8 @@ github.com/disintegration/imaging
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fatih/color v1.9.0
 github.com/fatih/color
+# github.com/felixge/httpsnoop v1.0.1
+github.com/felixge/httpsnoop
 # github.com/francoispqt/gojay v1.2.13
 github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.9
@@ -165,10 +171,14 @@ github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.2
 github.com/golang/snappy
+# github.com/google/btree v1.0.0
+github.com/google/btree
 # github.com/google/uuid v1.1.2
 github.com/google/uuid
 # github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00
 github.com/gopherjs/gopherjs/js
+# github.com/gorilla/handlers v1.5.1
+github.com/gorilla/handlers
 # github.com/gorilla/mux v1.8.0
 github.com/gorilla/mux
 # github.com/gorilla/schema v1.2.0
@@ -179,15 +189,23 @@ github.com/gorilla/websocket
 github.com/gregjones/httpcache
 # github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 github.com/h2non/go-is-svg
+# github.com/hako/durafmt v0.0.0-20200710122514-c0fb7b4da026
+github.com/hako/durafmt
 # github.com/hashicorp/errwrap v1.1.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-hclog v0.14.1
 github.com/hashicorp/go-hclog
+# github.com/hashicorp/go-immutable-radix v1.3.0
+github.com/hashicorp/go-immutable-radix
+# github.com/hashicorp/go-msgpack v1.1.5
+github.com/hashicorp/go-msgpack/codec
 # github.com/hashicorp/go-multierror v1.1.0
 github.com/hashicorp/go-multierror
 # github.com/hashicorp/go-plugin v1.3.0
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
+# github.com/hashicorp/go-sockaddr v1.0.2
+github.com/hashicorp/go-sockaddr
 # github.com/hashicorp/golang-lru v0.5.4
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
@@ -202,6 +220,8 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
+# github.com/hashicorp/memberlist v0.2.2
+github.com/hashicorp/memberlist
 # github.com/hashicorp/yamux v0.0.0-20200609203250-aecfd211c9ce
 github.com/hashicorp/yamux
 # github.com/inconshreveable/mousetrap v1.0.0
@@ -213,6 +233,10 @@ github.com/jmespath/go-jmespath
 # github.com/jmoiron/sqlx v1.2.0
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
+# github.com/jonboulle/clockwork v0.2.2
+github.com/jonboulle/clockwork
+# github.com/josharian/intern v1.0.0
+github.com/josharian/intern
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
 # github.com/klauspost/cpuid v1.3.1
@@ -230,6 +254,11 @@ github.com/magefile/mage/mg
 github.com/magefile/mage/sh
 # github.com/magiconair/properties v1.8.4
 github.com/magiconair/properties
+# github.com/mailru/easyjson v0.7.6
+github.com/mailru/easyjson
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
 # github.com/mattermost/go-i18n v1.11.0
 github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
@@ -237,6 +266,10 @@ github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
 # github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible
 github.com/mattermost/gorp
+# github.com/mattermost/gosaml2 v0.3.2
+github.com/mattermost/gosaml2
+github.com/mattermost/gosaml2/types
+github.com/mattermost/gosaml2/uuid
 # github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
 github.com/mattermost/ldap
 # github.com/mattermost/logr v1.0.13
@@ -251,13 +284,20 @@ github.com/mattermost/mattermost-server/v5/audit
 github.com/mattermost/mattermost-server/v5/config
 github.com/mattermost/mattermost-server/v5/einterfaces
 github.com/mattermost/mattermost-server/v5/einterfaces/jobs
+github.com/mattermost/mattermost-server/v5/imports
 github.com/mattermost/mattermost-server/v5/jobs
+github.com/mattermost/mattermost-server/v5/jobs/active_users
+github.com/mattermost/mattermost-server/v5/jobs/expirynotify
+github.com/mattermost/mattermost-server/v5/jobs/import_process
 github.com/mattermost/mattermost-server/v5/jobs/interfaces
+github.com/mattermost/mattermost-server/v5/jobs/product_notices
+github.com/mattermost/mattermost-server/v5/migrations
 github.com/mattermost/mattermost-server/v5/mlog
 github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
 github.com/mattermost/mattermost-server/v5/plugin
 github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock
+github.com/mattermost/mattermost-server/v5/plugin/scheduler
 github.com/mattermost/mattermost-server/v5/services/awsmeter
 github.com/mattermost/mattermost-server/v5/services/cache
 github.com/mattermost/mattermost-server/v5/services/configservice
@@ -269,6 +309,7 @@ github.com/mattermost/mattermost-server/v5/services/marketplace
 github.com/mattermost/mattermost-server/v5/services/mfa
 github.com/mattermost/mattermost-server/v5/services/searchengine
 github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine
+github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine/indexer
 github.com/mattermost/mattermost-server/v5/services/slackimport
 github.com/mattermost/mattermost-server/v5/services/telemetry
 github.com/mattermost/mattermost-server/v5/services/timezones
@@ -289,6 +330,7 @@ github.com/mattermost/mattermost-server/v5/utils/fileutils
 github.com/mattermost/mattermost-server/v5/utils/imgutils
 github.com/mattermost/mattermost-server/v5/utils/jsonutils
 github.com/mattermost/mattermost-server/v5/utils/markdown
+github.com/mattermost/mattermost-server/v5/utils/testutils
 github.com/mattermost/mattermost-server/v5/web
 github.com/mattermost/mattermost-server/v5/wsapi
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
@@ -303,6 +345,8 @@ github.com/mattn/go-isatty
 github.com/mattn/go-runewidth
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
+# github.com/miekg/dns v1.1.31
+github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.0
 github.com/minio/md5-simd
 # github.com/minio/minio-go/v7 v7.0.5
@@ -341,6 +385,9 @@ github.com/nfnt/resize
 github.com/oklog/run
 # github.com/olekukonko/tablewriter v0.0.4
 github.com/olekukonko/tablewriter
+# github.com/olivere/elastic v6.2.35+incompatible
+github.com/olivere/elastic/config
+github.com/olivere/elastic/uritemplates
 # github.com/oov/psd v0.0.0-20201002182931-74231384897f
 github.com/oov/psd
 github.com/oov/psd/color
@@ -380,11 +427,17 @@ github.com/rs/cors
 github.com/rs/xid
 # github.com/rudderlabs/analytics-go v3.2.1+incompatible
 github.com/rudderlabs/analytics-go
+# github.com/russellhaering/goxmldsig v1.1.0
+github.com/russellhaering/goxmldsig
+github.com/russellhaering/goxmldsig/etreeutils
+github.com/russellhaering/goxmldsig/types
 # github.com/russross/blackfriday/v2 v2.0.1
 github.com/russross/blackfriday/v2
 # github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 github.com/rwcarlsen/goexif/exif
 github.com/rwcarlsen/goexif/tiff
+# github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529
+github.com/sean-/seed
 # github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3
 github.com/segmentio/backo-go
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
@@ -396,14 +449,14 @@ github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
 github.com/spf13/cast
-# github.com/spf13/cobra v1.0.0
+# github.com/spf13/cobra v1.1.1
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/jwalterweatherman v1.1.0
 github.com/spf13/jwalterweatherman
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/spf13/viper v1.4.0
+# github.com/spf13/viper v1.7.0
 github.com/spf13/viper
 # github.com/splitio/go-client/v6 v6.0.0
 github.com/splitio/go-client/v6/splitio
@@ -460,16 +513,20 @@ github.com/ssor/bom
 github.com/steveyen/gtreap
 # github.com/stretchr/objx v0.3.0
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.6.1
+# github.com/stretchr/testify v1.7.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
+# github.com/subosito/gotenv v1.2.0
+github.com/subosito/gotenv
 # github.com/throttled/throttled v2.2.5+incompatible
 github.com/throttled/throttled
 github.com/throttled/throttled/store/memstore
 # github.com/tinylib/msgp v1.1.2
 github.com/tinylib/msgp/msgp
+# github.com/tylerb/graceful v1.2.15
+github.com/tylerb/graceful
 # github.com/uber/jaeger-client-go v2.25.0+incompatible
 github.com/uber/jaeger-client-go
 github.com/uber/jaeger-client-go/config
@@ -537,7 +594,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+# golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/argon2
@@ -545,13 +602,14 @@ golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
+golang.org/x/crypto/ed25519
+golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
 golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-golang.org/x/crypto/ssh/terminal
 # golang.org/x/exp v0.0.0-20200908183739-ae8ad444f925
 golang.org/x/exp/rand
 # golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
@@ -568,6 +626,7 @@ golang.org/x/image/vp8
 golang.org/x/image/vp8l
 golang.org/x/image/webp
 # golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0
+golang.org/x/net/bpf
 golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
@@ -576,14 +635,21 @@ golang.org/x/net/http/httpguts
 golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
+golang.org/x/net/internal/iana
+golang.org/x/net/internal/socket
 golang.org/x/net/internal/timeseries
+golang.org/x/net/ipv4
+golang.org/x/net/ipv6
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
 # golang.org/x/sys v0.0.0-20201007165808-a893ed343c85
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
+# golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
+golang.org/x/term
 # golang.org/x/text v0.3.3
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
@@ -704,6 +770,8 @@ gopkg.in/ini.v1
 gopkg.in/mail.v2
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
 gopkg.in/natefinch/lumberjack.v2
+# gopkg.in/olivere/elastic.v6 v6.2.35
+gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
