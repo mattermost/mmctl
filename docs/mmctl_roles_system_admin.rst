@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Make some users system admins
+Make some users system admins.
 
 ::
 
