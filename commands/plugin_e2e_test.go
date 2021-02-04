@@ -12,14 +12,13 @@ import (
 	"github.com/mattermost/mmctl/printer"
 )
 
-const (
-	pluginID            = "com.mattermost.demo-plugin"
-	pluginURL           = filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
-	nonExistentPluginID = "nonExistentPluginID"
-)
-
 func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 	s.SetupTestHelper().InitBasic()
+
+	pluginID := "com.mattermost.demo-plugin"
+	pluginURL := filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
+	nonExistentPluginID := "nonExistentPluginID"
+
 	installPlugin(s, pluginID, pluginURL)
 	defer removePlugin(s, pluginID)
 
