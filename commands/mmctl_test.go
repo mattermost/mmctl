@@ -91,11 +91,3 @@ func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Cli
 		fn(s.th.LocalClient)
 	})
 }
-
-// RunUnprivilegededClient runs a test using unauthenticated client
-// registered in the TestHelper
-func (s *MmctlE2ETestSuite) RunUnprivilegedClient(testName string, fn func(client.Client)) {
-	s.Run(testName+"/Client", func() {
-		fn(s.th.Client)
-	})
-}

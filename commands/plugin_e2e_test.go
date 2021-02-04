@@ -2,6 +2,8 @@ package commands
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
@@ -12,7 +14,7 @@ import (
 
 const (
 	pluginID            = "com.mattermost.demo-plugin"
-	pluginURL           = "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz"
+	pluginURL           = filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
 	nonExistentPluginID = "nonExistentPluginID"
 )
 
@@ -40,10 +42,12 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Len(plugins.Active, 0)
 		s.Require().Len(plugins.Inactive, 1)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Disabled plugin: "+pluginID)
 
 	})
 
-	s.RunUnprivilegedClient("error for disable plugin", func(c client.Client) {
+	s.Run("error for disable plugin", func() {
 		printer.Clean()
 
 		appErr := s.th.App.EnablePlugin(pluginID)
@@ -55,7 +59,7 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Len(plugins.Inactive, 0)
 
 		cmd := &cobra.Command{}
-		_ = pluginDisableCmdF(c, cmd, []string{pluginID})
+		_ = pluginDisableCmdF(s.th.Client, cmd, []string{pluginID})
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to disable plugin: "+pluginID+". Error: : You do not have the appropriate permissions., ")
@@ -88,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Len(plugins.Inactive, 0)
 	})
 
-	s.RunUnprivilegedClient("error for disabling non existent plugin", func(c client.Client) {
+	s.Run("error for disabling non existent plugin", func() {
 		printer.Clean()
 
 		appErr := s.th.App.EnablePlugin(pluginID)
@@ -99,7 +103,7 @@ func (s *MmctlE2ETestSuite) TestPluginDisableCmd() {
 		s.Require().Len(plugins.Inactive, 0)
 
 		cmd := &cobra.Command{}
-		_ = pluginDisableCmdF(c, cmd, []string{nonExistentPluginID})
+		_ = pluginDisableCmdF(s.th.Client, cmd, []string{nonExistentPluginID})
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to disable plugin: "+nonExistentPluginID+". Error: : You do not have the appropriate permissions., ")
