@@ -2,6 +2,8 @@ package commands
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
@@ -12,7 +14,7 @@ import (
 
 const (
 	pluginID            = "com.mattermost.demo-plugin"
-	pluginURL           = "https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.8.0/com.mattermost.demo-plugin-0.8.0.tar.gz"
+	pluginURL           = filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
 	nonExistentPluginID = "nonExistentPluginID"
 )
 
@@ -25,7 +27,6 @@ func (s *MmctlE2ETestSuite) TestPluginEnableCmd() {
 		printer.Clean()
 
 		appErr := s.th.App.DisablePlugin(pluginID)
-		s.Require().Nil(appErr)
 
 		plugins, appErr := s.th.App.GetPlugins()
 		s.Require().Nil(appErr)
@@ -40,10 +41,12 @@ func (s *MmctlE2ETestSuite) TestPluginEnableCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Len(plugins.Active, 1)
 		s.Require().Len(plugins.Inactive, 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Enabled plugin: "+pluginID)
 
 	})
 
-	s.RunUnauthenticatedClient("error for enable plugin", func(c client.Client) {
+	s.Run("error for enable plugin", func() {
 		printer.Clean()
 
 		appErr := s.th.App.DisablePlugin(pluginID)
@@ -55,7 +58,7 @@ func (s *MmctlE2ETestSuite) TestPluginEnableCmd() {
 		s.Require().Len(plugins.Inactive, 1)
 
 		cmd := &cobra.Command{}
-		_ = pluginEnableCmdF(c, cmd, []string{pluginID})
+		_ = pluginEnableCmdF(s.th.Client, cmd, []string{pluginID})
 		//err = pluginEnableCmdF(c, cmd, []string{pluginID})
 		//s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -88,7 +91,7 @@ func (s *MmctlE2ETestSuite) TestPluginEnableCmd() {
 		s.Require().Len(plugins.Inactive, 1)
 	})
 
-	s.RunUnauthenticatedClient("error for enabling non existent plugin", func(c client.Client) {
+	s.Run("error for enabling non existent plugin", func() {
 		printer.Clean()
 
 		plugins, appErr := s.th.App.GetPlugins()
@@ -97,7 +100,7 @@ func (s *MmctlE2ETestSuite) TestPluginEnableCmd() {
 		s.Require().Len(plugins.Inactive, 1)
 
 		cmd := &cobra.Command{}
-		_ = pluginEnableCmdF(c, cmd, []string{nonExistentPluginID})
+		_ = pluginEnableCmdF(s.th.Client, cmd, []string{nonExistentPluginID})
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to enable plugin: "+nonExistentPluginID+". Error: : You do not have the appropriate permissions., ")
