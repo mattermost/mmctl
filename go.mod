@@ -3,7 +3,6 @@ module github.com/mattermost/mmctl
 go 1.13
 
 require (
-	github.com/blevesearch/zap/v15 v15.0.1
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/golang/mock v1.3.1
 	github.com/magefile/mage v1.9.0
