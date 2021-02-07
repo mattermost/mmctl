@@ -141,3 +141,27 @@ func removePluginIfInstalled(s *MmctlE2ETestSuite, pluginID string) {
 		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
 	}
 }
+
+func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("List Marketplace Plugins for Admin User", func(c client.Client) {
+		printer.Clean()
+
+		err := pluginMarketplaceListCmdF(c, &cobra.Command{}, nil)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("List Marketplace Plugins for non-admin User", func() {
+		printer.Clean()
+
+		err := pluginMarketplaceListCmdF(s.th.Client, &cobra.Command{}, nil)
+
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
