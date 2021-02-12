@@ -194,3 +194,100 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		s.Require().Len(plugins.Inactive, 1)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	const (
+		jiraURL       = "https://plugins-store.test.mattermost.com/release/mattermost-plugin-jira-v3.0.0.tar.gz"
+		jiraPluginID  = "jira"
+		dummyPluginID = "randompluginxz" // This will be used to check response when tried to delete this plugin with randomchars which was not installed/enabled already
+	)
+
+	s.RunForSystemAdminAndLocal("Delete Plugin", func(c client.Client) {
+		printer.Clean()
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+			*cfg.PluginSettings.EnableUploads = false
+		})
+
+		errInstall := pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
+		s.Require().Nil(errInstall)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(jiraPluginID, printer.GetLines()[0].(*model.Manifest).Id)
+
+		pluginsAvail, appErrInstall := s.th.App.GetPlugins()
+		s.Require().Nil(appErrInstall)
+		s.Require().Len(pluginsAvail.Active, 0)
+		s.Require().Len(pluginsAvail.Inactive, 1)
+
+		err := pluginDeleteCmdF(c, &cobra.Command{}, []string{jiraPluginID})
+		s.Require().Nil(err)
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Delete Unknown Plugin", func(c client.Client) {
+		printer.Clean()
+
+		err := pluginDeleteCmdF(c, &cobra.Command{}, []string{dummyPluginID})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete plugin: %s.", dummyPluginID))
+		s.Require().Contains(printer.GetErrorLines()[0], "Plugins have been disabled.")
+	})
+
+	s.Run("Delete a Plugin without permissions", func() {
+		printer.Clean()
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		defer func() {
+			errDelete := pluginDeleteCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{jiraPluginID})
+			s.Require().Nil(errDelete)
+			s.th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = false
+				*cfg.PluginSettings.EnableUploads = false
+			})
+		}()
+
+		// Installs plugin using SystemAdmin Privilege and check whether plugin has been installed properly so that delete plugin test can be done
+		errInstall := pluginInstallURLCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{jiraURL})
+		s.Require().Nil(errInstall)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(jiraPluginID, printer.GetLines()[0].(*model.Manifest).Id)
+
+		pluginsAvail, appErrInstall := s.th.App.GetPlugins()
+		s.Require().Nil(appErrInstall)
+		s.Require().Len(pluginsAvail.Active, 0)
+		s.Require().Len(pluginsAvail.Inactive, 1)
+
+		// Delete Test
+		err := pluginDeleteCmdF(s.th.Client, &cobra.Command{}, []string{jiraPluginID})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete plugin: %s.", jiraPluginID))
+		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions.")
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
+	})
+}

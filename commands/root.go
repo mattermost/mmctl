@@ -29,6 +29,8 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.PersistentFlags().Bool("insecure-sha1-intermediate", false, "allows to use insecure TLS protocols, such as SHA-1")
 	_ = viper.BindPFlag("insecure-sha1-intermediate", RootCmd.PersistentFlags().Lookup("insecure-sha1-intermediate"))
+	RootCmd.PersistentFlags().Bool("insecure-tls-version", false, "allows to use TLS versions 1.0 and 1.1")
+	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
 

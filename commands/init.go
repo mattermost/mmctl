@@ -48,7 +48,7 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 			return fn(c, cmd, args)
 		}
 
-		c, serverVersion, err := InitClient(viper.GetBool("insecure-sha1-intermediate"))
+		c, serverVersion, err := InitClient(viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"))
 		if err != nil {
 			return err
 		}
@@ -103,64 +103,71 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 	return fmt.Errorf("insecure algorithm found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting")
 }
 
-func NewAPIv4Client(instanceURL string, allowInsecure bool) *model.Client4 {
+func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL)
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HttpHeader = map[string]string{"User-Agent": userAgent}
 
-	if !allowInsecure {
-		transport := &http.Transport{
-			//nolint:gosec
-			TLSClientConfig: &tls.Config{
-				VerifyPeerCertificate: VerifyCertificates,
-			},
-		}
+	tlsConfig := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
 
-		client.HttpClient = &http.Client{Transport: transport}
+	if allowInsecureTLS {
+		tlsConfig.MinVersion = tls.VersionTLS10
+	}
+
+	if !allowInsecureSHA1 {
+		tlsConfig.VerifyPeerCertificate = VerifyCertificates
+	}
+
+	client.HttpClient = &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
 	}
 
 	return client
 }
 
-func InitClientWithUsernameAndPassword(username, password, instanceURL string, allowInsecure bool) (*model.Client4, string, error) {
-	client := NewAPIv4Client(instanceURL, allowInsecure)
+func InitClientWithUsernameAndPassword(username, password, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
 
 	_, response := client.Login(username, password)
 	if response.Error != nil {
-		return nil, "", response.Error
+		return nil, "", checkInsecureTLSError(response.Error, allowInsecureTLS)
 	}
 	return client, response.ServerVersion, nil
 }
 
-func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowInsecure bool) (*model.Client4, string, error) {
-	client := NewAPIv4Client(instanceURL, allowInsecure)
+func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
 	_, response := client.LoginWithMFA(username, password, mfaToken)
 	if response.Error != nil {
-		return nil, "", response.Error
+		return nil, "", checkInsecureTLSError(response.Error, allowInsecureTLS)
 	}
 	return client, response.ServerVersion, nil
 }
 
-func InitClientWithCredentials(credentials *Credentials, allowInsecure bool) (*model.Client4, string, error) {
-	client := NewAPIv4Client(credentials.InstanceURL, allowInsecure)
+func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS)
 
 	client.AuthType = model.HEADER_BEARER
 	client.AuthToken = credentials.AuthToken
 
 	_, response := client.GetMe("")
 	if response.Error != nil {
-		return nil, "", response.Error
+		return nil, "", checkInsecureTLSError(response.Error, allowInsecureTLS)
 	}
 
 	return client, response.ServerVersion, nil
 }
 
-func InitClient(allowInsecure bool) (*model.Client4, string, error) {
+func InitClient(allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
 	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return nil, "", err
 	}
-	return InitClientWithCredentials(credentials, allowInsecure)
+	return InitClientWithCredentials(credentials, allowInsecureSHA1, allowInsecureTLS)
 }
 
 func InitWebSocketClient() (*model.WebSocketClient, error) {
@@ -181,4 +188,12 @@ func InitUnixClient(socketPath string) (*model.Client4, error) {
 	}
 
 	return model.NewAPIv4SocketClient(socketPath), nil
+}
+
+func checkInsecureTLSError(err *model.AppError, allowInsecureTLS bool) error {
+	if (strings.Contains(err.DetailedError, "tls: protocol version not supported") ||
+		strings.Contains(err.DetailedError, "tls: server selected unsupported protocol version")) && !allowInsecureTLS {
+		return errors.New("won't perform action through an insecure TLS connection. Please add --insecure-tls-version to bypass this check")
+	}
+	return err
 }
