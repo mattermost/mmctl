@@ -125,18 +125,18 @@ func (s *MmctlE2ETestSuite) TestConfigEditCmd() {
 		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableSVGs = false })
 
 		// create a shell script to edit config
-		content := `#! /bin/bash
+		content := `#!/bin/bash
 sed -i'old' 's/\"EnableSVGs\": false/\"EnableSVGs\": true/' $1
 rm $1'old'`
 
 		file, err := ioutil.TempFile(os.TempDir(), "config_edit_*.sh")
 		s.Require().Nil(err)
 		defer func() {
-			file.Close()
 			os.Remove(file.Name())
 		}()
 		_, err = file.Write([]byte(content))
 		s.Require().Nil(err)
+		s.Require().Nil(file.Close())
 		s.Require().Nil(os.Chmod(file.Name(), 0700))
 
 		os.Setenv("EDITOR", file.Name())
