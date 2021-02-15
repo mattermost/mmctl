@@ -28,7 +28,7 @@ lint:
   except:
     - tags
 
-test:
+.test:
   stage: test
   image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
   services:
