@@ -31,8 +31,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		printer.Clean()
 
 		err := exportListCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to list exports: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().EqualError(err, "failed to list exports: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -49,9 +48,6 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 
 	s.RunForSystemAdminAndLocal("some exports", func(c client.Client) {
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		numExports := 3
 		for i := 0; i < numExports; i++ {
@@ -89,17 +85,13 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 		printer.Clean()
 
 		err := exportDeleteCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to delete export: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().EqualError(err, "failed to delete export: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("delete export", func(c client.Client) {
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		err := utils.CopyFile(importFilePath, filepath.Join(exportPath, exportName))
 		s.Require().Nil(err)
@@ -115,7 +107,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 1)
-		s.Equal(fmt.Sprintf("Export %s deleted", exportName), printer.GetLines()[0])
+		s.Equal(fmt.Sprintf(`Export file "%s" has been deleted`, exportName), printer.GetLines()[0])
 
 		exports, appErr = s.th.App.ListExports()
 		s.Require().Nil(appErr)
@@ -128,7 +120,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 		s.Require().Nil(err)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Len(printer.GetLines(), 1)
-		s.Equal(fmt.Sprintf("Export %s deleted", exportName), printer.GetLines()[0])
+		s.Equal(fmt.Sprintf(`Export file "%s" has been deleted`, exportName), printer.GetLines()[0])
 	})
 }
 
@@ -139,8 +131,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		err := exportCreateCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to create export process job: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().EqualError(err, "failed to create export process job: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -149,9 +140,6 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		err := exportCreateCmdF(c, cmd, nil)
 		s.Require().Nil(err)
@@ -164,9 +152,6 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		cmd.Flags().Bool("attachments", true, "")
 
@@ -193,8 +178,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		err := exportDownloadCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to download export file: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().EqualError(err, "failed to download export file: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -203,9 +187,6 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
@@ -214,8 +195,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		defer os.Remove(downloadPath)
 
 		err = exportDownloadCmdF(c, cmd, []string{exportName, downloadPath})
-		s.Require().NotNil(err)
-		s.Require().Equal("export file already exists", err.Error())
+		s.Require().EqualError(err, "export file already exists")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -224,17 +204,13 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 		cmd.Flags().Bool("resume", true, "")
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
 
 		err = exportDownloadCmdF(c, cmd, []string{exportName, downloadPath})
-		s.Require().NotNil(err)
-		s.Require().Equal("cannot resume download: export file does not exist", err.Error())
+		s.Require().EqualError(err, "cannot resume download: export file does not exist")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -243,17 +219,13 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
 		defer os.Remove(downloadPath)
 
 		err = exportDownloadCmdF(c, cmd, []string{exportName, downloadPath})
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to download export file: : Unable to find export file., ", err.Error())
+		s.Require().EqualError(err, "failed to download export file: : Unable to find export file., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -262,9 +234,6 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		exportFilePath := filepath.Join(exportPath, exportName)
 		err := utils.CopyFile(importFilePath, exportFilePath)
@@ -288,9 +257,6 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 
 		exportFilePath := filepath.Join(exportPath, exportName)
 		err := utils.CopyFile(importFilePath, exportFilePath)
@@ -318,9 +284,6 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		if c == s.th.LocalClient {
-			cmd.Flags().Bool("local", true, "")
-		}
 		cmd.Flags().Bool("resume", true, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
@@ -359,8 +322,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShow() {
 		printer.Clean()
 
 		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to get export job: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().EqualError(err, "failed to get export job: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -369,8 +331,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShow() {
 		printer.Clean()
 
 		err := exportJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to get export job: : Unable to get the job., ", err.Error())
+		s.Require().EqualError(err, "failed to get export job: : Unable to get the job., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -403,8 +364,7 @@ func (s *MmctlE2ETestSuite) TestExportJobList() {
 		cmd.Flags().Bool("all", false, "")
 
 		err := exportJobListCmdF(s.th.Client, cmd, nil)
-		s.Require().NotNil(err)
-		s.Require().Equal("failed to get jobs: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().EqualError(err, "failed to get jobs: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})

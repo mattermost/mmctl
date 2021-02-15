@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import job show
+    import job show
 
 Options
 ~~~~~~~

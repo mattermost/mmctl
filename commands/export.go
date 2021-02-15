@@ -28,16 +28,21 @@ var ExportCreateCmd = &cobra.Command{
 }
 
 var ExportDownloadCmd = &cobra.Command{
-	Use:     "download [exportname] [filepath]",
-	Short:   "Download export files",
-	Example: " export download export_file.zip",
-	Args:    cobra.MinimumNArgs(1),
-	RunE:    withClient(exportDownloadCmdF),
+	Use:   "download [exportname] [filepath]",
+	Short: "Download export files",
+	Example: `  # you can indicate the name of the export and its destination path
+  $ mmctl export download samplename sample_export.zip
+  
+  # or if you only indicate the name, the path would match it
+  $ mmctl export download sample_export.zip`,
+	Args: cobra.MinimumNArgs(1),
+	RunE: withClient(exportDownloadCmdF),
 }
 
 var ExportDeleteCmd = &cobra.Command{
 	Use:     "delete [exportname]",
-	Example: " export delete export_file.zip",
+	Aliases: []string{"rm"},
+	Example: "  export delete export_file.zip",
 	Short:   "Delete export file",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(exportDeleteCmdF),
@@ -58,7 +63,7 @@ var ExportJobCmd = &cobra.Command{
 
 var ExportJobListCmd = &cobra.Command{
 	Use:     "list",
-	Example: " export job list",
+	Example: "  export job list",
 	Short:   "List export jobs",
 	Aliases: []string{"ls"},
 	Args:    cobra.NoArgs,
@@ -67,7 +72,7 @@ var ExportJobListCmd = &cobra.Command{
 
 var ExportJobShowCmd = &cobra.Command{
 	Use:     "show [exportJobID]",
-	Example: " export job show",
+	Example: "  export job show",
 	Short:   "Show export job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(exportJobShowCmdF),
@@ -143,7 +148,7 @@ func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) er
 		return fmt.Errorf("failed to delete export: %w", resp.Error)
 	}
 
-	printer.Print(fmt.Sprintf("Export %s deleted", name))
+	printer.Print(fmt.Sprintf("Export file %q has been deleted", name))
 
 	return nil
 }

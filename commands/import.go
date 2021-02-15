@@ -25,7 +25,7 @@ var ImportCmd = &cobra.Command{
 var ImportUploadCmd = &cobra.Command{
 	Use:     "upload [filepath]",
 	Short:   "Upload import files",
-	Example: " import upload import_file.zip",
+	Example: "  import upload import_file.zip",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(importUploadCmdF),
 }
@@ -39,7 +39,7 @@ var ImportListCmd = &cobra.Command{
 var ImportListAvailableCmd = &cobra.Command{
 	Use:     "available",
 	Short:   "List available import files",
-	Example: " import list available",
+	Example: "  import list available",
 	Args:    cobra.NoArgs,
 	RunE:    withClient(importListAvailableCmdF),
 }
@@ -52,14 +52,14 @@ var ImportJobCmd = &cobra.Command{
 var ImportListIncompleteCmd = &cobra.Command{
 	Use:     "incomplete",
 	Short:   "List incomplete import files uploads",
-	Example: " import list incomplete",
+	Example: "  import list incomplete",
 	Args:    cobra.NoArgs,
 	RunE:    withClient(importListIncompleteCmdF),
 }
 
 var ImportJobListCmd = &cobra.Command{
 	Use:     "list",
-	Example: " import job list",
+	Example: "  import job list",
 	Short:   "List import jobs",
 	Aliases: []string{"ls"},
 	Args:    cobra.NoArgs,
@@ -68,7 +68,7 @@ var ImportJobListCmd = &cobra.Command{
 
 var ImportJobShowCmd = &cobra.Command{
 	Use:     "show [importJobID]",
-	Example: " import job show",
+	Example: "  import job show",
 	Short:   "Show import job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(importJobShowCmdF),
@@ -76,7 +76,7 @@ var ImportJobShowCmd = &cobra.Command{
 
 var ImportProcessCmd = &cobra.Command{
 	Use:     "process [importname]",
-	Example: " import process 35uy6cwrqfnhdx3genrhqqznxc_import.zip",
+	Example: "  import process 35uy6cwrqfnhdx3genrhqqznxc_import.zip",
 	Short:   "Start an import job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(importProcessCmdF),

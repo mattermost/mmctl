@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import list incomplete
+    import list incomplete
 
 Options
 ~~~~~~~
