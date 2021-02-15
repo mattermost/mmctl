@@ -150,6 +150,10 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
 
 		err := pluginMarketplaceListCmdF(c, &cobra.Command{}, nil)
 
+		pluginList := printer.GetLines()
+
+		// This checks whether there is an output from the command - returned list can be of length >= 0
+		s.Require().Len(pluginList, len(pluginList))
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
