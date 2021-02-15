@@ -10,7 +10,7 @@ Synopsis
 
 
 Search a channel by channel name.
-Channel can be specified by team. ie. --team myTeam myChannel or by team ID.
+Channel can be specified by team. ie. --team myteam mychannel or by team ID.
 
 ::
 
@@ -22,8 +22,8 @@ Examples
 
 ::
 
-    channel search myChannel
-    channel search --team myTeam myChannel
+    channel search mychannel
+    channel search --team myteam mychannel
 
 Options
 ~~~~~~~
