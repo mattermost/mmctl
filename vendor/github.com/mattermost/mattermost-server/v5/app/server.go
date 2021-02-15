@@ -6,8 +6,10 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"hash/maphash"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -23,12 +25,13 @@ import (
 	"syscall"
 	"time"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
-
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
@@ -62,7 +65,7 @@ import (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 // declaring this as var to allow overriding in tests
-var SENTRY_DSN = "placeholder_sentry_dsn"
+var SentryDSN = "placeholder_sentry_dsn"
 
 type Server struct {
 	sqlStore           *sqlstore.SqlStore
@@ -211,7 +214,7 @@ func NewServer(options ...Option) (*Server, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
-		configStore, err := config.NewStoreFromBacking(innerStore, nil)
+		configStore, err := config.NewStoreFromBacking(innerStore, nil, false)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -220,11 +223,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if err := s.initLogging(); err != nil {
-		mlog.Error(err.Error())
+		mlog.Error("Could not initiate logging", mlog.Err(err))
 	}
 
 	// This is called after initLogging() to avoid a race condition.
-	mlog.Info("Server is initializing...")
+	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
@@ -232,11 +235,11 @@ func NewServer(options ...Option) (*Server, error) {
 	fakeApp.HubStart()
 
 	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry {
-		if strings.Contains(SENTRY_DSN, "placeholder") {
+		if strings.Contains(SentryDSN, "placeholder") {
 			mlog.Warn("Sentry reporting is enabled, but SENTRY_DSN is not set. Disabling reporting.")
 		} else {
 			if err := sentry.Init(sentry.ClientOptions{
-				Dsn:              SENTRY_DSN,
+				Dsn:              SentryDSN,
 				Release:          model.BuildHash,
 				AttachStacktrace: true,
 				BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
@@ -297,7 +300,7 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "Unable to create session cache")
 	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size: PENDING_POST_IDS_CACHE_SIZE,
+		Size: PendingPostIDsCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
@@ -329,8 +332,8 @@ func NewServer(options ...Option) (*Server, error) {
 				if err2 != nil {
 					return nil, errors.Wrap(err2, "cannot parse DB version")
 				}
-				if intVer < sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION {
-					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MINIMUM_REQUIRED_POSTGRES_VERSION), sqlstore.VersionString(intVer))
+				if intVer < sqlstore.MinimumRequiredPostgresVersion {
+					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
 				}
 			}
 
@@ -500,7 +503,9 @@ func NewServer(options ...Option) (*Server, error) {
 		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *s.Config().PluginSettings.EnableHealthCheck)
 	}
 	s.AddConfigListener(func(_, c *model.Config) {
+		s.PluginsLock.RLock()
 		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 		if pluginsEnvironment != nil {
 			pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.Enable && *c.PluginSettings.EnableHealthCheck)
 		}
@@ -635,6 +640,12 @@ func (s *Server) AppOptions() []AppOption {
 	}
 }
 
+// Return Database type (postgres or mysql) and current version of Mattermost
+func (s *Server) DatabaseTypeAndMattermostVersion() (string, string) {
+	mattermostVersion, _ := s.Store.System().GetByName("Version")
+	return *s.Config().SqlSettings.DriverName, mattermostVersion.Value
+}
+
 // initLogging initializes and configures the logger. This may be called more than once.
 func (s *Server) initLogging() error {
 	if s.Log == nil {
@@ -738,11 +749,11 @@ func (s *Server) enableLoggingMetrics() {
 	}
 }
 
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+const TimeToWaitForConnectionsToCloseOnServerShutdown = time.Second
 
 func (s *Server) StopHTTPServer() {
 	if s.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		ctx, cancel := context.WithTimeout(context.Background(), TimeToWaitForConnectionsToCloseOnServerShutdown)
 		defer cancel()
 		didShutdown := false
 		for s.didFinishListen != nil && !didShutdown {
@@ -762,7 +773,7 @@ func (s *Server) StopHTTPServer() {
 	}
 }
 
-func (s *Server) Shutdown() error {
+func (s *Server) Shutdown() {
 	mlog.Info("Stopping Server...")
 
 	defer sentry.Flush(2 * time.Second)
@@ -775,13 +786,13 @@ func (s *Server) Shutdown() error {
 
 	if s.tracer != nil {
 		if err := s.tracer.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown opentracing client", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown opentracing client", mlog.Err(err))
 		}
 	}
 
 	err := s.telemetryService.Shutdown()
 	if err != nil {
-		mlog.Error("Unable to cleanly shutdown telemetry client", mlog.Err(err))
+		mlog.Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
 	}
 
 	s.StopHTTPServer()
@@ -831,14 +842,14 @@ func (s *Server) Shutdown() error {
 
 	if s.CacheProvider != nil {
 		if err = s.CacheProvider.Close(); err != nil {
-			mlog.Error("Unable to cleanly shutdown cache", mlog.Err(err))
+			mlog.Warn("Unable to cleanly shutdown cache", mlog.Err(err))
 		}
 	}
 
 	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer timeoutCancel()
 	if err := mlog.Flush(timeoutCtx); err != nil {
-		mlog.Error("Error flushing logs", mlog.Err(err))
+		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
 
 	mlog.Info("Server stopped")
@@ -847,8 +858,6 @@ func (s *Server) Shutdown() error {
 	timeoutCtx2, timeoutCancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer timeoutCancel2()
 	_ = mlog.ShutdownAdvancedLogging(timeoutCtx2)
-
-	return nil
 }
 
 func (s *Server) Restart() error {
@@ -952,7 +961,7 @@ func (s *Server) Start() error {
 
 	var handler http.Handler = s.RootRouter
 
-	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SENTRY_DSN, "placeholder") {
+	if *s.Config().LogSettings.EnableDiagnostics && *s.Config().LogSettings.EnableSentry && !strings.Contains(SentryDSN, "placeholder") {
 		sentryHandler := sentryhttp.New(sentryhttp.Options{
 			Repanic: true,
 		})
@@ -1019,8 +1028,7 @@ func (s *Server) Start() error {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
-		return err
+		return errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 	}
 	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
@@ -1277,11 +1285,11 @@ func doCommandWebhookCleanup(s *Server) {
 }
 
 const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+	SessionsCleanupBatchSize = 1000
 )
 
 func doSessionCleanup(s *Server) {
-	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
 }
 
 func doCheckWarnMetricStatus(a *App) {
@@ -1327,17 +1335,17 @@ func doCheckWarnMetricStatus(a *App) {
 
 	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err0 != nil {
-		mlog.Error("Error attempting to get active registered users.", mlog.Err(err0))
+		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
 	}
 
 	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(false)
 	if err1 != nil {
-		mlog.Error("Error attempting to get number of teams.", mlog.Err(err1))
+		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
 	}
 
 	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
 	if err2 != nil {
-		mlog.Error("Error attempting to get number of public channels.", mlog.Err(err2))
+		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
 	}
 
 	// If an account is created with a different email domain
@@ -1346,7 +1354,7 @@ func doCheckWarnMetricStatus(a *App) {
 	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
 	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
 	if err3 != nil {
-		mlog.Error("Error attempting to get number of private channels.", mlog.Err(err3))
+		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
 	}
 
 	warnMetrics := []model.WarnMetric{}
@@ -1380,7 +1388,7 @@ func doCheckWarnMetricStatus(a *App) {
 
 			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
 			if err4 != nil {
-				mlog.Error("Error attempting to get number of posts.", mlog.Err(err4))
+				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
 			}
 
 			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
@@ -1457,7 +1465,7 @@ func doLicenseExpirationCheck(a *App) {
 
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
 		a.Srv().Go(func() {
-			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL, license.Id); err != nil {
+			if err := a.Srv().EmailService.SendRemoveExpiredLicenseEmail(user.Email, user.Locale, *a.Config().ServiceSettings.SiteURL); err != nil {
 				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
 			}
 		})
@@ -1578,7 +1586,7 @@ func (s *Server) ClientConfigHash() string {
 }
 
 func (s *Server) initJobs() {
-	s.Jobs = jobs.NewJobServer(s, s.Store)
+	s.Jobs = jobs.NewJobServer(s, s.Store, s.Metrics)
 	if jobsDataRetentionJobInterface != nil {
 		s.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(s)
 	}
@@ -1612,4 +1620,179 @@ func (s *Server) HttpService() httpservice.HTTPService {
 
 func (s *Server) SetLog(l *mlog.Logger) {
 	s.Log = l
+}
+
+func (a *App) GenerateSupportPacket() []model.FileData {
+	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
+	var warnings []string
+
+	// Creating an array of files that we are going to be adding to our zip file
+	fileDatas := []model.FileData{}
+
+	// A array of the functions that we can iterate through since they all have the same return value
+	functions := []func() (*model.FileData, string){
+		a.generateSupportPacketYaml,
+		a.createPluginsFile,
+		a.createSanitizedConfigFile,
+		a.getMattermostLog,
+		a.getNotificationsLog,
+	}
+
+	for _, fn := range functions {
+		fileData, warning := fn()
+
+		if fileData != nil {
+			fileDatas = append(fileDatas, *fileData)
+		} else {
+			warnings = append(warnings, warning)
+		}
+	}
+
+	// Adding a warning.txt file to the fileDatas if any warning
+	if len(warnings) > 0 {
+		finalWarning := strings.Join(warnings, "\n")
+		fileDatas = append(fileDatas, model.FileData{
+			Filename: "warning.txt",
+			Body:     []byte(finalWarning),
+		})
+	}
+
+	return fileDatas
+}
+
+func (a *App) getNotificationsLog() (*model.FileData, string) {
+	var warning string
+
+	// Getting notifications.log
+	if *a.Srv().Config().NotificationLogSettings.EnableFile {
+		// notifications.log
+		notificationsLog := utils.GetNotificationsLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+
+		notificationsLogFileData, notificationsLogFileDataErr := ioutil.ReadFile(notificationsLog)
+
+		if notificationsLogFileDataErr == nil {
+			fileData := model.FileData{
+				Filename: "notifications.log",
+				Body:     notificationsLogFileData,
+			}
+			return &fileData, ""
+		}
+
+		warning = fmt.Sprintf("ioutil.ReadFile(notificationsLog) Error: %s", notificationsLogFileDataErr.Error())
+
+	} else {
+		warning = "Unable to retrieve notifications.log because LogSettings: EnableFile is false in config.json"
+	}
+
+	return nil, warning
+}
+
+func (a *App) getMattermostLog() (*model.FileData, string) {
+	var warning string
+
+	// Getting mattermost.log
+	if *a.Srv().Config().LogSettings.EnableFile {
+		// mattermost.log
+		mattermostLog := utils.GetLogFileLocation(*a.Srv().Config().LogSettings.FileLocation)
+
+		mattermostLogFileData, mattermostLogFileDataErr := ioutil.ReadFile(mattermostLog)
+
+		if mattermostLogFileDataErr == nil {
+			fileData := model.FileData{
+				Filename: "mattermost.log",
+				Body:     mattermostLogFileData,
+			}
+			return &fileData, ""
+		}
+		warning = fmt.Sprintf("ioutil.ReadFile(mattermostLog) Error: %s", mattermostLogFileDataErr.Error())
+
+	} else {
+		warning = "Unable to retrieve mattermost.log because LogSettings: EnableFile is false in config.json"
+	}
+
+	return nil, warning
+}
+
+func (a *App) createSanitizedConfigFile() (*model.FileData, string) {
+	// Getting sanitized config, prettifying it, and then adding it to our file data array
+	sanitizedConfigPrettyJSON, err := json.MarshalIndent(a.GetSanitizedConfig(), "", "    ")
+	if err == nil {
+		fileData := model.FileData{
+			Filename: "sanitized_config.json",
+			Body:     sanitizedConfigPrettyJSON,
+		}
+		return &fileData, ""
+	}
+
+	warning := fmt.Sprintf("json.MarshalIndent(c.App.GetSanitizedConfig()) Error: %s", err.Error())
+	return nil, warning
+}
+
+func (a *App) createPluginsFile() (*model.FileData, string) {
+	var warning string
+
+	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
+	pluginsResponse, appErr := a.GetPlugins()
+	if appErr == nil {
+		pluginsPrettyJSON, err := json.MarshalIndent(pluginsResponse, "", "    ")
+		if err == nil {
+			fileData := model.FileData{
+				Filename: "plugins.json",
+				Body:     pluginsPrettyJSON,
+			}
+
+			return &fileData, ""
+		}
+
+		warning = fmt.Sprintf("json.MarshalIndent(pluginsResponse) Error: %s", err.Error())
+	} else {
+		warning = fmt.Sprintf("c.App.GetPlugins() Error: %s", appErr.Error())
+	}
+
+	return nil, warning
+}
+
+func (a *App) generateSupportPacketYaml() (*model.FileData, string) {
+	// Here we are getting information regarding Elastic Search
+	var elasticServerVersion string
+	var elasticServerPlugins []string
+	if a.Srv().SearchEngine.ElasticsearchEngine != nil {
+		elasticServerVersion = a.Srv().SearchEngine.ElasticsearchEngine.GetFullVersion()
+		elasticServerPlugins = a.Srv().SearchEngine.ElasticsearchEngine.GetPlugins()
+	}
+
+	// Here we are getting information regarding LDAP
+	ldapInterface := a.Srv().Ldap
+	var vendorName, vendorVersion string
+	if ldapInterface != nil {
+		vendorName, vendorVersion = ldapInterface.GetVendorNameAndVendorVersion()
+	}
+
+	// Here we are getting information regarding the database (mysql/postgres + current Mattermost version)
+	databaseType, databaseVersion := a.Srv().DatabaseTypeAndMattermostVersion()
+
+	// Creating the struct for support packet yaml file
+	supportPacket := model.SupportPacket{
+		ServerOS:             runtime.GOOS,
+		ServerArchitecture:   runtime.GOARCH,
+		DatabaseType:         databaseType,
+		DatabaseVersion:      databaseVersion,
+		LdapVendorName:       vendorName,
+		LdapVendorVersion:    vendorVersion,
+		ElasticServerVersion: elasticServerVersion,
+		ElasticServerPlugins: elasticServerPlugins,
+	}
+
+	// Marshal to a Yaml File
+	supportPacketYaml, err := yaml.Marshal(&supportPacket)
+	if err == nil {
+		fileData := model.FileData{
+			Filename: "support_packet.yaml",
+			Body:     supportPacketYaml,
+		}
+		return &fileData, ""
+	}
+
+	warning := fmt.Sprintf("yaml.Marshal(&supportPacket) Error: %s", err.Error())
+	return nil, warning
 }

@@ -5,6 +5,7 @@ package filesstore
 
 import (
 	"io"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -28,8 +29,9 @@ type FileBackend interface {
 	WriteFile(fr io.Reader, path string) (int64, error)
 	AppendFile(fr io.Reader, path string) (int64, error)
 	RemoveFile(path string) error
+	FileModTime(path string) (time.Time, error)
 
-	ListDirectory(path string) (*[]string, error)
+	ListDirectory(path string) ([]string, error)
 	RemoveDirectory(path string) error
 }
 

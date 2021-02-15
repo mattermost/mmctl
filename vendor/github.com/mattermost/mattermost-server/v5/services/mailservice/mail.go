@@ -10,15 +10,14 @@ import (
 	"io"
 	"mime"
 	"net"
+	"net/http"
 	"net/mail"
 	"net/smtp"
 	"time"
 
+	"github.com/jaytaylor/html2text"
 	gomail "gopkg.in/mail.v2"
 
-	"net/http"
-
-	"github.com/jaytaylor/html2text"
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/filesstore"
@@ -274,7 +273,7 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, ena
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
 func sendMailUsingConfigAdvanced(mail mailData, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	if len(*config.EmailSettings.SMTPServer) == 0 {
+	if *config.EmailSettings.SMTPServer == "" {
 		return nil
 	}
 
@@ -325,11 +324,11 @@ func SendMail(c smtpClient, mail mailData, fileBackend filesstore.FileBackend, d
 		"Precedence":                {"bulk"},
 	}
 
-	if len(mail.replyTo.Address) > 0 {
+	if mail.replyTo.Address != "" {
 		headers["Reply-To"] = []string{mail.replyTo.String()}
 	}
 
-	if len(mail.cc) > 0 {
+	if mail.cc != "" {
 		headers["CC"] = []string{mail.cc}
 	}
 

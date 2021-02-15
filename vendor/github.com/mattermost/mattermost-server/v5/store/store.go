@@ -252,8 +252,10 @@ type ThreadStore interface {
 	Update(thread *model.Thread) (*model.Thread, error)
 	Get(id string) (*model.Thread, error)
 	GetThreadsForUser(userId, teamId string, opts model.GetUserThreadsOpts) (*model.Threads, error)
+	GetThreadForUser(userId, teamId, threadId string, extended bool) (*model.ThreadResponse, error)
 	Delete(postId string) error
 	GetPosts(threadId string, since int64) ([]*model.Post, error)
+	GetThreadMentionsForUserPerChannel(userId, teamId string) (map[string]int64, error)
 
 	MarkAllAsRead(userId, teamId string) error
 	MarkAsRead(userId, threadId string, timestamp int64) error
@@ -272,7 +274,7 @@ type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
 	Save(post *model.Post) (*model.Post, error)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error)
-	Get(id string, skipFetchThreads bool) (*model.PostList, error)
+	Get(id string, skipFetchThreads, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, error)
 	GetSingle(id string) (*model.Post, error)
 	Delete(postId string, time int64, deleteByID string) error
 	PermanentDeleteByUser(userId string) error
@@ -288,7 +290,7 @@ type PostStore interface {
 	GetPostAfterTime(channelId string, time int64) (*model.Post, error)
 	GetPostIdAfterTime(channelId string, time int64) (string, error)
 	GetPostIdBeforeTime(channelId string, time int64) (string, error)
-	GetEtag(channelId string, allowFromCache bool) string
+	GetEtag(channelId string, allowFromCache bool, collapsedThreads bool) string
 	Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, error)
 	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, error)
@@ -564,6 +566,7 @@ type FileInfoStore interface {
 	Save(info *model.FileInfo) (*model.FileInfo, error)
 	Upsert(info *model.FileInfo) (*model.FileInfo, error)
 	Get(id string) (*model.FileInfo, error)
+	GetByIds(ids []string) ([]*model.FileInfo, error)
 	GetByPath(path string) (*model.FileInfo, error)
 	GetForPost(postId string, readFromMaster, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error)
 	GetForUser(userId string) ([]*model.FileInfo, error)
@@ -575,6 +578,7 @@ type FileInfoStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userId string) (int64, error)
 	SetContent(fileId, content string) error
+	Search(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.FileInfoList, error)
 	ClearCaches()
 }
 
