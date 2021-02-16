@@ -71,7 +71,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 	s.Require().Nil(err)
 	s.Len(printer.GetLines(), 1)
 	s.Len(printer.GetErrorLines(), 0)
-	s.Equal(fmt.Sprintf("Export %s deleted", exportName), printer.GetLines()[0])
+	s.Equal(fmt.Sprintf(`Export file "%s" has been deleted`, exportName), printer.GetLines()[0])
 }
 
 func (s *MmctlUnitTestSuite) TestExportListCmdF() {
