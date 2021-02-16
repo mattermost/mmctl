@@ -339,8 +339,7 @@ func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
 		printer.PrintError(err.Error())
 	}
 	for _, user := range users {
-		err := changeUserActiveStatus(c, user, active)
-		if err != nil {
+		if err := changeUserActiveStatus(c, user, active); err != nil {
 			printer.PrintError(err.Error())
 		}
 	}

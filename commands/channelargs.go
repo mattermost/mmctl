@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
@@ -60,10 +61,8 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 }
 
 func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, error) {
-	var (
-		channels []*model.Channel
-		result   *multierror.Error
-	)
+	var channels []*model.Channel
+	var result *multierror.Error
 	for _, channelArg := range channelArgs {
 		channel, err := getChannelFromArg(c, channelArg)
 		if err != nil {
@@ -78,15 +77,13 @@ func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channe
 func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	teamArg, channelArg := parseChannelArg(arg)
 	if teamArg == "" && channelArg == "" {
-		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
+		return nil, fmt.Errorf("invalid channel argument %q", arg)
 	}
 	if checkDots(channelArg) || checkSlash(channelArg) {
-		return nil, ErrEntityNotFound{Type: "channel", ID: arg}
+		return nil, fmt.Errorf(`invalid channel argument. Cannot contain ".." nor "/"`)
 	}
-	var (
-		channel  *model.Channel
-		response *model.Response
-	)
+	var channel *model.Channel
+	var response *model.Response
 	if teamArg != "" {
 		team, err := getTeamFromArg(c, teamArg)
 		if err != nil {

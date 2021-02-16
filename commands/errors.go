@@ -7,12 +7,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// FindEntitySummary is thrown when at least, one error is found
-// when finding entities.
-type FindEntitySummary struct {
-	Errors []error
-}
-
 // ErrEntityNotFound is thrown when an entity (user, team, etc.)
 // is not found, returning the id sent by arguments
 type ErrEntityNotFound struct {

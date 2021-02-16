@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -36,10 +37,8 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 }
 
 func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error) {
-	var (
-		teams  []*model.Team
-		result *multierror.Error
-	)
+	var teams []*model.Team
+	var result *multierror.Error
 	for _, arg := range teamArgs {
 		team, err := getTeamFromArg(c, arg)
 		if err != nil {
@@ -53,19 +52,15 @@ func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error)
 
 func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	if checkDots(teamArg) || checkSlash(teamArg) {
-		return nil, ErrEntityNotFound{Type: "team", ID: teamArg}
+		return nil, fmt.Errorf("invalid argument %q", teamArg)
 	}
-	var (
-		team     *model.Team
-		response *model.Response
-	)
+	var team *model.Team
+	var response *model.Response
 	team, response = c.GetTeam(teamArg, "")
 	if response != nil && response.Error != nil {
 		err := ExtractErrorFromResponse(response)
-		var (
-			nfErr         *NotFoundError
-			badRequestErr *BadRequestError
-		)
+		var nfErr *NotFoundError
+		var badRequestErr *BadRequestError
 		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
 			return nil, err
 		}
@@ -76,10 +71,8 @@ func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	team, response = c.GetTeamByName(teamArg, "")
 	if response != nil && response.Error != nil {
 		err := ExtractErrorFromResponse(response)
-		var (
-			nfErr         *NotFoundError
-			badRequestErr *BadRequestError
-		)
+		var nfErr *NotFoundError
+		var badRequestErr *BadRequestError
 		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
 			return nil, err
 		}

@@ -69,18 +69,14 @@ func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error)
 }
 
 func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
-	var (
-		user     *model.User
-		response *model.Response
-	)
+	var user *model.User
+	var response *model.Response
 	if !checkDots(userArg) {
 		user, response = c.GetUserByEmail(userArg, "")
 		if response != nil && response.Error != nil {
 			err := ExtractErrorFromResponse(response)
-			var (
-				nfErr         *NotFoundError
-				badRequestErr *BadRequestError
-			)
+			var nfErr *NotFoundError
+			var badRequestErr *BadRequestError
 			if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
 				return nil, err
 			}
@@ -92,10 +88,8 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 			user, response = c.GetUserByUsername(userArg, "")
 			if response != nil && response.Error != nil {
 				err := ExtractErrorFromResponse(response)
-				var (
-					nfErr         *NotFoundError
-					badRequestErr *BadRequestError
-				)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
 				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
 					return nil, err
 				}
@@ -106,10 +100,8 @@ func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 			user, response = c.GetUser(userArg, "")
 			if response != nil && response.Error != nil {
 				err := ExtractErrorFromResponse(response)
-				var (
-					nfErr         *NotFoundError
-					badRequestErr *BadRequestError
-				)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
 				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
 					return nil, err
 				}
