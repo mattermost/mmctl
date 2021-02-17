@@ -352,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	})
 }
 
-func (s *MmctlE2ETestSuite) TestExportJobList() {
+func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 	s.SetupTestHelper().InitBasic()
 
 	s.Run("no permissions", func() {
