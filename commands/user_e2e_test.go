@@ -47,7 +47,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Email)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("user nonexistent@email not found", printer.GetErrorLines()[0])
+		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
 	})
 }
 
@@ -97,7 +97,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Email)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
 
 		ruser, err := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err)
@@ -111,7 +111,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("user nonexistent@email not found", printer.GetErrorLines()[0])
+		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
 	})
 }
 
@@ -137,7 +137,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal(fmt.Sprintf("user %s not found", emailArg), printer.GetErrorLines()[0])
+		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
 	})
 }
 
@@ -317,7 +317,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : Multi-factor authentication has been disabled on this server., `, userMfaInactive.Email))
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : Multi-factor authentication has been disabled on this server., `, userMfaInactive.Id))
 	})
 
 	s.Run("Reset user mfa without permission", func() {
@@ -334,7 +334,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Email))
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Id))
 	})
 }
 
@@ -370,7 +370,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("user nonexistent@email not found", printer.GetErrorLines()[0])
+		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
 	})
 }
 
@@ -677,7 +677,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal(fmt.Sprintf("user %s not found", emailArg), printer.GetErrorLines()[0])
+		s.Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Delete user without permission", func() {
