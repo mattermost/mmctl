@@ -16,9 +16,11 @@ Options
 
 ::
 
+      --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
       --format string                the format of the command output [plain, json] (default "plain")
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+      --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
       --local                        allows communicating with the server through a unix socket
       --strict                       will only run commands if the mmctl version matches the server one
 
@@ -33,6 +35,7 @@ SEE ALSO
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
+* `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
 * `mmctl ldap <mmctl_ldap.rst>`_ 	 - LDAP related utilities
 * `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
@@ -46,5 +49,6 @@ SEE ALSO
 * `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
 * `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 * `mmctl version <mmctl_version.rst>`_ 	 - Prints the version of mmctl.
+* `mmctl webhook <mmctl_webhook.rst>`_ 	 - Management of webhooks
 * `mmctl websocket <mmctl_websocket.rst>`_ 	 - Display websocket in a human-readable format
 

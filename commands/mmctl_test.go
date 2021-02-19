@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/v5/api4"
 )
 
+var EnableEnterpriseTests string
+
 type MmctlUnitTestSuite struct {
 	suite.Suite
 	mockCtrl *gomock.Controller
@@ -58,6 +60,9 @@ func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
 }
 
 func (s *MmctlE2ETestSuite) SetupEnterpriseTestHelper() *api4.TestHelper {
+	if EnableEnterpriseTests != "true" {
+		s.T().SkipNow()
+	}
 	s.th = api4.SetupEnterprise(s.T())
 	return s.th
 }

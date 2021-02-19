@@ -121,6 +121,7 @@ jobs:
               docker run --rm --net circleci_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
       - run:
           name: Run Tests
+          no_output_timeout: 30m
           command: |
             ulimit -n 8096
             cd ../mattermost-server/build
@@ -131,18 +132,7 @@ jobs:
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096 && make test-all'
-
-  coverage:
-    executor:
-      name: default
-    steps:
-      - checkout
-      - *restore_cache
-      - run:
-          name: Generating Coverage Results
-          command: make coverage
-      - *save_cache
+              bash -c 'ulimit -n 8096 && make coverage'
       - codecov/upload:
         file:  coverage.txt
 
@@ -152,9 +142,6 @@ workflows:
     jobs:
       - docs
       - lint
-      - coverage:
-          requires:
-            - test
       - setup
       - test:
           requires:

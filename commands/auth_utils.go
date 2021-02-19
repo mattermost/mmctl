@@ -8,14 +8,21 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
+	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 const (
 	MethodPassword = "P"
 	MethodToken    = "T"
 	MethodMFA      = "M"
+
+	userHomeVar      = "$HOME"
+	configFileName   = "mmctl"
+	xdgConfigHomeVar = "$XDG_CONFIG_HOME"
 )
 
 type Credentials struct {
@@ -29,25 +36,54 @@ type Credentials struct {
 
 type CredentialsList map[string]*Credentials
 
-func getConfigFilePath() (string, error) {
-	user, err := user.Current()
+var currentUser *user.User
+
+func init() {
+	newUser, err := user.Current()
 	if err != nil {
-		return "", err
+		panic(err)
 	}
-	return user.HomeDir + "/.mmctl", nil
+
+	SetUser(newUser)
+}
+
+func getDefaultConfigPath() string {
+	configPath := currentUser.HomeDir
+	// We use the existing $HOME/.mmctl file if it exists.
+	// If not, we try to read XDG_CONFIG_HOME and if we fail,
+	// we fallback to $HOME/.config/mmctl.
+	if _, err := os.Stat(filepath.Join(currentUser.HomeDir, "."+configFileName)); os.IsNotExist(err) {
+		if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
+			configPath = p
+		} else {
+			configPath = filepath.Join(currentUser.HomeDir, ".config")
+		}
+	}
+	return configPath
+}
+
+func resolveConfigFilePath() string {
+	configPath := getDefaultConfigPath()
+	if p := viper.GetString("config-path"); p != xdgConfigHomeVar {
+		configPath = strings.Replace(viper.GetString("config-path"), userHomeVar, currentUser.HomeDir, 1)
+	}
+
+	f := configFileName
+	if configPath == currentUser.HomeDir {
+		f = "." + configFileName
+	}
+
+	return filepath.Join(configPath, f)
 }
 
 func ReadCredentialsList() (*CredentialsList, error) {
-	configFilePath, err := getConfigFilePath()
-	if err != nil {
-		return nil, err
-	}
+	configPath := resolveConfigFilePath()
 
-	if _, err = os.Stat(configFilePath); err != nil {
+	if _, err := os.Stat(configPath); err != nil {
 		return nil, errors.WithMessage(err, "cannot read user credentials, maybe you need to use login first")
 	}
 
-	fileContents, err := ioutil.ReadFile(configFilePath)
+	fileContents, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, errors.WithMessage(err, "there was a problem reading the credentials file")
 	}
@@ -91,6 +127,9 @@ func GetCredentials(name string) (*Credentials, error) {
 func SaveCredentials(credentials Credentials) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
+		if err := os.MkdirAll(strings.TrimSuffix(resolveConfigFilePath(), configFileName), 0700); err != nil {
+			return err
+		}
 		credentialsList = &CredentialsList{}
 		credentials.Active = true
 	}
@@ -100,14 +139,11 @@ func SaveCredentials(credentials Credentials) error {
 }
 
 func SaveCredentialsList(credentialsList *CredentialsList) error {
-	configFilePath, err := getConfigFilePath()
-	if err != nil {
-		return err
-	}
+	configPath := resolveConfigFilePath()
 
 	marshaledCredentialsList, _ := json.MarshalIndent(credentialsList, "", "    ")
 
-	if err := ioutil.WriteFile(configFilePath, marshaledCredentialsList, 0600); err != nil {
+	if err := ioutil.WriteFile(configPath, marshaledCredentialsList, 0600); err != nil {
 		return errors.WithMessage(err, "cannot save the credentials")
 	}
 
@@ -138,10 +174,7 @@ func SetCurrent(name string) error {
 }
 
 func CleanCredentials() error {
-	configFilePath, err := getConfigFilePath()
-	if err != nil {
-		return err
-	}
+	configFilePath := resolveConfigFilePath()
 
 	if _, err := os.Stat(configFilePath); err != nil {
 		if os.IsNotExist(err) {
@@ -154,4 +187,8 @@ func CleanCredentials() error {
 		return err
 	}
 	return nil
+}
+
+func SetUser(newUser *user.User) {
+	currentUser = newUser
 }

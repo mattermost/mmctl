@@ -87,6 +87,15 @@ var UpdateUserEmailCmd = &cobra.Command{
 	RunE:    withClient(updateUserEmailCmdF),
 }
 
+var UpdateUsernameCmd = &cobra.Command{
+	Use:     "username [user] [new username]",
+	Short:   "Change username of the user",
+	Long:    "Change username of the user.",
+	Example: "  user username testuser newusername",
+	Args:    cobra.ExactArgs(2),
+	RunE:    withClient(updateUsernameCmdF),
+}
+
 var ChangePasswordUserCmd = &cobra.Command{
 	Use:   "change-password <user>",
 	Short: "Changes a user's password",
@@ -239,6 +248,7 @@ func init() {
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -302,6 +312,7 @@ Global Flags:
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
 		UpdateUserEmailCmd,
+		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
 		DeleteUsersCmd,
@@ -479,6 +490,32 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	user.Email = newEmail
+
+	ruser, response := c.UpdateUser(user)
+	if response.Error != nil {
+		return errors.New(response.Error.Error())
+	}
+
+	printer.PrintT("User {{.Username}} updated successfully", ruser)
+
+	return nil
+}
+
+func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
+	newUsername := args[1]
+
+	if !model.IsValidUsername(newUsername) {
+		return errors.New("invalid username: '" + newUsername + "'")
+	}
+
+	user := getUserFromUserArg(c, args[0])
+	if user == nil {
+		return errors.New("unable to find user '" + args[0] + "'")
+	}
+
+	user.Username = newUsername
 
 	ruser, response := c.UpdateUser(user)
 	if response.Error != nil {
@@ -669,17 +706,39 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
+	teamName, err := command.Flags().GetString("team")
+	if err != nil {
+		return err
+	}
 
 	if showAll {
 		page = 0
 	}
 
+	var team *model.Team
+	if teamName != "" {
+		var resp *model.Response
+		team, resp = c.GetTeamByName(teamName, "")
+		if resp.Error != nil {
+			return errors.Wrap(resp.Error, fmt.Sprintf("Failed to get team %s", teamName))
+		}
+	}
+
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
 
 	for {
-		users, res := c.GetUsers(page, perPage, "")
-		if res.Error != nil {
-			return errors.Wrap(res.Error, "Failed to fetch users")
+		var users []*model.User
+		var res *model.Response
+		if team != nil {
+			users, res = c.GetUsersInTeam(team.Id, page, perPage, "")
+			if res.Error != nil {
+				return errors.Wrap(res.Error, fmt.Sprintf("Failed to fetch users for team %s", teamName))
+			}
+		} else {
+			users, res = c.GetUsers(page, perPage, "")
+			if res.Error != nil {
+				return errors.Wrap(res.Error, "Failed to fetch users")
+			}
 		}
 		if len(users) == 0 {
 			break

@@ -187,3 +187,70 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		s.Require().EqualError(err, "Role: role_not_found, ")
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
+	s.Run("A non-existent role", func() {
+		mockRole := model.Role{
+			Name: "exampleName",
+		}
+
+		mockError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(nil, &model.Response{Error: mockError}).
+			Times(1)
+
+		args := []string{mockRole.Name}
+		err := resetPermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "Role: role_not_found, ")
+	})
+
+	s.Run("A role without default permissions", func() {
+		mockRole := model.Role{
+			Id:          "mock-id",
+			Name:        "mock-role",
+			Permissions: []string{"view", "edit", "delete"},
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(&mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name}
+		err := resetPermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, "no default permissions available for role")
+	})
+
+	s.Run("Resets the permissions", func() {
+		mockRole := model.Role{
+			Id:          "mock-id",
+			Name:        "channel_admin",
+			Permissions: []string{"view_foos", "delete_bars"},
+		}
+
+		expectedPermissions := []string{"manage_channel_roles", "use_group_mentions"}
+		expectedPatch := &model.RolePatch{
+			Permissions: &expectedPermissions,
+		}
+
+		s.client.
+			EXPECT().
+			GetRoleByName(mockRole.Name).
+			Return(&mockRole, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PatchRole(mockRole.Id, expectedPatch).
+			Return(&model.Role{}, &model.Response{Error: nil}).
+			Times(1)
+
+		args := []string{mockRole.Name}
+		err := resetPermissionsCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+	})
+}

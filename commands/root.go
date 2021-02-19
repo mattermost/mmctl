@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -20,12 +21,16 @@ func Run(args []string) error {
 	viper.SetDefault("local-socket-path", model.LOCAL_MODE_SOCKET_PATH)
 	viper.AutomaticEnv()
 
+	RootCmd.PersistentFlags().String("config-path", xdgConfigHomeVar, fmt.Sprintf("path to the configuration directory. If \"%s/.%s\" exists it will take precedence over the default value", userHomeVar, configFileName))
+	_ = viper.BindPFlag("config-path", RootCmd.PersistentFlags().Lookup("config-path"))
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	_ = viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
 	RootCmd.PersistentFlags().Bool("strict", false, "will only run commands if the mmctl version matches the server one")
 	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.PersistentFlags().Bool("insecure-sha1-intermediate", false, "allows to use insecure TLS protocols, such as SHA-1")
 	_ = viper.BindPFlag("insecure-sha1-intermediate", RootCmd.PersistentFlags().Lookup("insecure-sha1-intermediate"))
+	RootCmd.PersistentFlags().Bool("insecure-tls-version", false, "allows to use TLS versions 1.0 and 1.1")
+	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
 
