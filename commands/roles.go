@@ -72,6 +72,8 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 
 			printer.Print(fmt.Sprintf("System admin role assigned to user %q", args[i]))
 		}
+
+		printer.Print(fmt.Sprintf("Updated %s roles: %s", user.Email, user.Roles))
 	}
 
 	return nil
@@ -106,6 +108,8 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 
 			printer.Print(fmt.Sprintf("System admin role revoked for user %q", args[i]))
 		}
+
+		printer.Print(fmt.Sprintf("Updated %s roles: %s", user.Email, user.Roles))
 	}
 
 	return nil
