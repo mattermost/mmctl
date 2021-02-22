@@ -154,8 +154,8 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
 
 		// This checks whether there is an output from the command - returned list can be of length >= 0
 		s.Require().Len(pluginList, len(pluginList))
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().NoError(err)
+		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.Run("List Marketplace Plugins for non-admin User", func() {
