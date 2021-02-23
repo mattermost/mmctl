@@ -35,10 +35,9 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
 		s.Require().Nil(err)
 
-		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("System admin role assigned to user %q", mockUser.Email), printer.GetLines()[0])
-		s.Require().Equal(fmt.Sprintf("Updated %s roles: %s", mockUser.Email, mockUser.Roles), printer.GetLines()[1])
+		s.Require().Equal(fmt.Sprintf("System admin role assigned to user %q. Current roles are: %s", mockUser.Email, "system_user, system_admin"), printer.GetLines()[0])
 	})
 
 	s.Run("Adding admin privileges to existing admin", func() {
@@ -56,9 +55,8 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
 		s.Require().Nil(err)
 
-		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("Updated %s roles: %s", mockUser.Email, mockUser.Roles), printer.GetLines()[0])
 	})
 
 	s.Run("Add admin to non existing user", func() {
@@ -140,10 +138,9 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
 		s.Require().Nil(err)
 
-		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("System admin role revoked for user %q", mockUser.Email), printer.GetLines()[0])
-		s.Require().Equal(fmt.Sprintf("Updated %s roles: %s", mockUser.Email, mockUser.Roles), printer.GetLines()[1])
+		s.Require().Equal(fmt.Sprintf("System admin role revoked for user %q. Current roles are: %s", mockUser.Email, "system_user"), printer.GetLines()[0])
 	})
 
 	s.Run("Remove admin privileges from non admin user", func() {
@@ -160,9 +157,8 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
 		s.Require().Nil(err)
 
-		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("Updated %s roles: %s", mockUser.Email, mockUser.Roles), printer.GetLines()[0])
 	})
 
 	s.Run("Error while revoking admin role", func() {
