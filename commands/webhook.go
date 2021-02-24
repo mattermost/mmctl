@@ -203,13 +203,13 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	channelArg, _ := command.Flags().GetString("channel")
 	channel := getChannelFromChannelArg(c, channelArg)
 	if channel == nil {
-		return errors.New("Unable to find channel '" + channelArg + "'")
+		return errors.Errorf("Unable to find channel '%s'", channelArg)
 	}
 
 	userArg, _ := command.Flags().GetString("user")
 	user := getUserFromUserArg(c, userArg)
 	if user == nil {
-		return errors.New("Unable to find user '" + userArg + "'")
+		return errors.Errorf("Unable to find user '%s'", userArg)
 	}
 
 	var owner *model.User
@@ -221,7 +221,7 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	if ownerArg != "" {
 		owner = getUserFromUserArg(c, ownerArg)
 		if owner == nil {
-			return errors.New("unable to find owner user: " + ownerArg)
+			return errors.Errorf("unable to find owner user: %s", ownerArg)
 		}
 	}
 
@@ -262,7 +262,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	webhookArg := args[0]
 	oldHook, response := c.GetIncomingWebhook(webhookArg, "")
 	if response.Error != nil {
-		return errors.New("Unable to find webhook '" + webhookArg + "'")
+		return errors.Errorf("Unable to find webhook '%s'", webhookArg)
 	}
 
 	updatedHook := oldHook
@@ -271,7 +271,7 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	if channelArg != "" {
 		channel := getChannelFromChannelArg(c, channelArg)
 		if channel == nil {
-			return errors.New("Unable to find channel '" + channelArg + "'")
+			return errors.Errorf("Unable to find channel '%s'", channelArg)
 		}
 		updatedHook.ChannelId = channel.Id
 	}
@@ -307,13 +307,13 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	teamArg, _ := command.Flags().GetString("team")
 	team := getTeamFromTeamArg(c, teamArg)
 	if team == nil {
-		return errors.New("Unable to find team: " + teamArg)
+		return errors.Errorf("Unable to find team: %s", teamArg)
 	}
 
 	userArg, _ := command.Flags().GetString("user")
 	user := getUserFromUserArg(c, userArg)
 	if user == nil {
-		return errors.New("Unable to find user: " + userArg)
+		return errors.Errorf("Unable to find user: %s", userArg)
 	}
 
 	var owner *model.User
@@ -325,7 +325,7 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	if ownerArg != "" {
 		owner = getUserFromUserArg(c, ownerArg)
 		if owner == nil {
-			return errors.New("unable to find owner user: " + ownerArg)
+			return errors.Errorf("unable to find owner user: %s", ownerArg)
 		}
 	}
 
@@ -391,7 +391,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	webhookArg := args[0]
 	oldHook, respWebhookOutgoing := c.GetOutgoingWebhook(webhookArg)
 	if respWebhookOutgoing.Error != nil {
-		return errors.New("unable to find webhook '" + webhookArg + "'")
+		return errors.Errorf("unable to find webhook '%s'", webhookArg)
 	}
 
 	updatedHook := oldHook
@@ -400,7 +400,7 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	if channelArg != "" {
 		channel := getChannelFromChannelArg(c, channelArg)
 		if channel == nil {
-			return errors.New("unable to find channel '" + channelArg + "'")
+			return errors.Errorf("unable to find channel '%s'", channelArg)
 		}
 		updatedHook.ChannelId = channel.Id
 	}
@@ -491,7 +491,7 @@ func deleteWebhookCmdF(c client.Client, command *cobra.Command, args []string) e
 		return nil
 	}
 
-	return errors.New("Webhook with id '" + webhookID + "' not found")
+	return errors.Errorf("Webhook with id '%s' not found", webhookID)
 }
 
 func showWebhookCmdF(c client.Client, command *cobra.Command, args []string) error {
@@ -508,5 +508,5 @@ func showWebhookCmdF(c client.Client, command *cobra.Command, args []string) err
 		return nil
 	}
 
-	return errors.New("Webhook with id '" + webhookID + "' not found")
+	return errors.Errorf("Webhook with id '%s' not found", webhookID)
 }
