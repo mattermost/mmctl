@@ -215,7 +215,7 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	var owner *model.User
 	ownerArg, _ := command.Flags().GetString("owner")
 	if viper.GetBool("local") && ownerArg == "" {
-		return errors.New("owner flag should be set when this command is run in local mode")
+		return errors.New("owner should be specified to run this command in local mode")
 	}
 
 	if ownerArg != "" {
@@ -319,7 +319,7 @@ func createOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	var owner *model.User
 	ownerArg, _ := command.Flags().GetString("owner")
 	if viper.GetBool("local") && ownerArg == "" {
-		return errors.New("owner flag should be set when this command is run in local mode")
+		return errors.New("owner should be specified to run this command in local mode")
 	}
 
 	if ownerArg != "" {

@@ -21,6 +21,21 @@ func (s *MmctlE2ETestSuite) TestCreateIncomingWebhookCmd() {
 		*cfg.ServiceSettings.EnablePostUsernameOverride = oldEnablePostUsernameOverride
 	})
 
+	s.Run("Unprivileged user should not be able to create an incoming webhook", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("channel", s.th.BasicChannel.Id, "")
+		cmd.Flags().String("user", s.th.BasicUser.Username, "")
+
+		err := createIncomingWebhookCmdF(s.th.Client, cmd, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "appropriate permissions")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to create webhook", printer.GetErrorLines()[0])
+	})
+
 	s.Run("Sysadmin should be able to create an incoming webhook without specifying an owner", func() {
 		printer.Clean()
 
@@ -53,7 +68,7 @@ func (s *MmctlE2ETestSuite) TestCreateIncomingWebhookCmd() {
 
 		err := createIncomingWebhookCmdF(s.th.LocalClient, cmd, []string{})
 		s.Require().Error(err)
-		s.Require().EqualError(err, "owner flag should be set when this command is run in local mode")
+		s.Require().EqualError(err, "owner should be specified to run this command in local mode")
 	})
 
 	s.RunForSystemAdminAndLocal("Create incoming webhook from a specific user", func(c client.Client) {
@@ -81,6 +96,25 @@ func (s *MmctlE2ETestSuite) TestCreateIncomingWebhookCmd() {
 
 func (s *MmctlE2ETestSuite) TestCreateOutgoingWebhookCmd() {
 	s.SetupTestHelper().InitBasic()
+
+	s.Run("Unprivileged user should not be able to create an outgoing webhook", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("team", s.th.BasicTeam.Id, "")
+		cmd.Flags().String("user", s.th.BasicUser.Username, "")
+		cmd.Flags().String("display-name", model.NewId(), "")
+		cmd.Flags().String("channel", s.th.BasicChannel.Id, "")
+		cmd.Flags().String("trigger-when", "exact", "")
+		cmd.Flags().StringArray("url", []string{"http://example.com"}, "")
+
+		err := createOutgoingWebhookCmdF(s.th.Client, cmd, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "appropriate permissions")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Unable to create outgoing webhook", printer.GetErrorLines()[0])
+	})
 
 	s.Run("Sysadmin should be able to create an outgoing webhook without specifying an owner", func() {
 		printer.Clean()
@@ -119,7 +153,7 @@ func (s *MmctlE2ETestSuite) TestCreateOutgoingWebhookCmd() {
 
 		err := createOutgoingWebhookCmdF(s.th.SystemAdminClient, cmd, []string{})
 		s.Require().Error(err)
-		s.Require().EqualError(err, "owner flag should be set when this command is run in local mode")
+		s.Require().EqualError(err, "owner should be specified to run this command in local mode")
 	})
 
 	s.RunForSystemAdminAndLocal("Create outgoing webhook from a specific user", func(c client.Client) {
