@@ -60,6 +60,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 	return channel
 }
 
+//nolint:golint,unused
 func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, error) {
 	var channels []*model.Channel
 	var result *multierror.Error
@@ -74,6 +75,7 @@ func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channe
 	return channels, result.ErrorOrNil()
 }
 
+//nolint:golint,unused
 func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	teamArg, channelArg := parseChannelArg(arg)
 	if teamArg == "" && channelArg == "" {

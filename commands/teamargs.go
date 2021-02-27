@@ -36,6 +36,7 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 	return team
 }
 
+//nolint:golint,unused
 func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error) {
 	var teams []*model.Team
 	var result *multierror.Error
@@ -50,6 +51,7 @@ func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error)
 	return teams, result.ErrorOrNil()
 }
 
+//nolint:golint,unused
 func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	if checkDots(teamArg) || checkSlash(teamArg) {
 		return nil, fmt.Errorf("invalid argument %q", teamArg)
