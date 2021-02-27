@@ -1,3 +1,5 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 package commands
 
 import (
@@ -5,11 +7,11 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/mattermost/mmctl/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
-
 	s.Run("user not found", func() {
 		notFoundEmail := "emailNotfound@notfound.com"
 		notFoundErr := &model.AppError{Message: "user not found", StatusCode: http.StatusNotFound}

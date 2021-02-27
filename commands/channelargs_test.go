@@ -106,5 +106,4 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 		s.Require().Len(channels, 1)
 		s.Require().Equal(successChannel, channels[0])
 	})
-
 }

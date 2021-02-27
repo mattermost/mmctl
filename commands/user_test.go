@@ -230,7 +230,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Errorf("1 error occurred:\n\t* user %v not found\n\n", emailArg).Error(), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %v not found\n\n", emailArg), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Fail to deactivate user", func() {
@@ -1605,7 +1605,6 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 					GetUser(user, "").
 					Return(nil, nil).
 					Times(1)
-
 			} else {
 				s.client.
 					EXPECT().

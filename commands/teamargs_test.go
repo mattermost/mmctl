@@ -93,5 +93,4 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 		s.Require().Len(teams, 1)
 		s.Require().Equal(successTeam, teams[0])
 	})
-
 }
