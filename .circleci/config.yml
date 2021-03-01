@@ -43,7 +43,7 @@ commands:
             mkdir -p << parameters.gobin >>
             command -v << parameters.gobin >>/golangci-lint && exit
 
-            download=https://raw.githubusercontent.com/golangci/golangci-lint/release-5.33/install.sh
+            download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
             wget -O- -q $download | sh -s -- -b << parameters.gobin >>/ v<< parameters.version >>
       - save_cache:
           name: Save golangci-lint cache
