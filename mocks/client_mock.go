@@ -383,6 +383,21 @@ func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), arg0)
 }
 
+// DemoteUserToGuest mocks base method
+func (m *MockClient) DemoteUserToGuest(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DemoteUserToGuest", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// DemoteUserToGuest indicates an expected call of DemoteUserToGuest
+func (mr *MockClientMockRecorder) DemoteUserToGuest(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DemoteUserToGuest", reflect.TypeOf((*MockClient)(nil).DemoteUserToGuest), arg0)
+}
+
 // DisableBot mocks base method
 func (m *MockClient) DisableBot(arg0 string) (*model.Bot, *model.Response) {
 	m.ctrl.T.Helper()
@@ -1477,6 +1492,21 @@ func (m *MockClient) PermanentDeleteUser(arg0 string) (bool, *model.Response) {
 func (mr *MockClientMockRecorder) PermanentDeleteUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteUser", reflect.TypeOf((*MockClient)(nil).PermanentDeleteUser), arg0)
+}
+
+// PromoteGuestToUser mocks base method
+func (m *MockClient) PromoteGuestToUser(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PromoteGuestToUser", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PromoteGuestToUser indicates an expected call of PromoteGuestToUser
+func (mr *MockClientMockRecorder) PromoteGuestToUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteGuestToUser", reflect.TypeOf((*MockClient)(nil).PromoteGuestToUser), arg0)
 }
 
 // RegenOutgoingHookToken mocks base method

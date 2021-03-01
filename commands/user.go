@@ -174,6 +174,24 @@ var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Args:    cobra.MinimumNArgs(1),
 }
 
+var PromoteGuestToUserCmd = &cobra.Command{
+	Use:     "promote [guests]",
+	Short:   "Promote guests to users",
+	Long:    "Convert a guest into a regular user.",
+	Example: "  user promote guest1",
+	RunE:    withClient(promoteGuestToUserCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
+var DemoteUserToGuestCmd = &cobra.Command{
+	Use:     "demote [users]",
+	Short:   "Demote users to guests",
+	Long:    "Convert a regular user into a guest.",
+	Example: "  user demote user1",
+	RunE:    withClient(demoteUserToGuestCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
 var UserConvertCmd = &cobra.Command{
 	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL])",
 	Short: "Convert users to bots, or a bot to a user",
@@ -240,6 +258,7 @@ func init() {
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+	UserCreateCmd.Flags().Bool("guest", false, "Optional. If supplied, the new user will be a guest. Defaults to false")
 	UserCreateCmd.Flags().Bool("email_verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -322,6 +341,8 @@ Global Flags:
 		VerifyUserEmailWithoutTokenCmd,
 		UserConvertCmd,
 		MigrateAuthCmd,
+		PromoteGuestToUserCmd,
+		DemoteUserToGuestCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -386,6 +407,7 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	lastname, _ := cmd.Flags().GetString("lastname")
 	locale, _ := cmd.Flags().GetString("locale")
 	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+	guest, _ := cmd.Flags().GetBool("guest")
 	emailVerified, _ := cmd.Flags().GetBool("email_verified")
 
 	user := &model.User{
@@ -408,6 +430,10 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if systemAdmin {
 		if _, response := c.UpdateUserRoles(ruser.Id, "system_user system_admin"); response.Error != nil {
 			return errors.New("Unable to update user roles. Error: " + response.Error.Error())
+		}
+	} else if guest {
+		if _, response := c.DemoteUserToGuest(ruser.Id); response.Error != nil {
+			return errors.Wrapf(response.Error, "Unable to demote use to guest.")
 		}
 	}
 
@@ -935,6 +961,42 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 		return resp.Error
 	} else if ok {
 		printer.Print("Successfully migrated accounts.")
+	}
+
+	return nil
+}
+
+func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find guest '%v'", userArgs[i]))
+			continue
+		}
+
+		if _, resp := c.PromoteGuestToUser(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], resp.Error))
+			continue
+		}
+
+		printer.PrintT("User {{.Username}} promoted.", user)
+	}
+
+	return nil
+}
+
+func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			continue
+		}
+
+		if _, resp := c.DemoteUserToGuest(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], resp.Error))
+			continue
+		}
+
+		printer.PrintT("User {{.Username}} demoted.", user)
 	}
 
 	return nil
