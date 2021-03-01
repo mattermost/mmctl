@@ -43,7 +43,7 @@ commands:
             mkdir -p << parameters.gobin >>
             command -v << parameters.gobin >>/golangci-lint && exit
 
-            download=https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh
+            download=https://raw.githubusercontent.com/golangci/golangci-lint/release-5.33/install.sh
             wget -O- -q $download | sh -s -- -b << parameters.gobin >>/ v<< parameters.version >>
       - save_cache:
           name: Save golangci-lint cache
@@ -55,7 +55,7 @@ jobs:
     executor:
       name: default
     steps:
-      - release-5.33
+      - checkout
       - run:
           command: |
             echo "Making sure docs are updated"
@@ -66,7 +66,7 @@ jobs:
     executor:
       name: default
     steps:
-      - release-5.33
+      - checkout
       - attach_workspace:
           at: ~/go/mattermost/
       - install-golangci-lint
@@ -88,7 +88,7 @@ jobs:
             git clone https://github.com/mattermost/mattermost-server.git
 
             cd mattermost-server
-            git release-5.33 $CIRCLE_BRANCH || git release-5.33 master
+            git checkout $CIRCLE_BRANCH || git checkout release-5.33
       - persist_to_workspace:
           root: ~/go/src/github.com/mattermost
           paths:
@@ -101,7 +101,7 @@ jobs:
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
     steps:
-      - release-5.33
+      - checkout
       - attach_workspace:
           at: ~/go/src/github.com/mattermost/
       - run:
@@ -132,18 +132,7 @@ jobs:
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096 && make test-all'
-
-  coverage:
-    executor:
-      name: default
-    steps:
-      - release-5.33
-      - *restore_cache
-      - run:
-          name: Generating Coverage Results
-          command: make coverage
-      - *save_cache
+              bash -c 'ulimit -n 8096 && make coverage'
       - codecov/upload:
         file:  coverage.txt
 
@@ -153,9 +142,6 @@ workflows:
     jobs:
       - docs
       - lint
-      - coverage:
-          requires:
-            - test
       - setup
       - test:
           requires:
