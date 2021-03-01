@@ -55,7 +55,7 @@ jobs:
     executor:
       name: default
     steps:
-      - checkout
+      - release-5.33
       - run:
           command: |
             echo "Making sure docs are updated"
@@ -66,7 +66,7 @@ jobs:
     executor:
       name: default
     steps:
-      - checkout
+      - release-5.33
       - attach_workspace:
           at: ~/go/mattermost/
       - install-golangci-lint
@@ -88,7 +88,7 @@ jobs:
             git clone https://github.com/mattermost/mattermost-server.git
 
             cd mattermost-server
-            git checkout $CIRCLE_BRANCH || git checkout master
+            git release-5.33 $CIRCLE_BRANCH || git release-5.33 master
       - persist_to_workspace:
           root: ~/go/src/github.com/mattermost
           paths:
@@ -101,7 +101,7 @@ jobs:
     environment:
       COMPOSE_PROJECT_NAME: "circleci"
     steps:
-      - checkout
+      - release-5.33
       - attach_workspace:
           at: ~/go/src/github.com/mattermost/
       - run:
@@ -138,7 +138,7 @@ jobs:
     executor:
       name: default
     steps:
-      - checkout
+      - release-5.33
       - *restore_cache
       - run:
           name: Generating Coverage Results
