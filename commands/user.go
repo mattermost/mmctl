@@ -387,7 +387,7 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	locale, _ := cmd.Flags().GetString("locale")
 	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
 	emailVerified, _ := cmd.Flags().GetBool("email_verified")
-	disableWelcomeEmail, _ := cmd.Flags().GetBool("send_welcome_email")
+	disableWelcomeEmail, _ := cmd.Flags().GetBool("disable_welcome_email")
 
 	user := &model.User{
 		Username:            username,
