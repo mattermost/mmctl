@@ -88,7 +88,7 @@ jobs:
             git clone https://github.com/mattermost/mattermost-server.git
 
             cd mattermost-server
-            git checkout $CIRCLE_BRANCH || git checkout master
+            git checkout $CIRCLE_BRANCH || git checkout release-5.33
       - persist_to_workspace:
           root: ~/go/src/github.com/mattermost
           paths:
@@ -132,18 +132,7 @@ jobs:
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
               mattermost/mattermost-build-server:20200731_golang-1.14.6 \
-              bash -c 'ulimit -n 8096 && make test-all'
-
-  coverage:
-    executor:
-      name: default
-    steps:
-      - checkout
-      - *restore_cache
-      - run:
-          name: Generating Coverage Results
-          command: make coverage
-      - *save_cache
+              bash -c 'ulimit -n 8096 && make coverage'
       - codecov/upload:
         file:  coverage.txt
 
@@ -153,9 +142,6 @@ workflows:
     jobs:
       - docs
       - lint
-      - coverage:
-          requires:
-            - test
       - setup
       - test:
           requires:
