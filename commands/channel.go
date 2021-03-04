@@ -140,9 +140,9 @@ var SearchChannelCmd = &cobra.Command{
 	Use:   "search [channel]\n  mmctl search --team [team] [channel]",
 	Short: "Search a channel",
 	Long: `Search a channel by channel name.
-Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
-	Example: `  channel search myChannel
-  channel search --team myTeam myChannel`,
+Channel can be specified by team. ie. --team myteam mychannel or by team ID.`,
+	Example: `  channel search mychannel
+  channel search --team myteam mychannel`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(searchChannelCmdF),
 }
