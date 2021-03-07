@@ -37,6 +37,7 @@ SEE ALSO
 * `mmctl config edit <mmctl_config_edit.rst>`_ 	 - Edit the config
 * `mmctl config get <mmctl_config_get.rst>`_ 	 - Get config setting
 * `mmctl config migrate <mmctl_config_migrate.rst>`_ 	 - Migrate existing config between backends
+* `mmctl config patch <mmctl_config_patch.rst>`_ 	 - Patch the config
 * `mmctl config reload <mmctl_config_reload.rst>`_ 	 - Reload the server configuration
 * `mmctl config reset <mmctl_config_reset.rst>`_ 	 - Reset config setting
 * `mmctl config set <mmctl_config_set.rst>`_ 	 - Set config setting
