@@ -11,6 +11,13 @@ Synopsis
 
 List import files
 
+Examples
+~~~~~~~~
+
+::
+
+   import list
+
 Options
 ~~~~~~~
 
