@@ -20,8 +20,8 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginID      = "jira"
-			pluginVersion = "3.0.0"
+			pluginID      = "memes"
+			pluginVersion = "1.4.0"
 		)
 
 		defer removePluginIfInstalled(s, pluginID)
@@ -47,8 +47,8 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginID      = "jira"
-			pluginVersion = "3.0.0"
+			pluginID      = "memes"
+			pluginVersion = "1.4.0"
 		)
 
 		defer removePluginIfInstalled(s, pluginID)
