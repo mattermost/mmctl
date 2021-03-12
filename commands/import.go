@@ -34,6 +34,7 @@ var ImportListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List import files",
+	Example: " import list",
 }
 
 var ImportListAvailableCmd = &cobra.Command{
@@ -68,7 +69,7 @@ var ImportJobListCmd = &cobra.Command{
 
 var ImportJobShowCmd = &cobra.Command{
 	Use:     "show [importJobID]",
-	Example: "  import job show",
+	Example: " import job show f3d68qkkm7n8xgsfxwuo498rah",
 	Short:   "Show import job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(importJobShowCmdF),

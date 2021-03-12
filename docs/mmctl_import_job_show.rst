@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    import job show
+   import job show f3d68qkkm7n8xgsfxwuo498rah
 
 Options
 ~~~~~~~
