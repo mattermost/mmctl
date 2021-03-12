@@ -11,10 +11,7 @@ require (
 	github.com/magefile/mage v1.9.0
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible // indirect
-	github.com/mattermost/gosaml2 v0.3.2
-	github.com/mattermost/ldap v0.0.0-20191128190019-9f62ba4b8d4d
-	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20201204150807-d137cf0aa5b2
-	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
+	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210209105831-572f861675b6
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/poy/onpar v1.0.0 // indirect
@@ -25,8 +22,5 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.7.0
-	github.com/tylerb/graceful v1.2.15
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/term v0.0.0-20201117132131-f5c789dd3221
-	gopkg.in/olivere/elastic.v6 v6.2.35
+	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
 )

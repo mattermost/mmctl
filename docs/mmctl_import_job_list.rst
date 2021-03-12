@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import job list
+    import job list
 
 Options
 ~~~~~~~
