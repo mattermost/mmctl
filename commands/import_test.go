@@ -163,7 +163,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
-		s.Equal("No import jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.Run("some import jobs", func() {

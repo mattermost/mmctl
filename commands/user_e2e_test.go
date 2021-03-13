@@ -150,6 +150,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		s.th.BasicUser2.Username,
 		s.th.TeamAdminUser.Username,
 		s.th.SystemAdminUser.Username,
+		s.th.SystemManagerUser.Username,
 	}
 	for i := 0; i < 10; i++ {
 		userData := model.User{

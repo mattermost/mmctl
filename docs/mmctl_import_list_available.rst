@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import list available
+    import list available
 
 Options
 ~~~~~~~

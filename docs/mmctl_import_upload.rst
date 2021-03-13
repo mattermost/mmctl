@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import upload import_file.zip
+    import upload import_file.zip
 
 Options
 ~~~~~~~

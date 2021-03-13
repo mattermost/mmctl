@@ -34,6 +34,7 @@ SEE ALSO
 * `mmctl completion <mmctl_completion.rst>`_ 	 - Generates autocompletion scripts for bash and zsh
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
+* `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
