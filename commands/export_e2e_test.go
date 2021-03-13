@@ -81,7 +81,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 	s.Require().Nil(err)
 
 	exportName := "export.zip"
-	s.Run("no permissions", func() {
+	s.Run("MM-T3876 - no permissions", func() {
 		printer.Clean()
 
 		err := exportDeleteCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
@@ -90,7 +90,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("delete export", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3843 - delete export", func(c client.Client) {
 		cmd := &cobra.Command{}
 
 		err := utils.CopyFile(importFilePath, filepath.Join(exportPath, exportName))
@@ -127,7 +127,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 	s.SetupTestHelper()
 
-	s.Run("no permissions", func() {
+	s.Run("MM-T3877 - no permissions", func() {
 		printer.Clean()
 
 		err := exportCreateCmdF(s.th.Client, &cobra.Command{}, nil)
@@ -136,7 +136,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("create export", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3839 - create export", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -148,7 +148,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		s.Require().Nil(printer.GetLines()[0].(*model.Job).Data)
 	})
 
-	s.RunForSystemAdminAndLocal("create export with attachments", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3878 - create export with attachments", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -174,7 +174,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 
 	exportName := "export.zip"
 
-	s.Run("no permissions", func() {
+	s.Run("MM-T3879 - no permissions", func() {
 		printer.Clean()
 
 		err := exportDownloadCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
@@ -183,7 +183,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("existing, non empty file", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3880 - existing, non empty file", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -200,7 +200,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("resuming non-existent file", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3381 - resuming non-existent file", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -215,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("export does not exist", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3882 - export does not exist", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -230,7 +230,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("existing, empty file", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3883 - existing, empty file", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -253,7 +253,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("full download", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3842 - full download", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -280,7 +280,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Equal(expected, actual)
 	})
 
-	s.RunForSystemAdminAndLocal("resume download", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3884 - resume download", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -318,7 +318,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	s.Run("no permissions", func() {
+	s.Run("MM-T3885 - no permissions", func() {
 		printer.Clean()
 
 		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
@@ -327,7 +327,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("not found", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3886 - not found", func(c client.Client) {
 		printer.Clean()
 
 		err := exportJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
@@ -336,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3841 - found", func(c client.Client) {
 		printer.Clean()
 
 		job, appErr := s.th.App.CreateJob(&model.Job{
@@ -355,7 +355,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	s.Run("no permissions", func() {
+	s.Run("MM-T3887 - no permissions", func() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -369,7 +369,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("no export jobs", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3888 - no export jobs", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -384,7 +384,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
-	s.RunForSystemAdminAndLocal("some export jobs", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3840 - some export jobs", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
