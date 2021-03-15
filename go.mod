@@ -9,13 +9,10 @@ require (
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09 // indirect
 	github.com/go-gorp/gorp v2.2.0+incompatible // indirect
 	github.com/golang/mock v1.4.4
-	github.com/klauspost/compress v1.11.7 // indirect
 	github.com/magefile/mage v1.11.0
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mattermost/gorp v2.0.1-0.20200527092429-d62b7b9cadfc+incompatible // indirect
 	github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210312174643-95b080985028
-	github.com/mattn/go-runewidth v0.0.10 // indirect
-	github.com/minio/sio v0.2.1 // indirect
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/otiai10/gosseract/v2 v2.3.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.3 // indirect

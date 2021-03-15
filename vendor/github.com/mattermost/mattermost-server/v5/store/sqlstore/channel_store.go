@@ -16,9 +16,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/cache"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -660,9 +660,9 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, error) 
 	}
 	defer finalizeTransaction(transaction)
 
-	updatedChannel, appErr := s.updateChannelT(transaction, channel)
-	if appErr != nil {
-		return nil, appErr
+	updatedChannel, err := s.updateChannelT(transaction, channel)
+	if err != nil {
+		return nil, err
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
@@ -1389,19 +1389,9 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 		defer s.InvalidateAllChannelMembersForUser(member.UserId)
 	}
 
-	transaction, err := s.GetMaster().Begin()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransaction(transaction)
-
 	newMembers, err := s.saveMultipleMembers(members)
 	if err != nil {
 		return nil, err
-	}
-
-	if err := transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return newMembers, nil
