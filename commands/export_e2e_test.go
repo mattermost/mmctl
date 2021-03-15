@@ -27,7 +27,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		*s.th.App.Config().ExportSettings.Directory))
 	s.Require().Nil(err)
 
-	s.Run("no permissions", func() {
+	s.Run("MM-T3914 - no permissions", func() {
 		printer.Clean()
 
 		err := exportListCmdF(s.th.Client, &cobra.Command{}, nil)
@@ -36,7 +36,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("no exports", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3913 - no exports", func(c client.Client) {
 		printer.Clean()
 
 		err := exportListCmdF(c, &cobra.Command{}, nil)
@@ -46,7 +46,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		s.Equal("No export files found", printer.GetLines()[0])
 	})
 
-	s.RunForSystemAdminAndLocal("some exports", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3912 - some exports", func(c client.Client) {
 		cmd := &cobra.Command{}
 
 		numExports := 3
