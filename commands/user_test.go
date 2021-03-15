@@ -1245,7 +1245,9 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 	s.Run("Create a regular user with welcome email disabled", func() {
 		printer.Clean()
 
+		oldDisableWelcomeEmail := mockUser.DisableWelcomeEmail
 		mockUser.DisableWelcomeEmail = true
+		defer func() { mockUser.DisableWelcomeEmail = oldDisableWelcomeEmail }()
 
 		s.client.
 			EXPECT().
