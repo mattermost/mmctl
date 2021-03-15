@@ -1,14 +1,30 @@
+# code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a
+code.sajari.com/docconv
+code.sajari.com/docconv/iWork
+code.sajari.com/docconv/snappy
+# github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198
+github.com/JalfResi/justext
 # github.com/Masterminds/semver/v3 v3.1.1
 github.com/Masterminds/semver/v3
 # github.com/Masterminds/squirrel v1.5.0
 github.com/Masterminds/squirrel
 # github.com/NYTimes/gziphandler v1.1.1
 github.com/NYTimes/gziphandler
+# github.com/PuerkitoBio/goquery v1.6.1
+github.com/PuerkitoBio/goquery
 # github.com/RoaringBitmap/roaring v0.5.5
 github.com/RoaringBitmap/roaring
+# github.com/advancedlogic/GoOse v0.0.0-20200830213114-1225d531e0ad
+github.com/advancedlogic/GoOse
+# github.com/andybalholm/brotli v1.0.1
+github.com/andybalholm/brotli
+# github.com/andybalholm/cascadia v1.2.0
+github.com/andybalholm/cascadia
+# github.com/araddon/dateparse v0.0.0-20210207001429-0eec95c9db7e
+github.com/araddon/dateparse
 # github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 github.com/avct/uasurfer
-# github.com/aws/aws-sdk-go v1.36.29
+# github.com/aws/aws-sdk-go v1.37.18
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -19,6 +35,7 @@ github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/aws/credentials/processcreds
+github.com/aws/aws-sdk-go/aws/credentials/ssocreds
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
 github.com/aws/aws-sdk-go/aws/csm
 github.com/aws/aws-sdk-go/aws/defaults
@@ -42,9 +59,12 @@ github.com/aws/aws-sdk-go/private/protocol/jsonrpc
 github.com/aws/aws-sdk-go/private/protocol/query
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/rest
+github.com/aws/aws-sdk-go/private/protocol/restjson
 github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/marketplacemetering
 github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface
+github.com/aws/aws-sdk-go/service/sso
+github.com/aws/aws-sdk-go/service/sso/ssoiface
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/beorn7/perks v1.0.1
@@ -127,38 +147,74 @@ github.com/dgryski/dgoogauth
 github.com/dgryski/go-rendezvous
 # github.com/disintegration/imaging v1.6.2
 github.com/disintegration/imaging
+# github.com/dsnet/compress v0.0.1
+github.com/dsnet/compress
+github.com/dsnet/compress/bzip2
+github.com/dsnet/compress/bzip2/internal/sais
+github.com/dsnet/compress/internal
+github.com/dsnet/compress/internal/errors
+github.com/dsnet/compress/internal/prefix
 # github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09
 github.com/dyatlov/go-opengraph/opengraph
 # github.com/fatih/color v1.10.0
 github.com/fatih/color
+# github.com/fatih/set v0.2.1
+github.com/fatih/set
+# github.com/felixge/httpsnoop v1.0.1
+github.com/felixge/httpsnoop
 # github.com/francoispqt/gojay v1.2.13
 github.com/francoispqt/gojay
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
-# github.com/getsentry/sentry-go v0.9.0
+# github.com/getsentry/sentry-go v0.10.0
 github.com/getsentry/sentry-go
 github.com/getsentry/sentry-go/http
 github.com/getsentry/sentry-go/internal/crypto/randutil
 github.com/getsentry/sentry-go/internal/debug
-# github.com/glycerine/go-unsnap-stream v0.0.0-20190901134440-81cf024a9e0a
+# github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573
+github.com/gigawattio/window
+# github.com/glycerine/go-unsnap-stream v0.0.0-20210130063903-47dfef350d96
 github.com/glycerine/go-unsnap-stream
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-redis/redis/v8 v8.4.9
+# github.com/go-redis/redis/v8 v8.6.0
 github.com/go-redis/redis/v8
 github.com/go-redis/redis/v8/internal
 github.com/go-redis/redis/v8/internal/hashtag
+github.com/go-redis/redis/v8/internal/hscan
 github.com/go-redis/redis/v8/internal/pool
 github.com/go-redis/redis/v8/internal/proto
 github.com/go-redis/redis/v8/internal/rand
 github.com/go-redis/redis/v8/internal/util
+# github.com/go-resty/resty/v2 v2.5.0
+github.com/go-resty/resty/v2
 # github.com/go-sql-driver/mysql v1.5.0
 github.com/go-sql-driver/mysql
+# github.com/gobwas/httphead v0.1.0
+github.com/gobwas/httphead
+# github.com/gobwas/pool v0.2.1
+github.com/gobwas/pool
+github.com/gobwas/pool/internal/pmath
+github.com/gobwas/pool/pbufio
+github.com/gobwas/pool/pbytes
+# github.com/gobwas/ws v1.1.0-rc.2
+github.com/gobwas/ws
+github.com/gobwas/ws/wsutil
+# github.com/golang-migrate/migrate/v4 v4.14.1
+github.com/golang-migrate/migrate/v4
+github.com/golang-migrate/migrate/v4/database
+github.com/golang-migrate/migrate/v4/database/mysql
+github.com/golang-migrate/migrate/v4/database/postgres
+github.com/golang-migrate/migrate/v4/internal/url
+github.com/golang-migrate/migrate/v4/source
+github.com/golang-migrate/migrate/v4/source/file
+github.com/golang-migrate/migrate/v4/source/go_bindata
+github.com/golang-migrate/migrate/v4/source/httpfs
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 github.com/golang/freetype
 github.com/golang/freetype/raster
 github.com/golang/freetype/truetype
-# github.com/golang/mock v1.3.1
+# github.com/golang/mock v1.4.4
 github.com/golang/mock/gomock
 # github.com/golang/protobuf v1.4.3
 github.com/golang/protobuf/proto
@@ -170,10 +226,12 @@ github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.2
 github.com/golang/snappy
-# github.com/google/uuid v1.1.5
+# github.com/google/uuid v1.2.0
 github.com/google/uuid
-# github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00
+# github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe
 github.com/gopherjs/gopherjs/js
+# github.com/gorilla/handlers v1.5.1
+github.com/gorilla/handlers
 # github.com/gorilla/mux v1.8.0
 github.com/gorilla/mux
 # github.com/gorilla/schema v1.2.0
@@ -215,26 +273,42 @@ github.com/inconshreveable/mousetrap
 github.com/jaytaylor/html2text
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
-# github.com/jmoiron/sqlx v1.2.0
+# github.com/jmoiron/sqlx v1.3.1
 github.com/jmoiron/sqlx
 github.com/jmoiron/sqlx/reflectx
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
-# github.com/klauspost/cpuid v1.3.1
-github.com/klauspost/cpuid
+# github.com/klauspost/compress v1.11.7
+github.com/klauspost/compress/flate
+github.com/klauspost/compress/fse
+github.com/klauspost/compress/gzip
+github.com/klauspost/compress/huff0
+github.com/klauspost/compress/snappy
+github.com/klauspost/compress/zstd
+github.com/klauspost/compress/zstd/internal/xxhash
+# github.com/klauspost/cpuid/v2 v2.0.4
+github.com/klauspost/cpuid/v2
+# github.com/klauspost/pgzip v1.2.5
+github.com/klauspost/pgzip
 # github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 github.com/lann/builder
 # github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0
 github.com/lann/ps
+# github.com/ledongthuc/pdf v0.0.0-20200323191019-23c5852adbd2
+github.com/ledongthuc/pdf
+# github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5
+github.com/levigross/exp-html
 # github.com/lib/pq v1.9.0
 github.com/lib/pq
 github.com/lib/pq/oid
 github.com/lib/pq/scram
-# github.com/magefile/mage v1.9.0
+# github.com/magefile/mage v1.11.0
 github.com/magefile/mage/mg
 github.com/magefile/mage/sh
 # github.com/magiconair/properties v1.8.4
 github.com/magiconair/properties
+# github.com/mailru/easygo v0.0.0-20190618140210-3c14a0dc985f
+github.com/mailru/easygo/netpoll
 # github.com/mattermost/go-i18n v1.11.0
 github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
@@ -248,30 +322,28 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210209105831-572f861675b6
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210312174643-95b080985028
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing
 github.com/mattermost/mattermost-server/v5/audit
 github.com/mattermost/mattermost-server/v5/config
+github.com/mattermost/mattermost-server/v5/db/migrations
 github.com/mattermost/mattermost-server/v5/einterfaces
 github.com/mattermost/mattermost-server/v5/einterfaces/jobs
 github.com/mattermost/mattermost-server/v5/jobs
 github.com/mattermost/mattermost-server/v5/jobs/interfaces
-github.com/mattermost/mattermost-server/v5/mlog
-github.com/mattermost/mattermost-server/v5/mlog/human
 github.com/mattermost/mattermost-server/v5/model
 github.com/mattermost/mattermost-server/v5/plugin
 github.com/mattermost/mattermost-server/v5/plugin/plugintest/mock
 github.com/mattermost/mattermost-server/v5/services/awsmeter
 github.com/mattermost/mattermost-server/v5/services/cache
 github.com/mattermost/mattermost-server/v5/services/configservice
-github.com/mattermost/mattermost-server/v5/services/filesstore
+github.com/mattermost/mattermost-server/v5/services/docextractor
 github.com/mattermost/mattermost-server/v5/services/httpservice
 github.com/mattermost/mattermost-server/v5/services/imageproxy
 github.com/mattermost/mattermost-server/v5/services/mailservice
 github.com/mattermost/mattermost-server/v5/services/marketplace
-github.com/mattermost/mattermost-server/v5/services/mfa
 github.com/mattermost/mattermost-server/v5/services/searchengine
 github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine
 github.com/mattermost/mattermost-server/v5/services/slackimport
@@ -279,6 +351,12 @@ github.com/mattermost/mattermost-server/v5/services/telemetry
 github.com/mattermost/mattermost-server/v5/services/timezones
 github.com/mattermost/mattermost-server/v5/services/tracing
 github.com/mattermost/mattermost-server/v5/services/upgrader
+github.com/mattermost/mattermost-server/v5/shared/filestore
+github.com/mattermost/mattermost-server/v5/shared/i18n
+github.com/mattermost/mattermost-server/v5/shared/mfa
+github.com/mattermost/mattermost-server/v5/shared/mlog
+github.com/mattermost/mattermost-server/v5/shared/mlog/human
+github.com/mattermost/mattermost-server/v5/shared/templates
 github.com/mattermost/mattermost-server/v5/store
 github.com/mattermost/mattermost-server/v5/store/localcachelayer
 github.com/mattermost/mattermost-server/v5/store/opentracinglayer
@@ -308,9 +386,11 @@ github.com/mattn/go-isatty
 github.com/mattn/go-runewidth
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/minio/md5-simd v1.1.1
+# github.com/mholt/archiver/v3 v3.5.0
+github.com/mholt/archiver/v3
+# github.com/minio/md5-simd v1.1.2
 github.com/minio/md5-simd
-# github.com/minio/minio-go/v7 v7.0.7
+# github.com/minio/minio-go/v7 v7.0.10
 github.com/minio/minio-go/v7
 github.com/minio/minio-go/v7/pkg/credentials
 github.com/minio/minio-go/v7/pkg/encrypt
@@ -322,7 +402,7 @@ github.com/minio/minio-go/v7/pkg/set
 github.com/minio/minio-go/v7/pkg/signer
 github.com/minio/minio-go/v7/pkg/sse
 github.com/minio/minio-go/v7/pkg/tags
-# github.com/minio/sha256-simd v0.1.1
+# github.com/minio/sha256-simd v1.0.0
 github.com/minio/sha256-simd
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
@@ -342,9 +422,11 @@ github.com/muesli/smartcrop/nfnt
 github.com/muesli/smartcrop/options
 # github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 github.com/nfnt/resize
+# github.com/nwaples/rardecode v1.1.0
+github.com/nwaples/rardecode
 # github.com/oklog/run v1.1.0
 github.com/oklog/run
-# github.com/olekukonko/tablewriter v0.0.4
+# github.com/olekukonko/tablewriter v0.0.5
 github.com/olekukonko/tablewriter
 # github.com/oov/psd v0.0.0-20201203182240-dad9002861d9
 github.com/oov/psd
@@ -353,12 +435,20 @@ github.com/oov/psd/color
 github.com/opentracing/opentracing-go
 github.com/opentracing/opentracing-go/ext
 github.com/opentracing/opentracing-go/log
+# github.com/otiai10/gosseract/v2 v2.3.1
+github.com/otiai10/gosseract/v2
 # github.com/pborman/uuid v1.2.1
 github.com/pborman/uuid
 # github.com/pelletier/go-toml v1.8.1
 github.com/pelletier/go-toml
 # github.com/philhofer/fwd v1.1.1
 github.com/philhofer/fwd
+# github.com/pierrec/lz4/v4 v4.1.3
+github.com/pierrec/lz4/v4
+github.com/pierrec/lz4/v4/internal/lz4block
+github.com/pierrec/lz4/v4/internal/lz4errors
+github.com/pierrec/lz4/v4/internal/lz4stream
+github.com/pierrec/lz4/v4/internal/xxh32
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
@@ -369,11 +459,11 @@ github.com/prometheus/client_golang/prometheus/internal
 github.com/prometheus/client_golang/prometheus/promhttp
 # github.com/prometheus/client_model v0.2.0
 github.com/prometheus/client_model/go
-# github.com/prometheus/common v0.15.0
+# github.com/prometheus/common v0.17.0
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
 github.com/prometheus/common/model
-# github.com/prometheus/procfs v0.3.0
+# github.com/prometheus/procfs v0.6.0
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
@@ -396,14 +486,14 @@ github.com/rwcarlsen/goexif/tiff
 github.com/segmentio/backo-go
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 github.com/shurcooL/sanitized_anchor_name
-# github.com/sirupsen/logrus v1.7.0
+# github.com/sirupsen/logrus v1.8.0
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.4.1
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
 github.com/spf13/cast
-# github.com/spf13/cobra v1.1.1
+# github.com/spf13/cobra v1.1.3
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/jwalterweatherman v1.1.0
@@ -412,7 +502,7 @@ github.com/spf13/jwalterweatherman
 github.com/spf13/pflag
 # github.com/spf13/viper v1.7.0
 github.com/spf13/viper
-# github.com/splitio/go-client/v6 v6.0.1
+# github.com/splitio/go-client/v6 v6.0.2
 github.com/splitio/go-client/v6/splitio
 github.com/splitio/go-client/v6/splitio/client
 github.com/splitio/go-client/v6/splitio/conf
@@ -424,43 +514,46 @@ github.com/splitio/go-client/v6/splitio/engine/grammar/matchers
 github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes
 github.com/splitio/go-client/v6/splitio/engine/hash
 github.com/splitio/go-client/v6/splitio/impressionListener
-# github.com/splitio/go-split-commons/v2 v2.0.1
-github.com/splitio/go-split-commons/v2/conf
-github.com/splitio/go-split-commons/v2/dtos
-github.com/splitio/go-split-commons/v2/provisional
-github.com/splitio/go-split-commons/v2/push
-github.com/splitio/go-split-commons/v2/service
-github.com/splitio/go-split-commons/v2/service/api
-github.com/splitio/go-split-commons/v2/service/api/sse
-github.com/splitio/go-split-commons/v2/service/local
-github.com/splitio/go-split-commons/v2/storage
-github.com/splitio/go-split-commons/v2/storage/mocks
-github.com/splitio/go-split-commons/v2/storage/mutexmap
-github.com/splitio/go-split-commons/v2/storage/mutexqueue
-github.com/splitio/go-split-commons/v2/storage/redis
-github.com/splitio/go-split-commons/v2/synchronizer
-github.com/splitio/go-split-commons/v2/synchronizer/worker/event
-github.com/splitio/go-split-commons/v2/synchronizer/worker/impression
-github.com/splitio/go-split-commons/v2/synchronizer/worker/impressionscount
-github.com/splitio/go-split-commons/v2/synchronizer/worker/metric
-github.com/splitio/go-split-commons/v2/synchronizer/worker/segment
-github.com/splitio/go-split-commons/v2/synchronizer/worker/split
-github.com/splitio/go-split-commons/v2/tasks
-github.com/splitio/go-split-commons/v2/util
-# github.com/splitio/go-toolkit/v3 v3.0.1
-github.com/splitio/go-toolkit/v3/asynctask
-github.com/splitio/go-toolkit/v3/common
-github.com/splitio/go-toolkit/v3/datastructures/set
-github.com/splitio/go-toolkit/v3/injection
-github.com/splitio/go-toolkit/v3/logging
-github.com/splitio/go-toolkit/v3/nethelpers
-github.com/splitio/go-toolkit/v3/provisional/hashing
-github.com/splitio/go-toolkit/v3/provisional/int64cache
-github.com/splitio/go-toolkit/v3/queuecache
-github.com/splitio/go-toolkit/v3/redis
-github.com/splitio/go-toolkit/v3/redis/helpers
-github.com/splitio/go-toolkit/v3/sse
-github.com/splitio/go-toolkit/v3/workerpool
+# github.com/splitio/go-split-commons/v3 v3.0.0
+github.com/splitio/go-split-commons/v3/conf
+github.com/splitio/go-split-commons/v3/dtos
+github.com/splitio/go-split-commons/v3/provisional
+github.com/splitio/go-split-commons/v3/push
+github.com/splitio/go-split-commons/v3/service
+github.com/splitio/go-split-commons/v3/service/api
+github.com/splitio/go-split-commons/v3/service/api/sse
+github.com/splitio/go-split-commons/v3/service/local
+github.com/splitio/go-split-commons/v3/storage
+github.com/splitio/go-split-commons/v3/storage/mocks
+github.com/splitio/go-split-commons/v3/storage/mutexmap
+github.com/splitio/go-split-commons/v3/storage/mutexqueue
+github.com/splitio/go-split-commons/v3/storage/redis
+github.com/splitio/go-split-commons/v3/synchronizer
+github.com/splitio/go-split-commons/v3/synchronizer/worker/event
+github.com/splitio/go-split-commons/v3/synchronizer/worker/impression
+github.com/splitio/go-split-commons/v3/synchronizer/worker/impressionscount
+github.com/splitio/go-split-commons/v3/synchronizer/worker/metric
+github.com/splitio/go-split-commons/v3/synchronizer/worker/segment
+github.com/splitio/go-split-commons/v3/synchronizer/worker/split
+github.com/splitio/go-split-commons/v3/tasks
+github.com/splitio/go-split-commons/v3/util
+# github.com/splitio/go-toolkit/v4 v4.0.0
+github.com/splitio/go-toolkit/v4/asynctask
+github.com/splitio/go-toolkit/v4/backoff
+github.com/splitio/go-toolkit/v4/common
+github.com/splitio/go-toolkit/v4/datastructures/set
+github.com/splitio/go-toolkit/v4/injection
+github.com/splitio/go-toolkit/v4/logging
+github.com/splitio/go-toolkit/v4/nethelpers
+github.com/splitio/go-toolkit/v4/provisional/hashing
+github.com/splitio/go-toolkit/v4/provisional/int64cache
+github.com/splitio/go-toolkit/v4/queuecache
+github.com/splitio/go-toolkit/v4/redis
+github.com/splitio/go-toolkit/v4/redis/helpers
+github.com/splitio/go-toolkit/v4/sse
+github.com/splitio/go-toolkit/v4/struct/traits/lifecycle
+github.com/splitio/go-toolkit/v4/sync
+github.com/splitio/go-toolkit/v4/workerpool
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 github.com/ssor/bom
 # github.com/steveyen/gtreap v0.1.0
@@ -501,13 +594,18 @@ github.com/uber/jaeger-client-go/utils
 github.com/uber/jaeger-client-go/zipkin
 # github.com/uber/jaeger-lib v2.4.0+incompatible
 github.com/uber/jaeger-lib/metrics
-# github.com/vmihailenco/msgpack/v5 v5.1.4
+# github.com/ulikunitz/xz v0.5.10
+github.com/ulikunitz/xz
+github.com/ulikunitz/xz/internal/hash
+github.com/ulikunitz/xz/internal/xlog
+github.com/ulikunitz/xz/lzma
+# github.com/vmihailenco/msgpack/v5 v5.2.0
 github.com/vmihailenco/msgpack/v5
 github.com/vmihailenco/msgpack/v5/msgpcode
-# github.com/vmihailenco/tagparser v0.1.2
-github.com/vmihailenco/tagparser
-github.com/vmihailenco/tagparser/internal
-github.com/vmihailenco/tagparser/internal/parser
+# github.com/vmihailenco/tagparser/v2 v2.0.0
+github.com/vmihailenco/tagparser/v2
+github.com/vmihailenco/tagparser/v2/internal
+github.com/vmihailenco/tagparser/v2/internal/parser
 # github.com/wiggin77/cfg v1.0.2
 github.com/wiggin77/cfg
 github.com/wiggin77/cfg/ini
@@ -518,11 +616,13 @@ github.com/wiggin77/merror
 github.com/wiggin77/srslog
 # github.com/willf/bitset v1.1.11
 github.com/willf/bitset
+# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
+github.com/xi2/xz
 # github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c
 github.com/xtgo/uuid
 # go.etcd.io/bbolt v1.3.5
 go.etcd.io/bbolt
-# go.opentelemetry.io/otel v0.16.0
+# go.opentelemetry.io/otel v0.17.0
 go.opentelemetry.io/otel
 go.opentelemetry.io/otel/codes
 go.opentelemetry.io/otel/internal
@@ -530,12 +630,15 @@ go.opentelemetry.io/otel/internal/baggage
 go.opentelemetry.io/otel/internal/global
 go.opentelemetry.io/otel/internal/trace/noop
 go.opentelemetry.io/otel/label
+go.opentelemetry.io/otel/propagation
+go.opentelemetry.io/otel/unit
+# go.opentelemetry.io/otel/metric v0.17.0
 go.opentelemetry.io/otel/metric
+go.opentelemetry.io/otel/metric/global
 go.opentelemetry.io/otel/metric/number
 go.opentelemetry.io/otel/metric/registry
-go.opentelemetry.io/otel/propagation
+# go.opentelemetry.io/otel/trace v0.17.0
 go.opentelemetry.io/otel/trace
-go.opentelemetry.io/otel/unit
 # go.uber.org/atomic v1.7.0
 go.uber.org/atomic
 # go.uber.org/multierr v1.6.0
@@ -547,7 +650,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+# golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert
 golang.org/x/crypto/argon2
@@ -561,7 +664,7 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-# golang.org/x/image v0.0.0-20201208152932-35266b937fa6
+# golang.org/x/image v0.0.0-20210220032944-ac19c3e999fb
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
 golang.org/x/image/draw
@@ -574,7 +677,7 @@ golang.org/x/image/tiff/lzw
 golang.org/x/image/vp8
 golang.org/x/image/vp8l
 golang.org/x/image/webp
-# golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+# golang.org/x/net v0.0.0-20210224082022-3d97a244fca7
 golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
@@ -586,7 +689,9 @@ golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/publicsuffix
 golang.org/x/net/trace
-# golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
+# golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+golang.org/x/sync/errgroup
+# golang.org/x/sys v0.0.0-20210225014209-683adc9d29d7
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
@@ -615,9 +720,9 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# google.golang.org/genproto v0.0.0-20210119180700-e258113e47cc
+# google.golang.org/genproto v0.0.0-20210224155714-063164c882e6
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.35.0
+# google.golang.org/grpc v1.36.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
