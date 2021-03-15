@@ -19,10 +19,17 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 	s.RunForSystemAdminAndLocal("install a plugin", func(c client.Client) {
 		printer.Clean()
 
-		const (
-			pluginID      = "jira"
-			pluginVersion = "3.0.0"
-		)
+		marketPlacePlugins, appErr := s.th.App.GetMarketplacePlugins(&model.MarketplacePluginFilter{
+			Page:    0,
+			PerPage: 100,
+			Filter:  "jira",
+		})
+		s.Require().Nil(appErr)
+		s.Require().NotEmpty(marketPlacePlugins)
+		plugin := marketPlacePlugins[0]
+
+		pluginID := plugin.Manifest.Id
+		pluginVersion := plugin.Manifest.Version
 
 		defer removePluginIfInstalled(s, pluginID)
 
