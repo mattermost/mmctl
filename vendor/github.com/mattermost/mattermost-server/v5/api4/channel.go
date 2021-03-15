@@ -11,8 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 func (api *API) InitChannel() {
@@ -1870,7 +1870,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("team_id", team.Id)
 	auditRec.AddMeta("team_name", team.Name)
 
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP || channel.Type == model.CHANNEL_PRIVATE {
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
 		c.Err = model.NewAppError("moveChannel", "api.channel.move_channel.type.invalid", nil, "", http.StatusForbidden)
 		return
 	}
