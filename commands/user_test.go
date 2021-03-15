@@ -1266,7 +1266,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		printedUser := printerLines.(*model.User)
 
 		s.Require().Equal(&mockUser, printerLines)
-		s.Require().Equal(false, printedUser.DisableWelcomeEmail)
+		s.Require().Equal(true, printedUser.DisableWelcomeEmail)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
