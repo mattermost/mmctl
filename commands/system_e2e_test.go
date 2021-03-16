@@ -1,0 +1,104 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package commands
+
+import (
+	"time"
+
+	"github.com/mattermost/mattermost-server/v5/model"
+
+	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
+
+	"github.com/spf13/cobra"
+)
+
+func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	s.th.App.Srv().Busy.Set(time.Minute)
+
+	s.Run("Should fail when regular user attempts to get server busy status", func() {
+		printer.Clean()
+
+		err := getBusyCmdF(s.th.Client, &cobra.Command{}, nil)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Get server busy status", func(c client.Client) {
+		printer.Clean()
+
+		err := getBusyCmdF(c, &cobra.Command{}, nil)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		state, ok := printer.GetLines()[0].(*model.ServerBusyState)
+		s.Require().True(ok, true)
+		s.Require().True(state.Busy, true)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	s.th.App.Srv().Busy.Clear()
+	cmd := &cobra.Command{}
+	cmd.Flags().Uint("seconds", 60, "")
+
+	s.Run("Should fail when regular user attempts to set server busy status", func() {
+		printer.Clean()
+
+		err := setBusyCmdF(s.th.Client, cmd, nil)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Set server status to busy", func(c client.Client) {
+		printer.Clean()
+
+		err := setBusyCmdF(c, cmd, nil)
+		s.Require().NoError(err)
+		defer func() {
+			s.th.App.Srv().Busy.Clear()
+			s.Require().False(s.th.App.Srv().Busy.IsBusy())
+		}()
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().True(s.th.App.Srv().Busy.IsBusy())
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	s.th.App.Srv().Busy.Set(time.Minute)
+
+	s.Run("Should fail when regular user attempts to clear server busy status", func() {
+		printer.Clean()
+
+		err := clearBusyCmdF(s.th.Client, &cobra.Command{}, nil)
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Clear server status to busy", func(c client.Client) {
+		printer.Clean()
+
+		err := clearBusyCmdF(c, &cobra.Command{}, nil)
+		s.Require().NoError(err)
+		defer func() {
+			s.th.App.Srv().Busy.Set(time.Minute)
+			s.Require().True(s.th.App.Srv().Busy.IsBusy())
+		}()
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().False(s.th.App.Srv().Busy.IsBusy())
+	})
+}
