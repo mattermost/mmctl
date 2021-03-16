@@ -133,7 +133,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 	s.Run("Should not allow regular user to disable group for channel", func() {
 		printer.Clean()
 
-		err := channelGroupEnableCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
+		err := channelGroupDisableCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -302,7 +302,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 	})
 }
 
-func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
+func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	team, _, cleanUpFn := createTestGroupTeam(s)
@@ -342,7 +342,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
 	})
 }
 
-func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
+func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	team, _, cleanUpFn := createTestGroupTeam(s)
