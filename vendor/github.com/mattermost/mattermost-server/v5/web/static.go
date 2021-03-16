@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
-	"github.com/mattermost/mattermost-server/v5/mlog"
+
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 	"github.com/mattermost/mattermost-server/v5/utils/fileutils"
 )
