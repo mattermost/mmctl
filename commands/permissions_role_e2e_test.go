@@ -54,3 +54,41 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 		s.Require().Nil(err2)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	s.Require().Nil(appErr)
+
+	s.Run("Should not allow normal user to unassign a user from a role", func() {
+		printer.Clean()
+
+		err := unassignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SYSTEM_ADMIN_ROLE_ID, s.th.SystemAdminUser.Email})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Unassign a user from a role", func(c client.Client) {
+		printer.Clean()
+
+		user.Roles = user.Roles + "," + model.SYSTEM_MANAGER_ROLE_ID
+		_, appErr = s.th.App.UpdateUser(user, false)
+		s.Require().Nil(appErr)
+		defer func() {
+			user.Roles = model.SYSTEM_USER_ROLE_ID
+			_, appErr := s.th.App.UpdateUser(user, false)
+			s.Require().Nil(appErr)
+		}()
+
+		err := unassignUsersCmdF(c, &cobra.Command{}, []string{model.SYSTEM_MANAGER_ROLE_ID, user.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		u, err2 := s.th.App.GetUser(user.Id)
+		s.Require().Nil(err2)
+		s.Require().False(u.IsInRole(model.SYSTEM_MANAGER_ROLE_ID))
+	})
+}
