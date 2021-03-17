@@ -141,4 +141,5 @@ type Client interface {
 	ListExports() ([]string, *model.Response)
 	DeleteExport(name string) (bool, *model.Response)
 	DownloadExport(name string, wr io.Writer, offset int64) (int64, *model.Response)
+	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response)
 }

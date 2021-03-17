@@ -322,7 +322,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210312174643-95b080985028
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210317142801-5706df9fe0e0
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing
@@ -342,7 +342,6 @@ github.com/mattermost/mattermost-server/v5/services/configservice
 github.com/mattermost/mattermost-server/v5/services/docextractor
 github.com/mattermost/mattermost-server/v5/services/httpservice
 github.com/mattermost/mattermost-server/v5/services/imageproxy
-github.com/mattermost/mattermost-server/v5/services/mailservice
 github.com/mattermost/mattermost-server/v5/services/marketplace
 github.com/mattermost/mattermost-server/v5/services/searchengine
 github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine
@@ -353,6 +352,7 @@ github.com/mattermost/mattermost-server/v5/services/tracing
 github.com/mattermost/mattermost-server/v5/services/upgrader
 github.com/mattermost/mattermost-server/v5/shared/filestore
 github.com/mattermost/mattermost-server/v5/shared/i18n
+github.com/mattermost/mattermost-server/v5/shared/mail
 github.com/mattermost/mattermost-server/v5/shared/mfa
 github.com/mattermost/mattermost-server/v5/shared/mlog
 github.com/mattermost/mattermost-server/v5/shared/mlog/human
