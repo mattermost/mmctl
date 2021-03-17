@@ -6,10 +6,10 @@ package commands
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
-
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
+
+	"github.com/spf13/cobra"
 )
 
 var SamlCmd = &cobra.Command{
@@ -18,11 +18,10 @@ var SamlCmd = &cobra.Command{
 }
 
 var SamlAuthDataReset = &cobra.Command{
-	Use:     "authdatamigrate",
+	Use:     "authdatareset",
 	Short:   "Reset AuthData field to Email",
 	Long:    "Resets the AuthData field for SAML users to their email. Run this utility after setting the 'id' SAML attribute to an empty value.",
 	Example: " saml authdatamigrate",
-	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(samlAuthDataResetCmdF),
 }
 
