@@ -312,7 +312,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
 	_, err := s.th.App.UpdateTeam(team)
 	s.Require().Nil(err)
 
-	s.Run("Should not allow regular user to disable group for team", func() {
+	s.Run("MM-T3919 Should not allow regular user to disable group for team", func() {
 		printer.Clean()
 
 		err := teamGroupDisableCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
@@ -321,7 +321,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupDisableCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should disable group sync for the team", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3920 Should disable group sync for the team", func(c client.Client) {
 		printer.Clean()
 
 		err := teamGroupDisableCmdF(c, &cobra.Command{}, []string{team.Name})
@@ -348,7 +348,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
 	team, _, cleanUpFn := createTestGroupTeam(s)
 	defer cleanUpFn()
 
-	s.Run("Should not allow regular user to enable group for team", func() {
+	s.Run("MM-T3917 Should not allow regular user to enable group for team", func() {
 		printer.Clean()
 
 		err := teamGroupEnableCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
@@ -357,7 +357,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupEnableCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should enable group sync for the team", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3918 Should enable group sync for the team", func(c client.Client) {
 		printer.Clean()
 
 		err := teamGroupEnableCmdF(c, &cobra.Command{}, []string{team.Name})
@@ -398,7 +398,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 		s.Require().Nil(err)
 	}()
 
-	s.Run("Should not allow regular user to get status of LDAP groups in a team where they are not a member of", func() {
+	s.Run("MM-T3921 Should not allow regular user to get status of LDAP groups in a team where they are not a member of", func() {
 		printer.Clean()
 
 		err := teamGroupStatusCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
@@ -413,7 +413,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 	_, appErr = s.th.App.AddUserToTeam(team2.Id, s.th.BasicUser.Id, s.th.SystemAdminUser.Id)
 	s.Require().Nil(appErr)
 
-	s.RunForAllClients("Should allow to get status of a group constrained team", func(c client.Client) {
+	s.RunForAllClients("MM-T3922 Should allow to get status of a group constrained team", func(c client.Client) {
 		printer.Clean()
 
 		err := teamGroupStatusCmdF(c, &cobra.Command{}, []string{team.Name})
@@ -424,7 +424,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForAllClients("Should allow to get status of a regular team", func(c client.Client) {
+	s.RunForAllClients("MM-T3923 Should allow to get status of a regular team", func(c client.Client) {
 		printer.Clean()
 
 		err := teamGroupStatusCmdF(c, &cobra.Command{}, []string{teamName2})
@@ -444,7 +444,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupListCmd() {
 		cleanUpFn()
 	}()
 
-	s.Run("Should not allow regular user to get list of LDAP groups in a team", func() {
+	s.Run("MM-T3924 Should not allow regular user to get list of LDAP groups in a team", func() {
 		printer.Clean()
 
 		err := teamGroupListCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
@@ -453,7 +453,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupListCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should allow to get list of LDAP groups in a team", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3925 Should allow to get list of LDAP groups in a team", func(c client.Client) {
 		printer.Clean()
 
 		err := teamGroupListCmdF(c, &cobra.Command{}, []string{team.Name})
