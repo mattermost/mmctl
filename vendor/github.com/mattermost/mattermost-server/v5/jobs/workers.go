@@ -27,6 +27,11 @@ type Workers struct {
 	ExpiryNotify             model.Worker
 	ProductNotices           model.Worker
 	ActiveUsers              model.Worker
+	ImportProcess            model.Worker
+	ImportDelete             model.Worker
+	ExportProcess            model.Worker
+	ExportDelete             model.Worker
+	Cloud                    model.Worker
 
 	listenerId string
 }
@@ -35,7 +40,7 @@ func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{
 		ConfigService: srv.ConfigService,
 	}
-	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
+	workers.Watcher = srv.MakeWatcher(workers, DefaultWatcherPollingInterval)
 
 	if srv.DataRetentionJob != nil {
 		workers.DataRetention = srv.DataRetentionJob.MakeWorker()
@@ -80,6 +85,27 @@ func (srv *JobServer) InitWorkers() *Workers {
 	if productNoticesInterface := srv.ProductNotices; productNoticesInterface != nil {
 		workers.ProductNotices = productNoticesInterface.MakeWorker()
 	}
+
+	if importProcessInterface := srv.ImportProcess; importProcessInterface != nil {
+		workers.ImportProcess = importProcessInterface.MakeWorker()
+	}
+
+	if importDeleteInterface := srv.ImportDelete; importDeleteInterface != nil {
+		workers.ImportDelete = importDeleteInterface.MakeWorker()
+	}
+
+	if exportProcessInterface := srv.ExportProcess; exportProcessInterface != nil {
+		workers.ExportProcess = exportProcessInterface.MakeWorker()
+	}
+
+	if exportDeleteInterface := srv.ExportDelete; exportDeleteInterface != nil {
+		workers.ExportDelete = exportDeleteInterface.MakeWorker()
+	}
+
+	if cloudInterface := srv.Cloud; cloudInterface != nil {
+		workers.Cloud = cloudInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -129,6 +155,26 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ProductNotices != nil {
 			go workers.ProductNotices.Run()
+		}
+
+		if workers.ImportProcess != nil {
+			go workers.ImportProcess.Run()
+		}
+
+		if workers.ImportDelete != nil {
+			go workers.ImportDelete.Run()
+		}
+
+		if workers.ExportProcess != nil {
+			go workers.ExportProcess.Run()
+		}
+
+		if workers.ExportDelete != nil {
+			go workers.ExportDelete.Run()
+		}
+
+		if workers.Cloud != nil {
+			go workers.Cloud.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -235,8 +281,29 @@ func (workers *Workers) Stop() *Workers {
 	if workers.ActiveUsers != nil {
 		workers.ActiveUsers.Stop()
 	}
+
 	if workers.ProductNotices != nil {
 		workers.ProductNotices.Stop()
+	}
+
+	if workers.ImportProcess != nil {
+		workers.ImportProcess.Stop()
+	}
+
+	if workers.ImportDelete != nil {
+		workers.ImportDelete.Stop()
+	}
+
+	if workers.ExportProcess != nil {
+		workers.ExportProcess.Stop()
+	}
+
+	if workers.ExportDelete != nil {
+		workers.ExportDelete.Stop()
+	}
+
+	if workers.Cloud != nil {
+		workers.Cloud.Stop()
 	}
 
 	mlog.Info("Stopped workers")
