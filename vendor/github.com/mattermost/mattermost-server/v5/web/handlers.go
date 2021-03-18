@@ -15,6 +15,10 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	spanlog "github.com/opentracing/opentracing-go/log"
+
 	"github.com/mattermost/mattermost-server/v5/app"
 	app_opentracing "github.com/mattermost/mattermost-server/v5/app/opentracing"
 	"github.com/mattermost/mattermost-server/v5/mlog"
@@ -22,9 +26,6 @@ import (
 	"github.com/mattermost/mattermost-server/v5/services/tracing"
 	"github.com/mattermost/mattermost-server/v5/store/opentracinglayer"
 	"github.com/mattermost/mattermost-server/v5/utils"
-	"github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
-	spanlog "github.com/opentracing/opentracing-go/log"
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -72,6 +73,7 @@ type Handler struct {
 	HandleFunc          func(*Context, http.ResponseWriter, *http.Request)
 	HandlerName         string
 	RequireSession      bool
+	RequireCloudKey     bool
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
@@ -92,6 +94,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
+			mlog.String("host", r.Host),
+			mlog.String("scheme", r.Header.Get(model.HEADER_FORWARDED_PROTO)),
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
@@ -106,7 +110,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	c.App.InitServer()
 
-	t, _ := utils.GetTranslationsAndLocale(w, r)
+	t, _ := utils.GetTranslationsAndLocale(r)
 	c.App.SetT(t)
 	c.App.SetRequestId(requestID)
 	c.App.SetIpAddress(utils.GetIpAddress(r, c.App.Config().ServiceSettings.TrustedProxyIPHeader))
@@ -114,7 +118,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App.SetAcceptLanguage(r.Header.Get("Accept-Language"))
 	c.App.SetPath(r.URL.Path)
 	c.Params = ParamsFromRequest(r)
-	c.Log = c.App.Log()
+	c.Logger = c.App.Log()
 
 	if *c.App.Config().ServiceSettings.EnableOpenTracing {
 		span, ctx := tracing.StartRootSpanByContext(context.Background(), "web:ServeHTTP")
@@ -151,8 +155,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// do not get cut off.
 	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
-	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
+	siteURLHeader := *c.App.Config().ServiceSettings.SiteURL
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.App.RequestId())
@@ -187,10 +190,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	if len(token) != 0 {
+	if token != "" && tokenLocation != app.TokenLocationCloudHeader {
 		session, err := c.App.GetSession(token)
+		defer app.ReturnSessionToPool(session)
+
 		if err != nil {
-			c.Log.Info("Invalid session", mlog.Err(err))
+			c.Logger.Info("Invalid session", mlog.Err(err))
 			if err.StatusCode == http.StatusInternalServerError {
 				c.Err = err
 			} else if h.RequireSession {
@@ -209,9 +214,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.checkCSRFToken(c, r, token, tokenLocation, session)
+	} else if token != "" && c.App.Srv().License() != nil && *c.App.Srv().License().Features.Cloud && tokenLocation == app.TokenLocationCloudHeader {
+		// Check to see if this provided token matches our CWS Token
+		session, err := c.App.GetCloudSession(token)
+		if err != nil {
+			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
+			c.Err = err
+		} else {
+			c.App.SetSession(session)
+		}
 	}
 
-	c.Log = c.App.Log().With(
+	c.Logger = c.App.Log().With(
 		mlog.String("path", c.App.Path()),
 		mlog.String("request_id", c.App.RequestId()),
 		mlog.String("ip_addr", c.App.IpAddress()),
@@ -229,6 +243,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err == nil && h.DisableWhenBusy && c.App.Srv().Busy.IsBusy() {
 		c.SetServerBusyError()
+	}
+
+	if c.Err == nil && h.RequireCloudKey {
+		c.CloudKeyRequired()
 	}
 
 	if c.Err == nil && h.IsLocal {
@@ -250,12 +268,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		c.Err.Translate(c.App.T)
 		c.Err.RequestId = c.App.RequestId()
-
-		if c.Err.Id == "api.context.session_expired.app_error" {
-			c.LogInfo(c.Err)
-		} else {
-			c.LogError(c.Err)
-		}
+		c.LogErrorByCode(c.Err)
 
 		c.Err.Where = r.URL.Path
 
@@ -274,7 +287,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.IsOAuth = false
 		}
 
-		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || len(r.Header.Get("X-Mobile-App")) > 0 {
+		if IsApiCall(c.App, r) || IsWebhookCall(c.App, r) || IsOAuthApiCall(c.App, r) || r.Header.Get("X-Mobile-App") != "" {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 		} else {
@@ -328,9 +341,9 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 			}
 
 			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-				c.Log.Warn(csrfErrorMessage, fields...)
+				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
-				c.Log.Debug(csrfErrorMessage, fields...)
+				c.Logger.Debug(csrfErrorMessage, fields...)
 				csrfCheckPassed = true
 			}
 		}

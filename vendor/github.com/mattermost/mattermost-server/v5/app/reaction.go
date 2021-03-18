@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
@@ -51,8 +52,18 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv().Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.ReactionHasBeenAdded(pluginContext, reaction)
+				return true
+			}, plugin.ReactionHasBeenAddedId)
+		})
+	}
+
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post, true)
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
 	})
 
 	return reaction, nil
@@ -120,11 +131,6 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		}
 	}
 
-	hasReactions := true
-	if reactions, _ := a.GetReactionsForPost(post.Id); len(reactions) <= 1 {
-		hasReactions = false
-	}
-
 	if _, err := a.Srv().Store.Reaction().Delete(reaction); err != nil {
 		return model.NewAppError("DeleteReactionForPost", "app.reaction.delete_all_with_emoji_name.get_reactions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -132,14 +138,24 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	// The post is always modified since the UpdateAt always changes
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv().Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.ReactionHasBeenRemoved(pluginContext, reaction)
+				return true
+			}, plugin.ReactionHasBeenRemovedId)
+		})
+	}
+
 	a.Srv().Go(func() {
-		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post, hasReactions)
+		a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
 	})
 
 	return nil
 }
 
-func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post, hasReactions bool) {
+func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *model.Post) {
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())
