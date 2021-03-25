@@ -3,11 +3,12 @@
 
 package einterfaces
 
-import "github.com/mattermost/logr"
+import (
+	"github.com/mattermost/logr"
+)
 
 type MetricsInterface interface {
-	StartServer()
-	StopServer()
+	Register()
 
 	IncrementPostCreate()
 	IncrementWebhookPost()
@@ -48,9 +49,12 @@ type MetricsInterface interface {
 
 	IncrementPostsSearchCounter()
 	ObservePostsSearchDuration(elapsed float64)
+	IncrementFilesSearchCounter()
+	ObserveFilesSearchDuration(elapsed float64)
 	ObserveStoreMethodDuration(method, success string, elapsed float64)
 	ObserveApiEndpointDuration(endpoint, method, statusCode string, elapsed float64)
 	IncrementPostIndexCounter()
+	IncrementFileIndexCounter()
 	IncrementUserIndexCounter()
 	IncrementChannelIndexCounter()
 
@@ -61,4 +65,7 @@ type MetricsInterface interface {
 
 	ObserveEnabledUsers(users int64)
 	GetLoggerMetricsCollector() logr.MetricsCollector
+
+	IncrementJobActive(jobType string)
+	DecrementJobActive(jobType string)
 }

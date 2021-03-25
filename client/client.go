@@ -41,7 +41,7 @@ type Client interface {
 	SearchTeams(search *model.TeamSearch) ([]*model.Team, *model.Response)
 	GetPost(postId string, etag string) (*model.Post, *model.Response)
 	CreatePost(post *model.Post) (*model.Post, *model.Response)
-	GetPostsForChannel(channelId string, page, perPage int, etag string) (*model.PostList, *model.Response)
+	GetPostsForChannel(channelId string, page, perPage int, etag string, collapsedThreads bool) (*model.PostList, *model.Response)
 	GetPostsRoute() string
 	DoApiPost(url string, data string) (*http.Response, *model.AppError)
 	GetLdapGroups() ([]*model.Group, *model.Response)
@@ -140,4 +140,7 @@ type Client interface {
 	GetOutgoingWebhooksForTeam(teamId string, page int, perPage int, etag string) ([]*model.OutgoingWebhook, *model.Response)
 	RegenOutgoingHookToken(hookId string) (*model.OutgoingWebhook, *model.Response)
 	DeleteOutgoingWebhook(hookId string) (bool, *model.Response)
+	ListExports() ([]string, *model.Response)
+	DeleteExport(name string) (bool, *model.Response)
+	DownloadExport(name string, wr io.Writer, offset int64) (int64, *model.Response)
 }

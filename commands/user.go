@@ -260,6 +260,7 @@ func init() {
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
 	UserCreateCmd.Flags().Bool("guest", false, "Optional. If supplied, the new user will be a guest. Defaults to false")
 	UserCreateCmd.Flags().Bool("email_verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
+	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -409,16 +410,18 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
 	guest, _ := cmd.Flags().GetBool("guest")
 	emailVerified, _ := cmd.Flags().GetBool("email_verified")
+	disableWelcomeEmail, _ := cmd.Flags().GetBool("disable-welcome-email")
 
 	user := &model.User{
-		Username:      username,
-		Email:         email,
-		Password:      password,
-		Nickname:      nickname,
-		FirstName:     firstname,
-		LastName:      lastname,
-		Locale:        locale,
-		EmailVerified: emailVerified,
+		Username:            username,
+		Email:               email,
+		Password:            password,
+		Nickname:            nickname,
+		FirstName:           firstname,
+		LastName:            lastname,
+		Locale:              locale,
+		EmailVerified:       emailVerified,
+		DisableWelcomeEmail: disableWelcomeEmail,
 	}
 
 	ruser, response := c.CreateUser(user)

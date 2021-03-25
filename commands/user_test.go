@@ -1242,6 +1242,36 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Create a regular user with welcome email disabled", func() {
+		printer.Clean()
+
+		oldDisableWelcomeEmail := mockUser.DisableWelcomeEmail
+		mockUser.DisableWelcomeEmail = true
+		defer func() { mockUser.DisableWelcomeEmail = oldDisableWelcomeEmail }()
+
+		s.client.
+			EXPECT().
+			CreateUser(&mockUser).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		command := cobra.Command{}
+		command.Flags().String("username", mockUser.Username, "")
+		command.Flags().String("email", mockUser.Email, "")
+		command.Flags().String("password", mockUser.Password, "")
+		command.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
+
+		error := userCreateCmdF(s.client, &command, []string{})
+
+		s.Require().Nil(error)
+		printerLines := printer.GetLines()[0]
+		printedUser := printerLines.(*model.User)
+
+		s.Require().Equal(&mockUser, printerLines)
+		s.Require().Equal(true, printedUser.DisableWelcomeEmail)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("Create a regular user with client returning error", func() {
 		printer.Clean()
 
