@@ -81,7 +81,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		jobs, appErr = s.th.App.GetJobsByTypePage(model.JOB_TYPE_LDAP_SYNC, 0, 100)
 		s.Require().Nil(appErr)
 		s.Require().NotEmpty(jobs)
-		s.Assert().Greater(len(jobs), initialNumJobs)
+		s.Assert().Equal(initialNumJobs+1, len(jobs))
 	})
 }
 
