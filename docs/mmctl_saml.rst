@@ -34,5 +34,5 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl saml authdatareset <mmctl_saml_authdatareset.rst>`_ 	 - Reset AuthData field to Email
+* `mmctl saml auth-data-reset <mmctl_saml_auth-data-reset.rst>`_ 	 - Reset AuthData field to Email
 

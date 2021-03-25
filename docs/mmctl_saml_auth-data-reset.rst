@@ -1,7 +1,7 @@
-.. _mmctl_saml_authdatareset:
+.. _mmctl_saml_auth-data-reset:
 
-mmctl saml authdatareset
-------------------------
+mmctl saml auth-data-reset
+--------------------------
 
 Reset AuthData field to Email
 
@@ -13,14 +13,21 @@ Resets the AuthData field for SAML users to their email. Run this utility after 
 
 ::
 
-  mmctl saml authdatareset [flags]
+  mmctl saml auth-data-reset [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-   saml authdatamigrate
+    # Reset all SAML users' AuthData field to their email, including deleted users
+    $ mmctl saml auth-data-reset --include-deleted
+
+    # Show how many users would be affected by the reset
+    $ mmctl saml auth-data-reset --dry-run
+
+    # Only reset the AuthData for the following SAML users
+    $ mmctl saml auth-data-reset --users userid1,userid2
 
 Options
 ~~~~~~~
@@ -28,7 +35,7 @@ Options
 ::
 
       --dry-run           Dry run only
-  -h, --help              help for authdatareset
+  -h, --help              help for auth-data-reset
       --include-deleted   Include deleted users
       --users strings     Comma-separated list of user IDs to which the operation will be applied
 
