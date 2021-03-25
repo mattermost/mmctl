@@ -45,4 +45,19 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+	s.Run("Reset auth data with specified users", func() {
+		printer.Clean()
+		users := []string{"user1"}
+		s.client.
+			EXPECT().
+			ResetSamlAuthDataToEmail(false, false, users).
+			Return(int64(1), &model.Response{Error: nil})
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringSlice("users", users, "")
+
+		err := samlAuthDataResetCmdF(s.client, cmd, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
