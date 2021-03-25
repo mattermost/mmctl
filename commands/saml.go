@@ -36,6 +36,7 @@ func init() {
 	SamlAuthDataResetCmd.Flags().Bool("include-deleted", false, "Include deleted users")
 	SamlAuthDataResetCmd.Flags().Bool("dry-run", false, "Dry run only")
 	SamlAuthDataResetCmd.Flags().StringSlice("users", nil, "Comma-separated list of user IDs to which the operation will be applied")
+
 	SamlCmd.AddCommand(
 		SamlAuthDataResetCmd,
 	)

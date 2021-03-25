@@ -19,7 +19,8 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		s.client.
 			EXPECT().
 			ResetSamlAuthDataToEmail(false, false, []string{}).
-			Return(int64(1), &model.Response{Error: nil})
+			Return(int64(1), &model.Response{Error: nil}).
+			Times(1)
 
 		err := samlAuthDataResetCmdF(s.client, &cobra.Command{}, nil)
 		s.Require().Nil(err)
@@ -27,6 +28,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
 	s.Run("Reset auth data dry run", func() {
 		printer.Clean()
 		outputMessage := "1 user records would be affected.\n"
@@ -37,7 +39,8 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		s.client.
 			EXPECT().
 			ResetSamlAuthDataToEmail(false, true, []string{}).
-			Return(int64(1), &model.Response{Error: nil})
+			Return(int64(1), &model.Response{Error: nil}).
+			Times(1)
 
 		err := samlAuthDataResetCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
@@ -45,13 +48,15 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
 	s.Run("Reset auth data with specified users", func() {
 		printer.Clean()
 		users := []string{"user1"}
 		s.client.
 			EXPECT().
 			ResetSamlAuthDataToEmail(false, false, users).
-			Return(int64(1), &model.Response{Error: nil})
+			Return(int64(1), &model.Response{Error: nil}).
+			Times(1)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().StringSlice("users", users, "")
