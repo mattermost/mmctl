@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    user demote user1
+    user demote user1 user2
 
 Options
 ~~~~~~~

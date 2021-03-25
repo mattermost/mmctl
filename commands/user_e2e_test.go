@@ -947,7 +947,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 
 	s.Require().Nil(s.th.App.DemoteUserToGuest(user))
 
-	s.RunForSystemAdminAndLocal("Promote a guest to a user", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3936 Promote a guest to a user", func(c client.Client) {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(c, nil, []string{user.Email})
@@ -957,7 +957,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Promote a guest to a user with normal client", func() {
+	s.Run("MM-T3937 Promote a guest to a user with normal client", func() {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(s.th.Client, nil, []string{user.Email})
@@ -977,7 +977,7 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
 	defer s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = false })
 
-	s.RunForSystemAdminAndLocal("Demote a user to a guest", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3938 Demote a user to a guest", func(c client.Client) {
 		printer.Clean()
 
 		err := demoteUserToGuestCmdF(c, nil, []string{user.Email})
@@ -987,7 +987,7 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Demote a user to a guest with normal client", func() {
+	s.Run("MM-T3939 Demote a user to a guest with normal client", func() {
 		printer.Clean()
 
 		err := demoteUserToGuestCmdF(s.th.Client, nil, []string{user.Email})

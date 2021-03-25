@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    user promote guest1
+    user promote guest1 guest2
 
 Options
 ~~~~~~~

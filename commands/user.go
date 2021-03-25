@@ -178,7 +178,7 @@ var PromoteGuestToUserCmd = &cobra.Command{
 	Use:     "promote [guests]",
 	Short:   "Promote guests to users",
 	Long:    "Convert a guest into a regular user.",
-	Example: "  user promote guest1",
+	Example: "  user promote guest1 guest2",
 	RunE:    withClient(promoteGuestToUserCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
@@ -187,7 +187,7 @@ var DemoteUserToGuestCmd = &cobra.Command{
 	Use:     "demote [users]",
 	Short:   "Demote users to guests",
 	Long:    "Convert a regular user into a guest.",
-	Example: "  user demote user1",
+	Example: "  user demote user1 user2",
 	RunE:    withClient(demoteUserToGuestCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
