@@ -17,6 +17,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	s.th.App.Srv().Busy.Set(time.Minute)
+	defer s.th.App.Srv().Busy.Clear()
 
 	s.Run("Should fail when regular user attempts to get server busy status", func() {
 		printer.Clean()
@@ -76,6 +77,7 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	s.th.App.Srv().Busy.Set(time.Minute)
+	defer s.th.App.Srv().Busy.Clear()
 
 	s.Run("Should fail when regular user attempts to clear server busy status", func() {
 		printer.Clean()
