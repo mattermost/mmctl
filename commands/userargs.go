@@ -54,6 +54,8 @@ func checkDots(arg string) bool {
 	return strings.Contains(unescapedArg, "..")
 }
 
+// getUsersFromArgs obtains all the users passed by `userArgs` parameter.
+// It can return users and errors at the same time
 func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error) {
 	users := make([]*model.User, 0, len(userArgs))
 	var result *multierror.Error
