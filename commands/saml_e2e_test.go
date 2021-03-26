@@ -73,7 +73,8 @@ func (s *MmctlE2ETestSuite) TestSamlAuthDataResetCmd() {
 
 	resetAuthDataToID()
 	// delete user
-	s.th.App.UpdateUserActive(user.Id, false)
+	deleteUserErr := s.th.App.UpdateUserActive(user.Id, false)
+	s.Require().Nil(deleteUserErr)
 	s.Run("without deleted users", func() {
 		cmd := &cobra.Command{}
 		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
