@@ -15,6 +15,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 	s.Run("Reset auth data without errors", func() {
 		printer.Clean()
 		outputMessage := "1 user records were changed.\n"
+		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
@@ -22,7 +23,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 			Return(int64(1), &model.Response{Error: nil}).
 			Times(1)
 
-		err := samlAuthDataResetCmdF(s.client, &cobra.Command{}, nil)
+		err := samlAuthDataResetCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
