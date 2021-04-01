@@ -50,6 +50,7 @@ func (s *MmctlE2ETestSuite) TestSamlAuthDataResetCmd() {
 
 	s.Run("real run", func() {
 		cmd := &cobra.Command{}
+		cmd.Flags().Bool("yes", true, "")
 		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
 		s.Require().Nil(err)
 
@@ -59,12 +60,14 @@ func (s *MmctlE2ETestSuite) TestSamlAuthDataResetCmd() {
 	resetAuthDataToID()
 	s.Run("with specific user IDs", func() {
 		cmd := &cobra.Command{}
+		cmd.Flags().Bool("yes", true, "")
 		cmd.Flags().StringSlice("users", []string{s.th.BasicUser2.Id}, "")
 		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
 		s.Require().Nil(err)
 		checkAuthDataWasNotReset()
 
 		cmd = &cobra.Command{}
+		cmd.Flags().Bool("yes", true, "")
 		cmd.Flags().StringSlice("users", []string{user.Id}, "")
 		err = samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
 		s.Require().Nil(err)
@@ -77,12 +80,14 @@ func (s *MmctlE2ETestSuite) TestSamlAuthDataResetCmd() {
 	s.Require().Nil(deleteUserErr)
 	s.Run("without deleted users", func() {
 		cmd := &cobra.Command{}
+		cmd.Flags().Bool("yes", true, "")
 		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
 		s.Require().Nil(err)
 		checkAuthDataWasNotReset()
 	})
 	s.Run("with deleted users", func() {
 		cmd := &cobra.Command{}
+		cmd.Flags().Bool("yes", true, "")
 		cmd.Flags().Bool("include-deleted", true, "")
 		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
 		s.Require().Nil(err)

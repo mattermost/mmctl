@@ -24,7 +24,6 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("yes", true, "")
 		outputMessage := "1 user records were changed.\n"
-		cmd := &cobra.Command{}
 
 		s.client.
 			EXPECT().
