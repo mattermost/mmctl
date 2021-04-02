@@ -1242,6 +1242,36 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.Run("Create a regular user with welcome email disabled", func() {
+		printer.Clean()
+
+		oldDisableWelcomeEmail := mockUser.DisableWelcomeEmail
+		mockUser.DisableWelcomeEmail = true
+		defer func() { mockUser.DisableWelcomeEmail = oldDisableWelcomeEmail }()
+
+		s.client.
+			EXPECT().
+			CreateUser(&mockUser).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		command := cobra.Command{}
+		command.Flags().String("username", mockUser.Username, "")
+		command.Flags().String("email", mockUser.Email, "")
+		command.Flags().String("password", mockUser.Password, "")
+		command.Flags().Bool("disable-welcome-email", mockUser.DisableWelcomeEmail, "")
+
+		error := userCreateCmdF(s.client, &command, []string{})
+
+		s.Require().Nil(error)
+		printerLines := printer.GetLines()[0]
+		printedUser := printerLines.(*model.User)
+
+		s.Require().Equal(&mockUser, printerLines)
+		s.Require().Equal(true, printedUser.DisableWelcomeEmail)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.Run("Create a regular user with client returning error", func() {
 		printer.Clean()
 
@@ -1281,6 +1311,34 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
 		command.Flags().Bool("system_admin", true, "")
+
+		error := userCreateCmdF(s.client, &command, []string{})
+
+		s.Require().Nil(error)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Create a guest user", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			CreateUser(&mockUser).
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DemoteUserToGuest(mockUser.Id).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		command := cobra.Command{}
+		command.Flags().String("username", mockUser.Username, "")
+		command.Flags().String("email", mockUser.Email, "")
+		command.Flags().String("password", mockUser.Password, "")
+		command.Flags().Bool("guest", true, "")
 
 		error := userCreateCmdF(s.client, &command, []string{})
 
@@ -2492,5 +2550,107 @@ func (s *MmctlUnitTestSuite) TestMigrateAuthCmd() {
 		err := migrateAuthCmdF(s.client, cmd, []string{fromAuth, toAuth})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
+	s.Run("promote a guest to a user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PromoteGuestToUser(mockUser.Id).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := promoteGuestToUserCmdF(s.client, nil, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("cannot promote a guest to a user", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+		errResp := &model.Response{Error: &model.AppError{Message: "some-error"}}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			PromoteGuestToUser(mockUser.Id).
+			Return(false, errResp).
+			Times(1)
+
+		err := promoteGuestToUserCmdF(s.client, nil, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("unable to promote guest %s: %s", emailArg, errResp.Error), printer.GetErrorLines()[0])
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
+	s.Run("demote a user to a guest", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DemoteUserToGuest(mockUser.Id).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := demoteUserToGuestCmdF(s.client, nil, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("cannot demote a user to a guest", func() {
+		printer.Clean()
+		emailArg := "example@example.com"
+		mockUser := model.User{Id: "example", Email: emailArg}
+		errResp := &model.Response{Error: &model.AppError{Message: "some-error"}}
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(emailArg, "").
+			Return(&mockUser, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			DemoteUserToGuest(mockUser.Id).
+			Return(false, errResp).
+			Times(1)
+
+		err := demoteUserToGuestCmdF(s.client, nil, []string{emailArg})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", emailArg, errResp.Error), printer.GetErrorLines()[0])
 	})
 }

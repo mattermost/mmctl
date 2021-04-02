@@ -20,7 +20,7 @@ Examples
 
 ::
 
-   import process 35uy6cwrqfnhdx3genrhqqznxc_import.zip
+    import process 35uy6cwrqfnhdx3genrhqqznxc_import.zip
 
 Options
 ~~~~~~~

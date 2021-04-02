@@ -300,7 +300,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		err := importJobListCmdF(s.th.Client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import jobs: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().Equal("failed to get jobs: : You do not have the appropriate permissions., ", err.Error())
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -317,7 +317,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
-		s.Equal("No import jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.RunForSystemAdminAndLocal("some import jobs", func(c client.Client) {

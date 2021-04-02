@@ -353,6 +353,21 @@ func (mr *MockClientMockRecorder) DeleteCommand(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCommand", reflect.TypeOf((*MockClient)(nil).DeleteCommand), arg0)
 }
 
+// DeleteExport mocks base method
+func (m *MockClient) DeleteExport(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExport", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// DeleteExport indicates an expected call of DeleteExport
+func (mr *MockClientMockRecorder) DeleteExport(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExport", reflect.TypeOf((*MockClient)(nil).DeleteExport), arg0)
+}
+
 // DeleteIncomingWebhook mocks base method
 func (m *MockClient) DeleteIncomingWebhook(arg0 string) (bool, *model.Response) {
 	m.ctrl.T.Helper()
@@ -381,6 +396,21 @@ func (m *MockClient) DeleteOutgoingWebhook(arg0 string) (bool, *model.Response) 
 func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOutgoingWebhook", reflect.TypeOf((*MockClient)(nil).DeleteOutgoingWebhook), arg0)
+}
+
+// DemoteUserToGuest mocks base method
+func (m *MockClient) DemoteUserToGuest(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DemoteUserToGuest", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// DemoteUserToGuest indicates an expected call of DemoteUserToGuest
+func (mr *MockClientMockRecorder) DemoteUserToGuest(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DemoteUserToGuest", reflect.TypeOf((*MockClient)(nil).DemoteUserToGuest), arg0)
 }
 
 // DisableBot mocks base method
@@ -426,6 +456,21 @@ func (m *MockClient) DoApiPost(arg0, arg1 string) (*http.Response, *model.AppErr
 func (mr *MockClientMockRecorder) DoApiPost(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoApiPost", reflect.TypeOf((*MockClient)(nil).DoApiPost), arg0, arg1)
+}
+
+// DownloadExport mocks base method
+func (m *MockClient) DownloadExport(arg0 string, arg1 io.Writer, arg2 int64) (int64, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DownloadExport", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// DownloadExport indicates an expected call of DownloadExport
+func (mr *MockClientMockRecorder) DownloadExport(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadExport", reflect.TypeOf((*MockClient)(nil).DownloadExport), arg0, arg1, arg2)
 }
 
 // EnableBot mocks base method
@@ -926,18 +971,18 @@ func (mr *MockClientMockRecorder) GetPost(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetPostsForChannel mocks base method
-func (m *MockClient) GetPostsForChannel(arg0 string, arg1, arg2 int, arg3 string) (*model.PostList, *model.Response) {
+func (m *MockClient) GetPostsForChannel(arg0 string, arg1, arg2 int, arg3 string, arg4 bool) (*model.PostList, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPostsForChannel", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GetPostsForChannel", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*model.PostList)
 	ret1, _ := ret[1].(*model.Response)
 	return ret0, ret1
 }
 
 // GetPostsForChannel indicates an expected call of GetPostsForChannel
-func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3, arg4)
 }
 
 // GetPostsRoute mocks base method
@@ -1239,6 +1284,21 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCommands", reflect.TypeOf((*MockClient)(nil).ListCommands), arg0, arg1)
 }
 
+// ListExports mocks base method
+func (m *MockClient) ListExports() ([]string, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListExports")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ListExports indicates an expected call of ListExports
+func (mr *MockClientMockRecorder) ListExports() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListExports", reflect.TypeOf((*MockClient)(nil).ListExports))
+}
+
 // ListImports mocks base method
 func (m *MockClient) ListImports() ([]string, *model.Response) {
 	m.ctrl.T.Helper()
@@ -1477,6 +1537,21 @@ func (m *MockClient) PermanentDeleteUser(arg0 string) (bool, *model.Response) {
 func (mr *MockClientMockRecorder) PermanentDeleteUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PermanentDeleteUser", reflect.TypeOf((*MockClient)(nil).PermanentDeleteUser), arg0)
+}
+
+// PromoteGuestToUser mocks base method
+func (m *MockClient) PromoteGuestToUser(arg0 string) (bool, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PromoteGuestToUser", arg0)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// PromoteGuestToUser indicates an expected call of PromoteGuestToUser
+func (mr *MockClientMockRecorder) PromoteGuestToUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteGuestToUser", reflect.TypeOf((*MockClient)(nil).PromoteGuestToUser), arg0)
 }
 
 // RegenOutgoingHookToken mocks base method
