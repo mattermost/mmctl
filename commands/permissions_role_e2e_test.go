@@ -18,7 +18,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
-	s.Run("Should not allow normal user to assign a role", func() {
+	s.Run("MM-T3721 Should not allow normal user to assign a role", func() {
 		printer.Clean()
 
 		err := assignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SYSTEM_ADMIN_ROLE_ID, user.Email})
@@ -27,7 +27,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Assigning a user to a non-existent role", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3722 Assigning a user to a non-existent role", func(c client.Client) {
 		printer.Clean()
 
 		err := assignUsersCmdF(c, &cobra.Command{}, []string{"not_a_role", user.Email})
@@ -36,7 +36,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Assigning a user to a role", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3648 Assigning a user to a role", func(c client.Client) {
 		printer.Clean()
 
 		err := assignUsersCmdF(c, &cobra.Command{}, []string{model.SYSTEM_MANAGER_ROLE_ID, user.Email})
@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
-	s.Run("Should not allow normal user to unassign a user from a role", func() {
+	s.Run("MM-T3965 Should not allow normal user to unassign a user from a role", func() {
 		printer.Clean()
 
 		err := unassignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SYSTEM_ADMIN_ROLE_ID, s.th.SystemAdminUser.Email})
@@ -70,7 +70,7 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Unassign a user from a role", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3964 Unassign a user from a role", func(c client.Client) {
 		printer.Clean()
 
 		user.Roles = user.Roles + "," + model.SYSTEM_MANAGER_ROLE_ID

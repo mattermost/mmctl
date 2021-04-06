@@ -15,7 +15,7 @@ import (
 func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	s.RunForAllClients("Should allow all users to see a role", func(c client.Client) {
+	s.RunForAllClients("MM-T3928 Should allow all users to see a role", func(c client.Client) {
 		printer.Clean()
 
 		err := showRoleCmdF(c, &cobra.Command{}, []string{model.SYSTEM_ADMIN_ROLE_ID})
@@ -24,7 +24,7 @@ func (s *MmctlE2ETestSuite) TestShowRoleCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForAllClients("Should return error to all users for a none exitent role", func(c client.Client) {
+	s.RunForAllClients("MM-T3959 Should return error to all users for a none exitent role", func(c client.Client) {
 		printer.Clean()
 
 		err := showRoleCmdF(c, &cobra.Command{}, []string{"none_existent_role"})
@@ -41,7 +41,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 	s.Require().Nil(appErr)
 	s.Require().NotContains(role.Permissions, model.PERMISSION_CREATE_BOT.Id)
 
-	s.Run("Should not allow normal user to add a permission to a role", func() {
+	s.Run("MM-T3961 Should not allow normal user to add a permission to a role", func() {
 		printer.Clean()
 
 		err := addPermissionsCmdF(s.th.Client, &cobra.Command{}, []string{model.SYSTEM_USER_ROLE_ID, model.PERMISSION_CREATE_BOT.Id})
@@ -50,7 +50,7 @@ func (s *MmctlE2ETestSuite) TestAddPermissionsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should be able to add a permission to a role", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3960 Should be able to add a permission to a role", func(c client.Client) {
 		printer.Clean()
 
 		err := addPermissionsCmdF(c, &cobra.Command{}, []string{model.SYSTEM_USER_ROLE_ID, model.PERMISSION_CREATE_BOT.Id})
@@ -77,7 +77,7 @@ func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
 	s.Require().Nil(appErr)
 	s.Require().Contains(role.Permissions, model.PERMISSION_CREATE_DIRECT_CHANNEL.Id)
 
-	s.Run("Should not allow normal user to remove a permission from a role", func() {
+	s.Run("MM-T3963 Should not allow normal user to remove a permission from a role", func() {
 		printer.Clean()
 
 		err := removePermissionsCmdF(s.th.Client, &cobra.Command{}, []string{model.SYSTEM_USER_ROLE_ID, model.PERMISSION_CREATE_DIRECT_CHANNEL.Id})
@@ -86,7 +86,7 @@ func (s *MmctlE2ETestSuite) TestRemovePermissionsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should be able to remove a permission from a role", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3962 Should be able to remove a permission from a role", func(c client.Client) {
 		printer.Clean()
 
 		err := removePermissionsCmdF(c, &cobra.Command{}, []string{model.SYSTEM_USER_ROLE_ID, model.PERMISSION_CREATE_DIRECT_CHANNEL.Id})
