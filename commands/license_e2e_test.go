@@ -20,7 +20,7 @@ func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
 
 	s.Require().True(s.th.App.Srv().SetLicense(model.NewTestLicense()))
 
-	s.Run("Should fail when regular user attempts to remove the server license", func() {
+	s.Run("MM-T3955 Should fail when regular user attempts to remove the server license", func() {
 		printer.Clean()
 
 		err := removeLicenseCmdF(s.th.Client, &cobra.Command{}, nil)
@@ -29,7 +29,7 @@ func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should be able to remove the server license", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3954 Should be able to remove the server license", func(c client.Client) {
 		printer.Clean()
 
 		err := removeLicenseCmdF(c, &cobra.Command{}, nil)
@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestUploadLicenseCmdF() {
 		os.Remove(tmpFile.Name())
 	})
 
-	s.Run("Should fail when regular user attempts to upload a license file", func() {
+	s.Run("MM-T3953 Should fail when regular user attempts to upload a license file", func() {
 		printer.Clean()
 
 		err := uploadLicenseCmdF(s.th.Client, &cobra.Command{}, []string{tmpFile.Name()})
@@ -70,7 +70,7 @@ func (s *MmctlE2ETestSuite) TestUploadLicenseCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should be able to upload a license file, fail on validation", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3952 Should be able to upload a license file, fail on validation", func(c client.Client) {
 		printer.Clean()
 
 		err := uploadLicenseCmdF(c, &cobra.Command{}, []string{tmpFile.Name()})
