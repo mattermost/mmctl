@@ -52,7 +52,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 	configForLdap(s.th)
 
-	s.Run("Should not allow regular user to sync LDAP groups", func() {
+	s.Run("MM-T3971 Should not allow regular user to sync LDAP groups", func() {
 		printer.Clean()
 
 		err := ldapSyncCmdF(s.th.Client, &cobra.Command{}, nil)
@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should sync LDAP groups", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T2529 Should sync LDAP groups", func(c client.Client) {
 		printer.Clean()
 
 		jobs, appErr := s.th.App.GetJobsByTypePage(model.JOB_TYPE_LDAP_SYNC, 0, 100)
@@ -100,7 +100,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 	s.Require().Equal(model.USER_AUTH_SERVICE_LDAP, ldapUser.AuthService)
 	s.Require().Equal("dev.one", *ldapUser.AuthData)
 
-	s.Run("Should not allow regular user to migrate LDAP ID attribute", func() {
+	s.Run("MM-T3973 Should not allow regular user to migrate LDAP ID attribute", func() {
 		printer.Clean()
 
 		err := ldapIDMigrateCmdF(s.th.Client, &cobra.Command{}, []string{"objectGUID"})
@@ -109,7 +109,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should migrate LDAP ID attribute", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3972 Should migrate LDAP ID attribute", func(c client.Client) {
 		printer.Clean()
 
 		err := ldapIDMigrateCmdF(c, &cobra.Command{}, []string{"cn"})

@@ -164,7 +164,7 @@ func (s *MmctlE2ETestSuite) TestListLdapGroupsCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 	configForLdap(s.th)
 
-	s.Run("Should not allow regular user to list LDAP groups", func() {
+	s.Run("MM-T3977 Should not allow regular user to list LDAP groups", func() {
 		printer.Clean()
 
 		err := listLdapGroupsCmdF(s.th.Client, &cobra.Command{}, nil)
@@ -173,7 +173,7 @@ func (s *MmctlE2ETestSuite) TestListLdapGroupsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should list LDAP groups", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3976 Should list LDAP groups", func(c client.Client) {
 		printer.Clean()
 
 		// we rely on the test data generated for the openldap server
@@ -215,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 		s.Require().Nil(err)
 	}()
 
-	s.RunForAllClients("Should allow to get status of a group constrained channel", func(c client.Client) {
+	s.RunForAllClients("MM-T3974 Should allow to get status of a group constrained channel", func(c client.Client) {
 		printer.Clean()
 
 		err := channelGroupStatusCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
@@ -226,7 +226,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForAllClients("Should allow to get status of a regular channel", func(c client.Client) {
+	s.RunForAllClients("MM-T3975 Should allow to get status of a regular channel", func(c client.Client) {
 		printer.Clean()
 
 		err := channelGroupStatusCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName2})
@@ -279,7 +279,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 		s.Require().Nil(err)
 	}()
 
-	s.Run("Should not allow regular user to get list of LDAP groups in a channel", func() {
+	s.Run("MM-T3970 Should not allow regular user to get list of LDAP groups in a channel", func() {
 		printer.Clean()
 
 		err := channelGroupListCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
@@ -288,7 +288,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("Should allow to get list of LDAP groups in a channel", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3969 Should allow to get list of LDAP groups in a channel", func(c client.Client) {
 		printer.Clean()
 
 		err := channelGroupListCmdF(c, &cobra.Command{}, []string{s.th.BasicTeam.Name + ":" + channelName})
