@@ -339,7 +339,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210325191945-9069bd1dd347
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210407151104-76f735c21815
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing
@@ -358,6 +358,7 @@ github.com/mattermost/mattermost-server/v5/jobs/import_delete
 github.com/mattermost/mattermost-server/v5/jobs/import_process
 github.com/mattermost/mattermost-server/v5/jobs/interfaces
 github.com/mattermost/mattermost-server/v5/jobs/product_notices
+github.com/mattermost/mattermost-server/v5/jobs/resend_invitation_email
 github.com/mattermost/mattermost-server/v5/migrations
 github.com/mattermost/mattermost-server/v5/model
 github.com/mattermost/mattermost-server/v5/plugin
@@ -370,9 +371,11 @@ github.com/mattermost/mattermost-server/v5/services/docextractor
 github.com/mattermost/mattermost-server/v5/services/httpservice
 github.com/mattermost/mattermost-server/v5/services/imageproxy
 github.com/mattermost/mattermost-server/v5/services/marketplace
+github.com/mattermost/mattermost-server/v5/services/remotecluster
 github.com/mattermost/mattermost-server/v5/services/searchengine
 github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine
 github.com/mattermost/mattermost-server/v5/services/searchengine/bleveengine/indexer
+github.com/mattermost/mattermost-server/v5/services/sharedchannel
 github.com/mattermost/mattermost-server/v5/services/slackimport
 github.com/mattermost/mattermost-server/v5/services/telemetry
 github.com/mattermost/mattermost-server/v5/services/timezones

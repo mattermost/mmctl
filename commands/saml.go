@@ -77,12 +77,12 @@ func samlAuthDataResetCmdF(c client.Client, cmd *cobra.Command, args []string) e
 
 func getSamlAuthDataResetConfirmation() error {
 	var confirm string
-	fmt.Println("This action is irreversible. Are you sure you want to continue? [Y/n] ")
+	fmt.Print("This action is irreversible. Are you sure you want to continue? [Y/n] ")
 	fmt.Scanln(&confirm)
 	confirm = strings.ToLower(confirm)
 
 	if confirm == "y" || confirm == "yes" {
 		return nil
 	}
-	return errors.New("Abort.")
+	return errors.New("aborted")
 }

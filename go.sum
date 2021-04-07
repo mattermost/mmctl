@@ -700,6 +700,8 @@ github.com/mattermost/logr v1.0.13 h1:6F/fM3csvH6Oy5sUpJuW7YyZSzZZAhJm5VcgKMxA2P
 github.com/mattermost/logr v1.0.13/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
 github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210325191945-9069bd1dd347 h1:mto0IC715xcIDf3rJkZeoeuGFYFMqIqhr4RAt7E7l4E=
 github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210325191945-9069bd1dd347/go.mod h1:xn2/aF7VrTae7Ad6mVmHPA2T3Si1cl3K67xgp9O/Zag=
+github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210407151104-76f735c21815 h1:hBCOiJpyQ+6s7joksGVRbh9FxTEwg8QFACyJgqG/SSI=
+github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210407151104-76f735c21815/go.mod h1:xn2/aF7VrTae7Ad6mVmHPA2T3Si1cl3K67xgp9O/Zag=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=

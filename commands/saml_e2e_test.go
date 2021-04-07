@@ -5,6 +5,7 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mmctl/client"
 	"github.com/spf13/cobra"
 )
 
@@ -38,59 +39,73 @@ func (s *MmctlE2ETestSuite) TestSamlAuthDataResetCmd() {
 		s.Require().Equal(user.Email, *retrievedUser.AuthData)
 	}
 
-	resetAuthDataToID()
-	s.Run("dry run", func() {
+	s.Run("normal client gets permissions error", func() {
 		cmd := &cobra.Command{}
-		cmd.Flags().Bool("dry-run", true, "")
-		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
-		s.Require().Nil(err)
-
-		checkAuthDataWasNotReset()
+		cmd.Flags().Bool("yes", true, "")
+		err := samlAuthDataResetCmdF(s.th.Client, cmd, nil)
+		s.Require().NotNil(err)
 	})
 
-	s.Run("real run", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("yes", true, "")
-		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
-		s.Require().Nil(err)
+	s.RunForSystemAdminAndLocal("System Admin and Local", func(c client.Client) {
+		resetAuthDataToID()
+		s.Run("dry run", func() {
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("dry-run", true, "")
+			err := samlAuthDataResetCmdF(c, cmd, nil)
+			s.Require().Nil(err)
 
-		checkAuthDataWasReset()
-	})
+			checkAuthDataWasNotReset()
+		})
 
-	resetAuthDataToID()
-	s.Run("with specific user IDs", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("yes", true, "")
-		cmd.Flags().StringSlice("users", []string{s.th.BasicUser2.Id}, "")
-		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
-		s.Require().Nil(err)
-		checkAuthDataWasNotReset()
+		s.Run("real run", func() {
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("yes", true, "")
+			err := samlAuthDataResetCmdF(c, cmd, nil)
+			s.Require().Nil(err)
 
-		cmd = &cobra.Command{}
-		cmd.Flags().Bool("yes", true, "")
-		cmd.Flags().StringSlice("users", []string{user.Id}, "")
-		err = samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
-		s.Require().Nil(err)
-		checkAuthDataWasReset()
-	})
+			checkAuthDataWasReset()
+		})
 
-	resetAuthDataToID()
-	// delete user
-	deleteUserErr := s.th.App.UpdateUserActive(user.Id, false)
-	s.Require().Nil(deleteUserErr)
-	s.Run("without deleted users", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("yes", true, "")
-		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
-		s.Require().Nil(err)
-		checkAuthDataWasNotReset()
-	})
-	s.Run("with deleted users", func() {
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("yes", true, "")
-		cmd.Flags().Bool("include-deleted", true, "")
-		err := samlAuthDataResetCmdF(s.th.SystemAdminClient, cmd, nil)
-		s.Require().Nil(err)
-		checkAuthDataWasReset()
+		resetAuthDataToID()
+		s.Run("with specific user IDs", func() {
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("yes", true, "")
+			cmd.Flags().StringSlice("users", []string{s.th.BasicUser2.Id}, "")
+			err := samlAuthDataResetCmdF(c, cmd, nil)
+			s.Require().Nil(err)
+			checkAuthDataWasNotReset()
+
+			cmd = &cobra.Command{}
+			cmd.Flags().Bool("yes", true, "")
+			cmd.Flags().StringSlice("users", []string{user.Id}, "")
+			err = samlAuthDataResetCmdF(c, cmd, nil)
+			s.Require().Nil(err)
+			checkAuthDataWasReset()
+		})
+
+		resetAuthDataToID()
+		// delete user
+		deleteUserErr := s.th.App.UpdateUserActive(user.Id, false)
+		s.Require().Nil(deleteUserErr)
+		s.Run("without deleted users", func() {
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("yes", true, "")
+			err := samlAuthDataResetCmdF(c, cmd, nil)
+			s.Require().Nil(err)
+
+			checkAuthDataWasNotReset()
+		})
+		s.Run("with deleted users", func() {
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("yes", true, "")
+			cmd.Flags().Bool("include-deleted", true, "")
+			err := samlAuthDataResetCmdF(c, cmd, nil)
+			s.Require().Nil(err)
+
+			checkAuthDataWasReset()
+		})
+		// undelete user
+		undeleteUserErr := s.th.App.UpdateUserActive(user.Id, true)
+		s.Require().Nil(undeleteUserErr)
 	})
 }
