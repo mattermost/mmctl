@@ -1,36 +1,33 @@
-.. _mmctl_bot_create:
+.. _mmctl_user_promote:
 
-mmctl bot create
-----------------
+mmctl user promote
+------------------
 
-Create bot
+Promote guests to users
 
 Synopsis
 ~~~~~~~~
 
 
-Create bot.
+Convert a guest into a regular user.
 
 ::
 
-  mmctl bot create [username] [flags]
+  mmctl user promote [guests] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    bot create testbot
+    user promote guest1 guest2
 
 Options
 ~~~~~~~
 
 ::
 
-      --description string    Optional. The description text for the new bot.
-      --display-name string   Optional. The display name for the new bot.
-  -h, --help                  help for create
-      --with-token            Optional. Auto genreate access token for the bot.
+  -h, --help   help for promote
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl bot <mmctl_bot.rst>`_ 	 - Management of bots
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 
