@@ -26,6 +26,9 @@ Examples
     # Show how many users would be affected by the reset
     $ mmctl saml auth-data-reset --dry-run
 
+    # Skip confirmation for resetting the AuthData
+    $ mmctl saml auth-data-reset -y
+
     # Only reset the AuthData for the following SAML users
     $ mmctl saml auth-data-reset --users userid1,userid2
 
@@ -38,6 +41,7 @@ Options
   -h, --help              help for auth-data-reset
       --include-deleted   Include deleted users
       --users strings     Comma-separated list of user IDs to which the operation will be applied
+  -y, --yes               Skip confirmation
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
