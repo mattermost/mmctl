@@ -70,9 +70,9 @@ func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channe
 		channel, err := getChannelFromArg(c, channelArg)
 		if err != nil {
 			result = multierror.Append(result, err)
-		} else {
-			channels = append(channels, channel)
+			continue
 		}
+		channels = append(channels, channel)
 	}
 	return channels, result.ErrorOrNil()
 }

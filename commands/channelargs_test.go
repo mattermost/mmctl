@@ -22,9 +22,9 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Times(1)
 
 		channels, err := getChannelsFromArgs(s.client, []string{notFoundChannel})
-		s.Require().Len(channels, 0)
+		s.Require().Empty(channels)
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", notFoundChannel), err.Error())
+		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", notFoundChannel))
 	})
 	s.Run("bad request", func() {
 		badRequestChannel := "badrequest"
@@ -37,9 +37,9 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Times(1)
 
 		channels, err := getChannelsFromArgs(s.client, []string{badRequestChannel})
-		s.Require().Len(channels, 0)
+		s.Require().Empty(channels)
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", badRequestChannel), err.Error())
+		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* channel %s not found\n\n", badRequestChannel))
 	})
 	s.Run("forbidden", func() {
 		forbidden := "forbidden"
@@ -52,9 +52,9 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Times(1)
 
 		channels, err := getChannelsFromArgs(s.client, []string{forbidden})
-		s.Require().Len(channels, 0)
+		s.Require().Empty(channels)
 		s.Require().NotNil(err)
-		s.Require().Equal("1 error occurred:\n\t* : channel forbidden, \n\n", err.Error())
+		s.Require().EqualError(err, "1 error occurred:\n\t* : channel forbidden, \n\n")
 	})
 	s.Run("internal server error", func() {
 		errChannel := "internalServerError"
@@ -67,9 +67,9 @@ func (s *MmctlUnitTestSuite) TestGetChannelArgs() {
 			Times(1)
 
 		channels, err := getChannelsFromArgs(s.client, []string{errChannel})
-		s.Require().Len(channels, 0)
+		s.Require().Empty(channels)
 		s.Require().NotNil(err)
-		s.Require().Equal("1 error occurred:\n\t* : channel internalServerError, \n\n", err.Error())
+		s.Require().EqualError(err, "1 error occurred:\n\t* : channel internalServerError, \n\n")
 	})
 	s.Run("success", func() {
 		successID := "success"
