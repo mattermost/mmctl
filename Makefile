@@ -24,7 +24,7 @@ ifneq ($(wildcard ${ENTERPRISE_DIR}/.*),)
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
 	IGNORE:=$(shell rm -rf $(VENDOR_MM_SERVER_DIR)/enterprise)
 	IGNORE:=$(shell cp -R $(ENTERPRISE_DIR) $(VENDOR_MM_SERVER_DIR))
-	IGNORE:=$(shell git -C $(VENDOR_MM_SERVER_DIR)/enterprise checkout $(ENTERPRISE_HASH))
+	IGNORE:=$(shell git -C $(VENDOR_MM_SERVER_DIR)/enterprise checkout $(ENTERPRISE_HASH) --quiet)
 	IGNORE:=$(shell rm -f $(VENDOR_MM_SERVER_DIR)/imports/imports.go)
 	IGNORE:=$(shell cp $(VENDOR_MM_SERVER_DIR)/enterprise/imports/imports.go $(VENDOR_MM_SERVER_DIR)/imports/)
 endif
