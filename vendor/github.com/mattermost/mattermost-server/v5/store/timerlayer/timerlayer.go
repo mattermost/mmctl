@@ -3057,10 +3057,10 @@ func (s *TimerLayerGroupStore) ChannelMembersMinusGroupMembers(channelID string,
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error) {
+func (s *TimerLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 	start := timemodule.Now()
 
-	result, err := s.GroupStore.ChannelMembersToAdd(since, channelID)
+	result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -3649,10 +3649,10 @@ func (s *TimerLayerGroupStore) TeamMembersMinusGroupMembers(teamID string, group
 	return result, err
 }
 
-func (s *TimerLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error) {
+func (s *TimerLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 	start := timemodule.Now()
 
-	result, err := s.GroupStore.TeamMembersToAdd(since, teamID)
+	result, err := s.GroupStore.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 
 	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
 	if s.Root.Metrics != nil {
@@ -8837,22 +8837,6 @@ func (s *TimerLayerUserStore) PromoteGuestToUser(userID string) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.PromoteGuestToUser", success, elapsed)
 	}
 	return err
-}
-
-func (s *TimerLayerUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
-	start := timemodule.Now()
-
-	result, err := s.UserStore.ResetAuthDataToEmailForUsers(service, userIDs, includeDeleted, dryRun)
-
-	elapsed := float64(timemodule.Since(start)) / float64(timemodule.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.ResetAuthDataToEmailForUsers", success, elapsed)
-	}
-	return result, err
 }
 
 func (s *TimerLayerUserStore) ResetLastPictureUpdate(userID string) error {

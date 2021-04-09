@@ -310,7 +310,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210413213019-e8b710f7fecc
+# github.com/mattermost/mattermost-server/v5 v5.3.2-0.20210409192704-a7cfffb6b7c3
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/opentracing

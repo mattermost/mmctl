@@ -3339,7 +3339,7 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersMinusGroupMembers(channelID s
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string) ([]*model.UserChannelIDPair, error) {
+func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID *string, includeRemovedMembers bool) ([]*model.UserChannelIDPair, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.ChannelMembersToAdd")
 	s.Root.Store.SetContext(newCtx)
@@ -3348,7 +3348,7 @@ func (s *OpenTracingLayerGroupStore) ChannelMembersToAdd(since int64, channelID 
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.ChannelMembersToAdd(since, channelID)
+	result, err := s.GroupStore.ChannelMembersToAdd(since, channelID, includeRemovedMembers)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -4005,7 +4005,7 @@ func (s *OpenTracingLayerGroupStore) TeamMembersMinusGroupMembers(teamID string,
 	return result, err
 }
 
-func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *string) ([]*model.UserTeamIDPair, error) {
+func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *string, includeRemovedMembers bool) ([]*model.UserTeamIDPair, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "GroupStore.TeamMembersToAdd")
 	s.Root.Store.SetContext(newCtx)
@@ -4014,7 +4014,7 @@ func (s *OpenTracingLayerGroupStore) TeamMembersToAdd(since int64, teamID *strin
 	}()
 
 	defer span.Finish()
-	result, err := s.GroupStore.TeamMembersToAdd(since, teamID)
+	result, err := s.GroupStore.TeamMembersToAdd(since, teamID, includeRemovedMembers)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -9786,24 +9786,6 @@ func (s *OpenTracingLayerUserStore) PromoteGuestToUser(userID string) error {
 	}
 
 	return err
-}
-
-func (s *OpenTracingLayerUserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.ResetAuthDataToEmailForUsers")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.UserStore.ResetAuthDataToEmailForUsers(service, userIDs, includeDeleted, dryRun)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
 }
 
 func (s *OpenTracingLayerUserStore) ResetLastPictureUpdate(userID string) error {

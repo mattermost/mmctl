@@ -3998,8 +3998,11 @@ func (c *Client4) GetClusterStatus() ([]*ClusterInfo, *Response) {
 // LDAP Section
 
 // SyncLdap will force a sync with the configured LDAP server.
-func (c *Client4) SyncLdap() (bool, *Response) {
-	r, err := c.DoApiPost(c.GetLdapRoute()+"/sync", "")
+func (c *Client4) SyncLdap(includeRemovedMembers bool) (bool, *Response) {
+	reqBody, _ := json.Marshal(map[string]interface{}{
+		"include_removed_members": includeRemovedMembers,
+	})
+	r, err := c.doApiPostBytes(c.GetLdapRoute()+"/sync", reqBody)
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}

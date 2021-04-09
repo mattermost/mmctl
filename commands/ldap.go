@@ -33,6 +33,7 @@ var LdapIDMigrate = &cobra.Command{
 }
 
 func init() {
+	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
 		LdapIDMigrate,
@@ -43,7 +44,9 @@ func init() {
 func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	ok, response := c.SyncLdap()
+	includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
+
+	ok, response := c.SyncLdap(includeRemovedMembers)
 	if response.Error != nil {
 		return response.Error
 	}
