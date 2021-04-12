@@ -318,6 +318,11 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
+	job, appErr := s.th.App.CreateJob(&model.Job{
+		Type: model.JOB_TYPE_EXPORT_PROCESS,
+	})
+	s.Require().Nil(appErr)
+
 	s.Run("MM-T3885 - no permissions", func() {
 		printer.Clean()
 
@@ -343,11 +348,6 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 
 	s.RunForSystemAdminAndLocal("MM-T3841 - found", func(c client.Client) {
 		printer.Clean()
-
-		job, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
-		})
-		s.Require().Nil(appErr)
 
 		err := exportJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
 		s.Require().Nil(err)
