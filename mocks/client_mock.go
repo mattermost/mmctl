@@ -1644,6 +1644,21 @@ func (mr *MockClientMockRecorder) RemoveUserFromChannel(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveUserFromChannel", reflect.TypeOf((*MockClient)(nil).RemoveUserFromChannel), arg0, arg1)
 }
 
+// ResetSamlAuthDataToEmail mocks base method
+func (m *MockClient) ResetSamlAuthDataToEmail(arg0, arg1 bool, arg2 []string) (int64, *model.Response) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetSamlAuthDataToEmail", arg0, arg1, arg2)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(*model.Response)
+	return ret0, ret1
+}
+
+// ResetSamlAuthDataToEmail indicates an expected call of ResetSamlAuthDataToEmail
+func (mr *MockClientMockRecorder) ResetSamlAuthDataToEmail(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetSamlAuthDataToEmail", reflect.TypeOf((*MockClient)(nil).ResetSamlAuthDataToEmail), arg0, arg1, arg2)
+}
+
 // RestoreChannel mocks base method
 func (m *MockClient) RestoreChannel(arg0 string) (*model.Channel, *model.Response) {
 	m.ctrl.T.Helper()
