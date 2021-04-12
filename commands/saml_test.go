@@ -16,7 +16,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		cmd := &cobra.Command{}
 		err := samlAuthDataResetCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "Abort.")
+		s.Require().EqualError(err, "aborted")
 	})
 
 	s.Run("Reset auth data without errors", func() {
