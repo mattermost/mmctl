@@ -250,10 +250,16 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
+	job, appErr := s.th.App.CreateJob(&model.Job{
+		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Data: map[string]string{"import_file": "import1.zip"},
+	})
+	s.Require().Nil(appErr)
+
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
+		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to get import job: : You do not have the appropriate permissions., ", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -272,12 +278,6 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
 		printer.Clean()
-
-		job, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
-			Data: map[string]string{"import_file": "import1.zip"},
-		})
-		s.Require().Nil(appErr)
 
 		err := importJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
 		s.Require().Nil(err)
