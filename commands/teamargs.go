@@ -46,9 +46,9 @@ func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error)
 		team, err := getTeamFromArg(c, arg)
 		if err != nil {
 			result = multierror.Append(result, err)
-		} else {
-			teams = append(teams, team)
+			continue
 		}
+		teams = append(teams, team)
 	}
 	return teams, result.ErrorOrNil()
 }

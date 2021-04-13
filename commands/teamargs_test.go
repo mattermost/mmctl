@@ -27,9 +27,9 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{notFoundTeam})
-		s.Require().Len(teams, 0)
+		s.Require().Empty(teams)
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", notFoundTeam), err.Error())
+		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", notFoundTeam))
 	})
 	s.Run("bad request", func() {
 		badRequestTeam := "badrequest"
@@ -47,9 +47,9 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{badRequestTeam})
-		s.Require().Len(teams, 0)
+		s.Require().Empty(teams)
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", badRequestTeam), err.Error())
+		s.Require().EqualError(err, fmt.Sprintf("1 error occurred:\n\t* team %s not found\n\n", badRequestTeam))
 	})
 	s.Run("forbidden", func() {
 		forbidden := "forbidden"
@@ -62,9 +62,9 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{forbidden})
-		s.Require().Len(teams, 0)
+		s.Require().Empty(teams)
 		s.Require().NotNil(err)
-		s.Require().Equal("1 error occurred:\n\t* : team forbidden, \n\n", err.Error())
+		s.Require().EqualError(err, "1 error occurred:\n\t* : team forbidden, \n\n")
 	})
 	s.Run("internal server error", func() {
 		errTeam := "internalServerError"
@@ -77,9 +77,9 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{errTeam})
-		s.Require().Len(teams, 0)
+		s.Require().Empty(teams)
 		s.Require().NotNil(err)
-		s.Require().Equal("1 error occurred:\n\t* : team internalServerError, \n\n", err.Error())
+		s.Require().EqualError(err, "1 error occurred:\n\t* : team internalServerError, \n\n")
 	})
 	s.Run("success", func() {
 		successID := "success@success.com"

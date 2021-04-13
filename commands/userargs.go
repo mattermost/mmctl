@@ -63,9 +63,9 @@ func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error)
 		user, err := getUserFromArg(c, userArg)
 		if err != nil {
 			result = multierror.Append(result, err)
-		} else {
-			users = append(users, user)
+			continue
 		}
+		users = append(users, user)
 	}
 	return users, result.ErrorOrNil()
 }
