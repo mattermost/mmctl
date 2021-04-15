@@ -82,7 +82,7 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 var UpdateUserEmailCmd = &cobra.Command{
 	Use:     "email [user] [new email]",
 	Short:   "Change email of the user",
-	Long:    "Change email of the user.",
+	Long:    "Change the email address associated with a user.",
 	Example: "  user email testuser user@example.com",
 	RunE:    withClient(updateUserEmailCmdF),
 }
@@ -123,7 +123,7 @@ var ResetUserMfaCmd = &cobra.Command{
 	Use:   "resetmfa [users]",
 	Short: "Turn off MFA",
 	Long: `Turn off multi-factor authentication for a user.
-If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they login.`,
+If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they log in.`,
 	Example: "  user resetmfa user@example.com",
 	RunE:    withClient(resetUserMfaCmdF),
 }
@@ -168,7 +168,7 @@ var ListUsersCmd = &cobra.Command{
 var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Use:     "verify [users]",
 	Short:   "Verify email of users",
-	Long:    "Verify the emails of some users.",
+	Long:    "Verify the user's email address.",
 	Example: "  user verify user1",
 	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
 	Args:    cobra.MinimumNArgs(1),
@@ -195,7 +195,7 @@ var DemoteUserToGuestCmd = &cobra.Command{
 var UserConvertCmd = &cobra.Command{
 	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL])",
 	Short: "Convert users to bots, or a bot to a user",
-	Long:  "Convert users to bots, or a bot to a user",
+	Long:  "Convert user accounts to bots or convert bots to user accounts.",
 	Example: `  # you can convert a user to a bot providing its email, id or username
   $ mmctl user convert user@example.com --bot
 
