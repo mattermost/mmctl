@@ -43,6 +43,52 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
+	s.Require().Nil(err)
+
+	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	s.Require().Nil(err)
+
+	_, err = tmpFile.Write([]byte(configFilePayload))
+	s.Require().Nil(err)
+
+	defer func() {
+		os.Remove(tmpFile.Name())
+		os.Remove(invalidFile.Name())
+	}()
+
+	s.RunForSystemAdminAndLocal("System admin and local patch", func(c client.Client) {
+		printer.Clean()
+
+		err := configPatchCmdF(c, &cobra.Command{}, []string{tmpFile.Name()})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("System admin and local patch with invalid file", func(c client.Client) {
+		printer.Clean()
+
+		err := configPatchCmdF(c, &cobra.Command{}, []string{invalidFile.Name()})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Patch config for user without permission", func() {
+		printer.Clean()
+
+		err := configPatchCmdF(s.th.Client, &cobra.Command{}, []string{tmpFile.Name()})
+		s.Require().NotNil(err)
+		s.Assert().Errorf(err, "You do not have the appropriate permissions.")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 	s.SetupTestHelper().InitBasic()
 
