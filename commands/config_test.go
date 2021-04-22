@@ -545,16 +545,13 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 
 func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
-	if err != nil {
-		panic(err)
-	}
-	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config*.json")
-	if err != nil {
-		panic(err)
-	}
-	if _, err = tmpFile.Write([]byte(configFilePayload)); err != nil {
-		panic(err)
-	}
+	s.Require().Nil(err)
+
+	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	s.Require().Nil(err)
+
+	_, err = tmpFile.Write([]byte(configFilePayload))
+	s.Require().Nil(err)
 
 	defer func() {
 		os.Remove(tmpFile.Name())
@@ -565,10 +562,14 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		printer.Clean()
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
+		brandValue := "BrandText"
+		defaultConfig.TeamSettings.CustomBrandText = &brandValue
+
 		inputConfig := &model.Config{}
 		inputConfig.SetDefaults()
 		changedValue := "ADifferentName"
 		inputConfig.TeamSettings.SiteName = &changedValue
+		inputConfig.TeamSettings.CustomBrandText = &brandValue
 
 		s.client.
 			EXPECT().
@@ -598,10 +599,6 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 			GetConfig().
 			Return(defaultConfig, &model.Response{Error: nil}).
 			Times(1)
-		s.client.
-			EXPECT().
-			PatchConfig(defaultConfig).
-			Times(0)
 
 		err = configPatchCmdF(s.client, &cobra.Command{}, []string{invalidFile.Name()})
 		s.Require().NotNil(err)
@@ -611,13 +608,6 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		printer.Clean()
 		path := "/path/to/nonexistentfile"
 		errMsg := "open " + path + ": no such file or directory"
-		defaultConfig := &model.Config{}
-		defaultConfig.SetDefaults()
-
-		s.client.
-			EXPECT().
-			GetConfig().
-			Times(0)
 
 		err = configPatchCmdF(s.client, &cobra.Command{}, []string{path})
 		s.Require().NotNil(err)

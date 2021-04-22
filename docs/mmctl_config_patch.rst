@@ -13,7 +13,7 @@ Patches config settings with the given config file.
 
 ::
 
-  mmctl config patch [flags]
+  mmctl config patch <config-file> [flags]
 
 Examples
 ~~~~~~~~

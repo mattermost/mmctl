@@ -49,7 +49,7 @@ var ConfigSetCmd = &cobra.Command{
 }
 
 var ConfigPatchCmd = &cobra.Command{
-	Use:     "patch",
+	Use:     "patch <config-file>",
 	Short:   "Patch the config",
 	Long:    "Patches config settings with the given config file.",
 	Example: "config patch /path/to/config.json",
