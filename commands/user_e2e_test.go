@@ -317,8 +317,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{userMfaInactive.Email})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : Multi-factor authentication has been disabled on this server., `, userMfaInactive.Email))
+		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
 	s.Run("Reset user mfa without permission", func() {
