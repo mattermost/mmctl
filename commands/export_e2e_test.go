@@ -321,7 +321,12 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.Run("MM-T3885 - no permissions", func() {
 		printer.Clean()
 
-		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
+		job, appErr := s.th.App.CreateJob(&model.Job{
+			Type: model.JOB_TYPE_EXPORT_PROCESS,
+		})
+		s.Require().Nil(appErr)
+
+		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job.Id})
 		s.Require().EqualError(err, "failed to get export job: : You do not have the appropriate permissions., ")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
