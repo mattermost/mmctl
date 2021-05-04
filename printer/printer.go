@@ -77,11 +77,12 @@ func Print(v interface{}) {
 func Flush() {
 	if printer.Format == FormatJSON {
 		var b []byte
-		if printer.Single && len(printer.Lines) == 0 {
+		switch {
+		case printer.Single && len(printer.Lines) == 0:
 			return
-		} else if printer.Single && len(printer.Lines) == 1 {
+		case printer.Single && len(printer.Lines) == 1:
 			b, _ = json.MarshalIndent(printer.Lines[0], "", "  ")
-		} else {
+		default:
 			b, _ = json.MarshalIndent(printer.Lines, "", "  ")
 		}
 
