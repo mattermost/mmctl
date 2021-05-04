@@ -1,34 +1,33 @@
-.. _mmctl_channel_make_private:
+.. _mmctl_user_promote:
 
-mmctl channel make_private
---------------------------
+mmctl user promote
+------------------
 
-Set a channel's type to private
+Promote guests to users
 
 Synopsis
 ~~~~~~~~
 
 
-Set the type of a channel from Public to Private.
-Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
+Convert a guest into a regular user.
 
 ::
 
-  mmctl channel make_private [channel] [flags]
+  mmctl user promote [guests] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel make_private myteam:mychannel
+    user promote guest1 guest2
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for make_private
+  -h, --help   help for promote
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,5 +44,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
 
