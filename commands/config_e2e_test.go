@@ -60,7 +60,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 		os.Remove(invalidFile.Name())
 	}()
 
-	s.RunForSystemAdminAndLocal("System admin and local patch", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T4051 - System admin and local patch", func(c client.Client) {
 		printer.Clean()
 
 		err := configPatchCmdF(c, &cobra.Command{}, []string{tmpFile.Name()})
@@ -69,7 +69,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.RunForSystemAdminAndLocal("System admin and local patch with invalid file", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T4052 - System admin and local patch with invalid file", func(c client.Client) {
 		printer.Clean()
 
 		err := configPatchCmdF(c, &cobra.Command{}, []string{invalidFile.Name()})
@@ -78,7 +78,7 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Patch config for user without permission", func() {
+	s.Run("MM-T4053 - Patch config for user without permission", func() {
 		printer.Clean()
 
 		err := configPatchCmdF(s.th.Client, &cobra.Command{}, []string{tmpFile.Name()})
