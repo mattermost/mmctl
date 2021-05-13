@@ -24,10 +24,10 @@ var LdapSyncCmd = &cobra.Command{
 }
 
 var LdapIDMigrate = &cobra.Command{
-	Use:     "idmigrate",
+	Use:     "idmigrate <objectGUID>",
 	Short:   "Migrate LDAP IdAttribute to new value",
 	Long:    "Migrate LDAP IdAttribute to new value. Run this utility then change the IdAttribute to the new value.",
-	Example: " ldap idmigrate objectGUID",
+	Example: "  ldap idmigrate objectGUID",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(ldapIDMigrateCmdF),
 }
