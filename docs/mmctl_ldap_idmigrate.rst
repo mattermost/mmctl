@@ -13,14 +13,14 @@ Migrate LDAP IdAttribute to new value. Run this utility then change the IdAttrib
 
 ::
 
-  mmctl ldap idmigrate [flags]
+  mmctl ldap idmigrate <objectGUID> [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-   ldap idmigrate objectGUID
+    ldap idmigrate objectGUID
 
 Options
 ~~~~~~~
