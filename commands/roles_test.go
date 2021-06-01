@@ -37,7 +37,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("System admin role assigned to user %q", mockUser.Email), printer.GetLines()[0])
+		s.Require().Equal(fmt.Sprintf("System admin role assigned to user %q. Current roles are: %s", mockUser.Email, "system_user, system_admin"), printer.GetLines()[0])
 	})
 
 	s.Run("Adding admin privileges to existing admin", func() {
@@ -140,7 +140,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("System admin role revoked for user %q", mockUser.Email), printer.GetLines()[0])
+		s.Require().Equal(fmt.Sprintf("System admin role revoked for user %q. Current roles are: %s", mockUser.Email, "system_user"), printer.GetLines()[0])
 	})
 
 	s.Run("Remove admin privileges from non admin user", func() {
