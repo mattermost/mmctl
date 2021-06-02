@@ -17,7 +17,7 @@ const (
 	FormatJSON  = "json"
 )
 
-type Printer struct {
+type Printer struct { //nolint
 	writer  io.Writer
 	eWriter io.Writer
 

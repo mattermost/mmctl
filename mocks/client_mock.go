@@ -1765,18 +1765,18 @@ func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0 interface{}) *gomock.Call 
 }
 
 // SyncLdap mocks base method
-func (m *MockClient) SyncLdap() (bool, *model.Response) {
+func (m *MockClient) SyncLdap(arg0 bool) (bool, *model.Response) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SyncLdap")
+	ret := m.ctrl.Call(m, "SyncLdap", arg0)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(*model.Response)
 	return ret0, ret1
 }
 
 // SyncLdap indicates an expected call of SyncLdap
-func (mr *MockClientMockRecorder) SyncLdap() *gomock.Call {
+func (mr *MockClientMockRecorder) SyncLdap(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncLdap", reflect.TypeOf((*MockClient)(nil).SyncLdap), arg0)
 }
 
 // UpdateChannelPrivacy mocks base method

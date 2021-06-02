@@ -15,7 +15,7 @@ import (
 func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.Run("Should not allow normal user to assign a role", func() {
