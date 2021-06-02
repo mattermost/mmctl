@@ -32,7 +32,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 	s.RunForAllClients("List commands for a specific team", func(c client.Client) {
 		printer.Clean()
 
-		team, appErr := s.th.App.CreateTeam(&model.Team{
+		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
@@ -40,7 +40,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		})
 		s.Require().Nil(appErr)
 
-		_, _, appErr = s.th.App.AddUserToTeam(team.Id, s.th.BasicUser.Id, "")
+		_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, team.Id, s.th.BasicUser.Id, "")
 		s.Require().Nil(appErr)
 
 		command, appErr := s.th.App.CreateCommand(&model.Command{
@@ -66,7 +66,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 
 	s.Run("List all commands from all teams", func() {
 		// add team1
-		team1, appErr := s.th.App.CreateTeam(&model.Team{
+		team1, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
@@ -74,7 +74,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		})
 		s.Require().Nil(appErr)
 
-		_, _, appErr = s.th.App.AddUserToTeam(team1.Id, s.th.BasicUser.Id, "")
+		_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, team1.Id, s.th.BasicUser.Id, "")
 		s.Require().Nil(appErr)
 
 		command1, appErr := s.th.App.CreateCommand(&model.Command{
@@ -92,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		}()
 
 		// add team 2
-		team2, appErr := s.th.App.CreateTeam(&model.Team{
+		team2, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
@@ -100,7 +100,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		})
 		s.Require().Nil(appErr)
 
-		_, _, appErr = s.th.App.AddUserToTeam(team2.Id, s.th.BasicUser.Id, "")
+		_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, team2.Id, s.th.BasicUser.Id, "")
 		s.Require().Nil(appErr)
 
 		command2, appErr := s.th.App.CreateCommand(&model.Command{
@@ -131,7 +131,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 	s.Run("List commands for a specific team without permission", func() {
 		printer.Clean()
 
-		team, appErr := s.th.App.CreateTeam(&model.Team{
+		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
@@ -164,7 +164,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	teamOfBasicUser, appErr := s.th.App.CreateTeam(&model.Team{
+	teamOfBasicUser, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        api4.GenerateTestTeamName(),
 		Email:       s.th.BasicUser.Email,
@@ -172,7 +172,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 	})
 	s.Require().Nil(appErr)
 
-	_, _, appErr = s.th.App.AddUserToTeam(teamOfBasicUser.Id, s.th.BasicUser.Id, "")
+	_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, teamOfBasicUser.Id, s.th.BasicUser.Id, "")
 	s.Require().Nil(appErr)
 
 	s.RunForAllClients("Archive nonexistent command", func(c client.Client) {
@@ -218,7 +218,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 	s.Run("Archive command without permission", func() {
 		printer.Clean()
 
-		teamOfAdminUser, appErr := s.th.App.CreateTeam(&model.Team{
+		teamOfAdminUser, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.SystemAdminUser.Email,

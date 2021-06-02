@@ -18,13 +18,13 @@ import (
 func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Activate user", func(c client.Client) {
 		printer.Clean()
 
-		_, appErr := s.th.App.UpdateActive(user, false)
+		_, appErr := s.th.App.UpdateActive(s.th.Context, user, false)
 		s.Require().Nil(appErr)
 
 		err := userActivateCmdF(c, &cobra.Command{}, []string{user.Email})
@@ -40,7 +40,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 	s.Run("Activate user without permissions", func() {
 		printer.Clean()
 
-		_, appErr := s.th.App.UpdateActive(user, false)
+		_, appErr := s.th.App.UpdateActive(s.th.Context, user, false)
 		s.Require().Nil(appErr)
 
 		err := userActivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
@@ -68,13 +68,13 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Deactivate user", func(c client.Client) {
 		printer.Clean()
 
-		_, appErr := s.th.App.UpdateActive(user, true)
+		_, appErr := s.th.App.UpdateActive(s.th.Context, user, true)
 		s.Require().Nil(appErr)
 
 		err := userDeactivateCmdF(c, &cobra.Command{}, []string{user.Email})
@@ -90,7 +90,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 	s.Run("Deactivate user without permissions", func() {
 		printer.Clean()
 
-		_, appErr := s.th.App.UpdateActive(user, true)
+		_, appErr := s.th.App.UpdateActive(s.th.Context, user, true)
 		s.Require().Nil(appErr)
 
 		err := userDeactivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
@@ -158,7 +158,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 			Password: "Pa$$word11",
 			Email:    s.th.GenerateTestEmail(),
 		}
-		usr, err := s.th.App.CreateUser(&userData)
+		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
 		s.Require().Nil(err)
 		userPool = append(userPool, usr.Username)
 	}
@@ -281,7 +281,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Reset user mfa", func(c client.Client) {
@@ -311,7 +311,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = *previousVal })
 		}()
 
-		userMfaInactive, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: false})
+		userMfaInactive, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId(), MfaActive: false})
 		s.Require().Nil(appErr)
 
 		err := resetUserMfaCmdF(c, &cobra.Command{}, []string{userMfaInactive.Email})
@@ -341,7 +341,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Verify user email without token", func(c client.Client) {
@@ -790,7 +790,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 	s.RunForSystemAdminAndLocal("Valid user to bot convert", func(c client.Client) {
 		printer.Clean()
 
-		user, _ := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, _ := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 
 		email := user.Email
 		cmd := &cobra.Command{}
@@ -823,7 +823,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		printer.Clean()
 
 		username := "fakeuser" + model.NewRandomString(10)
-		bot, _ := s.th.App.CreateBot(&model.Bot{Username: username, DisplayName: username, OwnerId: username})
+		bot, _ := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: username, DisplayName: username, OwnerId: username})
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("user", true, "")
@@ -841,7 +841,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		printer.Clean()
 
 		username := "fakeuser" + model.NewRandomString(10)
-		bot, _ := s.th.App.CreateBot(&model.Bot{Username: username, DisplayName: username, OwnerId: username})
+		bot, _ := s.th.App.CreateBot(s.th.Context, &model.Bot{Username: username, DisplayName: username, OwnerId: username})
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("user", true, "")
@@ -910,7 +910,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 				Password: "Pa$$word11",
 				Email:    s.th.GenerateTestEmail(),
 			}
-			_, err := s.th.App.CreateUser(&userData)
+			_, err := s.th.App.CreateUser(s.th.Context, &userData)
 			s.Require().Nil(err)
 		}
 
@@ -938,7 +938,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
@@ -970,7 +970,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
@@ -981,7 +981,7 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 
 		err := demoteUserToGuestCmdF(c, nil, []string{user.Email})
 		s.Require().Nil(err)
-		defer s.Require().Nil(s.th.App.PromoteGuestToUser(user, ""))
+		defer s.Require().Nil(s.th.App.PromoteGuestToUser(s.th.Context, user, ""))
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
