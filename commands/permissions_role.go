@@ -180,7 +180,8 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		userRoles := append(startingRoles, role.Name)
+		userRoles := startingRoles
+		userRoles = append(userRoles, role.Name)
 		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
 		if response.Error != nil {
 			return response.Error

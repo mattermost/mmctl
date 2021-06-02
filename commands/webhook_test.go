@@ -293,8 +293,6 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		}
 
 		lockToChannel := true
-		updatedIncomingWebhook := mockIncomingWebhook
-		updatedIncomingWebhook.ChannelLocked = lockToChannel
 
 		mockError := model.AppError{Id: "Mock Error"}
 

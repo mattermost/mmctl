@@ -2262,7 +2262,7 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 		printer.Clean()
 		userNameArg := "example-bot"
 		mockUser := model.User{Id: "example", Email: "example@example.com"}
-		mockBot := model.Bot{UserId: "example", Username: userNameArg}
+		mockBot := model.Bot{UserId: "example"}
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{
@@ -2342,7 +2342,7 @@ func (s *MmctlUnitTestSuite) TestUserConvertCmd() {
 	s.Run("got error while converting a bot to a user", func() {
 		printer.Clean()
 		userNameArg := "example-bot"
-		mockBot := model.Bot{UserId: "example", Username: userNameArg}
+		mockBot := model.Bot{UserId: "example"}
 		mockBotUser := model.User{Id: "example", Username: userNameArg, IsBot: true}
 
 		userPatch := model.UserPatch{

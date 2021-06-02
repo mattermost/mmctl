@@ -78,9 +78,7 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		}
 
 		notFoundUser := &model.User{
-			Id:       model.NewId(),
 			Username: "notfound",
-			Roles:    "system_user system_admin",
 		}
 
 		s.client.
@@ -271,9 +269,7 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		}
 
 		notFoundUser := &model.User{
-			Id:       model.NewId(),
 			Username: "notfound",
-			Roles:    "system_user system_admin",
 		}
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
