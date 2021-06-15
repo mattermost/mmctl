@@ -48,6 +48,15 @@ var ConfigSetCmd = &cobra.Command{
 	RunE:    withClient(configSetCmdF),
 }
 
+var ConfigPatchCmd = &cobra.Command{
+	Use:     "patch <config-file>",
+	Short:   "Patch the config",
+	Long:    "Patches config settings with the given config file.",
+	Example: "config patch /path/to/config.json",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(configPatchCmdF),
+}
+
 var ConfigEditCmd = &cobra.Command{
 	Use:     "edit",
 	Short:   "Edit the config",
@@ -120,6 +129,7 @@ func init() {
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
 		ConfigSetCmd,
+		ConfigPatchCmd,
 		ConfigEditCmd,
 		ConfigResetCmd,
 		ConfigShowCmd,
@@ -335,6 +345,30 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	}
 
 	printer.PrintT("Value changed successfully", newConfig)
+	return nil
+}
+
+func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
+	configBytes, err := ioutil.ReadFile(args[0])
+	if err != nil {
+		return err
+	}
+
+	config, res := c.GetConfig()
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if err := json.Unmarshal(configBytes, config); err != nil {
+		return err
+	}
+
+	newConfig, res := c.PatchConfig(config)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	printer.PrintT("Config patched successfully", newConfig)
 	return nil
 }
 

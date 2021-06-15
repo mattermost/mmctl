@@ -401,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 	s.SetupTestHelper().InitBasic()
 	mockTeamName := "mockteam" + model.NewId()
 	mockTeamDisplayname := "mockteam_display"
-	_, err := s.th.App.CreateTeam(&model.Team{Name: mockTeamName, DisplayName: mockTeamDisplayname, Type: model.TEAM_OPEN, DeleteAt: 1})
+	_, err := s.th.App.CreateTeam(s.th.Context, &model.Team{Name: mockTeamName, DisplayName: mockTeamDisplayname, Type: model.TEAM_OPEN, DeleteAt: 1})
 	s.Require().Nil(err)
 
 	s.RunForSystemAdminAndLocal("Should print both active and archived teams for syasdmin and local clients", func(c client.Client) {

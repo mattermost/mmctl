@@ -10,6 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 
 	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -120,13 +121,15 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	}
 
 	if showIds {
-		fmt.Printf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m %s\n", post.Id, username, post.Message)
+		printer.PrintT(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, username), post)
 	} else {
-		fmt.Printf("\u001b[34;1m[%s]\u001b[0m %s\n", username, post.Message)
+		printer.PrintT(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m {{.Message}}", username), post)
 	}
+	printer.Flush()
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")

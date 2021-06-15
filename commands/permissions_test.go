@@ -22,7 +22,8 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		}
 		newPermission := "delete"
 
-		expectedPermissions := append(mockRole.Permissions, newPermission)
+		expectedPermissions := mockRole.Permissions
+		expectedPermissions = append(expectedPermissions, newPermission)
 		expectedPatch := &model.RolePatch{
 			Permissions: &expectedPermissions,
 		}
@@ -73,7 +74,8 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 			Times(1)
 
 		s.Run("with ancillary permissions", func() {
-			expectedPermissions := append(mockRole.Permissions, []string{newPermission, "read_public_channel", "read_channel", "read_public_channel_groups", "read_private_channel_groups"}...)
+			expectedPermissions := mockRole.Permissions
+			expectedPermissions = append(expectedPermissions, []string{newPermission, "read_public_channel", "read_channel", "read_public_channel_groups", "read_private_channel_groups"}...)
 			expectedPatch := &model.RolePatch{
 				Permissions: &expectedPermissions,
 			}
@@ -171,8 +173,7 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 
 	s.Run("Removing a permission from a non-existing role", func() {
 		mockRole := model.Role{
-			Name:        "exampleName",
-			Permissions: []string{"view", "edit", "delete"},
+			Name: "exampleName",
 		}
 
 		mockError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)

@@ -310,7 +310,8 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		printer.Clean()
 		okPlugins := []string{"ok-plugin-1", "ok-plugin-2"}
 		failPlugins := []string{"fail-plugin-1", "fail-plugin-2"}
-		allPlugins := append(okPlugins, failPlugins...)
+		allPlugins := okPlugins
+		allPlugins = append(allPlugins, failPlugins...)
 
 		mockErr := &model.AppError{Message: "Mock Error"}
 
