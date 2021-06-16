@@ -100,9 +100,8 @@ var ModifyChannelCmd = &cobra.Command{
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: `  channel modify myteam:mychannel --private
   channel modify channelId --public`,
-	Args:   cobra.ExactArgs(1),
-	PreRun: disableLocalPrecheck,
-	RunE:   withClient(modifyChannelCmdF),
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(modifyChannelCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{
@@ -112,7 +111,6 @@ var RestoreChannelsCmd = &cobra.Command{
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
@@ -122,7 +120,6 @@ var UnarchiveChannelCmd = &cobra.Command{
 	Long: `Unarchive a previously archived channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel unarchive myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
@@ -132,7 +129,6 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel make_private myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
