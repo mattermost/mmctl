@@ -260,8 +260,8 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 	s.Run("Should revoke user access tokens", func() {
 		printer.Clean()
 
-		mockToken1 := model.UserAccessToken{Token: "token-id1", Description: "token-desc1", Id: "123456"}
-		mockToken2 := model.UserAccessToken{Token: "token-id2", Description: "token-desc2", Id: "234567"}
+		mockToken1 := model.UserAccessToken{Id: "123456"}
+		mockToken2 := model.UserAccessToken{Id: "234567"}
 
 		s.client.
 			EXPECT().

@@ -24,15 +24,16 @@ var LdapSyncCmd = &cobra.Command{
 }
 
 var LdapIDMigrate = &cobra.Command{
-	Use:     "idmigrate",
+	Use:     "idmigrate <objectGUID>",
 	Short:   "Migrate LDAP IdAttribute to new value",
 	Long:    "Migrate LDAP IdAttribute to new value. Run this utility then change the IdAttribute to the new value.",
-	Example: " ldap idmigrate objectGUID",
+	Example: "  ldap idmigrate objectGUID",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(ldapIDMigrateCmdF),
 }
 
 func init() {
+	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
 		LdapIDMigrate,
@@ -43,7 +44,9 @@ func init() {
 func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	ok, response := c.SyncLdap()
+	includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
+
+	ok, response := c.SyncLdap(includeRemovedMembers)
 	if response.Error != nil {
 		return response.Error
 	}

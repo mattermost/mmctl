@@ -96,13 +96,12 @@ Private channels the user is a member of or has access to are appended with ' (p
 var ModifyChannelCmd = &cobra.Command{
 	Use:   "modify [channel] [flags]",
 	Short: "Modify a channel's public/private type",
-	Long: `Change the public/private type of a channel.
+	Long: `Change the Public/Private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: `  channel modify myteam:mychannel --private
   channel modify channelId --public`,
-	Args:   cobra.ExactArgs(1),
-	PreRun: disableLocalPrecheck,
-	RunE:   withClient(modifyChannelCmdF),
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(modifyChannelCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{
@@ -112,7 +111,6 @@ var RestoreChannelsCmd = &cobra.Command{
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
@@ -122,17 +120,15 @@ var UnarchiveChannelCmd = &cobra.Command{
 	Long: `Unarchive a previously archived channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel unarchive myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
 var MakeChannelPrivateCmd = &cobra.Command{
 	Use:   "make_private [channel]",
 	Short: "Set a channel's type to private",
-	Long: `Set the type of a channel from public to private.
+	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel make_private myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
@@ -140,9 +136,9 @@ var SearchChannelCmd = &cobra.Command{
 	Use:   "search [channel]\n  mmctl search --team [team] [channel]",
 	Short: "Search a channel",
 	Long: `Search a channel by channel name.
-Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
-	Example: `  channel search myChannel
-  channel search --team myTeam myChannel`,
+Channel can be specified by team. ie. --team myteam mychannel or by team ID.`,
+	Example: `  channel search mychannel
+  channel search --team myteam mychannel`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(searchChannelCmdF),
 }

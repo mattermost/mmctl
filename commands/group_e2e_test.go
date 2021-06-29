@@ -16,7 +16,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	channelName := api4.GenerateTestChannelName()
-	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
@@ -24,7 +24,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
-		err := s.th.App.DeleteChannel(channel, "")
+		err := s.th.App.DeleteChannel(s.th.Context, channel, "")
 		s.Require().Nil(err)
 	}()
 
@@ -87,7 +87,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	channelName := api4.GenerateTestChannelName()
-	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
@@ -95,7 +95,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
-		err := s.th.App.DeleteChannel(channel, "")
+		err := s.th.App.DeleteChannel(s.th.Context, channel, "")
 		s.Require().Nil(err)
 	}()
 

@@ -4,6 +4,9 @@
 package commands
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/spf13/cobra"
 
@@ -33,6 +36,52 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 		args := []string{"PrivacySettings"}
 		resetCmd.Flags().Bool("confirm", true, "")
 		err := configResetCmdF(s.th.Client, resetCmd, args)
+		s.Require().NotNil(err)
+		s.Assert().Errorf(err, "You do not have the appropriate permissions.")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
+	s.Require().Nil(err)
+
+	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	s.Require().Nil(err)
+
+	_, err = tmpFile.Write([]byte(configFilePayload))
+	s.Require().Nil(err)
+
+	defer func() {
+		os.Remove(tmpFile.Name())
+		os.Remove(invalidFile.Name())
+	}()
+
+	s.RunForSystemAdminAndLocal("MM-T4051 - System admin and local patch", func(c client.Client) {
+		printer.Clean()
+
+		err := configPatchCmdF(c, &cobra.Command{}, []string{tmpFile.Name()})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("MM-T4052 - System admin and local patch with invalid file", func(c client.Client) {
+		printer.Clean()
+
+		err := configPatchCmdF(c, &cobra.Command{}, []string{invalidFile.Name()})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("MM-T4053 - Patch config for user without permission", func() {
+		printer.Clean()
+
+		err := configPatchCmdF(s.th.Client, &cobra.Command{}, []string{tmpFile.Name()})
 		s.Require().NotNil(err)
 		s.Assert().Errorf(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
@@ -107,6 +156,52 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 		args := []string{"SqlSettings.DriverName", "mysql"}
 		err := configSetCmdF(s.th.Client, &cobra.Command{}, args)
 		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigEditCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Edit a key in config", func(c client.Client) {
+		printer.Clean()
+
+		// ensure the value before editing
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableSVGs = false })
+
+		// create a shell script to edit config
+		content := `#!/bin/bash
+sed -i'old' 's/\"EnableSVGs\": false/\"EnableSVGs\": true/' $1
+rm $1'old'`
+
+		file, err := ioutil.TempFile(os.TempDir(), "config_edit_*.sh")
+		s.Require().Nil(err)
+		defer func() {
+			os.Remove(file.Name())
+		}()
+		_, err = file.Write([]byte(content))
+		s.Require().Nil(err)
+		s.Require().Nil(file.Close())
+		s.Require().Nil(os.Chmod(file.Name(), 0700))
+
+		os.Setenv("EDITOR", file.Name())
+
+		// check the value after editing
+		err = configEditCmdF(c, nil, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		config := s.th.App.Config()
+		s.Require().True(*config.ServiceSettings.EnableSVGs)
+	})
+
+	s.Run("Edit config value without permissions", func() {
+		printer.Clean()
+
+		err := configEditCmdF(s.th.Client, nil, nil)
+		s.Require().NotNil(err)
+		s.Require().Error(err, "You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
