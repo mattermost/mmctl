@@ -27,10 +27,10 @@ Examples
     $ mmctl user create --email user@example.com --username userexample --password Password1 --firstname User --lastname Example --nickname userex
 
     # Also you can create the user as system administrator
-    $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin
+    $ mmctl user create --email user@example.com --username userexample --password Password1 --system_admin
 
     # Finally you can verify user on creation if you have enough permissions
-    $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin --email-verified
+    $ mmctl user create --email user@example.com --username userexample --password Password1 --system_admin --email_verified
 
 Options
 ~~~~~~~
