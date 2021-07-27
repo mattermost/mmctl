@@ -20,15 +20,15 @@ Examples
 
 ::
 
-    channel create --team myteam --name mynewchannel --display_name "My New Channel"
-    channel create --team myteam --name mynewprivatechannel --display_name "My New Private Channel" --private
+    channel create --team myteam --name mynewchannel --display-name "My New Channel"
+    channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private
 
 Options
 ~~~~~~~
 
 ::
 
-      --display_name string   Channel Display Name
+      --display-name string   Channel Display Name
       --header string         Channel header
   -h, --help                  help for create
       --name string           Channel Name

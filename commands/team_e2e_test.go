@@ -22,7 +22,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		nonExistentTeamName := "existingName"
 		cmd := &cobra.Command{}
 		args := []string{nonExistentTeamName}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(c, cmd, args)
 		s.Require().EqualError(err, "Unable to find team 'existingName', to see the all teams try 'team list' command")
@@ -33,7 +33,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(c, cmd, args)
 		s.Require().Nil(err)
@@ -47,7 +47,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(s.th.Client, cmd, args)
 		s.Require().Error(err)
@@ -64,7 +64,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		nonExistentName := "existingName"
 		cmd := &cobra.Command{}
 		args := []string{nonExistentName}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
 		_ = deleteTeamsCmdF(c, cmd, args)
@@ -77,7 +77,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
 		_ = deleteTeamsCmdF(s.th.Client, cmd, args)
@@ -95,13 +95,13 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 		teamDisplayname := "Mock Display Name"
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display_name", teamDisplayname, "")
+		cmd.Flags().String("display-name", teamDisplayname, "")
 		err := createTeamCmdF(s.th.LocalClient, cmd, []string{})
 		s.Require().Nil(err)
 
 		cmd = &cobra.Command{}
 		args := []string{teamName}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
 		// Set EnableAPITeamDeletion
@@ -129,7 +129,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		args := []string{s.th.BasicTeam.Name}
 		cmd := &cobra.Command{}
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 		cmd.Flags().Bool("confirm", true, "")
 
 		// Delete should fail for SystemAdmin client
@@ -213,14 +213,14 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 	s.RunForAllClients("Should not create a team w/o name", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
-		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().String("display-name", "somedisplayname", "")
 
 		err := createTeamCmdF(c, cmd, []string{})
 		s.EqualError(err, "name is required")
 		s.Require().Empty(printer.GetLines())
 	})
 
-	s.RunForAllClients("Should not create a team w/o display_name", func(c client.Client) {
+	s.RunForAllClients("Should not create a team w/o display-name", func(c client.Client) {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", model.NewId(), "")
@@ -235,7 +235,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		cmd := &cobra.Command{}
 		teamName := model.NewId()
 		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
 		cmd.Flags().String("email", email, "")
 
@@ -252,7 +252,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		cmd := &cobra.Command{}
 		teamName := model.NewId()
 		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
 		cmd.Flags().String("email", email, "")
 
@@ -269,7 +269,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		cmd := &cobra.Command{}
 		teamName := model.NewId()
 		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().String("display-name", "somedisplayname", "")
 		email := "someemail@example.com"
 		cmd.Flags().String("email", email, "")
 
@@ -286,7 +286,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		cmd := &cobra.Command{}
 		teamName := model.NewId()
 		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().String("display-name", "somedisplayname", "")
 
 		err := createTeamCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -301,7 +301,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		cmd := &cobra.Command{}
 		teamName := model.NewId()
 		cmd.Flags().String("name", teamName, "")
-		cmd.Flags().String("display_name", "somedisplayname", "")
+		cmd.Flags().String("display-name", "somedisplayname", "")
 		cmd.Flags().Bool("private", true, "")
 
 		err := createTeamCmdF(c, cmd, []string{})

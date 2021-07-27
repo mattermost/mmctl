@@ -422,7 +422,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Contains(err.Error(), "GetUserByEmail: Unable to find the user., resource: User id: email="+email)
 	})
 
-	s.Run("Should create a user but w/o system_admin privileges", func() {
+	s.Run("Should create a user but w/o system-admin privileges", func() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewId()
@@ -430,7 +430,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
 		cmd.Flags().String("password", "password", "")
-		cmd.Flags().Bool("system_admin", true, "")
+		cmd.Flags().Bool("system-admin", true, "")
 
 		err := userCreateCmdF(s.th.Client, cmd, []string{})
 		s.EqualError(err, "Unable to update user roles. Error: : You do not have the appropriate permissions., ")
@@ -441,7 +441,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Equal(false, user.IsSystemAdmin())
 	})
 
-	s.RunForSystemAdminAndLocal("Should create new system_admin user given required params", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Should create new system-admin user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewId()
@@ -449,7 +449,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
 		cmd.Flags().String("password", "somepass", "")
-		cmd.Flags().Bool("system_admin", true, "")
+		cmd.Flags().Bool("system-admin", true, "")
 
 		err := userCreateCmdF(s.th.SystemAdminClient, cmd, []string{})
 		s.Require().Nil(err)
@@ -486,7 +486,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
 		cmd.Flags().String("password", "somepass", "")
-		cmd.Flags().Bool("email_verified", true, "")
+		cmd.Flags().Bool("email-verified", true, "")
 
 		err := userCreateCmdF(c, cmd, []string{})
 		s.Require().Nil(err)

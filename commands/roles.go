@@ -21,14 +21,14 @@ var RolesCmd = &cobra.Command{
 }
 
 var RolesSystemAdminCmd = &cobra.Command{
-	Use:   "system_admin [users]",
+	Use:   "system-admin [users]",
 	Short: "Set a user as system admin",
 	Long:  "Make some users system admins.",
 	Example: `  # You can make one user a sysadmin
-  $ mmctl roles system_admin john_doe
+  $ mmctl roles system-admin john_doe
 
   # Or promote multiple users at the same time
-  $ mmctl roles system_admin john_doe jane_doe`,
+  $ mmctl roles system-admin john_doe jane_doe`,
 	RunE: withClient(rolesSystemAdminCmdF),
 	Args: cobra.MinimumNArgs(1),
 }

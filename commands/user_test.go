@@ -1311,7 +1311,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("username", mockUser.Username, "")
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system_admin", true, "")
+		command.Flags().Bool("system-admin", true, "")
 
 		error := userCreateCmdF(s.client, &command, []string{})
 
@@ -1367,7 +1367,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("username", mockUser.Username, "")
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system_admin", true, "")
+		command.Flags().Bool("system-admin", true, "")
 
 		error := userCreateCmdF(s.client, &command, []string{})
 

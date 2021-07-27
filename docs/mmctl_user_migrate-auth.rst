@@ -1,33 +1,36 @@
-.. _mmctl_user_reset_password:
+.. _mmctl_user_migrate-auth:
 
-mmctl user reset_password
--------------------------
+mmctl user migrate-auth
+-----------------------
 
-Send users an email to reset their password
+Mass migrate user accounts authentication type
 
 Synopsis
 ~~~~~~~~
 
 
-Send users an email to reset their password
+Migrates accounts from one authentication provider to another. For example, you can upgrade your authentication provider from email to ldap.
 
 ::
 
-  mmctl user reset_password [users] [flags]
+  mmctl user migrate-auth [from_auth] [to_auth] [migration-options] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user reset_password user@example.com
+  user migrate-auth email saml users.json
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for reset_password
+      --auto      Automatically migrate all users. Assumes the usernames and emails are identical between Mattermost and SAML services. (saml only)
+      --confirm   Confirm you really want to proceed with auto migration. (saml only)
+      --force     Force the migration to occur even if there are duplicates on the LDAP server. Duplicates will not be migrated. (ldap only)
+  -h, --help      help for migrate-auth
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

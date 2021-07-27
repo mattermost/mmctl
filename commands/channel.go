@@ -25,8 +25,8 @@ var ChannelCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a channel",
 	Long:  `Create a channel.`,
-	Example: `  channel create --team myteam --name mynewchannel --display_name "My New Channel"
-  channel create --team myteam --name mynewprivatechannel --display_name "My New Private Channel" --private`,
+	Example: `  channel create --team myteam --name mynewchannel --display-name "My New Channel"
+  channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private`,
 	RunE: withClient(createChannelCmdF),
 }
 
@@ -35,9 +35,9 @@ var ChannelRenameCmd = &cobra.Command{
 	Use:   "rename [channel]",
 	Short: "Rename channel",
 	Long:  `Rename an existing channel.`,
-	Example: `  channel rename myteam:oldchannel --name 'new-channel' --display_name 'New Display Name'
+	Example: `  channel rename myteam:oldchannel --name 'new-channel' --display-name 'New Display Name'
   channel rename myteam:oldchannel --name 'new-channel'
-  channel rename myteam:oldchannel --display_name 'New Display Name'`,
+  channel rename myteam:oldchannel --display-name 'New Display Name'`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(renameChannelCmdF),
 }
@@ -124,11 +124,12 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 }
 
 var MakeChannelPrivateCmd = &cobra.Command{
-	Use:   "make_private [channel]",
-	Short: "Set a channel's type to private",
+	Use:     "make-private [channel]",
+	Aliases: []string{"make_private"},
+	Short:   "Set a channel's type to private",
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel make_private myteam:mychannel",
+	Example: "  channel make-private myteam:mychannel",
 	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
@@ -156,7 +157,7 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
-	ChannelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
+	ChannelCreateCmd.Flags().String("display-name", "", "Channel Display Name")
 	ChannelCreateCmd.Flags().String("team", "", "Team name or ID")
 	ChannelCreateCmd.Flags().String("header", "", "Channel header")
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
@@ -166,7 +167,7 @@ func init() {
 	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
 
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
-	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
+	ChannelRenameCmd.Flags().String("display-name", "", "Channel Display Name")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
@@ -202,7 +203,7 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	if errn != nil || name == "" {
 		return errors.New("name is required")
 	}
-	displayname, errdn := cmd.Flags().GetString("display_name")
+	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
 		return errors.New("display Name is required")
 	}
@@ -376,14 +377,14 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return err
 	}
 
-	newDisplayName, err := cmd.Flags().GetString("display_name")
+	newDisplayName, err := cmd.Flags().GetString("display-name")
 	if err != nil {
 		return err
 	}
 
 	// At least one of display name or name flag must be present
 	if newDisplayName == "" && newChannelName == "" {
-		return errors.New("require at least one flag to rename channel, either 'name' or 'display_name'")
+		return errors.New("require at least one flag to rename channel, either 'name' or 'display-name'")
 	}
 
 	channel := getChannelFromChannelArg(c, existingTeamChannel)
