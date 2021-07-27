@@ -21,7 +21,8 @@ const (
 	MethodMFA      = "M"
 
 	userHomeVar      = "$HOME"
-	configFileName   = "mmctl"
+	configFileName   = "config"
+	configParent     = "mmctl"
 	xdgConfigHomeVar = "$XDG_CONFIG_HOME"
 )
 
@@ -47,33 +48,19 @@ func init() {
 	SetUser(newUser)
 }
 
-func getDefaultConfigPath() string {
-	configPath := currentUser.HomeDir
-	// We use the existing $HOME/.mmctl file if it exists.
-	// If not, we try to read XDG_CONFIG_HOME and if we fail,
-	// we fallback to $HOME/.config/mmctl.
-	if _, err := os.Stat(filepath.Join(currentUser.HomeDir, "."+configFileName)); os.IsNotExist(err) {
-		if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
-			configPath = p
-		} else {
-			configPath = filepath.Join(currentUser.HomeDir, ".config")
-		}
+func getDefaultConfigHomePath() string {
+	if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
+		return p
 	}
-	return configPath
+
+	return filepath.Join(currentUser.HomeDir, ".config")
 }
 
 func resolveConfigFilePath() string {
-	configPath := getDefaultConfigPath()
-	if p := viper.GetString("config-path"); p != xdgConfigHomeVar {
-		configPath = strings.Replace(viper.GetString("config-path"), userHomeVar, currentUser.HomeDir, 1)
-	}
+	// resolve env vars if there are any
+	fpath := strings.Replace(viper.GetString("config-file-path"), userHomeVar, currentUser.HomeDir, 1)
 
-	f := configFileName
-	if configPath == currentUser.HomeDir {
-		f = "." + configFileName
-	}
-
-	return filepath.Join(configPath, f)
+	return strings.Replace(fpath, xdgConfigHomeVar, getDefaultConfigHomePath(), 1)
 }
 
 func ReadCredentialsList() (*CredentialsList, error) {
