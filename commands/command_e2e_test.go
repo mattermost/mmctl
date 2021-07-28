@@ -36,7 +36,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -48,7 +48,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			CreatorId:   s.th.BasicUser.Id,
 			TeamId:      team.Id,
 			URL:         "http://localhost:8000/example",
-			Method:      model.COMMAND_METHOD_GET,
+			Method:      model.CommandMethodGet,
 			Trigger:     "trigger",
 		})
 		s.Require().Nil(appErr)
@@ -70,7 +70,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -82,7 +82,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			CreatorId:   s.th.BasicUser.Id,
 			TeamId:      team1.Id,
 			URL:         "http://localhost:8000/example",
-			Method:      model.COMMAND_METHOD_GET,
+			Method:      model.CommandMethodGet,
 			Trigger:     "trigger",
 		})
 		s.Require().Nil(appErr)
@@ -96,7 +96,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -108,7 +108,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			CreatorId:   s.th.BasicUser.Id,
 			TeamId:      team2.Id,
 			URL:         "http://localhost:8000/example",
-			Method:      model.COMMAND_METHOD_GET,
+			Method:      model.CommandMethodGet,
 			Trigger:     "trigger",
 		})
 		s.Require().Nil(appErr)
@@ -135,7 +135,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.BasicUser.Email,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -144,7 +144,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 			CreatorId:   s.th.BasicUser.Id,
 			TeamId:      team.Id,
 			URL:         "http://localhost:8000/example",
-			Method:      model.COMMAND_METHOD_GET,
+			Method:      model.CommandMethodGet,
 			Trigger:     "trigger",
 		})
 		s.Require().Nil(appErr)
@@ -168,7 +168,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		DisplayName: "dn_" + model.NewId(),
 		Name:        api4.GenerateTestTeamName(),
 		Email:       s.th.BasicUser.Email,
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	s.Require().Nil(appErr)
 
@@ -199,7 +199,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 			CreatorId:   s.th.BasicUser.Id,
 			Username:    s.th.BasicUser.Username,
 			IconURL:     "http://localhost:8000/icon.ico",
-			Method:      model.COMMAND_METHOD_GET,
+			Method:      model.CommandMethodGet,
 		})
 		s.Require().Nil(appErr)
 
@@ -222,7 +222,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.SystemAdminUser.Email,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -235,7 +235,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 			CreatorId:   s.th.SystemAdminUser.Id,
 			Username:    s.th.SystemAdminUser.Username,
 			IconURL:     "http://localhost:8000/icon.ico",
-			Method:      model.COMMAND_METHOD_GET,
+			Method:      model.CommandMethodGet,
 		})
 		s.Require().Nil(appErr)
 
@@ -258,7 +258,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		CreatorId: s.th.BasicUser.Id,
 		TeamId:    s.th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
-		Method:    model.COMMAND_METHOD_POST,
+		Method:    model.CommandMethodPost,
 		Trigger:   "trigger",
 	}
 

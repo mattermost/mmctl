@@ -319,7 +319,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
 	job, appErr := s.th.App.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_EXPORT_PROCESS,
+		Type: model.JobTypeExportProcess,
 	})
 	s.Require().Nil(appErr)
 
@@ -327,7 +327,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		printer.Clean()
 
 		job1, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
@@ -399,21 +399,21 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
 		job2, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
 		job3, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 

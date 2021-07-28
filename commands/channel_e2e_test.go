@@ -133,7 +133,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			Name:        testTeamName,
 			DisplayName: "dn_" + testTeamName,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -287,16 +287,16 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		DisplayName: "Best Team",
 		Name:        "best-team",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		Email:       s.th.GenerateTestEmail(),
 	})
 	s.Require().Nil(appErr)
 
-	otherChannel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.CHANNEL_OPEN, Name: "channel_you_are_not_authorized_to", CreatorId: user.Id}, true)
+	otherChannel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_you_are_not_authorized_to", CreatorId: user.Id}, true)
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Delete channel", func(c client.Client) {
-		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.CHANNEL_OPEN, Name: "channel_name", CreatorId: user.Id}, true)
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name", CreatorId: user.Id}, true)
 		s.Require().Nil(appErr)
 
 		cmd := &cobra.Command{}
@@ -369,7 +369,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        initChannelName,
 		DisplayName: initChannelDisplayName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 
@@ -477,7 +477,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        initChannelName,
 		DisplayName: "dName_" + initChannelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 
@@ -499,7 +499,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		team, appErr = s.th.App.CreateTeam(s.th.Context, &model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -539,7 +539,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 			TeamId:      s.th.BasicTeam.Id,
 			Name:        initChannelName,
 			DisplayName: "dName_" + initChannelName,
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, false)
 		s.Require().Nil(appErr)
 
@@ -561,7 +561,7 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		team, appErr = s.th.App.CreateTeam(s.th.Context, &model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 

@@ -155,7 +155,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, perPage).
+			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
 			Return(mockJobs, &model.Response{Error: nil}).
 			Times(1)
 
@@ -188,7 +188,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, perPage).
+			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
 			Return(mockJobs, &model.Response{Error: nil}).
 			Times(1)
 
@@ -206,7 +206,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 	printer.Clean()
 	importFile := "import.zip"
 	mockJob := &model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{"import_file": importFile},
 	}
 

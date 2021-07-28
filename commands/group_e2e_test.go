@@ -20,7 +20,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
@@ -91,7 +91,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {

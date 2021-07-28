@@ -47,7 +47,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		mockTeam := &model.Team{
 			Name:        mockTeamName,
 			DisplayName: mockTeamDisplayname,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		s.client.
@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 			Name:        mockTeamName,
 			DisplayName: mockTeamDisplayname,
 			Email:       mockTeamEmail,
-			Type:        model.TEAM_INVITE,
+			Type:        model.TeamInvite,
 		}
 
 		s.client.
@@ -98,7 +98,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		mockTeam := &model.Team{
 			Name:        mockTeamName,
 			DisplayName: mockTeamDisplayname,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		mockError := &model.AppError{Message: "Remote error"}
 
@@ -742,7 +742,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Id:              teamID,
 			Name:            teamName,
 			AllowOpenInvite: true,
-			Type:            model.TEAM_OPEN,
+			Type:            model.TeamOpen,
 		}
 
 		s.client.
@@ -753,7 +753,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_INVITE).
+			UpdateTeamPrivacy(teamID, model.TeamInvite).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -771,7 +771,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Id:              teamID,
 			Name:            teamName,
 			AllowOpenInvite: false,
-			Type:            model.TEAM_INVITE,
+			Type:            model.TeamInvite,
 		}
 
 		s.client.
@@ -782,7 +782,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			UpdateTeamPrivacy(teamID, model.TeamOpen).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -800,7 +800,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Id:              teamID,
 			Name:            teamName,
 			AllowOpenInvite: false,
-			Type:            model.TEAM_INVITE,
+			Type:            model.TeamInvite,
 		}
 
 		mockError := &model.AppError{
@@ -817,7 +817,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			UpdateTeamPrivacy(teamID, model.TeamOpen).
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 

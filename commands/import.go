@@ -224,7 +224,7 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	importFile := args[0]
 
 	job, resp := c.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": importFile,
 		},
@@ -305,5 +305,5 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error 
 }
 
 func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JOB_TYPE_IMPORT_PROCESS)
+	return jobListCmdF(c, command, model.JobTypeImportProcess)
 }

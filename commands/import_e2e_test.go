@@ -251,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
 	job, appErr := s.th.App.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{"import_file": "import1.zip"},
 	})
 	s.Require().Nil(appErr)
@@ -260,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 		printer.Clean()
 
 		job1, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -336,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -344,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job2, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -352,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job3, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import3.zip"},
 		})
 		s.Require().Nil(appErr)

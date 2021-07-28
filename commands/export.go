@@ -111,7 +111,7 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 	}
 
 	job, resp := c.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_EXPORT_PROCESS,
+		Type: model.JobTypeExportProcess,
 		Data: data,
 	})
 	if resp.Error != nil {
@@ -203,7 +203,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 }
 
 func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JOB_TYPE_EXPORT_PROCESS)
+	return jobListCmdF(c, command, model.JobTypeExportProcess)
 }
 
 func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {

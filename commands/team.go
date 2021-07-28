@@ -141,9 +141,9 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")
 
-	teamType := model.TEAM_OPEN
+	teamType := model.TeamOpen
 	if useprivate {
-		teamType = model.TEAM_INVITE
+		teamType = model.TeamInvite
 	}
 
 	team := &model.Team{
@@ -332,9 +332,9 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// I = invite only (private)
 	// O = open (public)
-	privacy := model.TEAM_INVITE
+	privacy := model.TeamInvite
 	if public {
-		privacy = model.TEAM_OPEN
+		privacy = model.TeamOpen
 	}
 
 	teams := getTeamsFromTeamArgs(c, args)

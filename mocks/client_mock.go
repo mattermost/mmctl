@@ -1780,7 +1780,7 @@ func (mr *MockClientMockRecorder) SyncLdap(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateChannelPrivacy mocks base method
-func (m *MockClient) UpdateChannelPrivacy(arg0, arg1 string) (*model.Channel, *model.Response) {
+func (m *MockClient) UpdateChannelPrivacy(arg0 string, arg1 model.ChannelType) (*model.Channel, *model.Response) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChannelPrivacy", arg0, arg1)
 	ret0, _ := ret[0].(*model.Channel)

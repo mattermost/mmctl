@@ -29,7 +29,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 
@@ -159,7 +159,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 

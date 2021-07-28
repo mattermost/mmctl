@@ -16,7 +16,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 	s.Run("create export", func() {
 		printer.Clean()
 		mockJob := &model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 		}
 
 		s.client.
@@ -35,7 +35,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 	s.Run("create export with attachments", func() {
 		printer.Clean()
 		mockJob := &model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 			Data: map[string]string{"include_attachments": "true"},
 		}
 

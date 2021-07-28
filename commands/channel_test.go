@@ -225,7 +225,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 		channel := &model.Channel{
 			Id:   channelID,
-			Type: model.CHANNEL_DIRECT,
+			Type: model.ChannelTypeDirect,
 		}
 		args := []string{channel.Id}
 
@@ -250,7 +250,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 		channel := &model.Channel{
 			Id:   channelID,
-			Type: model.CHANNEL_GROUP,
+			Type: model.ChannelTypeGroup,
 		}
 		args := []string{channel.Id}
 
@@ -275,7 +275,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 		channel := &model.Channel{
 			Id:   channelID,
-			Type: model.CHANNEL_PRIVATE,
+			Type: model.ChannelTypePrivate,
 		}
 		mockError := &model.AppError{
 			Message: "mockError",
@@ -295,7 +295,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(channel.Id, model.CHANNEL_OPEN).
+			UpdateChannelPrivacy(channel.Id, model.ChannelTypeOpen).
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
@@ -309,11 +309,11 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 		channel := &model.Channel{
 			Id:   channelID,
-			Type: model.CHANNEL_PRIVATE,
+			Type: model.ChannelTypePrivate,
 		}
 		returnedChannel := &model.Channel{
 			Id:   channel.Id,
-			Type: model.CHANNEL_OPEN,
+			Type: model.ChannelTypeOpen,
 		}
 		args := []string{channel.Id}
 
@@ -330,7 +330,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(channel.Id, model.CHANNEL_OPEN).
+			UpdateChannelPrivacy(channel.Id, model.ChannelTypeOpen).
 			Return(returnedChannel, &model.Response{Error: nil}).
 			Times(1)
 
@@ -344,11 +344,11 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 		printer.Clean()
 		channel := &model.Channel{
 			Id:   channelID,
-			Type: model.CHANNEL_OPEN,
+			Type: model.ChannelTypeOpen,
 		}
 		returnedChannel := &model.Channel{
 			Id:   channel.Id,
-			Type: model.CHANNEL_PRIVATE,
+			Type: model.ChannelTypePrivate,
 		}
 		args := []string{channel.Id}
 
@@ -365,7 +365,7 @@ func (s *MmctlUnitTestSuite) TestModifyChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			UpdateChannelPrivacy(channel.Id, model.CHANNEL_PRIVATE).
+			UpdateChannelPrivacy(channel.Id, model.ChannelTypePrivate).
 			Return(returnedChannel, &model.Response{Error: nil}).
 			Times(1)
 
@@ -920,8 +920,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		archivedChannel1 := &model.Channel{Name: "archivedChannelName1"}
 		publicChannel1 := &model.Channel{Name: "publicChannelName1"}
 
-		privateChannel1 := &model.Channel{Name: "archivedChannelName1", Type: model.CHANNEL_PRIVATE}
-		privateChannel2 := &model.Channel{Name: "archivedChannelName2", Type: model.CHANNEL_PRIVATE}
+		privateChannel1 := &model.Channel{Name: "archivedChannelName1", Type: model.ChannelTypePrivate}
+		privateChannel2 := &model.Channel{Name: "archivedChannelName2", Type: model.ChannelTypePrivate}
 		userChannels := []*model.Channel{archivedChannel1, publicChannel1, privateChannel1, privateChannel2}
 
 		mockError := &model.AppError{Message: "User does not have permissions to list all private channels in team"}
@@ -2544,7 +2544,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			TeamId:      "teamId",
 			Name:        channelName,
 			DisplayName: channelDisplayName,
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}
 
 		s.client.
@@ -2597,7 +2597,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			TeamId:      "teamId",
 			Name:        channelName,
 			DisplayName: channelDisplayName,
-			Type:        model.CHANNEL_PRIVATE,
+			Type:        model.ChannelTypePrivate,
 		}
 
 		s.client.
@@ -2650,7 +2650,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 			DisplayName: channelDisplayName,
 			Header:      header,
 			Purpose:     purpose,
-			Type:        model.CHANNEL_PRIVATE,
+			Type:        model.ChannelTypePrivate,
 		}
 
 		s.client.
