@@ -9,7 +9,7 @@ package mocks
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/mattermost/mattermost-server/v5/model"
+	model "github.com/mattermost/mattermost-server/v6/model"
 	io "io"
 	http "net/http"
 	reflect "reflect"
