@@ -52,7 +52,7 @@ var ExtractJobShowCmd = &cobra.Command{
 
 func init() {
 	ExtractRunCmd.Flags().Int64("from", 0, "The timestamp of the earliest file to extract, expressed in seconds since the unix epoch.")
-	ExtractRunCmd.Flags().Int64("to", model.GetMillis()/1000, "The timestamp of the latest file to extract, expressed in seconds since the unix epoch.")
+	ExtractRunCmd.Flags().Int64("to", 0, "The timestamp of the latest file to extract, expressed in seconds since the unix epoch. Defaults to the current time.")
 	ExtractJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of extract jobs")
 	ExtractJobListCmd.Flags().Int("per-page", 200, "Number of extract jobs to be fetched")
 	ExtractJobListCmd.Flags().Bool("all", false, "Fetch all extract jobs. --page flag will be ignore if provided")
@@ -75,6 +75,9 @@ func extractRunCmdF(c client.Client, command *cobra.Command, args []string) erro
 	to, err := command.Flags().GetInt64("to")
 	if err != nil {
 		return err
+	}
+	if to == 0 {
+		to = model.GetMillis() / 1000
 	}
 
 	job, resp := c.CreateJob(&model.Job{

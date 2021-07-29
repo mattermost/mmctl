@@ -29,7 +29,7 @@ Options
 
       --from int   The timestamp of the earliest file to extract, expressed in seconds since the unix epoch.
   -h, --help       help for run
-      --to int     The timestamp of the latest file to extract, expressed in seconds since the unix epoch. (default 1627546692)
+      --to int     The timestamp of the latest file to extract, expressed in seconds since the unix epoch. Defaults to the current time.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
