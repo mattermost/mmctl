@@ -12,7 +12,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -151,7 +151,7 @@ func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowIn
 func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
 	client := NewAPIv4Client(credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS)
 
-	client.AuthType = model.HEADER_BEARER
+	client.AuthType = model.HeaderBearer
 	client.AuthToken = credentials.AuthToken
 
 	_, response := client.GetMe("")
