@@ -313,7 +313,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v6 v6.0.0-20210728120600-5c22a8f083fb
+# github.com/mattermost/mattermost-server/v6 v6.0.0-20210729074524-0196c4007db2
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
 github.com/mattermost/mattermost-server/v6/app/email

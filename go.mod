@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/magefile/mage v1.11.0
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mattermost/mattermost-server/v6 v6.0.0-20210728120600-5c22a8f083fb
+	github.com/mattermost/mattermost-server/v6 v6.0.0-20210729074524-0196c4007db2
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.4.1 // indirect
