@@ -6,7 +6,6 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -138,30 +137,24 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	}
 	passwordFile, _ := cmd.Flags().GetString("password-file")
 	if password != "" && passwordFile != "" {
-		return errors.New("can not use two passwords at the same time")
+		return errors.New("cannot use two passwords at the same time")
 	}
-	if passwordFile != "" {
-		b, err2 := ioutil.ReadFile(passwordFile)
-		if err2 != nil {
-			return err2
-		}
-		password = strings.TrimSpace(string(b))
+	if fErr := readSecretFromFile(passwordFile, &password); fErr != nil {
+		return fmt.Errorf("could not read the password: %w", fErr)
 	}
+
 	accessToken, err := cmd.Flags().GetString("access-token")
 	if err != nil {
 		return err
 	}
 	accessTokenFile, _ := cmd.Flags().GetString("access-token-file")
 	if accessToken != "" && accessTokenFile != "" {
-		return errors.New("can not use two access tokens at the same time")
+		return errors.New("cannot use two access tokens at the same time")
 	}
-	if accessTokenFile != "" {
-		b, err2 := ioutil.ReadFile(accessTokenFile)
-		if err2 != nil {
-			return err2
-		}
-		accessToken = strings.TrimSpace(string(b))
+	if fErr := readSecretFromFile(accessTokenFile, &accessToken); fErr != nil {
+		return fmt.Errorf("could not read the access-token: %w", fErr)
 	}
+
 	mfaToken, err := cmd.Flags().GetString("mfa-token")
 	if err != nil {
 		return err
@@ -337,27 +330,21 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 	password, _ := cmd.Flags().GetString("password")
 	passwordFile, _ := cmd.Flags().GetString("password-file")
 	if password != "" && passwordFile != "" {
-		return errors.New("can not use two passwords at the same time")
+		return errors.New("cannot use two passwords at the same time")
 	}
-	if passwordFile != "" {
-		b, err2 := ioutil.ReadFile(passwordFile)
-		if err2 != nil {
-			return err2
-		}
-		password = strings.TrimSpace(string(b))
+	if fErr := readSecretFromFile(passwordFile, &password); fErr != nil {
+		return fmt.Errorf("could not read the password: %w", fErr)
 	}
+
 	accessToken, _ := cmd.Flags().GetString("access-token")
 	accessTokenFile, _ := cmd.Flags().GetString("access-token-file")
 	if accessToken != "" && accessTokenFile != "" {
-		return errors.New("can not use two access tokens at the same time")
+		return errors.New("cannot use two access tokens at the same time")
 	}
-	if accessTokenFile != "" {
-		b, err2 := ioutil.ReadFile(accessTokenFile)
-		if err2 != nil {
-			return err2
-		}
-		accessToken = strings.TrimSpace(string(b))
+	if fErr := readSecretFromFile(accessTokenFile, &accessToken); fErr != nil {
+		return fmt.Errorf("could not read the access-token: %w", fErr)
 	}
+
 	mfaToken, _ := cmd.Flags().GetString("mfa-token")
 	allowInsecureSHA1 := viper.GetBool("insecure-sha1-intermediate")
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")
