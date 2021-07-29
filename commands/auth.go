@@ -6,6 +6,7 @@ package commands
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -27,12 +28,12 @@ var AuthCmd = &cobra.Command{
 }
 
 var LoginCmd = &cobra.Command{
-	Use:   "login [instance url] --name [server name] --username [username] --password [password]",
+	Use:   "login [instance url] --name [server name] --username [username] --password-file [password-file]",
 	Short: "Login into an instance",
 	Long:  "Login into an instance and store credentials",
 	Example: `  auth login https://mattermost.example.com
-  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
-  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret --mfa-token 123456
+  auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt
+  auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt --mfa-token 123456
   auth login https://mattermost.example.com --name local-server --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
 	RunE: loginCmdF,
@@ -93,12 +94,20 @@ func init() {
 	LoginCmd.Flags().StringP("name", "n", "", "Name for the credentials")
 	LoginCmd.Flags().StringP("username", "u", "", "Username for the credentials")
 	LoginCmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+	_ = LoginCmd.Flags().MarkHidden("access-token")
+	LoginCmd.Flags().StringP("access-token-file", "t", "", "Access token file to be read to use instead of username/password")
 	LoginCmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
 	LoginCmd.Flags().StringP("password", "p", "", "Password for the credentials")
+	_ = LoginCmd.Flags().MarkHidden("password")
+	LoginCmd.Flags().StringP("password-file", "f", "", "Password file to be read for the credentials")
 	LoginCmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
 	RenewCmd.Flags().StringP("password", "p", "", "Password for the credentials")
+	_ = RenewCmd.Flags().MarkHidden("password")
+	RenewCmd.Flags().StringP("password-file", "f", "", "Password file to be read for the credentials")
 	RenewCmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+	_ = RenewCmd.Flags().MarkHidden("access-token")
+	RenewCmd.Flags().StringP("access-token-file", "t", "", "Access token file to be read to use instead of username/password")
 	RenewCmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
 
 	AuthCmd.AddCommand(
@@ -127,9 +136,31 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	passwordFile, _ := cmd.Flags().GetString("password-file")
+	if password != "" && passwordFile != "" {
+		return errors.New("can not use two passwords at the same time")
+	}
+	if passwordFile != "" {
+		b, err2 := ioutil.ReadFile(passwordFile)
+		if err2 != nil {
+			return err2
+		}
+		password = strings.TrimSpace(string(b))
+	}
 	accessToken, err := cmd.Flags().GetString("access-token")
 	if err != nil {
 		return err
+	}
+	accessTokenFile, _ := cmd.Flags().GetString("access-token-file")
+	if accessToken != "" && accessTokenFile != "" {
+		return errors.New("can not use two access tokens at the same time")
+	}
+	if accessTokenFile != "" {
+		b, err2 := ioutil.ReadFile(accessTokenFile)
+		if err2 != nil {
+			return err2
+		}
+		accessToken = strings.TrimSpace(string(b))
 	}
 	mfaToken, err := cmd.Flags().GetString("mfa-token")
 	if err != nil {
@@ -304,7 +335,29 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 func renewCmdF(cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	password, _ := cmd.Flags().GetString("password")
+	passwordFile, _ := cmd.Flags().GetString("password-file")
+	if password != "" && passwordFile != "" {
+		return errors.New("can not use two passwords at the same time")
+	}
+	if passwordFile != "" {
+		b, err2 := ioutil.ReadFile(passwordFile)
+		if err2 != nil {
+			return err2
+		}
+		password = strings.TrimSpace(string(b))
+	}
 	accessToken, _ := cmd.Flags().GetString("access-token")
+	accessTokenFile, _ := cmd.Flags().GetString("access-token-file")
+	if accessToken != "" && accessTokenFile != "" {
+		return errors.New("can not use two access tokens at the same time")
+	}
+	if accessTokenFile != "" {
+		b, err2 := ioutil.ReadFile(accessTokenFile)
+		if err2 != nil {
+			return err2
+		}
+		accessToken = strings.TrimSpace(string(b))
+	}
 	mfaToken, _ := cmd.Flags().GetString("mfa-token")
 	allowInsecureSHA1 := viper.GetBool("insecure-sha1-intermediate")
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")

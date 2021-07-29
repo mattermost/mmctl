@@ -13,7 +13,7 @@ Login into an instance and store credentials
 
 ::
 
-  mmctl auth login [instance url] --name [server name] --username [username] --password [password] [flags]
+  mmctl auth login [instance url] --name [server name] --username [username] --password-file [password-file] [flags]
 
 Examples
 ~~~~~~~~
@@ -21,8 +21,8 @@ Examples
 ::
 
     auth login https://mattermost.example.com
-    auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
-    auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret --mfa-token 123456
+    auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt
+    auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt --mfa-token 123456
     auth login https://mattermost.example.com --name local-server --access-token myaccesstoken
 
 Options
@@ -30,13 +30,13 @@ Options
 
 ::
 
-  -a, --access-token string   Access token to use instead of username/password
-  -h, --help                  help for login
-  -m, --mfa-token string      MFA token for the credentials
-  -n, --name string           Name for the credentials
-      --no-activate           If present, it won't activate the credentials after login
-  -p, --password string       Password for the credentials
-  -u, --username string       Username for the credentials
+  -t, --access-token-file string   Access token file to be read to use instead of username/password
+  -h, --help                       help for login
+  -m, --mfa-token string           MFA token for the credentials
+  -n, --name string                Name for the credentials
+      --no-activate                If present, it won't activate the credentials after login
+  -f, --password-file string       Password file to be read for the credentials
+  -u, --username string            Username for the credentials
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
