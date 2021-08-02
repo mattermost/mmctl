@@ -54,19 +54,20 @@ func addToZip(zipWriter *zip.Writer, basedir, path string) error {
 		}
 
 		if fileInfo.IsDir() {
-			if err := addToZip(zipWriter, basedir, filePath); err != nil {
+			if err = addToZip(zipWriter, basedir, filePath); err != nil {
 				return err
 			}
-		} else {
-			file, err := os.Open(filepath.Join(dirPath, fileInfo.Name()))
-			if err != nil {
-				return fmt.Errorf("cannot open file %q: %w", filePath, err)
-			}
-			defer file.Close()
+			continue
+		}
 
-			if _, err = io.Copy(w, file); err != nil {
-				return fmt.Errorf("cannot zip file contents for file %q: %w", filePath, err)
-			}
+		file, err := os.Open(filepath.Join(dirPath, fileInfo.Name()))
+		if err != nil {
+			return fmt.Errorf("cannot open file %q: %w", filePath, err)
+		}
+		defer file.Close()
+
+		if _, err = io.Copy(w, file); err != nil {
+			return fmt.Errorf("cannot zip file contents for file %q: %w", filePath, err)
 		}
 	}
 
