@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+//nolint:gosec
 package commands
 
 import (
@@ -19,7 +20,7 @@ import (
 func randomPastTime(seconds int) int64 {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.FixedZone("UTC", 0))
-	return (today.Unix() * 1000) - int64(rand.Intn(seconds*1000)) //nolint:gosec
+	return (today.Unix() * 1000) - int64(rand.Intn(seconds*1000))
 }
 
 func sortedRandomDates(size int) []int64 {
@@ -33,13 +34,13 @@ func sortedRandomDates(size int) []int64 {
 
 func randomEmoji() string {
 	emojis := []string{"+1", "-1", "heart", "blush"}
-	return emojis[rand.Intn(len(emojis))] //nolint:gosec
+	return emojis[rand.Intn(len(emojis))]
 }
 
 func randomReaction(users []string, parentCreateAt int64) app.ReactionImportData {
 	user := users[rand.Intn(len(users))]
 	emoji := randomEmoji()
-	date := parentCreateAt + int64(rand.Intn(100000)) //nolint:gosec
+	date := parentCreateAt + int64(rand.Intn(100000))
 	return app.ReactionImportData{
 		User:      &user,
 		EmojiName: &emoji,
