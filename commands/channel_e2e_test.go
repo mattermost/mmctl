@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -129,10 +130,10 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 
 		testTeamName := api4.GenerateTestTeamName()
 
-		team, appErr := s.th.App.CreateTeam(&model.Team{
+		team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 			Name:        testTeamName,
 			DisplayName: "dn_" + testTeamName,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -280,22 +281,22 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
 	defer s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousConfig })
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
-	team, appErr := s.th.App.CreateTeam(&model.Team{
+	team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		DisplayName: "Best Team",
 		Name:        "best-team",
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 		Email:       s.th.GenerateTestEmail(),
 	})
 	s.Require().Nil(appErr)
 
-	otherChannel, appErr := s.th.App.CreateChannel(&model.Channel{Type: model.CHANNEL_OPEN, Name: "channel_you_are_not_authorized_to", CreatorId: user.Id}, true)
+	otherChannel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_you_are_not_authorized_to", CreatorId: user.Id}, true)
 	s.Require().Nil(appErr)
 
 	s.RunForSystemAdminAndLocal("Delete channel", func(c client.Client) {
-		channel, appErr := s.th.App.CreateChannel(&model.Channel{Type: model.CHANNEL_OPEN, Name: "channel_name", CreatorId: user.Id}, true)
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name", CreatorId: user.Id}, true)
 		s.Require().Nil(appErr)
 
 		cmd := &cobra.Command{}
@@ -364,11 +365,11 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 	initChannelName := api4.GenerateTestChannelName()
 	initChannelDisplayName := "dn_" + initChannelName
 
-	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        initChannelName,
 		DisplayName: initChannelDisplayName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 
@@ -442,7 +443,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 	s.Run("Rename channel with permission", func() {
 		printer.Clean()
 
-		_, appErr := s.th.App.AddChannelMember(s.th.BasicUser.Id, channel, "", "")
+		_, appErr := s.th.App.AddChannelMember(s.th.Context, s.th.BasicUser.Id, channel, app.ChannelMemberOpts{})
 		s.Require().Nil(appErr)
 
 		newChannelName := api4.GenerateTestChannelName()
@@ -472,11 +473,11 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.SetupTestHelper().InitBasic()
 	initChannelName := api4.GenerateTestChannelName()
-	channel, appErr := s.th.App.CreateChannel(&model.Channel{
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        initChannelName,
 		DisplayName: "dName_" + initChannelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 
@@ -495,10 +496,10 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		testTeamName := api4.GenerateTestTeamName()
 		var team *model.Team
-		team, appErr = s.th.App.CreateTeam(&model.Team{
+		team, appErr = s.th.App.CreateTeam(s.th.Context, &model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 
@@ -534,11 +535,11 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		s.SetupTestHelper().InitBasic()
 		initChannelName := api4.GenerateTestChannelName()
-		channel, appErr = s.th.App.CreateChannel(&model.Channel{
+		channel, appErr = s.th.App.CreateChannel(s.th.Context, &model.Channel{
 			TeamId:      s.th.BasicTeam.Id,
 			Name:        initChannelName,
 			DisplayName: "dName_" + initChannelName,
-			Type:        model.CHANNEL_OPEN,
+			Type:        model.ChannelTypeOpen,
 		}, false)
 		s.Require().Nil(appErr)
 
@@ -557,10 +558,10 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 
 		testTeamName := api4.GenerateTestTeamName()
 		var team *model.Team
-		team, appErr = s.th.App.CreateTeam(&model.Team{
+		team, appErr = s.th.App.CreateTeam(s.th.Context, &model.Team{
 			Name:        testTeamName,
 			DisplayName: "dName_" + testTeamName,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		})
 		s.Require().Nil(appErr)
 

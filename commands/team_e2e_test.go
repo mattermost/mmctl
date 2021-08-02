@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -164,13 +164,13 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		err := modifyTeamsCmdF(c, cmd, []string{teamID})
 		s.Require().NoError(err)
 
-		s.Require().Equal(model.TEAM_INVITE, printer.GetLines()[0].(*model.Team).Type)
+		s.Require().Equal(model.TeamInvite, printer.GetLines()[0].(*model.Team).Type)
 		// teardown
-		appErr := s.th.App.UpdateTeamPrivacy(teamID, model.TEAM_OPEN, true)
+		appErr := s.th.App.UpdateTeamPrivacy(teamID, model.TeamOpen, true)
 		s.Require().Nil(appErr)
 		t, err := s.th.App.GetTeam(teamID)
 		s.Require().Nil(err)
-		s.Require().Equal(model.TEAM_OPEN, t.Type)
+		s.Require().Equal(model.TeamOpen, t.Type)
 	})
 
 	s.Run("user that creates the team can't set team's privacy due to permissions", func() {
@@ -186,7 +186,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
-		s.Require().Equal(model.TEAM_OPEN, t.Type)
+		s.Require().Equal(model.TeamOpen, t.Type)
 	})
 
 	s.Run("basic user with normal permissions that hasn't created the team can't set team's privacy", func() {
@@ -203,7 +203,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		)
 		t, appErr := s.th.App.GetTeam(teamID)
 		s.Require().Nil(appErr)
-		s.Require().Equal(model.TEAM_OPEN, t.Type)
+		s.Require().Equal(model.TeamOpen, t.Type)
 	})
 }
 
@@ -293,7 +293,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
 		s.Require().Nil(err)
-		s.Equal(newTeam.Type, model.TEAM_OPEN)
+		s.Equal(newTeam.Type, model.TeamOpen)
 	})
 
 	s.RunForAllClients("Should create a new private team", func(c client.Client) {
@@ -309,7 +309,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		s.Len(printer.GetLines(), 1)
 		newTeam, err := s.th.App.GetTeamByName(teamName)
 		s.Require().Nil(err)
-		s.Equal(newTeam.Type, model.TEAM_INVITE)
+		s.Equal(newTeam.Type, model.TeamInvite)
 	})
 }
 
@@ -401,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 	s.SetupTestHelper().InitBasic()
 	mockTeamName := "mockteam" + model.NewId()
 	mockTeamDisplayname := "mockteam_display"
-	_, err := s.th.App.CreateTeam(&model.Team{Name: mockTeamName, DisplayName: mockTeamDisplayname, Type: model.TEAM_OPEN, DeleteAt: 1})
+	_, err := s.th.App.CreateTeam(s.th.Context, &model.Team{Name: mockTeamName, DisplayName: mockTeamDisplayname, Type: model.TeamOpen, DeleteAt: 1})
 	s.Require().Nil(err)
 
 	s.RunForSystemAdminAndLocal("Should print both active and archived teams for syasdmin and local clients", func(c client.Client) {

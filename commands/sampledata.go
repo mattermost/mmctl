@@ -18,9 +18,9 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils"
 
 	"github.com/icrowley/fake"
 	"github.com/spf13/cobra"
@@ -383,9 +383,9 @@ func createChannel(idx int, teamName string) app.LineImportData {
 		purpose = purpose[0:250]
 	}
 
-	channelType := "P"
+	channelType := model.ChannelTypePrivate
 	if rand.Intn(2) == 0 {
-		channelType = "O"
+		channelType = model.ChannelTypeOpen
 	}
 
 	channel := app.ChannelImportData{
@@ -555,7 +555,7 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 
 	// process
 	job, resp := c.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": us.Id + "_" + finfo.Name,
 		},
@@ -572,14 +572,14 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 			return fmt.Errorf("failed to get import job status: %w", resp.Error)
 		}
 
-		if job.Status != model.JOB_STATUS_PENDING && job.Status != model.JOB_STATUS_IN_PROGRESS {
+		if job.Status != model.JobStatusPending && job.Status != model.JobStatusInProgress {
 			break
 		}
 
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	if job.Status != model.JOB_STATUS_SUCCESS {
+	if job.Status != model.JobStatusSuccess {
 		return fmt.Errorf("job reported non-success status: %s", job.Status)
 	}
 

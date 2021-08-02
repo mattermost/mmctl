@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -250,10 +250,22 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
+	job, appErr := s.th.App.CreateJob(&model.Job{
+		Type: model.JobTypeImportProcess,
+		Data: map[string]string{"import_file": "import1.zip"},
+	})
+	s.Require().Nil(appErr)
+
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
+		job1, appErr := s.th.App.CreateJob(&model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{"import_file": "import1.zip"},
+		})
+		s.Require().Nil(appErr)
+
+		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal("failed to get import job: : You do not have the appropriate permissions., ", err.Error())
 		s.Require().Empty(printer.GetLines())
@@ -272,12 +284,6 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
 		printer.Clean()
-
-		job, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
-			Data: map[string]string{"import_file": "import1.zip"},
-		})
-		s.Require().Nil(appErr)
 
 		err := importJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
 		s.Require().Nil(err)
@@ -300,7 +306,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		err := importJobListCmdF(s.th.Client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import jobs: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().Equal("failed to get jobs: : You do not have the appropriate permissions., ", err.Error())
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -317,7 +323,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
-		s.Equal("No import jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.RunForSystemAdminAndLocal("some import jobs", func(c client.Client) {
@@ -330,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -338,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job2, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -346,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job3, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import3.zip"},
 		})
 		s.Require().Nil(appErr)

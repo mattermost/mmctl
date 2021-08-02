@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -53,10 +53,10 @@ var UserCreateCmd = &cobra.Command{
   $ mmctl user create --email user@example.com --username userexample --password Password1 --firstname User --lastname Example --nickname userex
 
   # Also you can create the user as system administrator
-  $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --system_admin
 
   # Finally you can verify user on creation if you have enough permissions
-  $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin --email-verified`,
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --system_admin --email_verified`,
 	RunE: withClient(userCreateCmdF),
 }
 
@@ -82,9 +82,18 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 var UpdateUserEmailCmd = &cobra.Command{
 	Use:     "email [user] [new email]",
 	Short:   "Change email of the user",
-	Long:    "Change email of the user.",
+	Long:    "Change the email address associated with a user.",
 	Example: "  user email testuser user@example.com",
 	RunE:    withClient(updateUserEmailCmdF),
+}
+
+var UpdateUsernameCmd = &cobra.Command{
+	Use:     "username [user] [new username]",
+	Short:   "Change username of the user",
+	Long:    "Change username of the user.",
+	Example: "  user username testuser newusername",
+	Args:    cobra.ExactArgs(2),
+	RunE:    withClient(updateUsernameCmdF),
 }
 
 var ChangePasswordUserCmd = &cobra.Command{
@@ -114,7 +123,7 @@ var ResetUserMfaCmd = &cobra.Command{
 	Use:   "resetmfa [users]",
 	Short: "Turn off MFA",
 	Long: `Turn off multi-factor authentication for a user.
-If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they login.`,
+If MFA enforcement is enabled, the user will be forced to re-enable MFA as soon as they log in.`,
 	Example: "  user resetmfa user@example.com",
 	RunE:    withClient(resetUserMfaCmdF),
 }
@@ -159,16 +168,34 @@ var ListUsersCmd = &cobra.Command{
 var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Use:     "verify [users]",
 	Short:   "Verify email of users",
-	Long:    "Verify the emails of some users.",
+	Long:    "Verify the user's email address.",
 	Example: "  user verify user1",
 	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
+var PromoteGuestToUserCmd = &cobra.Command{
+	Use:     "promote [guests]",
+	Short:   "Promote guests to users",
+	Long:    "Convert a guest into a regular user.",
+	Example: "  user promote guest1 guest2",
+	RunE:    withClient(promoteGuestToUserCmdF),
+	Args:    cobra.MinimumNArgs(1),
+}
+
+var DemoteUserToGuestCmd = &cobra.Command{
+	Use:     "demote [users]",
+	Short:   "Demote users to guests",
+	Long:    "Convert a regular user into a guest.",
+	Example: "  user demote user1 user2",
+	RunE:    withClient(demoteUserToGuestCmdF),
 	Args:    cobra.MinimumNArgs(1),
 }
 
 var UserConvertCmd = &cobra.Command{
 	Use:   "convert (--bot [emails] [usernames] [userIds] | --user <username> --password PASSWORD [--email EMAIL])",
 	Short: "Convert users to bots, or a bot to a user",
-	Long:  "Convert users to bots, or a bot to a user",
+	Long:  "Convert user accounts to bots or convert bots to user accounts.",
 	Example: `  # you can convert a user to a bot providing its email, id or username
   $ mmctl user convert user@example.com --bot
 
@@ -231,7 +258,9 @@ func init() {
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+	UserCreateCmd.Flags().Bool("guest", false, "Optional. If supplied, the new user will be a guest. Defaults to false")
 	UserCreateCmd.Flags().Bool("email_verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
+	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -303,6 +332,7 @@ Global Flags:
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
 		UpdateUserEmailCmd,
+		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
 		DeleteUsersCmd,
@@ -312,6 +342,8 @@ Global Flags:
 		VerifyUserEmailWithoutTokenCmd,
 		UserConvertCmd,
 		MigrateAuthCmd,
+		PromoteGuestToUserCmd,
+		DemoteUserToGuestCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -324,27 +356,23 @@ func userActivateCmdF(c client.Client, command *cobra.Command, args []string) er
 }
 
 func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
-	users := getUsersFromUserArgs(c, userArgs)
-	for i, user := range users {
-		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
-			continue
-		}
-
-		err := changeUserActiveStatus(c, user, userArgs[i], active)
-
-		if err != nil {
+	users, err := getUsersFromArgs(c, userArgs)
+	if err != nil {
+		printer.PrintError(err.Error())
+	}
+	for _, user := range users {
+		if err := changeUserActiveStatus(c, user, active); err != nil {
 			printer.PrintError(err.Error())
 		}
 	}
 }
 
-func changeUserActiveStatus(c client.Client, user *model.User, userArg string, activate bool) error {
+func changeUserActiveStatus(c client.Client, user *model.User, activate bool) error {
 	if !activate && user.IsSSOUser() {
-		printer.Print("You must also deactivate user " + userArg + " in the SSO provider or they will be reactivated on next login or sync.")
+		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
-		return fmt.Errorf("unable to change activation status of user: %v", userArg)
+		return fmt.Errorf("unable to change activation status of user: %v", user.Id)
 	}
 
 	return nil
@@ -376,17 +404,20 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	lastname, _ := cmd.Flags().GetString("lastname")
 	locale, _ := cmd.Flags().GetString("locale")
 	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+	guest, _ := cmd.Flags().GetBool("guest")
 	emailVerified, _ := cmd.Flags().GetBool("email_verified")
+	disableWelcomeEmail, _ := cmd.Flags().GetBool("disable-welcome-email")
 
 	user := &model.User{
-		Username:      username,
-		Email:         email,
-		Password:      password,
-		Nickname:      nickname,
-		FirstName:     firstname,
-		LastName:      lastname,
-		Locale:        locale,
-		EmailVerified: emailVerified,
+		Username:            username,
+		Email:               email,
+		Password:            password,
+		Nickname:            nickname,
+		FirstName:           firstname,
+		LastName:            lastname,
+		Locale:              locale,
+		EmailVerified:       emailVerified,
+		DisableWelcomeEmail: disableWelcomeEmail,
 	}
 
 	ruser, response := c.CreateUser(user)
@@ -398,6 +429,10 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if systemAdmin {
 		if _, response := c.UpdateUserRoles(ruser.Id, "system_user system_admin"); response.Error != nil {
 			return errors.New("Unable to update user roles. Error: " + response.Error.Error())
+		}
+	} else if guest {
+		if _, response := c.DemoteUserToGuest(ruser.Id); response.Error != nil {
+			return errors.Wrapf(response.Error, "Unable to demote use to guest.")
 		}
 	}
 
@@ -474,12 +509,38 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("invalid email: '" + newEmail + "'")
 	}
 
+	user, err := getUserFromArg(c, args[0])
+	if err != nil {
+		return err
+	}
+
+	user.Email = newEmail
+
+	ruser, response := c.UpdateUser(user)
+	if response.Error != nil {
+		return errors.New(response.Error.Error())
+	}
+
+	printer.PrintT("User {{.Username}} updated successfully", ruser)
+
+	return nil
+}
+
+func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	printer.SetSingle(true)
+
+	newUsername := args[1]
+
+	if !model.IsValidUsername(newUsername) {
+		return errors.New("invalid username: '" + newUsername + "'")
+	}
+
 	user := getUserFromUserArg(c, args[0])
 	if user == nil {
 		return errors.New("unable to find user '" + args[0] + "'")
 	}
 
-	user.Email = newEmail
+	user.Username = newUsername
 
 	ruser, response := c.UpdateUser(user)
 	if response.Error != nil {
@@ -517,9 +578,9 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		}
 	}
 
-	user := getUserFromUserArg(c, args[0])
-	if user == nil {
-		return errors.New("couldn't find user '" + args[0] + "'")
+	user, err := getUserFromArg(c, args[0])
+	if err != nil {
+		return err
 	}
 
 	if hashed {
@@ -541,15 +602,14 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	users := getUsersFromUserArgs(c, args)
+	users, err := getUsersFromArgs(c, args)
+	if err != nil {
+		printer.PrintError(err.Error())
+	}
 
-	for i, user := range users {
-		if user == nil {
-			printer.PrintError("Unable to find user '" + args[i] + "'")
-			continue
-		}
+	for _, user := range users {
 		if _, response := c.UpdateUserMfa(user.Id, "", false); response.Error != nil {
-			printer.PrintError("Unable to reset user '" + args[i] + "' MFA. Error: " + response.Error.Error())
+			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + response.Error.Error())
 		}
 	}
 
@@ -584,7 +644,10 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	users := getUsersFromUserArgs(c, args)
+	users, err := getUsersFromArgs(c, args)
+	if err != nil {
+		printer.PrintError(err.Error())
+	}
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
@@ -632,7 +695,10 @@ func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
-	users := getUsersFromUserArgs(c, args)
+	users, err := getUsersFromArgs(c, args)
+	if err != nil {
+		printer.PrintError(err.Error())
+	}
 
 	for i, user := range users {
 		tpl := `id: {{.Id}}
@@ -645,10 +711,6 @@ email: {{.Email}}
 auth_service: {{.AuthService}}`
 		if i > 0 {
 			tpl = "------------------------------\n" + tpl
-		}
-		if user == nil {
-			printer.PrintError("Unable to find user '" + args[i] + "'")
-			continue
 		}
 
 		printer.PrintT(tpl, user)
@@ -722,13 +784,12 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	users := getUsersFromUserArgs(c, userArgs)
-	for i, user := range users {
-		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
-			continue
-		}
+	users, err := getUsersFromArgs(c, userArgs)
+	if err != nil {
+		printer.PrintError(err.Error())
+	}
 
+	for _, user := range users {
 		if newUser, resp := c.VerifyUserEmailWithoutToken(user.Id); resp.Error != nil {
 			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
 		} else {
@@ -754,11 +815,11 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 }
 
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
-	users := getUsersFromUserArgs(c, userArgs)
+	users, err := getUsersFromArgs(c, userArgs)
+	if err != nil {
+		printer.PrintError(err.Error())
+	}
 	for _, user := range users {
-		if user == nil {
-			continue
-		}
 		bot, resp := c.ConvertUserToBot(user.Id)
 		if resp.Error != nil {
 			printer.PrintError(resp.Error.Error())
@@ -771,9 +832,9 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	user := getUserFromUserArg(c, userArgs[0])
-	if user == nil {
-		return fmt.Errorf("could not find user by %q", userArgs[0])
+	user, err := getUserFromArg(c, userArgs[0])
+	if err != nil {
+		return err
 	}
 
 	password, _ := cmd.Flags().GetString("password")
@@ -899,6 +960,42 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 		return resp.Error
 	} else if ok {
 		printer.Print("Successfully migrated accounts.")
+	}
+
+	return nil
+}
+
+func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find guest '%v'", userArgs[i]))
+			continue
+		}
+
+		if _, resp := c.PromoteGuestToUser(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], resp.Error))
+			continue
+		}
+
+		printer.PrintT("User {{.Username}} promoted.", user)
+	}
+
+	return nil
+}
+
+func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	for i, user := range getUsersFromUserArgs(c, userArgs) {
+		if user == nil {
+			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			continue
+		}
+
+		if _, resp := c.DemoteUserToGuest(user.Id); resp.Error != nil {
+			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], resp.Error))
+			continue
+		}
+
+		printer.PrintT("User {{.Username}} demoted.", user)
 	}
 
 	return nil

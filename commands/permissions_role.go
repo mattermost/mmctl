@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -180,7 +180,8 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		userRoles := append(startingRoles, role.Name)
+		userRoles := startingRoles
+		userRoles = append(userRoles, role.Name)
 		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
 		if response.Error != nil {
 			return response.Error

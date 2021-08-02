@@ -12,7 +12,6 @@
 package gorp
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -189,7 +188,7 @@ func (t *TableMap) SetVersionCol(field string) *ColumnMap {
 // SqlForCreateTable gets a sequence of SQL commands that will create
 // the specified table and any associated schema
 func (t *TableMap) SqlForCreate(ifNotExists bool) string {
-	s := bytes.Buffer{}
+	s := strings.Builder{}
 	dialect := t.dbmap.Dialect
 
 	if strings.TrimSpace(t.SchemaName) != "" {
@@ -216,11 +215,19 @@ func (t *TableMap) SqlForCreate(ifNotExists bool) string {
 			if x > 0 {
 				s.WriteString(", ")
 			}
-			stype := dialect.ToSqlType(col.gotype, col.MaxSize, col.isAutoIncr)
+
+			stype := col.DataType
+			if stype == "" {
+				stype = dialect.ToSqlType(col.gotype, col.MaxSize, col.isAutoIncr)
+			}
+
 			s.WriteString(fmt.Sprintf("%s %s", dialect.QuoteField(col.ColumnName), stype))
 
 			if col.isPK || col.isNotNull {
 				s.WriteString(" not null")
+			}
+			if col.DefaultConstraint != nil {
+				s.WriteString(fmt.Sprintf(" default '%s'", *col.DefaultConstraint))
 			}
 			if col.isPK && len(t.keys) == 1 {
 				s.WriteString(" primary key")

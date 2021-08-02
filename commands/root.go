@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 )
@@ -18,7 +18,7 @@ import (
 func Run(args []string) error {
 	viper.SetEnvPrefix("mmctl")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	viper.SetDefault("local-socket-path", model.LOCAL_MODE_SOCKET_PATH)
+	viper.SetDefault("local-socket-path", model.LocalModeSocketPath)
 	viper.AutomaticEnv()
 
 	RootCmd.PersistentFlags().String("config-path", xdgConfigHomeVar, fmt.Sprintf("path to the configuration directory. If \"%s/.%s\" exists it will take precedence over the default value", userHomeVar, configFileName))
@@ -29,6 +29,8 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.PersistentFlags().Bool("insecure-sha1-intermediate", false, "allows to use insecure TLS protocols, such as SHA-1")
 	_ = viper.BindPFlag("insecure-sha1-intermediate", RootCmd.PersistentFlags().Lookup("insecure-sha1-intermediate"))
+	RootCmd.PersistentFlags().Bool("insecure-tls-version", false, "allows to use TLS versions 1.0 and 1.1")
+	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
 

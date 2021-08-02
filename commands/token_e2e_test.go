@@ -6,7 +6,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -25,7 +25,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 	s.RunForSystemAdminAndLocal("Generate token for user", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		err := generateTokenForAUserCmdF(c, &cobra.Command{}, []string{user.Email, tokenDescription})
@@ -61,7 +61,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 	s.Run("Generate token without permission", func() {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		err := generateTokenForAUserCmdF(s.th.Client, &cobra.Command{}, []string{user.Email, tokenDescription})

@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -18,7 +18,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap().
+			SyncLdap(false).
 			Return(true, &model.Response{Error: nil}).
 			Times(1)
 
@@ -35,7 +35,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap().
+			SyncLdap(false).
 			Return(false, &model.Response{Error: nil}).
 			Times(1)
 
@@ -52,7 +52,7 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap().
+			SyncLdap(false).
 			Return(false, &model.Response{Error: mockError}).
 			Times(1)
 
@@ -61,6 +61,21 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Sync with includeRemoveMembers", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("include-removed-members", true, "")
+
+		s.client.
+			EXPECT().
+			SyncLdap(true).
+			Return(true, &model.Response{Error: nil}).
+			Times(1)
+
+		err := ldapSyncCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
 	})
 }
 

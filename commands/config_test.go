@@ -4,10 +4,17 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"io/ioutil"
+	"os"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/printer"
+)
+
+const (
+	configFilePayload = "{\"TeamSettings\": {\"SiteName\": \"ADifferentName\"}}"
 )
 
 func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
@@ -64,7 +71,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(*(printer.GetLines()[0].(*int64)), int64(52428800))
+		s.Require().Equal(int64(100*model.MB), *(printer.GetLines()[0].(*int64)))
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -533,6 +540,78 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
+	s.Require().Nil(err)
+
+	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	s.Require().Nil(err)
+
+	_, err = tmpFile.Write([]byte(configFilePayload))
+	s.Require().Nil(err)
+
+	defer func() {
+		os.Remove(tmpFile.Name())
+		os.Remove(invalidFile.Name())
+	}()
+
+	s.Run("Patch config with a valid file", func() {
+		printer.Clean()
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		brandValue := "BrandText"
+		defaultConfig.TeamSettings.CustomBrandText = &brandValue
+
+		inputConfig := &model.Config{}
+		inputConfig.SetDefaults()
+		changedValue := "ADifferentName"
+		inputConfig.TeamSettings.SiteName = &changedValue
+		inputConfig.TeamSettings.CustomBrandText = &brandValue
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{Error: nil}).
+			Times(1)
+		s.client.
+			EXPECT().
+			PatchConfig(inputConfig).
+			Return(inputConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err = configPatchCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], inputConfig)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Fail to patch config if file is invalid", func() {
+		printer.Clean()
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{Error: nil}).
+			Times(1)
+
+		err = configPatchCmdF(s.client, &cobra.Command{}, []string{invalidFile.Name()})
+		s.Require().NotNil(err)
+	})
+
+	s.Run("Fail to patch config if file not found", func() {
+		printer.Clean()
+		path := "/path/to/nonexistentfile"
+		errMsg := "open " + path + ": no such file or directory"
+
+		err = configPatchCmdF(s.client, &cobra.Command{}, []string{path})
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, errMsg)
 	})
 }
 

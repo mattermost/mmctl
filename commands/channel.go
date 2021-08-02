@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -96,13 +96,12 @@ Private channels the user is a member of or has access to are appended with ' (p
 var ModifyChannelCmd = &cobra.Command{
 	Use:   "modify [channel] [flags]",
 	Short: "Modify a channel's public/private type",
-	Long: `Change the public/private type of a channel.
+	Long: `Change the Public/Private type of a channel.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: `  channel modify myteam:mychannel --private
   channel modify channelId --public`,
-	Args:   cobra.ExactArgs(1),
-	PreRun: disableLocalPrecheck,
-	RunE:   withClient(modifyChannelCmdF),
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(modifyChannelCmdF),
 }
 
 var RestoreChannelsCmd = &cobra.Command{
@@ -112,7 +111,6 @@ var RestoreChannelsCmd = &cobra.Command{
 	Long: `Restore a previously deleted channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
@@ -122,17 +120,15 @@ var UnarchiveChannelCmd = &cobra.Command{
 	Long: `Unarchive a previously archived channel
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel unarchive myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(unarchiveChannelsCmdF),
 }
 
 var MakeChannelPrivateCmd = &cobra.Command{
 	Use:   "make_private [channel]",
 	Short: "Set a channel's type to private",
-	Long: `Set the type of a channel from public to private.
+	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel make_private myteam:mychannel",
-	PreRun:  disableLocalPrecheck,
 	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
@@ -140,9 +136,9 @@ var SearchChannelCmd = &cobra.Command{
 	Use:   "search [channel]\n  mmctl search --team [team] [channel]",
 	Short: "Search a channel",
 	Long: `Search a channel by channel name.
-Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
-	Example: `  channel search myChannel
-  channel search --team myTeam myChannel`,
+Channel can be specified by team. ie. --team myteam mychannel or by team ID.`,
+	Example: `  channel search mychannel
+  channel search --team myteam mychannel`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(searchChannelCmdF),
 }
@@ -218,9 +214,9 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	purpose, _ := cmd.Flags().GetString("purpose")
 	useprivate, _ := cmd.Flags().GetBool("private")
 
-	channelType := model.CHANNEL_OPEN
+	channelType := model.ChannelTypeOpen
 	if useprivate {
-		channelType = model.CHANNEL_PRIVATE
+		channelType = model.ChannelTypePrivate
 	}
 
 	team := getTeamFromTeamArg(c, teamArg)
@@ -332,11 +328,11 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
-	if !(channel.Type == model.CHANNEL_OPEN) {
+	if !(channel.Type == model.ChannelTypeOpen) {
 		return errors.New("you can only change the type of public channels")
 	}
 
-	if _, response := c.UpdateChannelPrivacy(channel.Id, model.CHANNEL_PRIVATE); response.Error != nil {
+	if _, response := c.UpdateChannelPrivacy(channel.Id, model.ChannelTypePrivate); response.Error != nil {
 		return response.Error
 	}
 
@@ -356,13 +352,13 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
-	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		return errors.New("you can only change the type of public/private channels")
 	}
 
-	privacy := model.CHANNEL_OPEN
+	privacy := model.ChannelTypeOpen
 	if private {
-		privacy = model.CHANNEL_PRIVATE
+		privacy = model.ChannelTypePrivate
 	}
 
 	if _, response := c.UpdateChannelPrivacy(channel.Id, privacy); response.Error != nil {
@@ -506,7 +502,7 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 	}
 	privateChannels := make([]*model.Channel, 0, len(allChannels))
 	for _, channel := range allChannels {
-		if channel.Type != model.CHANNEL_PRIVATE {
+		if channel.Type != model.ChannelTypePrivate {
 			continue
 		}
 		privateChannels = append(privateChannels, channel)

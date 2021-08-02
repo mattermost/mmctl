@@ -6,7 +6,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -19,10 +19,17 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 	s.RunForSystemAdminAndLocal("install a plugin", func(c client.Client) {
 		printer.Clean()
 
-		const (
-			pluginID      = "jira"
-			pluginVersion = "3.0.0"
-		)
+		marketPlacePlugins, appErr := s.th.App.GetMarketplacePlugins(&model.MarketplacePluginFilter{
+			Page:    0,
+			PerPage: 100,
+			Filter:  "jira",
+		})
+		s.Require().Nil(appErr)
+		s.Require().NotEmpty(marketPlacePlugins)
+		plugin := marketPlacePlugins[0]
+
+		pluginID := plugin.Manifest.Id
+		pluginVersion := plugin.Manifest.Version
 
 		defer removePluginIfInstalled(s, pluginID)
 
@@ -140,4 +147,31 @@ func removePluginIfInstalled(s *MmctlE2ETestSuite, pluginID string) {
 	if appErr != nil {
 		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
 	}
+}
+
+func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("List Marketplace Plugins for Admin User", func(c client.Client) {
+		printer.Clean()
+
+		err := pluginMarketplaceListCmdF(c, &cobra.Command{}, nil)
+
+		pluginList := printer.GetLines()
+
+		// This checks whether there is an output from the command - returned list can be of length >= 0
+		s.Require().Len(pluginList, len(pluginList))
+		s.Require().NoError(err)
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.Run("List Marketplace Plugins for non-admin User", func() {
+		printer.Clean()
+
+		err := pluginMarketplaceListCmdF(s.th.Client, &cobra.Command{}, nil)
+
+		s.Require().EqualError(err, "Failed to fetch plugins: : You do not have the appropriate permissions., ")
+		s.Require().Empty(printer.GetErrorLines())
+		s.Require().Empty(printer.GetLines())
+	})
 }

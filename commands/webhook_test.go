@@ -6,7 +6,7 @@ package commands
 import (
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -293,8 +293,6 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		}
 
 		lockToChannel := true
-		updatedIncomingWebhook := mockIncomingWebhook
-		updatedIncomingWebhook.ChannelLocked = lockToChannel
 
 		mockError := model.AppError{Id: "Mock Error"}
 
