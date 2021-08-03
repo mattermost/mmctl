@@ -431,15 +431,10 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 
 	if !confirmFlag && len(args) > 0 {
-		var confirmResetAll string
-		confirmationMsg := fmt.Sprintf(
+		if err := getConfirmation(fmt.Sprintf(
 			"Are you sure you want to reset %s to their default value? (YES/NO): ",
-			args[0])
-		fmt.Println(confirmationMsg)
-		_, _ = fmt.Scanln(&confirmResetAll)
-		if confirmResetAll != "YES" {
-			fmt.Println("Reset operation aborted")
-			return nil
+			args[0]), false); err != nil {
+			return err
 		}
 	}
 
