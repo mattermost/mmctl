@@ -275,10 +275,10 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	teamsList := make([]string, len(teamsAndChannels))
-	i := 0
+	teamsListIndex := 0
 	for teamName := range teamsAndChannels {
-		teamsList[i] = teamName
-		i++
+		teamsList[teamsListIndex] = teamName
+		teamsListIndex++
 	}
 	sort.Strings(teamsList)
 
