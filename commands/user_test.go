@@ -378,7 +378,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
+		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
 
 	s.Run("Delete user that does not exist in db returns an error", func() {
