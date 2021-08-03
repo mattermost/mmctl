@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/golang/mock v1.4.4
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/magefile/mage v1.11.0
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mattermost/mattermost-server/v6 v6.0.0-20210728120600-5c22a8f083fb
