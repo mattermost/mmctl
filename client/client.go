@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 type Client interface {
@@ -96,7 +96,7 @@ type Client interface {
 	GetUsersInTeam(teamId string, page, perPage int, etag string) ([]*model.User, *model.Response)
 	UpdateUserActive(userId string, activate bool) (bool, *model.Response)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response)
-	UpdateChannelPrivacy(channelId string, privacy string) (*model.Channel, *model.Response)
+	UpdateChannelPrivacy(channelId string, privacy model.ChannelType) (*model.Channel, *model.Response)
 	CreateBot(bot *model.Bot) (*model.Bot, *model.Response)
 	PatchBot(userId string, patch *model.BotPatch) (*model.Bot, *model.Response)
 	GetBots(page, perPage int, etag string) ([]*model.Bot, *model.Response)

@@ -6,9 +6,9 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -29,7 +29,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 
@@ -159,7 +159,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 

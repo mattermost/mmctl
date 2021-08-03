@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -214,9 +214,9 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	purpose, _ := cmd.Flags().GetString("purpose")
 	useprivate, _ := cmd.Flags().GetBool("private")
 
-	channelType := model.CHANNEL_OPEN
+	channelType := model.ChannelTypeOpen
 	if useprivate {
-		channelType = model.CHANNEL_PRIVATE
+		channelType = model.ChannelTypePrivate
 	}
 
 	team := getTeamFromTeamArg(c, teamArg)
@@ -328,11 +328,11 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
-	if !(channel.Type == model.CHANNEL_OPEN) {
+	if !(channel.Type == model.ChannelTypeOpen) {
 		return errors.New("you can only change the type of public channels")
 	}
 
-	if _, response := c.UpdateChannelPrivacy(channel.Id, model.CHANNEL_PRIVATE); response.Error != nil {
+	if _, response := c.UpdateChannelPrivacy(channel.Id, model.ChannelTypePrivate); response.Error != nil {
 		return response.Error
 	}
 
@@ -352,13 +352,13 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return errors.Errorf("unable to find channel %q", args[0])
 	}
 
-	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+	if !(channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 		return errors.New("you can only change the type of public/private channels")
 	}
 
-	privacy := model.CHANNEL_OPEN
+	privacy := model.ChannelTypeOpen
 	if private {
-		privacy = model.CHANNEL_PRIVATE
+		privacy = model.ChannelTypePrivate
 	}
 
 	if _, response := c.UpdateChannelPrivacy(channel.Id, privacy); response.Error != nil {
@@ -502,7 +502,7 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 	}
 	privateChannels := make([]*model.Channel, 0, len(allChannels))
 	for _, channel := range allChannels {
-		if channel.Type != model.CHANNEL_PRIVATE {
+		if channel.Type != model.ChannelTypePrivate {
 			continue
 		}
 		privateChannels = append(privateChannels, channel)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/mattermost/mmctl/client"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // getCommandFromCommandArg retrieves a Command by command id or team:trigger.
