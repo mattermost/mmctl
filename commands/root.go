@@ -33,6 +33,8 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
+	RootCmd.PersistentFlags().Bool("quiet", false, "prevent mmctl to generate output for the commands")
+	_ = viper.BindPFlag("quiet", RootCmd.PersistentFlags().Lookup("quiet"))
 
 	RootCmd.SetArgs(args)
 
@@ -47,8 +49,11 @@ var RootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		format := viper.GetString("format")
 		printer.SetFormat(format)
+		quiet := viper.GetBool("quiet")
+		printer.SetQuiet(quiet)
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		printer.Flush()
 	},
+	SilenceUsage: true,
 }
