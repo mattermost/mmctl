@@ -64,9 +64,10 @@ func addToZip(zipWriter *zip.Writer, basedir, path string) error {
 		if err != nil {
 			return fmt.Errorf("cannot open file %q: %w", filePath, err)
 		}
-		defer file.Close()
 
-		if _, err = io.Copy(w, file); err != nil {
+		_, err = io.Copy(w, file)
+		file.Close()
+		if err != nil {
 			return fmt.Errorf("cannot zip file contents for file %q: %w", filePath, err)
 		}
 	}
