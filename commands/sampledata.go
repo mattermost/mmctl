@@ -48,7 +48,7 @@ var SampledataCmd = &cobra.Command{
   $ mmctl sampledata
 
   # and the sample users can be created with profile pictures
-  $ mmctl sampledata --profile-images`,
+  $ mmctl sampledata --profile-images ./images/profiles`,
 	Args: cobra.NoArgs,
 	RunE: withClient(sampledataCmdF),
 }
@@ -275,8 +275,10 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	teamsList := make([]string, len(teamsAndChannels))
+	i := 0
 	for teamName := range teamsAndChannels {
-		teamsList = append(teamsList, teamName)
+		teamsList[i] = teamName
+		i++
 	}
 	sort.Strings(teamsList)
 
@@ -291,26 +293,30 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	allUsers := make([]string, users+guests+deactivatedUsers)
+	allUsersIndex := 0
 	for i := 0; i < users; i++ {
 		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, "")
 		if err := encoder.Encode(userLine); err != nil {
 			return fmt.Errorf("cannot encode user line: %w", err)
 		}
-		allUsers = append(allUsers, *userLine.User.Username)
+		allUsers[allUsersIndex] = *userLine.User.Username
+		allUsersIndex++
 	}
 	for i := 0; i < guests; i++ {
 		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, guestUser)
 		if err := encoder.Encode(userLine); err != nil {
 			return fmt.Errorf("cannot encode user line: %w", err)
 		}
-		allUsers = append(allUsers, *userLine.User.Username)
+		allUsers[allUsersIndex] = *userLine.User.Username
+		allUsersIndex++
 	}
 	for i := 0; i < deactivatedUsers; i++ {
 		userLine := createUser(i, teamMemberships, channelMemberships, teamsAndChannels, profileImages, deactivatedUser)
 		if err := encoder.Encode(userLine); err != nil {
 			return fmt.Errorf("cannot encode user line: %w", err)
 		}
-		allUsers = append(allUsers, *userLine.User.Username)
+		allUsers[allUsersIndex] = *userLine.User.Username
+		allUsersIndex++
 	}
 
 	for team, channels := range teamsAndChannels {

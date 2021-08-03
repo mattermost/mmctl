@@ -33,7 +33,7 @@ Examples
     $ mmctl sampledata
 
     # and the sample users can be created with profile pictures
-    $ mmctl sampledata --profile-images
+    $ mmctl sampledata --profile-images ./images/profiles
 
 Options
 ~~~~~~~
