@@ -36,8 +36,8 @@ cloud.google.com/go/storage v1.5.0/go.mod h1:tpKbwo567HUNpVclU5sGELwQWBDZ8gh0Zeo
 cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohlUTyfDhBk=
 cloud.google.com/go/storage v1.8.0/go.mod h1:Wv1Oy7z6Yz3DshWRJFhqM/UCfaWIRTdp0RXyy7KQOVs=
 cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9ullr3+Kg0=
-code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a h1:e0dRHyAfGcext3/lnwfsl81PKJRNgLyA843n72mPCes=
-code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a/go.mod h1:DooS873W9YwUjTwEYGpg55aDlvnx1VcEdr7IJ9rEW8g=
+code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a h1:AEvqb7V5SSC89lAp9UQd7ytVVLm6f4AQbtzr9lk0bFg=
+code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a/go.mod h1:KPNt2zuWplps1W0TpOb6ltHj4Xu+j6h7a+YkqGHrxQE=
 contrib.go.opencensus.io/exporter/ocagent v0.4.9/go.mod h1:ueLzZcP7LPhPulEBukGn4aLh7Mx9YJwpVJ9nL2FYltw=
 dmitri.shuralyov.com/app/changes v0.0.0-20180602232624-0a106ad413e3/go.mod h1:Yl+fi1br7+Rr3LqpNJf1/uxUdtRUV+Tnj0o93V2B9MU=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
@@ -648,8 +648,8 @@ github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d h1:/RJ/UV7M5c7L2TQ
 github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
 github.com/mattermost/logr v1.0.13 h1:6F/fM3csvH6Oy5sUpJuW7YyZSzZZAhJm5VcgKMxA2P8=
 github.com/mattermost/logr v1.0.13/go.mod h1:Mt4DPu1NXMe6JxPdwCC0XBoxXmN9eXOIRPoZarU2PXs=
-github.com/mattermost/mattermost-server/v6 v6.0.0-20210729074524-0196c4007db2 h1:yjvTQqgamBYDBIihkVrNOsVOZTd0eMLQM2rnXGJk7pA=
-github.com/mattermost/mattermost-server/v6 v6.0.0-20210729074524-0196c4007db2/go.mod h1:YQ1+uP71OCN3eEpm0TmS1EFjAMI6ddW7TPWMSzsgugQ=
+github.com/mattermost/mattermost-server/v6 v6.0.0-20210804091053-a5463c865195 h1:yajpyF+WFsnOq3x07xqCBu/kgJ20759EL4viRYnQe4I=
+github.com/mattermost/mattermost-server/v6 v6.0.0-20210804091053-a5463c865195/go.mod h1:lRyN5kvq4pllE0+9fGsxneaSRDszzaRISo6Z49YHg+M=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
