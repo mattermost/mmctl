@@ -47,6 +47,7 @@ SEE ALSO
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
 * `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 * `mmctl saml <mmctl_saml.rst>`_ 	 - SAML related utilities
+* `mmctl sampledata <mmctl_sampledata.rst>`_ 	 - Generate sample data
 * `mmctl system <mmctl_system.rst>`_ 	 - System management
 * `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
 * `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
