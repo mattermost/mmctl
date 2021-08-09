@@ -530,7 +530,7 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *model.AppError) {
 	allPrivateChannels := []*model.Channel{}
 	page := 0
-	var appErr *model.AppError
+	withoutError := true
 
 	for {
 		channelsPage, response := c.GetPrivateChannelsForTeam(teamID, page, web.PerPageMaximum, "")
@@ -540,7 +540,7 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 			// This means that the user is not in local mode neither
 			// an admin, so we need to continue fetching the private
 			// channels specific to their credentials
-			appErr = response.Error
+			withoutError = false
 			break
 		}
 
@@ -555,12 +555,12 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 	// if the break happened without an error, this means we're either
 	// in local mode or an admin, and we'll have all private channels
 	// by now, so we can safely return
-	if appErr == nil {
+	if withoutError {
 		return allPrivateChannels, nil
 	}
 
-	// We are definitely not in local mode here so we can safely use "GetChannelsForTeamForUser"
-	// and "me" for userId
+	// We are definitely not in local mode here so we can safely use
+	// "GetChannelsForTeamForUser" and "me" for userId
 	allChannels, response := c.GetChannelsForTeamForUser(teamID, "me", false, "")
 	if response.Error != nil {
 		if response.StatusCode == http.StatusNotFound { // user doesn't belong to any channels
