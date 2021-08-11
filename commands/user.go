@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -678,17 +679,22 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 			return errors.New("aborted: You did not answer YES exactly, in all capitals")
 		}
 	}
+	cancel := printer.StartSimpleProgress(context.Background(), "deleting users...")
+	defer cancel()
 
 	if _, response := c.PermanentDeleteAllUsers(); response.Error != nil {
 		return response.Error
 	}
 
-	printer.Print("All users successfully deleted")
+	defer printer.Print("All users successfully deleted")
 
 	return nil
 }
 
 func searchUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	cancel := printer.StartSimpleProgress(context.Background(), "searching users...")
+	defer cancel()
+
 	printer.SetSingle(true)
 
 	if len(args) < 1 {
@@ -720,6 +726,9 @@ auth_service: {{.AuthService}}`
 }
 
 func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error {
+	cancel := printer.StartSimpleProgress(context.Background(), "fetching users...")
+	defer cancel()
+
 	page, err := command.Flags().GetInt("page")
 	if err != nil {
 		return err
@@ -751,7 +760,6 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
-
 	for {
 		var users []*model.User
 		var res *model.Response

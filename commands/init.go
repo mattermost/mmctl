@@ -61,6 +61,7 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 			printer.PrintError("WARNING: server version " + serverVersion + " doesn't match mmctl version " + Version)
 		}
 
+		printer.SetServerAddres(c.ApiUrl)
 		return fn(c, cmd, args)
 	}
 }

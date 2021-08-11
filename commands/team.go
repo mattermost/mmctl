@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -201,6 +202,9 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	cancel := printer.StartSimpleProgress(context.Background(), "fetching teams...")
+	defer cancel()
+
 	page := 0
 	for {
 		teams, response := c.GetAllTeams("", page, APILimitMaximum)
@@ -228,6 +232,9 @@ func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
+
+	cancel := printer.StartSimpleProgress(context.Background(), "searching teams...")
+	cancel()
 
 	for _, searchTerm := range args {
 		foundTeams, response := c.SearchTeams(&model.TeamSearch{Term: searchTerm})

@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"sort"
@@ -174,6 +175,9 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		}
 		password = stdinPassword
 	}
+
+	cancel := printer.StartSimpleProgress(context.Background(), "authenticating...")
+	cancel()
 
 	if username != "" {
 		var c *model.Client4

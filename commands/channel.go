@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -264,6 +265,9 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 }
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	cancel := printer.StartSimpleProgress(context.Background(), "fetching channels...")
+	cancel()
+
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
@@ -411,6 +415,9 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
+
+	cancel := printer.StartSimpleProgress(context.Background(), "searching channels...")
+	cancel()
 
 	var channel *model.Channel
 
