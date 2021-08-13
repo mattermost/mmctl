@@ -25,6 +25,9 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("config-path", RootCmd.PersistentFlags().Lookup("config-path"))
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	_ = viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
+	_ = RootCmd.PersistentFlags().MarkHidden("format")
+	RootCmd.PersistentFlags().Bool("json", false, "the output format will be in json format")
+	_ = viper.BindPFlag("json", RootCmd.PersistentFlags().Lookup("json"))
 	RootCmd.PersistentFlags().Bool("strict", false, "will only run commands if the mmctl version matches the server one")
 	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.PersistentFlags().Bool("insecure-sha1-intermediate", false, "allows to use insecure TLS protocols, such as SHA-1")
@@ -46,7 +49,12 @@ var RootCmd = &cobra.Command{
 	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		format := viper.GetString("format")
-		printer.SetFormat(format)
+		isJSON := viper.GetBool("json")
+		if isJSON || format == printer.FormatJSON {
+			printer.SetFormat(printer.FormatJSON)
+		} else {
+			printer.SetFormat(printer.FormatPlain)
+		}
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		printer.Flush()
