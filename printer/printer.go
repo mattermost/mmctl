@@ -27,6 +27,7 @@ type Printer struct { //nolint
 
 	Format     string
 	Single     bool
+	pager      *bool
 	Lines      []interface{}
 	ErrorLines []interface{}
 
@@ -60,6 +61,10 @@ func SetCommand(cmd *cobra.Command) {
 
 func SetServerAddres(addr string) {
 	printer.serverAddr = addr
+}
+
+func OverrideEnablePager(enable bool) {
+	printer.pager = &enable
 }
 
 // SetSingle sets the single flag on the printer. If this flag is set, the
@@ -122,6 +127,10 @@ func Flush() error {
 	pager := os.Getenv("PAGER")
 	if enablePager {
 		enablePager = pager != ""
+	}
+
+	if printer.pager != nil {
+		enablePager = *printer.pager
 	}
 
 	opts.usePager = enablePager

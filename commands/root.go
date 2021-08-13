@@ -35,10 +35,12 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
-	RootCmd.PersistentFlags().Bool("short-stat", false, "Short stat will provide useful statistical data")
+	RootCmd.PersistentFlags().Bool("short-stat", false, "short stat will provide useful statistical data")
 	_ = RootCmd.PersistentFlags().MarkHidden("short-stat")
-	RootCmd.PersistentFlags().Bool("no-stat", false, "The statistical data won't be displayed")
+	RootCmd.PersistentFlags().Bool("no-stat", false, "the statistical data won't be displayed")
 	_ = RootCmd.PersistentFlags().MarkHidden("no-stat")
+	RootCmd.PersistentFlags().Bool("disable-pager", false, "disables paged output")
+	_ = viper.BindPFlag("disable-pager", RootCmd.PersistentFlags().Lookup("disable-pager"))
 
 	RootCmd.SetArgs(args)
 
@@ -62,6 +64,10 @@ var RootCmd = &cobra.Command{
 	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		format := viper.GetString("format")
+		if viper.GetBool("disable-pager") {
+			printer.OverrideEnablePager(false)
+		}
+
 		printer.SetFormat(format)
 		printer.SetCommand(cmd)
 	},

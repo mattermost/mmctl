@@ -17,6 +17,7 @@ Options
 ::
 
       --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
+      --disable-pager                disables paged output
       --format string                the format of the command output [plain, json] (default "plain")
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
