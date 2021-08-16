@@ -132,7 +132,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
 	cancel := printer.StartSimpleProgress(context.Background(), "fetching posts...")
-	cancel()
+	defer cancel()
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {

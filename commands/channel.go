@@ -266,7 +266,7 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	cancel := printer.StartSimpleProgress(context.Background(), "fetching channels...")
-	cancel()
+	defer cancel()
 
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
@@ -417,7 +417,7 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	printer.SetSingle(true)
 
 	cancel := printer.StartSimpleProgress(context.Background(), "searching channels...")
-	cancel()
+	defer cancel()
 
 	var channel *model.Channel
 

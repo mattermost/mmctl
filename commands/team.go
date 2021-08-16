@@ -234,7 +234,7 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	cancel := printer.StartSimpleProgress(context.Background(), "searching teams...")
-	cancel()
+	defer cancel()
 
 	for _, searchTerm := range args {
 		foundTeams, response := c.SearchTeams(&model.TeamSearch{Term: searchTerm})

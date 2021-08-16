@@ -177,7 +177,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	cancel := printer.StartSimpleProgress(context.Background(), "authenticating...")
-	cancel()
+	defer cancel()
 
 	if username != "" {
 		var c *model.Client4
