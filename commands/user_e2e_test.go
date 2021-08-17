@@ -5,10 +5,8 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -604,48 +602,6 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		newUser := s.th.CreateUser()
 		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
-
-		deletedUser := printer.GetLines()[0].(*model.User)
-		s.Require().Equal(newUser.Username, deletedUser.Username)
-
-		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
-		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
-	})
-
-	s.RunForSystemAdminAndLocal("Delete user confirm using prompt", func(c client.Client) {
-		printer.Clean()
-
-		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
-		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
-		}()
-
-		cmd := &cobra.Command{}
-
-		// create temp file to replace stdin
-		content := []byte("YES\nYES\n")
-		tmpfile, err := ioutil.TempFile("", "inputfile")
-		s.Require().Nil(err)
-		defer os.Remove(tmpfile.Name()) // remove temp file
-
-		_, err = tmpfile.Write(content)
-		s.Require().Nil(err)
-		_, err = tmpfile.Seek(0, 0)
-		s.Require().Nil(err)
-
-		// replace stdin to do input in testing
-		oldStdin := os.Stdin
-		defer func() { os.Stdin = oldStdin }() // restore
-		os.Stdin = tmpfile
-
-		newUser := s.th.CreateUser()
-		err = deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)

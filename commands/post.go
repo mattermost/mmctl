@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -165,8 +165,8 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		ws.Listen()
 		for {
 			event := <-ws.EventChannel
-			if event.EventType() == model.WEBSOCKET_EVENT_POSTED {
-				post, err := eventDataToPost(event.Data)
+			if event.EventType() == model.WebsocketEventPosted {
+				post, err := eventDataToPost(event.GetData())
 				if err != nil {
 					fmt.Println("Error parsing incoming post: " + err.Error())
 				}

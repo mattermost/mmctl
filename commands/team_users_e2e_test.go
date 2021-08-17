@@ -5,8 +5,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -23,7 +23,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		DisplayName: "dn_" + model.NewId(),
 		Name:        api4.GenerateTestTeamName(),
 		Email:       s.th.GenerateTestEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	s.Require().Nil(appErr)
 
@@ -173,7 +173,7 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.GenerateTestEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		_, appErr = s.th.App.CreateTeamWithUser(s.th.Context, &team, user.Id)
 		s.Require().Nil(appErr)
@@ -213,7 +213,7 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.GenerateTestEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		_, appErr = s.th.App.CreateTeamWithUser(s.th.Context, &team, user.Id)
 		s.Require().Nil(appErr)

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -47,7 +47,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		mockTeam := &model.Team{
 			Name:        mockTeamName,
 			DisplayName: mockTeamDisplayname,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 
 		s.client.
@@ -74,7 +74,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 			Name:        mockTeamName,
 			DisplayName: mockTeamDisplayname,
 			Email:       mockTeamEmail,
-			Type:        model.TEAM_INVITE,
+			Type:        model.TeamInvite,
 		}
 
 		s.client.
@@ -98,7 +98,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		mockTeam := &model.Team{
 			Name:        mockTeamName,
 			DisplayName: mockTeamDisplayname,
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
 		mockError := &model.AppError{Message: "Remote error"}
 
@@ -414,7 +414,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
+		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
 
 	s.Run("Delete teams with team not exist in db returns an error", func() {
@@ -742,7 +742,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Id:              teamID,
 			Name:            teamName,
 			AllowOpenInvite: true,
-			Type:            model.TEAM_OPEN,
+			Type:            model.TeamOpen,
 		}
 
 		s.client.
@@ -753,7 +753,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_INVITE).
+			UpdateTeamPrivacy(teamID, model.TeamInvite).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -771,7 +771,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Id:              teamID,
 			Name:            teamName,
 			AllowOpenInvite: false,
-			Type:            model.TEAM_INVITE,
+			Type:            model.TeamInvite,
 		}
 
 		s.client.
@@ -782,7 +782,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			UpdateTeamPrivacy(teamID, model.TeamOpen).
 			Return(&mockTeam, &model.Response{Error: nil}).
 			Times(1)
 
@@ -800,7 +800,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 			Id:              teamID,
 			Name:            teamName,
 			AllowOpenInvite: false,
-			Type:            model.TEAM_INVITE,
+			Type:            model.TeamInvite,
 		}
 
 		mockError := &model.AppError{
@@ -817,7 +817,7 @@ func (s *MmctlUnitTestSuite) TestModifyTeamsCmd() {
 
 		s.client.
 			EXPECT().
-			UpdateTeamPrivacy(teamID, model.TEAM_OPEN).
+			UpdateTeamPrivacy(teamID, model.TeamOpen).
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 

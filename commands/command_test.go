@@ -4,12 +4,14 @@
 package commands
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -761,9 +763,8 @@ func method2Bool(method string) bool {
 
 //nolint:golint,unused
 func copyCommand(cmd *model.Command) *model.Command {
-	json := cmd.ToJson()
-	r := strings.NewReader(json)
-	return model.CommandFromJson(r)
+	js, _ := json.Marshal(cmd)
+	return model.CommandFromJson(bytes.NewReader(js))
 }
 
 func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {

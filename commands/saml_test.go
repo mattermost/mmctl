@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -16,7 +16,7 @@ func (s *MmctlUnitTestSuite) TestSamlAuthDataReset() {
 		cmd := &cobra.Command{}
 		err := samlAuthDataResetCmdF(s.client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "aborted")
+		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
 	})
 
 	s.Run("Reset auth data without errors", func() {

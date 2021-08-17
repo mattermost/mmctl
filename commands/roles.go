@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -66,13 +66,13 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 		systemAdmin := false
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
-			if role == model.SYSTEM_ADMIN_ROLE_ID {
+			if role == model.SystemAdminRoleId {
 				systemAdmin = true
 			}
 		}
 
 		if !systemAdmin {
-			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
+			roles = append(roles, model.SystemAdminRoleId)
 			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); resp.Error != nil {
 				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
 				continue
@@ -99,7 +99,7 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
 			switch role {
-			case model.SYSTEM_ADMIN_ROLE_ID:
+			case model.SystemAdminRoleId:
 				shouldRemoveSysadmin = true
 			default:
 				newRoles = append(newRoles, role)

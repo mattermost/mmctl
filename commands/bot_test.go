@@ -5,7 +5,7 @@ package commands
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/printer"
 

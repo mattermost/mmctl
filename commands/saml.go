@@ -4,9 +4,7 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -56,7 +54,7 @@ func samlAuthDataResetCmdF(c client.Client, cmd *cobra.Command, args []string) e
 	userIDs, _ := cmd.Flags().GetStringSlice("users")
 
 	if !dryRun && !confirmed {
-		if err := getSamlAuthDataResetConfirmation(); err != nil {
+		if err := getConfirmation("This action is irreversible. Are you sure you want to continue?", false); err != nil {
 			return err
 		}
 	}
@@ -73,16 +71,4 @@ func samlAuthDataResetCmdF(c client.Client, cmd *cobra.Command, args []string) e
 	}
 
 	return nil
-}
-
-func getSamlAuthDataResetConfirmation() error {
-	var confirm string
-	fmt.Print("This action is irreversible. Are you sure you want to continue? [Y/n] ")
-	fmt.Scanln(&confirm)
-	confirm = strings.ToLower(confirm)
-
-	if confirm == "y" || confirm == "yes" {
-		return nil
-	}
-	return errors.New("aborted")
 }

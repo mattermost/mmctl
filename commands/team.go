@@ -5,10 +5,9 @@ package commands
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -141,9 +140,9 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")
 
-	teamType := model.TEAM_OPEN
+	teamType := model.TeamOpen
 	if useprivate {
-		teamType = model.TEAM_INVITE
+		teamType = model.TeamInvite
 	}
 
 	team := &model.Team{
@@ -170,17 +169,8 @@ func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to archive the specified teams?", true); err != nil {
+			return err
 		}
 	}
 
@@ -292,17 +282,8 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to delete the teams specified?  All data will be permanently deleted?", true); err != nil {
+			return err
 		}
 	}
 
@@ -332,9 +313,9 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// I = invite only (private)
 	// O = open (public)
-	privacy := model.TEAM_INVITE
+	privacy := model.TeamInvite
 	if public {
-		privacy = model.TEAM_OPEN
+		privacy = model.TeamOpen
 	}
 
 	teams := getTeamsFromTeamArgs(c, args)
