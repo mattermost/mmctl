@@ -31,7 +31,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		expected := filepath.Join(getDefaultConfigHomePath(), configParent, configFileName)
 
-		viper.Set("config-file-path", filepath.Join(xdgConfigHomeVar, configParent, configFileName))
+		viper.Set("config", filepath.Join(xdgConfigHomeVar, configParent, configFileName))
 
 		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
@@ -46,7 +46,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 		expected := filepath.Join(testUser.HomeDir, ".config", configParent, configFileName)
 
 		_ = os.Setenv("XDG_CONFIG_HOME", filepath.Join(testUser.HomeDir, ".config"))
-		viper.Set("config-file-path", filepath.Join(xdgConfigHomeVar, configParent, configFileName))
+		viper.Set("config", filepath.Join(xdgConfigHomeVar, configParent, configFileName))
 
 		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
@@ -63,7 +63,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		require.NoError(t, err)
-		viper.Set("config-file-path", expected)
+		viper.Set("config", expected)
 
 		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
@@ -80,7 +80,7 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
 		require.NoError(t, err)
-		viper.Set("config-file-path", "$HOME/.config/mmctl/config")
+		viper.Set("config", "$HOME/.config/mmctl/config")
 
 		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
