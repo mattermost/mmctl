@@ -112,7 +112,7 @@ func init() {
 
 	// Add flag declaration for RenameTeam
 	RenameTeamCmd.Flags().String("display-name", "", "Team Display Name")
-	//_ = RenameTeamCmd.MarkFlagRequired("display-name") // Uncomment this after fully deprecation of display_name
+	// _ = RenameTeamCmd.MarkFlagRequired("display-name") // Uncomment this after fully deprecation of display_name
 	RenameTeamCmd.Flags().String("display_name", "", "")
 	_ = RenameTeamCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 
