@@ -21,9 +21,10 @@ var RolesCmd = &cobra.Command{
 }
 
 var RolesSystemAdminCmd = &cobra.Command{
-	Use:   "system-admin [users]",
-	Short: "Set a user as system admin",
-	Long:  "Make some users system admins.",
+	Use:     "system-admin [users]",
+	Aliases: []string{"system_admin"},
+	Short:   "Set a user as system admin",
+	Long:    "Make some users system admins.",
 	Example: `  # You can make one user a sysadmin
   $ mmctl roles system-admin john_doe
 

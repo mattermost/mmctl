@@ -160,6 +160,8 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
 	ChannelCreateCmd.Flags().String("display-name", "", "Channel Display Name")
+	ChannelCreateCmd.Flags().String("display_name", "", "")
+	_ = ChannelCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	ChannelCreateCmd.Flags().String("team", "", "Team name or ID")
 	ChannelCreateCmd.Flags().String("header", "", "Channel header")
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
@@ -170,6 +172,8 @@ func init() {
 
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
 	ChannelRenameCmd.Flags().String("display-name", "", "Channel Display Name")
+	ChannelRenameCmd.Flags().String("display_name", "", "")
+	_ = ChannelRenameCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
@@ -207,7 +211,10 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		return errors.New("display Name is required")
+		displayname, errdn = cmd.Flags().GetString("display_name")
+		if errdn != nil || displayname == "" {
+			return errors.New("display Name is required")
+		}
 	}
 	teamArg, errteam := cmd.Flags().GetString("team")
 	if errteam != nil || teamArg == "" {
@@ -422,8 +429,11 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	newDisplayName, err := cmd.Flags().GetString("display-name")
-	if err != nil {
-		return err
+	if err != nil || newDisplayName == "" {
+		newDisplayName, err = cmd.Flags().GetString("display_name")
+		if err != nil {
+			return err
+		}
 	}
 
 	// At least one of display name or name flag must be present
