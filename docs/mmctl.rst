@@ -35,6 +35,7 @@ SEE ALSO
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
+* `mmctl extract <mmctl_extract.rst>`_ 	 - Management of content extraction job.
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
@@ -46,6 +47,7 @@ SEE ALSO
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
 * `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 * `mmctl saml <mmctl_saml.rst>`_ 	 - SAML related utilities
+* `mmctl sampledata <mmctl_sampledata.rst>`_ 	 - Generate sample data
 * `mmctl system <mmctl_system.rst>`_ 	 - System management
 * `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
 * `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens
