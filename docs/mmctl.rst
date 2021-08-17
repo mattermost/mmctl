@@ -17,7 +17,6 @@ Options
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
-      --config-path string           path to the configuration directory. (default "$XDG_CONFIG_HOME")
       --format string                the format of the command output [plain, json] (default "plain")
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
