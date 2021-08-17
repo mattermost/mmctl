@@ -33,7 +33,8 @@ func checkValidSocket(socketPath string) error {
 	if !ok {
 		return fmt.Errorf("cannot get owner of the file %q", socketPath)
 	}
-	if fmt.Sprint(s.Uid) != cUser.Uid {
+	// if user id is "0", they are root and we should avoid this check
+	if fmt.Sprint(s.Uid) != cUser.Uid && cUser.Uid != "0" {
 		return fmt.Errorf("owner of the file %q must be the same user running mmctl", socketPath)
 	}
 
