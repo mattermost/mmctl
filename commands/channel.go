@@ -578,26 +578,10 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 	return privateChannels, nil
 }
 
-func getChannelDeleteConfirmation() error {
-	var confirm string
-	fmt.Println("Have you performed a database backup? (YES/NO): ")
-	fmt.Scanln(&confirm)
-
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	fmt.Println("Are you sure you want to delete the channels specified? All data will be permanently deleted? (YES/NO): ")
-	fmt.Scanln(&confirm)
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	return nil
-}
-
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		if err := getChannelDeleteConfirmation(); err != nil {
+		if err := getConfirmation("Are you sure you want to delete the channels specified? All data will be permanently deleted?", true); err != nil {
 			return err
 		}
 	}

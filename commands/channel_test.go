@@ -2809,7 +2809,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "aborted: You did not answer YES exactly, in all capitals")
+		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
 
 	s.Run("Delete channel that does not exist in db returns an error", func() {

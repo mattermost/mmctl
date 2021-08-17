@@ -558,10 +558,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	hashed, _ := cmd.Flags().GetBool("hashed")
 
 	if password == "" {
-		var confirm string
-		fmt.Printf("Are you changing your own password? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm == "YES" {
+		if err := getConfirmation("Are you changing your own password?", false); err == nil {
 			fmt.Printf("Current password: ")
 			var err error
 			current, err = getPasswordFromStdin()
@@ -620,26 +617,10 @@ func deleteUser(c client.Client, user *model.User) (bool, *model.Response) {
 	return c.PermanentDeleteUser(user.Id)
 }
 
-func getUserDeleteConfirmation() error {
-	var confirm string
-	fmt.Println("Have you performed a database backup? (YES/NO): ")
-	fmt.Scanln(&confirm)
-
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	fmt.Println("Are you sure you want to delete the users specified? All data will be permanently deleted? (YES/NO): ")
-	fmt.Scanln(&confirm)
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	return nil
-}
-
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		if err := getUserDeleteConfirmation(); err != nil {
+		if err := getConfirmation("Are you sure you want to delete the users specified? All data will be permanently deleted?", true); err != nil {
 			return err
 		}
 	}
@@ -665,17 +646,8 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to permanently delete all user accounts? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to permanently delete all user accounts?", true); err != nil {
+			return err
 		}
 	}
 
@@ -906,12 +878,8 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	auto, _ := cmd.Flags().GetBool("auto")
 	confirm, _ := cmd.Flags().GetBool("confirm")
 	if auto && !confirm {
-		var confirm string
-		printer.Print("You are about to perform an automatic \"" + fromAuth + " to saml\" migration. This must only be done if your current Mattermost users with " + fromAuth + " auth have the same username and email in your SAML service. Otherwise, provide the usernames and emails from your SAML Service using the \"users file\" without the \"--auto\" option.\n\nDo you want to proceed with automatic migration anyway? (YES/NO):")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("You are about to perform an automatic \""+fromAuth+" to saml\" migration. This must only be done if your current Mattermost users with "+fromAuth+" auth have the same username and email in your SAML service. Otherwise, provide the usernames and emails from your SAML Service using the \"users file\" without the \"--auto\" option.\n\nDo you want to proceed with automatic migration anyway?", false); err != nil {
+			return err
 		}
 	}
 
