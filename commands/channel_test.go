@@ -1902,10 +1902,11 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		args[0] = "teamName:channelName"
 
 		cmd.Flags().String("name", "", "Channel Name")
-		cmd.Flags().String("display_name", "", channelDisplayName)
+		cmd.Flags().String("display-name", "", channelDisplayName)
+		cmd.Flags().String("display_name", "", "")
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display-name'")
 	})
 
 	s.Run("It should fail when empty team and channel name are supplied", func() {
@@ -1921,7 +1922,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		err := renameChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
@@ -1939,7 +1940,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -1987,7 +1988,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
@@ -2011,7 +2012,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
@@ -2041,7 +2042,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
@@ -2088,7 +2089,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2147,7 +2148,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2215,7 +2216,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundChannel := &model.Channel{
 			Id:          channelID,
@@ -2264,7 +2265,8 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := ""
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display_name", "", "")
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2330,7 +2332,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := ""
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2578,7 +2580,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, "name is required")
@@ -2595,7 +2597,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, "team is required")
@@ -2614,7 +2616,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		mockError := &model.AppError{
 			Message: "mockError",
@@ -2649,7 +2651,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		foundTeam := &model.Team{
 			Id:          "teamId",
@@ -2701,7 +2703,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 		cmd.Flags().Bool("private", true, "Create a private channel")
 
 		foundTeam := &model.Team{
@@ -2750,7 +2752,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 		cmd.Flags().String("header", header, "Channel header")
 		cmd.Flags().String("purpose", purpose, "Channel purpose")
 		cmd.Flags().Bool("private", true, "Create a private channel")

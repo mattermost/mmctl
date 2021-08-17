@@ -1,38 +1,37 @@
-.. _mmctl_team_create:
+.. _mmctl_roles_system-admin:
 
-mmctl team create
------------------
+mmctl roles system-admin
+------------------------
 
-Create a team
+Set a user as system admin
 
 Synopsis
 ~~~~~~~~
 
 
-Create a team.
+Make some users system admins.
 
 ::
 
-  mmctl team create [flags]
+  mmctl roles system-admin [users] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    team create --name mynewteam --display-name "My New Team"
-    team create --name private --display-name "My New Private Team" --private
+    # You can make one user a sysadmin
+    $ mmctl roles system-admin john_doe
+
+    # Or promote multiple users at the same time
+    $ mmctl roles system-admin john_doe jane_doe
 
 Options
 ~~~~~~~
 
 ::
 
-      --display-name string   Team Display Name
-      --email string          Administrator Email (anyone with this email is automatically a team admin)
-  -h, --help                  help for create
-      --name string           Team Name
-      --private               Create a private team.
+  -h, --help   help for system-admin
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
+* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 
