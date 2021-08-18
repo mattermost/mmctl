@@ -75,12 +75,8 @@ func printIntegrityCheckResult(result model.IntegrityCheckResult, verbose bool) 
 func integrityCmdF(c client.Client, command *cobra.Command, args []string) error {
 	confirmFlag, _ := command.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("This check may harm performance on live systems. Are you sure you want to proceed? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			printer.PrintError("Aborted")
-			return nil
+		if err := getConfirmation("This check may harm performance on live systems. Are you sure you want to proceed?", false); err != nil {
+			return err
 		}
 	}
 

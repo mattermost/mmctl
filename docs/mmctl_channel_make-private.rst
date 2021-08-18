@@ -1,33 +1,34 @@
-.. _mmctl_user_reset_password:
+.. _mmctl_channel_make-private:
 
-mmctl user reset_password
--------------------------
+mmctl channel make-private
+--------------------------
 
-Send users an email to reset their password
+Set a channel's type to private
 
 Synopsis
 ~~~~~~~~
 
 
-Send users an email to reset their password
+Set the type of a channel from Public to Private.
+Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
 
 ::
 
-  mmctl user reset_password [users] [flags]
+  mmctl channel make-private [channel] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user reset_password user@example.com
+    channel make-private myteam:mychannel
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for reset_password
+  -h, --help   help for make-private
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,5 +46,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 

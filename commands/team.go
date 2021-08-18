@@ -6,7 +6,6 @@ package commands
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sort"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -28,8 +27,8 @@ var TeamCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a team",
 	Long:  `Create a team.`,
-	Example: `  team create --name mynewteam --display_name "My New Team"
-  team create --name private --display_name "My New Private Team" --private`,
+	Example: `  team create --name mynewteam --display-name "My New Team"
+  team create --name private --display-name "My New Private Team" --private`,
 	RunE: withClient(createTeamCmdF),
 }
 
@@ -84,7 +83,7 @@ var RenameTeamCmd = &cobra.Command{
 	Use:     "rename [team]",
 	Short:   "Rename team",
 	Long:    "Rename an existing team",
-	Example: "  team rename old-team --display_name 'New Display Name'",
+	Example: "  team rename old-team --display-name 'New Display Name'",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(renameTeamCmdF),
 }
@@ -100,7 +99,9 @@ var ModifyTeamsCmd = &cobra.Command{
 
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
-	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
+	TeamCreateCmd.Flags().String("display-name", "", "Team Display Name")
+	TeamCreateCmd.Flags().String("display_name", "", "")
+	_ = TeamCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	TeamCreateCmd.Flags().Bool("private", false, "Create a private team.")
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
@@ -111,8 +112,10 @@ func init() {
 	ModifyTeamsCmd.Flags().Bool("public", false, "Modify team to be public.")
 
 	// Add flag declaration for RenameTeam
-	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
-	_ = RenameTeamCmd.MarkFlagRequired("display_name")
+	RenameTeamCmd.Flags().String("display-name", "", "Team Display Name")
+	// _ = RenameTeamCmd.MarkFlagRequired("display-name") // Uncomment this after fully deprecation of display_name
+	RenameTeamCmd.Flags().String("display_name", "", "")
+	_ = RenameTeamCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -135,9 +138,12 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if errn != nil || name == "" {
 		return errors.New("name is required")
 	}
-	displayname, errdn := cmd.Flags().GetString("display_name")
+	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		return errors.New("display Name is required")
+		displayname, errdn = cmd.Flags().GetString("display_name")
+		if errdn != nil || displayname == "" {
+			return errors.New("display Name is required")
+		}
 	}
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")
@@ -171,17 +177,8 @@ func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to archive the specified teams?", true); err != nil {
+			return err
 		}
 	}
 
@@ -277,7 +274,15 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
+
 	newDisplayName, _ := cmd.Flags().GetString("display_name")
+
+	if newDisplayName == "" {
+		newDisplayName, _ = cmd.Flags().GetString("display-name")
+	}
+	if newDisplayName == "" {
+		return errors.New("display name is required")
+	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
@@ -299,17 +304,8 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to delete the teams specified?  All data will be permanently deleted?", true); err != nil {
+			return err
 		}
 	}
 

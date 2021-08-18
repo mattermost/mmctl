@@ -1,6 +1,6 @@
-.. _mmctl_user_migrate_auth:
+.. _mmctl_user_migrate-auth:
 
-mmctl user migrate_auth
+mmctl user migrate-auth
 -----------------------
 
 Mass migrate user accounts authentication type
@@ -13,14 +13,14 @@ Migrates accounts from one authentication provider to another. For example, you 
 
 ::
 
-  mmctl user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
+  mmctl user migrate-auth [from_auth] [to_auth] [migration-options] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  user migrate_auth email saml users.json
+  user migrate-auth email saml users.json
 
 Options
 ~~~~~~~
@@ -30,7 +30,7 @@ Options
       --auto      Automatically migrate all users. Assumes the usernames and emails are identical between Mattermost and SAML services. (saml only)
       --confirm   Confirm you really want to proceed with auto migration. (saml only)
       --force     Force the migration to occur even if there are duplicates on the LDAP server. Duplicates will not be migrated. (ldap only)
-  -h, --help      help for migrate_auth
+  -h, --help      help for migrate-auth
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

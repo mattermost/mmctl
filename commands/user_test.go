@@ -378,7 +378,7 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteUsersCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
+		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
 
 	s.Run("Delete user that does not exist in db returns an error", func() {
@@ -1311,7 +1311,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("username", mockUser.Username, "")
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system_admin", true, "")
+		command.Flags().Bool("system-admin", true, "")
 
 		error := userCreateCmdF(s.client, &command, []string{})
 
@@ -1367,7 +1367,7 @@ func (s *MmctlUnitTestSuite) TestUserCreateCmd() {
 		command.Flags().String("username", mockUser.Username, "")
 		command.Flags().String("email", mockUser.Email, "")
 		command.Flags().String("password", mockUser.Password, "")
-		command.Flags().Bool("system_admin", true, "")
+		command.Flags().Bool("system-admin", true, "")
 
 		error := userCreateCmdF(s.client, &command, []string{})
 

@@ -1,6 +1,6 @@
-.. _mmctl_roles_system_admin:
+.. _mmctl_roles_system-admin:
 
-mmctl roles system_admin
+mmctl roles system-admin
 ------------------------
 
 Set a user as system admin
@@ -13,7 +13,7 @@ Make some users system admins.
 
 ::
 
-  mmctl roles system_admin [users] [flags]
+  mmctl roles system-admin [users] [flags]
 
 Examples
 ~~~~~~~~
@@ -21,17 +21,17 @@ Examples
 ::
 
     # You can make one user a sysadmin
-    $ mmctl roles system_admin john_doe
+    $ mmctl roles system-admin john_doe
 
     # Or promote multiple users at the same time
-    $ mmctl roles system_admin john_doe jane_doe
+    $ mmctl roles system-admin john_doe jane_doe
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for system_admin
+  -h, --help   help for system-admin
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
