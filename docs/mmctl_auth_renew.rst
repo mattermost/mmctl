@@ -27,10 +27,10 @@ Options
 
 ::
 
-  -a, --access-token string   Access token to use instead of username/password
-  -h, --help                  help for renew
-  -m, --mfa-token string      MFA token for the credentials
-  -p, --password string       Password for the credentials
+  -t, --access-token-file string   Access token file to be read to use instead of username/password
+  -h, --help                       help for renew
+  -m, --mfa-token string           MFA token for the credentials
+  -f, --password-file string       Password file to be read for the credentials
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
