@@ -13,6 +13,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -201,6 +202,12 @@ func GetErrorLines() []interface{} {
 // PrintError prints to the stderr.
 func PrintError(msg string) {
 	printer.ErrorLines = append(printer.ErrorLines, msg)
+}
+
+// PrintWarning prints warning message to the error output, unlike Print and PrintError
+// functions, PrintWarning writes the output immediately instead of waiting command to finish.
+func PrintWarning(msg string) {
+	fmt.Fprintf(printer.eWriter, "%s\n", color.YellowString("WARNING: %s", msg))
 }
 
 func (p Printer) linesToBytes(opts printOpts) (b []byte, err error) {
