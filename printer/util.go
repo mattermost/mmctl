@@ -34,6 +34,5 @@ func termHeight(file *os.File) int {
 }
 
 func lineCount(b []byte) int {
-	ls := []byte{'\n'}
-	return bytes.Count(b, ls)
+	return bytes.Count(b, []byte{'\n'})
 }

@@ -46,7 +46,7 @@ func Run(args []string) error {
 
 	defer func() {
 		if x := recover(); x != nil {
-			printer.PrintError("Uh oh! Something unexpected happen :( Would you mind reporting it?\n")
+			printer.PrintError("Uh oh! Something unexpected happened :( Would you mind reporting it?\n")
 			printer.PrintError(`https://github.com/mattermost/mmctl/issues/new?title=%5Bbug%5D%20panic%20on%20mmctl%20v` + Version + "&body=%3C!---%20Please%20provide%20the%20stack%20trace%20--%3E\n")
 			printer.PrintError(string(debug.Stack()))
 
