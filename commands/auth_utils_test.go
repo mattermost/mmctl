@@ -105,3 +105,32 @@ func createFile(path string) error {
 	}
 	return nil
 }
+
+func TestReadSecretFromFile(t *testing.T) {
+	f, err := ioutil.TempFile(t.TempDir(), "mmctl")
+	require.NoError(t, err)
+
+	_, err = f.WriteString("test-pass")
+	require.NoError(t, err)
+
+	t.Run("password from file", func(t *testing.T) {
+		var pass string
+		err := readSecretFromFile(f.Name(), &pass)
+		require.NoError(t, err)
+		require.Equal(t, "test-pass", pass)
+	})
+
+	t.Run("no file path is provided", func(t *testing.T) {
+		pass := "test-pass-2"
+		err := readSecretFromFile("", &pass)
+		require.NoError(t, err)
+		require.Equal(t, "test-pass-2", pass)
+	})
+
+	t.Run("nonexistent file provided", func(t *testing.T) {
+		var pass string
+		err := readSecretFromFile(filepath.Join(t.TempDir(), "bla"), &pass)
+		require.Error(t, err)
+		require.Empty(t, pass)
+	})
+}

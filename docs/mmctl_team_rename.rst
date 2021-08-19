@@ -20,14 +20,14 @@ Examples
 
 ::
 
-    team rename old-team --display_name 'New Display Name'
+    team rename old-team --display-name 'New Display Name'
 
 Options
 ~~~~~~~
 
 ::
 
-      --display_name string   Team Display Name
+      --display-name string   Team Display Name
   -h, --help                  help for rename
 
 Options inherited from parent commands

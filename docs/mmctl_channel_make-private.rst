@@ -1,37 +1,34 @@
-.. _mmctl_roles_system_admin:
+.. _mmctl_channel_make-private:
 
-mmctl roles system_admin
-------------------------
+mmctl channel make-private
+--------------------------
 
-Set a user as system admin
+Set a channel's type to private
 
 Synopsis
 ~~~~~~~~
 
 
-Make some users system admins.
+Set the type of a channel from Public to Private.
+Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
 
 ::
 
-  mmctl roles system_admin [users] [flags]
+  mmctl channel make-private [channel] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    # You can make one user a sysadmin
-    $ mmctl roles system_admin john_doe
-
-    # Or promote multiple users at the same time
-    $ mmctl roles system_admin john_doe jane_doe
+    channel make-private myteam:mychannel
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for system_admin
+  -h, --help   help for make-private
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,5 +45,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
+* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
 

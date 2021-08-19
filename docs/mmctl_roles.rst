@@ -35,5 +35,5 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl roles member <mmctl_roles_member.rst>`_ 	 - Remove system admin privileges
-* `mmctl roles system_admin <mmctl_roles_system_admin.rst>`_ 	 - Set a user as system admin
+* `mmctl roles system-admin <mmctl_roles_system-admin.rst>`_ 	 - Set a user as system admin
 

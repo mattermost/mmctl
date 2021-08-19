@@ -170,7 +170,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 		channelDisplayName := "channelDisplayName"
 		cmd.Flags().String("name", channelName, "channel name")
 		cmd.Flags().String("team", teamName, "team name")
-		cmd.Flags().String("display_name", channelDisplayName, "display name")
+		cmd.Flags().String("display-name", channelDisplayName, "display name")
 
 		err := createChannelCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -197,7 +197,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 		channelDisplayName := "channelDisplayName"
 		cmd.Flags().String("name", channelName, "channel name")
 		cmd.Flags().String("team", teamName, "team name")
-		cmd.Flags().String("display_name", channelDisplayName, "display name")
+		cmd.Flags().String("display-name", channelDisplayName, "display name")
 
 		err := createChannelCmdF(c, cmd, []string{})
 		s.Require().NotNil(err)
@@ -218,7 +218,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 		channelDisplayName := "channelDisplayName"
 		cmd.Flags().String("name", channelName, "channel name")
 		cmd.Flags().String("team", teamName, "team name")
-		cmd.Flags().String("display_name", channelDisplayName, "display name")
+		cmd.Flags().String("display-name", channelDisplayName, "display name")
 
 		err := createChannelCmdF(c, cmd, []string{})
 		s.Require().NotNil(err)
@@ -380,7 +380,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", "name", "")
-		cmd.Flags().String("display_name", "name", "")
+		cmd.Flags().String("display-name", "name", "")
 
 		err := renameChannelCmdF(c, cmd, []string{s.th.BasicTeam.Id + ":" + nonexistentChannelName})
 		s.Require().NotNil(err)
@@ -397,7 +397,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", newChannelName, "")
-		cmd.Flags().String("display_name", newChannelDisplayName, "")
+		cmd.Flags().String("display-name", newChannelDisplayName, "")
 
 		err := renameChannelCmdF(c, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
 		s.Require().Nil(err)
@@ -426,7 +426,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", newChannelName, "")
-		cmd.Flags().String("display_name", newChannelDisplayName, "")
+		cmd.Flags().String("display-name", newChannelDisplayName, "")
 
 		err := renameChannelCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
 		s.Require().NotNil(err)
@@ -451,7 +451,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", newChannelName, "")
-		cmd.Flags().String("display_name", newChannelDisplayName, "")
+		cmd.Flags().String("display-name", newChannelDisplayName, "")
 
 		err := renameChannelCmdF(s.th.Client, cmd, []string{s.th.BasicTeam.Id + ":" + channel.Id})
 		s.Require().Nil(err)

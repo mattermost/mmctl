@@ -1,33 +1,37 @@
-.. _mmctl_user_reset_password:
+.. _mmctl_roles_system-admin:
 
-mmctl user reset_password
--------------------------
+mmctl roles system-admin
+------------------------
 
-Send users an email to reset their password
+Set a user as system admin
 
 Synopsis
 ~~~~~~~~
 
 
-Send users an email to reset their password
+Make some users system admins.
 
 ::
 
-  mmctl user reset_password [users] [flags]
+  mmctl roles system-admin [users] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user reset_password user@example.com
+    # You can make one user a sysadmin
+    $ mmctl roles system-admin john_doe
+
+    # Or promote multiple users at the same time
+    $ mmctl roles system-admin john_doe jane_doe
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for reset_password
+  -h, --help   help for system-admin
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,5 +48,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 

@@ -20,15 +20,15 @@ Examples
 
 ::
 
-    team create --name mynewteam --display_name "My New Team"
-    team create --name private --display_name "My New Private Team" --private
+    team create --name mynewteam --display-name "My New Team"
+    team create --name private --display-name "My New Private Team" --private
 
 Options
 ~~~~~~~
 
 ::
 
-      --display_name string   Team Display Name
+      --display-name string   Team Display Name
       --email string          Administrator Email (anyone with this email is automatically a team admin)
   -h, --help                  help for create
       --name string           Team Name

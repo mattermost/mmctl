@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/web"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -645,6 +646,8 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
+	emptyChannels := []*model.Channel{}
+
 	s.Run("Team is not found", func() {
 		printer.Clean()
 		args := []string{""}
@@ -695,19 +698,19 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
@@ -752,21 +755,28 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -811,21 +821,28 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -872,21 +889,40 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -925,7 +961,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		userChannels := []*model.Channel{archivedChannel1, publicChannel1, privateChannel1, privateChannel2}
 
 		mockError := &model.AppError{Message: "User does not have permissions to list all private channels in team"}
-		emptyChannels := []*model.Channel{}
 
 		s.client.
 			EXPECT().
@@ -935,19 +970,19 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 		s.client.
@@ -976,7 +1011,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		}
 
 		mockError := &model.AppError{Message: "Mock error"}
-		emptyChannels := []*model.Channel{}
 
 		s.client.
 			EXPECT().
@@ -986,21 +1020,22 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -1012,7 +1047,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to list public channels for '"+args[0]+"'. Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list public channels for %q: %s", args[0], mockError.Error()))
 	})
 
 	s.Run("API fails to get team's archived channels list", func() {
@@ -1025,7 +1060,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		}
 
 		mockError := &model.AppError{Message: "Mock error"}
-		emptyChannels := []*model.Channel{}
 
 		s.client.
 			EXPECT().
@@ -1035,19 +1069,19 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 		s.client.
@@ -1061,7 +1095,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to list archived channels for '"+args[0]+"'. Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list archived channels for %q: %s", args[0], mockError.Error()))
 	})
 
 	s.Run("API fails to get team's private channels list", func() {
@@ -1074,7 +1108,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		}
 
 		mockError := &model.AppError{Message: "Mock error"}
-		emptyChannels := []*model.Channel{}
 
 		s.client.
 			EXPECT().
@@ -1084,21 +1117,22 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: mockError}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -1110,7 +1144,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to list private channels for '"+args[0]+"'. Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list private channels for %q: %s", args[0], mockError.Error()))
 	})
 
 	s.Run("API fails to get team's private channels list in local mode", func() {
@@ -1125,7 +1159,6 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		}
 
 		mockError := &model.AppError{Message: "Mock error"}
-		emptyChannels := []*model.Channel{}
 
 		s.client.
 			EXPECT().
@@ -1135,21 +1168,22 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(emptyChannels, &model.Response{Error: mockError}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -1161,7 +1195,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to list private channels for '"+args[0]+"'. Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list private channels for %q: %s", args[0], mockError.Error()))
 	})
 
 	s.Run("API fails to get team's public, archived and private channels", func() {
@@ -1186,21 +1220,22 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID, "me", false, "").
@@ -1212,9 +1247,9 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 3)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to list public channels for '"+args[0]+"'. Error: "+mockError.Error())
-		s.Require().Equal(printer.GetErrorLines()[1], "Unable to list archived channels for '"+args[0]+"'. Error: "+mockError.Error())
-		s.Require().Equal(printer.GetErrorLines()[2], "Unable to list private channels for '"+args[0]+"'. Error: "+mockError.Error())
+		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list public channels for %q: %s", args[0], mockError.Error()))
+		s.Require().Equal(printer.GetErrorLines()[1], fmt.Sprintf("unable to list archived channels for %q: %s", args[0], mockError.Error()))
+		s.Require().Equal(printer.GetErrorLines()[2], fmt.Sprintf("unable to list private channels for %q: %s", args[0], mockError.Error()))
 	})
 
 	s.Run("Two teams, one is found and other is not found", func() {
@@ -1256,21 +1291,40 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID1, "me", false, "").
@@ -1315,21 +1369,43 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 			GetTeam(teamID1, "").
 			Return(team1, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID1, "me", false, "").
@@ -1346,19 +1422,19 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID2, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID2, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
 			Return(nil, &model.Response{Error: mockError}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID2, 0, 10000, "").
+			GetPrivateChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: mockError}).
 			Times(1)
 		s.client.
@@ -1444,21 +1520,43 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 			GetTeam(teamID1, "").
 			Return(team1, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID1, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID1, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
+
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID1, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID1, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID1, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID1, "me", false, "").
@@ -1473,21 +1571,40 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		s.client.
 			EXPECT().
-			GetPublicChannelsForTeam(teamID2, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
 			Return(publicChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetDeletedChannelsForTeam(teamID2, 0, 10000, "").
+			GetPublicChannelsForTeam(teamID2, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetDeletedChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
 			Return(archivedChannels, &model.Response{Error: nil}).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPrivateChannelsForTeam(teamID2, 0, 10000, "").
+			GetDeletedChannelsForTeam(teamID2, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID2, 0, web.PerPageMaximum, "").
 			Return(privateChannels, &model.Response{Error: nil}).
 			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPrivateChannelsForTeam(teamID2, 1, web.PerPageMaximum, "").
+			Return(emptyChannels, &model.Response{Error: nil}).
+			Times(1)
+
 		s.client.
 			EXPECT().
 			GetChannelsForTeamForUser(teamID2, "me", false, "").
@@ -1785,10 +1902,11 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		args[0] = "teamName:channelName"
 
 		cmd.Flags().String("name", "", "Channel Name")
-		cmd.Flags().String("display_name", "", channelDisplayName)
+		cmd.Flags().String("display-name", "", channelDisplayName)
+		cmd.Flags().String("display_name", "", "")
 
 		err := renameChannelCmdF(s.client, cmd, args)
-		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display_name'")
+		s.Require().EqualError(err, "require at least one flag to rename channel, either 'name' or 'display-name'")
 	})
 
 	s.Run("It should fail when empty team and channel name are supplied", func() {
@@ -1804,7 +1922,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		err := renameChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, fmt.Sprintf("unable to find channel from %q", argsTeamChannel))
@@ -1822,7 +1940,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -1870,7 +1988,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
@@ -1894,7 +2012,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
@@ -1924,7 +2042,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		s.client.
 			EXPECT().
@@ -1971,7 +2089,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2030,7 +2148,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2098,7 +2216,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundChannel := &model.Channel{
 			Id:          channelID,
@@ -2147,7 +2265,8 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := "newChannelName"
 		newChannelDisplayName := ""
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display_name", "", "")
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2213,7 +2332,7 @@ func (s *MmctlUnitTestSuite) TestRenameChannelCmd() {
 		newChannelName := ""
 		newChannelDisplayName := "New Channel Name"
 		cmd.Flags().String("name", newChannelName, "Channel Name")
-		cmd.Flags().String("display_name", newChannelDisplayName, channelDisplayName)
+		cmd.Flags().String("display-name", newChannelDisplayName, channelDisplayName)
 
 		foundTeam := &model.Team{
 			Id:          teamID,
@@ -2461,7 +2580,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("team", teamName, "Team Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, "name is required")
@@ -2478,7 +2597,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 		args := []string{argsTeamChannel}
 
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		err := createChannelCmdF(s.client, cmd, args)
 		s.Require().EqualError(err, "team is required")
@@ -2497,7 +2616,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		mockError := &model.AppError{
 			Message: "mockError",
@@ -2532,7 +2651,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 
 		foundTeam := &model.Team{
 			Id:          "teamId",
@@ -2584,7 +2703,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 		cmd.Flags().Bool("private", true, "Create a private channel")
 
 		foundTeam := &model.Team{
@@ -2633,7 +2752,7 @@ func (s *MmctlUnitTestSuite) TestCreateChannelCmd() {
 
 		cmd.Flags().String("team", teamName, "Team Name")
 		cmd.Flags().String("name", channelName, "Channel Name")
-		cmd.Flags().String("display_name", channelDisplayName, "Channel Display Name")
+		cmd.Flags().String("display-name", channelDisplayName, "Channel Display Name")
 		cmd.Flags().String("header", header, "Channel header")
 		cmd.Flags().String("purpose", purpose, "Channel purpose")
 		cmd.Flags().Bool("private", true, "Create a private channel")
@@ -2692,7 +2811,7 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteChannelsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "aborted: You did not answer YES exactly, in all capitals")
+		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
 
 	s.Run("Delete channel that does not exist in db returns an error", func() {

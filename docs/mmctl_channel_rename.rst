@@ -20,16 +20,16 @@ Examples
 
 ::
 
-    channel rename myteam:oldchannel --name 'new-channel' --display_name 'New Display Name'
+    channel rename myteam:oldchannel --name 'new-channel' --display-name 'New Display Name'
     channel rename myteam:oldchannel --name 'new-channel'
-    channel rename myteam:oldchannel --display_name 'New Display Name'
+    channel rename myteam:oldchannel --display-name 'New Display Name'
 
 Options
 ~~~~~~~
 
 ::
 
-      --display_name string   Channel Display Name
+      --display-name string   Channel Display Name
   -h, --help                  help for rename
       --name string           Channel Name
 
