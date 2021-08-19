@@ -1,6 +1,6 @@
-.. _mmctl_user_migrate_auth:
+.. _mmctl_user_migrate-auth:
 
-mmctl user migrate_auth
+mmctl user migrate-auth
 -----------------------
 
 Mass migrate user accounts authentication type
@@ -13,14 +13,14 @@ Migrates accounts from one authentication provider to another. For example, you 
 
 ::
 
-  mmctl user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
+  mmctl user migrate-auth [from_auth] [to_auth] [migration-options] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-  user migrate_auth email saml users.json
+  user migrate-auth email saml users.json
 
 Options
 ~~~~~~~
@@ -30,7 +30,7 @@ Options
       --auto      Automatically migrate all users. Assumes the usernames and emails are identical between Mattermost and SAML services. (saml only)
       --confirm   Confirm you really want to proceed with auto migration. (saml only)
       --force     Force the migration to occur even if there are duplicates on the LDAP server. Duplicates will not be migrated. (ldap only)
-  -h, --help      help for migrate_auth
+  -h, --help      help for migrate-auth
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -38,9 +38,9 @@ Options inherited from parent commands
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
-      --format string                the format of the command output [plain, json] (default "plain")
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+      --json                         the output format will be in json format
       --local                        allows communicating with the server through a unix socket
       --strict                       will only run commands if the mmctl version matches the server one
       --suppress-warnings            disables printing warning messages

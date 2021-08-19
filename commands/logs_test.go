@@ -5,6 +5,7 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -85,7 +86,16 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Error(err)
-		s.Require().Equal(err.Error(), "the \"--format\" flag cannot be used with this command")
+		s.Require().Equal(err.Error(), fmt.Sprintf("the %q and %q flags cannot be used with this command", "--format", "--json"))
+		s.Require().Len(data, 0)
+
+		cmd.Flags().Lookup("format").Changed = false
+		cmd.Flags().Bool("json", true, "")
+		cmd.Flags().Lookup("json").Changed = true
+		data, err = testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().Error(err)
+		s.Require().Equal(err.Error(), fmt.Sprintf("the %q and %q flags cannot be used with this command", "--format", "--json"))
 		s.Require().Len(data, 0)
 	})
 

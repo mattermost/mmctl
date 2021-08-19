@@ -165,7 +165,8 @@ func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	format, _ := cmd.Flags().GetString("format")
-	if format == printer.FormatJSON {
+	json, _ := cmd.Flags().GetBool("json")
+	if format == printer.FormatJSON || json {
 		printer.Print(pluginsResp)
 	} else {
 		printer.Print("Listing enabled plugins")

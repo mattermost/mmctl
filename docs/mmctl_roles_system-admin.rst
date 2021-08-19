@@ -1,33 +1,37 @@
-.. _mmctl_user_reset_password:
+.. _mmctl_roles_system-admin:
 
-mmctl user reset_password
--------------------------
+mmctl roles system-admin
+------------------------
 
-Send users an email to reset their password
+Set a user as system admin
 
 Synopsis
 ~~~~~~~~
 
 
-Send users an email to reset their password
+Make some users system admins.
 
 ::
 
-  mmctl user reset_password [users] [flags]
+  mmctl roles system-admin [users] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    user reset_password user@example.com
+    # You can make one user a sysadmin
+    $ mmctl roles system-admin john_doe
+
+    # Or promote multiple users at the same time
+    $ mmctl roles system-admin john_doe jane_doe
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for reset_password
+  -h, --help   help for system-admin
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,9 +39,9 @@ Options inherited from parent commands
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
-      --format string                the format of the command output [plain, json] (default "plain")
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+      --json                         the output format will be in json format
       --local                        allows communicating with the server through a unix socket
       --strict                       will only run commands if the mmctl version matches the server one
       --suppress-warnings            disables printing warning messages
@@ -45,5 +49,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl user <mmctl_user.rst>`_ 	 - Management of users
+* `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 

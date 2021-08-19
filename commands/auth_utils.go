@@ -218,3 +218,16 @@ func CleanCredentials() error {
 func SetUser(newUser *user.User) {
 	currentUser = newUser
 }
+
+// will read the scret from file, if there is one
+func readSecretFromFile(file string, secret *string) error {
+	if file != "" {
+		b, err := ioutil.ReadFile(file)
+		if err != nil {
+			return err
+		}
+		*secret = strings.TrimSpace(string(b))
+	}
+
+	return nil
+}
