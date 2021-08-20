@@ -3,7 +3,7 @@ module github.com/mattermost/mmctl
 go 1.13
 
 require (
-	github.com/fatih/color v1.12.0 // indirect
+	github.com/fatih/color v1.12.0
 	github.com/golang/mock v1.4.4
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428

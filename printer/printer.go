@@ -29,6 +29,7 @@ type Printer struct { //nolint
 	Format     string
 	Single     bool
 	pager      *bool
+	Quiet      bool
 	Lines      []interface{}
 	ErrorLines []interface{}
 
@@ -68,6 +69,11 @@ func OverrideEnablePager(enable bool) {
 	printer.pager = &enable
 }
 
+// SetFormat sets the format for the final output of the printer
+func SetQuiet(q bool) {
+	printer.Quiet = q
+}
+
 // SetSingle sets the single flag on the printer. If this flag is set, the
 // printer will check the size of stored elements before printing, and
 // if there is only one, it will be printed on its own instead of
@@ -80,6 +86,9 @@ func SetSingle(single bool) {
 // formatted and printed as a structure or used to populate the
 // template
 func PrintT(templateString string, v interface{}) {
+	if printer.Quiet {
+		return
+	}
 	switch printer.Format {
 	case FormatPlain:
 		t := template.Must(template.New("").Parse(templateString))
@@ -103,6 +112,9 @@ func Print(v interface{}) {
 
 // Flush writes the elements accumulated in the printer
 func Flush() error {
+	if printer.Quiet {
+		return nil
+	}
 	opts := printOpts{
 		format: printer.Format,
 		single: printer.Single,
@@ -207,6 +219,9 @@ func PrintError(msg string) {
 // PrintWarning prints warning message to the error output, unlike Print and PrintError
 // functions, PrintWarning writes the output immediately instead of waiting command to finish.
 func PrintWarning(msg string) {
+	if printer.Quiet {
+		return
+	}
 	fmt.Fprintf(printer.eWriter, "%s\n", color.YellowString("WARNING: %s", msg))
 }
 

@@ -4,8 +4,8 @@
 package commands
 
 import (
-	"fmt"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 
@@ -23,10 +23,18 @@ func Run(args []string) error {
 	viper.SetDefault("local-socket-path", model.LocalModeSocketPath)
 	viper.AutomaticEnv()
 
-	RootCmd.PersistentFlags().String("config-path", xdgConfigHomeVar, fmt.Sprintf("path to the configuration directory. If \"%s/.%s\" exists it will take precedence over the default value", userHomeVar, configFileName))
+	RootCmd.PersistentFlags().String("config", filepath.Join(xdgConfigHomeVar, configParent, configFileName), "path to the configuration file")
+	_ = viper.BindPFlag("config", RootCmd.PersistentFlags().Lookup("config"))
+	RootCmd.PersistentFlags().String("config-path", xdgConfigHomeVar, "path to the configuration directory.")
 	_ = viper.BindPFlag("config-path", RootCmd.PersistentFlags().Lookup("config-path"))
+	_ = RootCmd.PersistentFlags().MarkHidden("config-path")
+	RootCmd.PersistentFlags().Bool("suppress-warnings", false, "disables printing warning messages")
+	_ = viper.BindPFlag("suppress-warnings", RootCmd.PersistentFlags().Lookup("suppress-warnings"))
 	RootCmd.PersistentFlags().String("format", "plain", "the format of the command output [plain, json]")
 	_ = viper.BindPFlag("format", RootCmd.PersistentFlags().Lookup("format"))
+	_ = RootCmd.PersistentFlags().MarkHidden("format")
+	RootCmd.PersistentFlags().Bool("json", false, "the output format will be in json format")
+	_ = viper.BindPFlag("json", RootCmd.PersistentFlags().Lookup("json"))
 	RootCmd.PersistentFlags().Bool("strict", false, "will only run commands if the mmctl version matches the server one")
 	_ = viper.BindPFlag("strict", RootCmd.PersistentFlags().Lookup("strict"))
 	RootCmd.PersistentFlags().Bool("insecure-sha1-intermediate", false, "allows to use insecure TLS protocols, such as SHA-1")
@@ -41,6 +49,8 @@ func Run(args []string) error {
 	_ = RootCmd.PersistentFlags().MarkHidden("no-stat")
 	RootCmd.PersistentFlags().Bool("disable-pager", false, "disables paged output")
 	_ = viper.BindPFlag("disable-pager", RootCmd.PersistentFlags().Lookup("disable-pager"))
+	RootCmd.PersistentFlags().Bool("quiet", false, "prevent mmctl to generate output for the commands")
+	_ = viper.BindPFlag("quiet", RootCmd.PersistentFlags().Lookup("quiet"))
 
 	RootCmd.SetArgs(args)
 
@@ -68,8 +78,15 @@ var RootCmd = &cobra.Command{
 			printer.OverrideEnablePager(false)
 		}
 
-		printer.SetFormat(format)
 		printer.SetCommand(cmd)
+		isJSON := viper.GetBool("json")
+		if isJSON || format == printer.FormatJSON {
+			printer.SetFormat(printer.FormatJSON)
+		} else {
+			printer.SetFormat(printer.FormatPlain)
+		}
+		quiet := viper.GetBool("quiet")
+		printer.SetQuiet(quiet)
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
 		_ = printer.Flush()
