@@ -1,4 +1,4 @@
-# code.sajari.com/docconv v1.1.1-0.20200701232649-d9ea05fbd50a
+# code.sajari.com/docconv v1.1.1-0.20210427001343-7b3472bc323a
 code.sajari.com/docconv
 code.sajari.com/docconv/iWork
 code.sajari.com/docconv/snappy
@@ -131,6 +131,8 @@ github.com/blevesearch/zap/v14
 github.com/blevesearch/zap/v15
 # github.com/cespare/xxhash/v2 v2.1.1
 github.com/cespare/xxhash/v2
+# github.com/corpix/uarand v0.1.1
+github.com/corpix/uarand
 # github.com/couchbase/vellum v1.0.2
 github.com/couchbase/vellum
 github.com/couchbase/vellum/levenshtein
@@ -259,6 +261,8 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/hashicorp/yamux v0.0.0-20210316155119-a95892c5f864
 github.com/hashicorp/yamux
+# github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
+github.com/icrowley/fake
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
@@ -313,7 +317,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v6 v6.0.0-20210728120600-5c22a8f083fb
+# github.com/mattermost/mattermost-server/v6 v6.0.0-20210804091053-a5463c865195
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
 github.com/mattermost/mattermost-server/v6/app/email

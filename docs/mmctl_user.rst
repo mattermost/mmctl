@@ -24,9 +24,9 @@ Options inherited from parent commands
 ::
 
       --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
-      --format string                the format of the command output [plain, json] (default "plain")
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+      --json                         the output format will be in json format
       --local                        allows communicating with the server through a unix socket
       --quiet                        prevent mmctl to generate output for the commands
       --strict                       will only run commands if the mmctl version matches the server one
@@ -46,9 +46,9 @@ SEE ALSO
 * `mmctl user email <mmctl_user_email.rst>`_ 	 - Change email of the user
 * `mmctl user invite <mmctl_user_invite.rst>`_ 	 - Send user an email invite to a team.
 * `mmctl user list <mmctl_user_list.rst>`_ 	 - List users
-* `mmctl user migrate_auth <mmctl_user_migrate_auth.rst>`_ 	 - Mass migrate user accounts authentication type
+* `mmctl user migrate-auth <mmctl_user_migrate-auth.rst>`_ 	 - Mass migrate user accounts authentication type
 * `mmctl user promote <mmctl_user_promote.rst>`_ 	 - Promote guests to users
-* `mmctl user reset_password <mmctl_user_reset_password.rst>`_ 	 - Send users an email to reset their password
+* `mmctl user reset-password <mmctl_user_reset-password.rst>`_ 	 - Send users an email to reset their password
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
 * `mmctl user username <mmctl_user_username.rst>`_ 	 - Change username of the user

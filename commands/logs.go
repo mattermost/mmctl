@@ -6,6 +6,7 @@ package commands
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -31,10 +32,10 @@ func init() {
 }
 
 func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if cmd.Flags().Changed("format") {
-		return errors.New("the \"--format\" flag cannot be used with this command")
+	if cmd.Flags().Changed("format") || cmd.Flags().Changed("json") {
+		return fmt.Errorf("the %q and %q flags cannot be used with this command", "--format", "--json")
 	} else if viper.GetString("format") == printer.FormatJSON {
-		return errors.New("json formatting cannot be applied on this command. Please check the value of \"MMCTL_FORMAT\"")
+		return fmt.Errorf("json formatting cannot be applied on this command. Please check the value of %q", "MMCTL_FORMAT")
 	}
 
 	number, _ := cmd.Flags().GetInt("number")

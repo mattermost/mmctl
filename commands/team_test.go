@@ -42,7 +42,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockTeamName, "")
-		cmd.Flags().String("display_name", mockTeamDisplayname, "")
+		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 
 		mockTeam := &model.Team{
 			Name:        mockTeamName,
@@ -66,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockTeamName, "")
-		cmd.Flags().String("display_name", mockTeamDisplayname, "")
+		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 		cmd.Flags().String("email", mockTeamEmail, "")
 		cmd.Flags().Bool("private", true, "")
 
@@ -93,7 +93,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockTeamName, "")
-		cmd.Flags().String("display_name", mockTeamDisplayname, "")
+		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 
 		mockTeam := &model.Team{
 			Name:        mockTeamName,
@@ -121,7 +121,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		args := []string{""}
 		args[0] = "existingName"
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		// Mocking : GetTeam searches with team id, if team not found proceeds with team name search
 		s.client.
@@ -151,7 +151,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
+		cmd.Flags().String("display-name", newDisplayName, "Display Name")
 
 		// Only reduced model.Team struct for testing per say
 		// as we are interested in updating only name and display name
@@ -199,7 +199,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
+		cmd.Flags().String("display-name", newDisplayName, "Display Name")
 
 		foundTeam := &model.Team{
 			DisplayName: existingDisplayName,
@@ -414,7 +414,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		cmd.Flags().Bool("confirm", false, "")
 		err := deleteTeamsCmdF(s.client, cmd, []string{"some"})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "aborted: You did not answer YES exactly, in all capitals")
+		s.Require().Equal("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell", err.Error())
 	})
 
 	s.Run("Delete teams with team not exist in db returns an error", func() {

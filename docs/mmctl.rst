@@ -17,10 +17,10 @@ Options
 ::
 
       --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
-      --format string                the format of the command output [plain, json] (default "plain")
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+      --json                         the output format will be in json format
       --local                        allows communicating with the server through a unix socket
       --quiet                        prevent mmctl to generate output for the commands
       --strict                       will only run commands if the mmctl version matches the server one
@@ -36,6 +36,7 @@ SEE ALSO
 * `mmctl config <mmctl_config.rst>`_ 	 - Configuration
 * `mmctl docs <mmctl_docs.rst>`_ 	 - Generates mmctl documentation
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
+* `mmctl extract <mmctl_extract.rst>`_ 	 - Management of content extraction job.
 * `mmctl group <mmctl_group.rst>`_ 	 - Management of groups
 * `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 * `mmctl integrity <mmctl_integrity.rst>`_ 	 - Check database records integrity.
@@ -47,6 +48,7 @@ SEE ALSO
 * `mmctl post <mmctl_post.rst>`_ 	 - Management of posts
 * `mmctl roles <mmctl_roles.rst>`_ 	 - Manage user roles
 * `mmctl saml <mmctl_saml.rst>`_ 	 - SAML related utilities
+* `mmctl sampledata <mmctl_sampledata.rst>`_ 	 - Generate sample data
 * `mmctl system <mmctl_system.rst>`_ 	 - System management
 * `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
 * `mmctl token <mmctl_token.rst>`_ 	 - manage users' access tokens

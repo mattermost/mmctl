@@ -24,9 +24,9 @@ Options inherited from parent commands
 ::
 
       --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
-      --format string                the format of the command output [plain, json] (default "plain")
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+      --json                         the output format will be in json format
       --local                        allows communicating with the server through a unix socket
       --quiet                        prevent mmctl to generate output for the commands
       --strict                       will only run commands if the mmctl version matches the server one
@@ -39,7 +39,7 @@ SEE ALSO
 * `mmctl channel create <mmctl_channel_create.rst>`_ 	 - Create a channel
 * `mmctl channel delete <mmctl_channel_delete.rst>`_ 	 - Delete channels
 * `mmctl channel list <mmctl_channel_list.rst>`_ 	 - List all channels on specified teams.
-* `mmctl channel make_private <mmctl_channel_make_private.rst>`_ 	 - Set a channel's type to private
+* `mmctl channel make-private <mmctl_channel_make-private.rst>`_ 	 - Set a channel's type to private
 * `mmctl channel modify <mmctl_channel_modify.rst>`_ 	 - Modify a channel's public/private type
 * `mmctl channel move <mmctl_channel_move.rst>`_ 	 - Moves channels to the specified team
 * `mmctl channel rename <mmctl_channel_rename.rst>`_ 	 - Rename channel

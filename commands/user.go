@@ -53,10 +53,10 @@ var UserCreateCmd = &cobra.Command{
   $ mmctl user create --email user@example.com --username userexample --password Password1 --firstname User --lastname Example --nickname userex
 
   # Also you can create the user as system administrator
-  $ mmctl user create --email user@example.com --username userexample --password Password1 --system_admin
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin
 
   # Finally you can verify user on creation if you have enough permissions
-  $ mmctl user create --email user@example.com --username userexample --password Password1 --system_admin --email_verified`,
+  $ mmctl user create --email user@example.com --username userexample --password Password1 --system-admin --email-verified`,
 	RunE: withClient(userCreateCmdF),
 }
 
@@ -72,10 +72,11 @@ You can specify teams by name or ID.`,
 }
 
 var SendPasswordResetEmailCmd = &cobra.Command{
-	Use:     "reset_password [users]",
+	Use:     "reset-password [users]",
+	Aliases: []string{"reset_password"},
 	Short:   "Send users an email to reset their password",
 	Long:    "Send users an email to reset their password",
-	Example: "  user reset_password user@example.com",
+	Example: "  user reset-password user@example.com",
 	RunE:    withClient(sendPasswordResetEmailCmdF),
 }
 
@@ -209,10 +210,11 @@ var UserConvertCmd = &cobra.Command{
 }
 
 var MigrateAuthCmd = &cobra.Command{
-	Use:     "migrate_auth [from_auth] [to_auth] [migration-options]",
+	Use:     "migrate-auth [from_auth] [to_auth] [migration-options]",
+	Aliases: []string{"migrate_auth"},
 	Short:   "Mass migrate user accounts authentication type",
 	Long:    `Migrates accounts from one authentication provider to another. For example, you can upgrade your authentication provider from email to ldap.`,
-	Example: "user migrate_auth email saml users.json",
+	Example: "user migrate-auth email saml users.json",
 	Args: func(command *cobra.Command, args []string) error {
 		if len(args) < 2 {
 			return errors.New("auth migration requires at least 2 arguments")
@@ -257,9 +259,13 @@ func init() {
 	UserCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account")
 	UserCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account")
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
-	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+	UserCreateCmd.Flags().Bool("system-admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+	UserCreateCmd.Flags().Bool("system_admin", false, "")
+	_ = UserCreateCmd.Flags().MarkDeprecated("system_admin", "please use system-admin instead")
 	UserCreateCmd.Flags().Bool("guest", false, "Optional. If supplied, the new user will be a guest. Defaults to false")
-	UserCreateCmd.Flags().Bool("email_verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
+	UserCreateCmd.Flags().Bool("email-verified", false, "Optional. If supplied, the new user will have the email verified. Defaults to false")
+	UserCreateCmd.Flags().Bool("email_verified", false, "")
+	_ = UserCreateCmd.Flags().MarkDeprecated("email_verified", "please use email-verified instead")
 	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
@@ -279,7 +285,9 @@ func init() {
 	UserConvertCmd.Flags().String("firstname", "", "The first name for the converted user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Required when the \"bot\" flag is set")
 	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Required when the \"bot\" flag is set")
-	UserConvertCmd.Flags().Bool("system_admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().Bool("system-admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Required when the \"bot\" flag is set")
+	UserConvertCmd.Flags().Bool("system_admin", false, "")
+	_ = UserConvertCmd.Flags().MarkDeprecated("system_admin", "please use system-admin instead")
 
 	ChangePasswordUserCmd.Flags().StringP("current", "c", "", "The current password of the user. Use only if changing your own password")
 	ChangePasswordUserCmd.Flags().StringP("password", "p", "", "The new password for the user")
@@ -289,7 +297,7 @@ func init() {
 	MigrateAuthCmd.Flags().Bool("auto", false, "Automatically migrate all users. Assumes the usernames and emails are identical between Mattermost and SAML services. (saml only)")
 	MigrateAuthCmd.Flags().Bool("confirm", false, "Confirm you really want to proceed with auto migration. (saml only)")
 	MigrateAuthCmd.SetHelpTemplate(`Usage:
-  mmctl user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
+  mmctl user migrate-auth [from_auth] [to_auth] [migration-options] [flags]
 
 Examples:
   mmctl {{.Example}}
@@ -403,9 +411,15 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	firstname, _ := cmd.Flags().GetString("firstname")
 	lastname, _ := cmd.Flags().GetString("lastname")
 	locale, _ := cmd.Flags().GetString("locale")
-	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
+	if !systemAdmin {
+		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
+	}
 	guest, _ := cmd.Flags().GetBool("guest")
-	emailVerified, _ := cmd.Flags().GetBool("email_verified")
+	emailVerified, _ := cmd.Flags().GetBool("email-verified")
+	if !emailVerified {
+		emailVerified, _ = cmd.Flags().GetBool("email_verified")
+	}
 	disableWelcomeEmail, _ := cmd.Flags().GetBool("disable-welcome-email")
 
 	user := &model.User{
@@ -558,10 +572,7 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	hashed, _ := cmd.Flags().GetBool("hashed")
 
 	if password == "" {
-		var confirm string
-		fmt.Printf("Are you changing your own password? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm == "YES" {
+		if err := getConfirmation("Are you changing your own password?", false); err == nil {
 			fmt.Printf("Current password: ")
 			var err error
 			current, err = getPasswordFromStdin()
@@ -620,26 +631,10 @@ func deleteUser(c client.Client, user *model.User) (bool, *model.Response) {
 	return c.PermanentDeleteUser(user.Id)
 }
 
-func getUserDeleteConfirmation() error {
-	var confirm string
-	fmt.Println("Have you performed a database backup? (YES/NO): ")
-	fmt.Scanln(&confirm)
-
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	fmt.Println("Are you sure you want to delete the users specified? All data will be permanently deleted? (YES/NO): ")
-	fmt.Scanln(&confirm)
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	return nil
-}
-
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		if err := getUserDeleteConfirmation(); err != nil {
+		if err := getConfirmation("Are you sure you want to delete the users specified? All data will be permanently deleted?", true); err != nil {
 			return err
 		}
 	}
@@ -665,17 +660,8 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to permanently delete all user accounts? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to permanently delete all user accounts?", true); err != nil {
+			return err
 		}
 	}
 
@@ -882,7 +868,10 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 		up.Locale = model.NewString(locale)
 	}
 
-	systemAdmin, _ := cmd.Flags().GetBool("system_admin")
+	systemAdmin, _ := cmd.Flags().GetBool("system-admin")
+	if !systemAdmin {
+		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
+	}
 
 	user, resp := c.ConvertBotToUser(user.Id, up, systemAdmin)
 	if resp.Error != nil {
@@ -906,12 +895,8 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 	auto, _ := cmd.Flags().GetBool("auto")
 	confirm, _ := cmd.Flags().GetBool("confirm")
 	if auto && !confirm {
-		var confirm string
-		printer.Print("You are about to perform an automatic \"" + fromAuth + " to saml\" migration. This must only be done if your current Mattermost users with " + fromAuth + " auth have the same username and email in your SAML service. Otherwise, provide the usernames and emails from your SAML Service using the \"users file\" without the \"--auto\" option.\n\nDo you want to proceed with automatic migration anyway? (YES/NO):")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("You are about to perform an automatic \""+fromAuth+" to saml\" migration. This must only be done if your current Mattermost users with "+fromAuth+" auth have the same username and email in your SAML service. Otherwise, provide the usernames and emails from your SAML Service using the \"users file\" without the \"--auto\" option.\n\nDo you want to proceed with automatic migration anyway?", false); err != nil {
+			return err
 		}
 	}
 

@@ -11,6 +11,8 @@ import (
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/web"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -25,8 +27,8 @@ var ChannelCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a channel",
 	Long:  `Create a channel.`,
-	Example: `  channel create --team myteam --name mynewchannel --display_name "My New Channel"
-  channel create --team myteam --name mynewprivatechannel --display_name "My New Private Channel" --private`,
+	Example: `  channel create --team myteam --name mynewchannel --display-name "My New Channel"
+  channel create --team myteam --name mynewprivatechannel --display-name "My New Private Channel" --private`,
 	RunE: withClient(createChannelCmdF),
 }
 
@@ -35,9 +37,9 @@ var ChannelRenameCmd = &cobra.Command{
 	Use:   "rename [channel]",
 	Short: "Rename channel",
 	Long:  `Rename an existing channel.`,
-	Example: `  channel rename myteam:oldchannel --name 'new-channel' --display_name 'New Display Name'
+	Example: `  channel rename myteam:oldchannel --name 'new-channel' --display-name 'New Display Name'
   channel rename myteam:oldchannel --name 'new-channel'
-  channel rename myteam:oldchannel --display_name 'New Display Name'`,
+  channel rename myteam:oldchannel --display-name 'New Display Name'`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(renameChannelCmdF),
 }
@@ -124,11 +126,12 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 }
 
 var MakeChannelPrivateCmd = &cobra.Command{
-	Use:   "make_private [channel]",
-	Short: "Set a channel's type to private",
+	Use:     "make-private [channel]",
+	Aliases: []string{"make_private"},
+	Short:   "Set a channel's type to private",
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel make_private myteam:mychannel",
+	Example: "  channel make-private myteam:mychannel",
 	RunE:    withClient(makeChannelPrivateCmdF),
 }
 
@@ -156,7 +159,9 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
-	ChannelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
+	ChannelCreateCmd.Flags().String("display-name", "", "Channel Display Name")
+	ChannelCreateCmd.Flags().String("display_name", "", "")
+	_ = ChannelCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	ChannelCreateCmd.Flags().String("team", "", "Team name or ID")
 	ChannelCreateCmd.Flags().String("header", "", "Channel header")
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
@@ -166,7 +171,9 @@ func init() {
 	ModifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
 
 	ChannelRenameCmd.Flags().String("name", "", "Channel Name")
-	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
+	ChannelRenameCmd.Flags().String("display-name", "", "Channel Display Name")
+	ChannelRenameCmd.Flags().String("display_name", "", "")
+	_ = ChannelRenameCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
@@ -202,9 +209,12 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	if errn != nil || name == "" {
 		return errors.New("name is required")
 	}
-	displayname, errdn := cmd.Flags().GetString("display_name")
+	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		return errors.New("display Name is required")
+		displayname, errdn = cmd.Flags().GetString("display_name")
+		if errdn != nil || displayname == "" {
+			return errors.New("display Name is required")
+		}
 	}
 	teamArg, errteam := cmd.Flags().GetString("team")
 	if errteam != nil || teamArg == "" {
@@ -263,6 +273,48 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	return nil
 }
 
+func getAllPublicChannelsForTeam(c client.Client, teamID string) ([]*model.Channel, error) {
+	channels := []*model.Channel{}
+	page := 0
+
+	for {
+		channelsPage, response := c.GetPublicChannelsForTeam(teamID, page, web.PerPageMaximum, "")
+		if response.Error != nil {
+			return nil, response.Error
+		}
+
+		if len(channelsPage) == 0 {
+			break
+		}
+
+		channels = append(channels, channelsPage...)
+		page++
+	}
+
+	return channels, nil
+}
+
+func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Channel, error) {
+	channels := []*model.Channel{}
+	page := 0
+
+	for {
+		channelsPage, response := c.GetDeletedChannelsForTeam(teamID, page, web.PerPageMaximum, "")
+		if response.Error != nil {
+			return nil, response.Error
+		}
+
+		if len(channelsPage) == 0 {
+			break
+		}
+
+		channels = append(channels, channelsPage...)
+		page++
+	}
+
+	return channels, nil
+}
+
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
@@ -271,25 +323,25 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			continue
 		}
 
-		publicChannels, response := c.GetPublicChannelsForTeam(team.Id, 0, 10000, "")
-		if response.Error != nil {
-			printer.PrintError("Unable to list public channels for '" + args[i] + "'. Error: " + response.Error.Error())
+		publicChannels, err := getAllPublicChannelsForTeam(c, team.Id)
+		if err != nil {
+			printer.PrintError(fmt.Sprintf("unable to list public channels for %q: %s", args[i], err))
 		}
 		for _, channel := range publicChannels {
 			printer.PrintT("{{.Name}}", channel)
 		}
 
-		deletedChannels, response := c.GetDeletedChannelsForTeam(team.Id, 0, 10000, "")
-		if response.Error != nil {
-			printer.PrintError("Unable to list archived channels for '" + args[i] + "'. Error: " + response.Error.Error())
+		deletedChannels, err := getAllDeletedChannelsForTeam(c, team.Id)
+		if err != nil {
+			printer.PrintError(fmt.Sprintf("unable to list archived channels for %q: %s", args[i], err))
 		}
 		for _, channel := range deletedChannels {
 			printer.PrintT("{{.Name}} (archived)", channel)
 		}
 
-		privateChannels, err := getPrivateChannels(c, team.Id)
-		if err != nil {
-			printer.PrintError("Unable to list private channels for '" + args[i] + "'. Error: " + err.Error())
+		privateChannels, appErr := getPrivateChannels(c, team.Id)
+		if appErr != nil {
+			printer.PrintError(fmt.Sprintf("unable to list private channels for %q: %s", args[i], appErr.Error()))
 		}
 		for _, channel := range privateChannels {
 			printer.PrintT("{{.Name}} (private)", channel)
@@ -376,14 +428,17 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return err
 	}
 
-	newDisplayName, err := cmd.Flags().GetString("display_name")
-	if err != nil {
-		return err
+	newDisplayName, err := cmd.Flags().GetString("display-name")
+	if err != nil || newDisplayName == "" {
+		newDisplayName, err = cmd.Flags().GetString("display_name")
+		if err != nil {
+			return err
+		}
 	}
 
 	// At least one of display name or name flag must be present
 	if newDisplayName == "" && newChannelName == "" {
-		return errors.New("require at least one flag to rename channel, either 'name' or 'display_name'")
+		return errors.New("require at least one flag to rename channel, either 'name' or 'display-name'")
 	}
 
 	channel := getChannelFromChannelArg(c, existingTeamChannel)
@@ -484,15 +539,39 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *model.AppError) {
-	allPrivateChannels, response := c.GetPrivateChannelsForTeam(teamID, 0, 10000, "")
-	// local mode admin result is a superset of user result
-	// if see an error and we're in local mode we can return early
-	if response.Error == nil || viper.GetBool("local") {
-		return allPrivateChannels, response.Error
+	allPrivateChannels := []*model.Channel{}
+	page := 0
+	withoutError := true
+
+	for {
+		channelsPage, response := c.GetPrivateChannelsForTeam(teamID, page, web.PerPageMaximum, "")
+		if response.Error != nil && viper.GetBool("local") {
+			return nil, response.Error
+		} else if response.Error != nil {
+			// This means that the user is not in local mode neither
+			// an admin, so we need to continue fetching the private
+			// channels specific to their credentials
+			withoutError = false
+			break
+		}
+
+		if len(channelsPage) == 0 {
+			break
+		}
+
+		allPrivateChannels = append(allPrivateChannels, channelsPage...)
+		page++
 	}
 
-	// We are definitely not in local mode here so we can safely use "GetChannelsForTeamForUser"
-	// and "me" for userId
+	// if the break happened without an error, this means we're either
+	// in local mode or an admin, and we'll have all private channels
+	// by now, so we can safely return
+	if withoutError {
+		return allPrivateChannels, nil
+	}
+
+	// We are definitely not in local mode here so we can safely use
+	// "GetChannelsForTeamForUser" and "me" for userId
 	allChannels, response := c.GetChannelsForTeamForUser(teamID, "me", false, "")
 	if response.Error != nil {
 		if response.StatusCode == http.StatusNotFound { // user doesn't belong to any channels
@@ -510,26 +589,10 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 	return privateChannels, nil
 }
 
-func getChannelDeleteConfirmation() error {
-	var confirm string
-	fmt.Println("Have you performed a database backup? (YES/NO): ")
-	fmt.Scanln(&confirm)
-
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	fmt.Println("Are you sure you want to delete the channels specified? All data will be permanently deleted? (YES/NO): ")
-	fmt.Scanln(&confirm)
-	if confirm != "YES" {
-		return errors.New("aborted: You did not answer YES exactly, in all capitals")
-	}
-	return nil
-}
-
 func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		if err := getChannelDeleteConfirmation(); err != nil {
+		if err := getConfirmation("Are you sure you want to delete the channels specified? All data will be permanently deleted?", true); err != nil {
 			return err
 		}
 	}

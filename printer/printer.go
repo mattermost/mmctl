@@ -122,5 +122,8 @@ func GetErrorLines() []interface{} {
 // PrintError prints to the stderr.
 func PrintError(msg string) {
 	printer.ErrorLines = append(printer.ErrorLines, msg)
+	if printer.Quiet {
+		return
+	}
 	fmt.Fprintln(printer.eWriter, msg)
 }
