@@ -63,19 +63,18 @@ func getDefaultConfigHomePath() string {
 }
 
 func resolveLegacyConfigFilePath() string {
-	configPath := currentUser.HomeDir
-	// We use the existing $HOME/.mmctl file if it exists.
-	// If not, we try to read XDG_CONFIG_HOME and if we fail,
-	// we fallback to $HOME/.config/mmctl.
-	if _, err := os.Stat(filepath.Join(currentUser.HomeDir, ".mmctl")); os.IsNotExist(err) {
-		if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
-			configPath = p
-		} else {
-			configPath = filepath.Join(currentUser.HomeDir, ".config")
-		}
+	configPath := viper.GetString("config-path")
+	// We use the .mmctl file name (hidden) if the config is in $HOME directory.
+	// If we were using other directory (e.g. XDG_CONFIG_HOME) we go with mmctl file name.
+	switch configPath {
+	case "$HOME":
+		res := strings.Replace(configPath, userHomeVar, currentUser.HomeDir, 1)
+		return filepath.Join(res, ".mmctl")
+	case currentUser.HomeDir:
+		return filepath.Join(configPath, ".mmctl")
+	default:
+		return filepath.Join(configPath, "mmctl")
 	}
-
-	return configPath
 }
 
 func resolveConfigFilePath() string {
