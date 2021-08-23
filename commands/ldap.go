@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"net/http"
+
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -51,12 +53,12 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
 
-	ok, response := c.SyncLdap(includeRemovedMembers)
-	if response.Error != nil {
-		return response.Error
+	resp, err := c.SyncLdap(includeRemovedMembers)
+	if err != nil {
+		return err
 	}
 
-	if ok {
+	if resp.StatusCode == http.StatusOK {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
 	} else {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
@@ -67,12 +69,12 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	toAttribute := args[0]
-	ok, response := c.MigrateIdLdap(toAttribute)
-	if response.Error != nil {
-		return response.Error
+	resp, err := c.MigrateIdLdap(toAttribute)
+	if err != nil {
+		return err
 	}
 
-	if ok {
+	if resp.StatusCode == http.StatusOK {
 		printer.Print("AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: " + toAttribute)
 	}
 

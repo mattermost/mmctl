@@ -144,9 +144,9 @@ func prettyRole(role *model.Role) string {
 }
 
 func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
+	role, _, err := c.GetRoleByName(args[0])
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT(prettyRole(role), nil)
@@ -155,9 +155,9 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
+	role, _, err := c.GetRoleByName(args[0])
+	if err != nil {
+		return err
 	}
 
 	users := getUsersFromUserArgs(c, args[1:])
@@ -182,9 +182,9 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		userRoles := startingRoles
 		userRoles = append(userRoles, role.Name)
-		_, response = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
-		if response.Error != nil {
-			return response.Error
+		_, err = c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -211,9 +211,9 @@ func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 
 		if originalCount > len(userRoles) {
-			_, response := c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
-			if response.Error != nil {
-				return response.Error
+			_, err := c.UpdateUserRoles(user.Id, strings.Join(userRoles, " "))
+			if err != nil {
+				return err
 			}
 		}
 	}

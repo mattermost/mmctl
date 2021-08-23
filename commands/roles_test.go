@@ -5,8 +5,10 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -23,13 +25,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, newRoles).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -49,7 +51,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -67,19 +69,19 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
@@ -99,13 +101,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, newRoles).
-			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -126,13 +128,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, "system_user").
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -151,7 +153,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -169,13 +171,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, "system_user").
-			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -194,19 +196,19 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{emailArg})

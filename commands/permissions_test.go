@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -31,13 +32,13 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			PatchRole(mockRole.Id, expectedPatch).
-			Return(&model.Role{}, &model.Response{Error: nil}).
+			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, newPermission}
@@ -46,12 +47,12 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 	})
 
 	s.Run("Trying to add a new permission to a non existing role", func() {
-		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+		expectedError := errors.New("role_not_found")
 
 		s.client.
 			EXPECT().
 			GetRoleByName(gomock.Any()).
-			Return(nil, &model.Response{Error: expectedError}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
 		args := []string{"mockRole", "newPermission"}
@@ -70,7 +71,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.Run("with ancillary permissions", func() {
@@ -82,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestAddPermissionsCmd() {
 			s.client.
 				EXPECT().
 				PatchRole(mockRole.Id, expectedPatch).
-				Return(&model.Role{}, &model.Response{Error: nil}).
+				Return(&model.Role{}, &model.Response{}, nil).
 				Times(1)
 			args := []string{mockRole.Name, newPermission}
 			cmd := &cobra.Command{}
@@ -106,12 +107,12 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchRole(mockRole.Id, expectedPatch).
-			Return(&model.Role{}, &model.Response{Error: nil}).
+			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, "delete"}
@@ -132,12 +133,12 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchRole(mockRole.Id, expectedPatch).
-			Return(&model.Role{}, &model.Response{Error: nil}).
+			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, "view", "delete"}
@@ -158,12 +159,12 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchRole(mockRole.Id, expectedPatch).
-			Return(&model.Role{}, &model.Response{Error: nil}).
+			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, "delete"}
@@ -176,16 +177,16 @@ func (s *MmctlUnitTestSuite) TestRemovePermissionsCmd() {
 			Name: "exampleName",
 		}
 
-		mockError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+		mockError := errors.New("role_not_found")
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(nil, &model.Response{Error: mockError}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
 			Times(1)
 
 		args := []string{mockRole.Name, "delete"}
 		err := removePermissionsCmdF(s.client, &cobra.Command{}, args)
-		s.Require().EqualError(err, "Role: role_not_found, ")
+		s.Require().EqualError(err, "role_not_found")
 	})
 }
 
@@ -195,17 +196,17 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 			Name: "exampleName",
 		}
 
-		mockError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+		mockError := errors.New("role_not_found")
 
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(nil, &model.Response{Error: mockError}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
 			Times(1)
 
 		args := []string{mockRole.Name}
 		err := resetPermissionsCmdF(s.client, &cobra.Command{}, args)
-		s.Require().EqualError(err, "Role: role_not_found, ")
+		s.Require().EqualError(err, "role_not_found")
 	})
 
 	s.Run("A role without default permissions", func() {
@@ -218,7 +219,7 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(&mockRole, &model.Response{Error: nil}).
+			Return(&mockRole, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name}
@@ -241,13 +242,13 @@ func (s *MmctlUnitTestSuite) TestResetPermissionsCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(&mockRole, &model.Response{Error: nil}).
+			Return(&mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			PatchRole(mockRole.Id, expectedPatch).
-			Return(&model.Role{}, &model.Response{Error: nil}).
+			Return(&model.Role{}, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name}

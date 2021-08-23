@@ -139,7 +139,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", pluginURL))
-		s.Require().Contains(printer.GetErrorLines()[0], "An error occurred while downloading the plugin.")
+		s.Require().Contains(printer.GetErrorLines()[0], "an error occurred while downloading the plugin.")
 
 		plugins, appErr := s.th.App.GetPlugins()
 		s.Require().Nil(appErr)

@@ -40,13 +40,13 @@ func (e *BadRequestError) Error() string {
 // ExtractErrorFromResponse extracts the error from the response,
 // encapsulating it if matches the common cases, such as when it's
 // not found, and when we've made a bad request
-func ExtractErrorFromResponse(r *model.Response) error {
-	switch r.Error.StatusCode {
+func ExtractErrorFromResponse(r *model.Response, err error) error {
+	switch r.StatusCode {
 	case http.StatusNotFound:
-		return &NotFoundError{Msg: r.Error.Error()}
+		return &NotFoundError{Msg: err.Error()}
 	case http.StatusBadRequest:
-		return &BadRequestError{Msg: r.Error.Error()}
+		return &BadRequestError{Msg: err.Error()}
 	default:
-		return r.Error
+		return err
 	}
 }
