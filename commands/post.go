@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -130,9 +129,6 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
-
-	cancel := printer.StartSimpleProgress(context.Background(), "fetching posts...")
-	defer cancel()
 
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
