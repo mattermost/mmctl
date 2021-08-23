@@ -24,13 +24,13 @@ func checkInteractiveTerminal() error {
 	return nil
 }
 
-func termHeight(file *os.File) int {
+func termHeight(file *os.File) (int, error) {
 	_, h, err := term.GetSize(int(file.Fd()))
 	if err != nil {
-		panic(err)
+		return -1, err
 	}
 
-	return h
+	return h, nil
 }
 
 func lineCount(b []byte) int {

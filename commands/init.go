@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/fatih/color"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/pkg/errors"
@@ -46,6 +45,7 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 			if err != nil {
 				return err
 			}
+			printer.SetServerAddres("local instance")
 			return fn(c, cmd, args)
 		}
 
@@ -60,7 +60,7 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 				os.Exit(1)
 			}
 			if !viper.GetBool("suppress-warnings") {
-				printer.PrintError(color.YellowString("WARNING: server version " + serverVersion + " doesn't match mmctl version " + Version))
+				printer.PrintWarning("server version " + serverVersion + " doesn't match mmctl version " + Version)
 			}
 		}
 

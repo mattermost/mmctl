@@ -28,7 +28,7 @@ type Printer struct { //nolint
 
 	Format     string
 	Single     bool
-	pager      *bool
+	pager      bool
 	Quiet      bool
 	Lines      []interface{}
 	ErrorLines []interface{}
@@ -50,6 +50,7 @@ var printer Printer
 func init() {
 	printer.writer = os.Stdout
 	printer.eWriter = os.Stderr
+	printer.pager = true
 }
 
 // SetFormat sets the format for the final output of the printer
@@ -66,7 +67,7 @@ func SetServerAddres(addr string) {
 }
 
 func OverrideEnablePager(enable bool) {
-	printer.pager = &enable
+	printer.pager = enable
 }
 
 // SetFormat sets the format for the final output of the printer
@@ -115,6 +116,7 @@ func Flush() error {
 	if printer.Quiet {
 		return nil
 	}
+
 	opts := printOpts{
 		format: printer.Format,
 		single: printer.Single,
@@ -135,18 +137,18 @@ func Flush() error {
 	lines := lineCount(b)
 
 	isTTY := checkInteractiveTerminal() == nil
-	enablePager := isTTY && (termHeight(os.Stdout) < lines) // calculate if we should enable paging
+	var enablePager bool
+	termHeight, err := termHeight(os.Stdout)
+	if err == nil {
+		enablePager = isTTY && (termHeight < lines) // calculate if we should enable paging
+	}
 
 	pager := os.Getenv("PAGER")
 	if enablePager {
 		enablePager = pager != ""
 	}
 
-	if printer.pager != nil {
-		enablePager = *printer.pager
-	}
-
-	opts.usePager = enablePager
+	opts.usePager = enablePager && printer.pager
 	opts.pagerPath = pager
 
 	err = printer.printBytes(b, opts)
