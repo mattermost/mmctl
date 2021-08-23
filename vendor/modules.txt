@@ -265,6 +265,11 @@ github.com/hashicorp/yamux
 github.com/icrowley/fake
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/isacikgoz/fuzzy v0.2.0
+github.com/isacikgoz/fuzzy
+# github.com/isacikgoz/prompt v0.1.0
+github.com/isacikgoz/prompt
+github.com/isacikgoz/prompt/term
 # github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7
 github.com/jaytaylor/html2text
 # github.com/jmespath/go-jmespath v0.4.0
