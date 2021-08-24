@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	testLogInfo = `{"level":"info","ts":1573516747,"caller":"app/server.go:490","msg":"Server is listening on [::]:8065"}`
-	// testLogInfoStdout = "info app/server.go:490 Server is listening on [::]:8065"
-	// testLogrusStdout  = "level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
+	testLogInfo       = `{"level":"info","ts":1573516747,"caller":"app/server.go:490","msg":"Server is listening on [::]:8065"}`
+	testLogInfoStdout = "info app/server.go:490 Server is listening on [::]:8065"
+	testLogrusStdout  = "level=info msg=\"Server is listening on [::]:8065\" caller=\"app/server.go:490\""
 )
 
 func (s *MmctlUnitTestSuite) TestLogsCmd() {
@@ -35,12 +35,11 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
-		_, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Nil(err)
-		s.T().Skip("logs update")
-		// s.Require().Len(data, 1)
-		// s.Contains(data[0], testLogInfoStdout)
+		s.Require().Len(data, 1)
+		s.Contains(data[0], testLogInfoStdout)
 	})
 
 	s.Run("Display logs", func() {
@@ -53,12 +52,11 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
-		_, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Nil(err)
-		s.T().Skip("logs update")
-		// s.Require().Len(data, 1)
-		// s.Contains(data[0], testLogInfoStdout)
+		s.Require().Len(data, 1)
+		s.Contains(data[0], testLogInfoStdout)
 	})
 
 	s.Run("Display logs logrus format", func() {
@@ -73,12 +71,11 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
-		_, err := testLogsCmdF(s.client, cmd, []string{})
+		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Nil(err)
-		s.T().Skip("logs update")
-		// s.Require().Len(data, 1)
-		// s.Contains(data[0], testLogrusStdout)
+		s.Require().Len(data, 1)
+		s.Contains(data[0], testLogrusStdout)
 	})
 
 	s.Run("Error when using format flag", func() {
