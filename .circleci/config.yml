@@ -31,7 +31,7 @@ commands:
         default: /go/bin
       prefix:
         type: string
-        default: v1
+        default: v2
         description: Prefix for cache key to store the binary.
     steps:
       - restore_cache:
