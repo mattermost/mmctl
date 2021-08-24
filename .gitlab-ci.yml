@@ -78,9 +78,3 @@ build:
     paths:
       - build
     expire_in: 3 hours
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-    - if: '$CI_COMMIT_REF_NAME == "build-on-1.17.0"'
-    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
-    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
-    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
