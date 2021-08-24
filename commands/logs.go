@@ -4,14 +4,18 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/printer/human"
 )
 
 var LogsCmd = &cobra.Command{
@@ -40,9 +44,15 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}
 
-	for _, line := range logLines {
-		printer.Print(line)
+	reader := bytes.NewReader([]byte(strings.Join(logLines, "")))
+
+	var writer human.LogWriter
+	if logrus, _ := cmd.Flags().GetBool("logrus"); logrus {
+		writer = human.NewLogrusWriter(os.Stdout)
+	} else {
+		writer = human.NewSimpleWriter(os.Stdout)
 	}
+	human.ProcessLogs(reader, writer)
 
 	return nil
 }
