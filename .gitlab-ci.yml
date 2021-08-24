@@ -71,7 +71,7 @@ lint:
 
 build:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210824_golang-1.17.0
   script:
     - make package
   artifacts:
