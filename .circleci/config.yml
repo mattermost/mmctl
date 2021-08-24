@@ -7,7 +7,7 @@ executors:
   default:
     working_directory: ~/go/src/github.com/mattermost/mmctl
     docker:
-      - image: circleci/golang:1.15.5
+      - image: circleci/golang:1.17.0
 
 aliases:
 - &restore_cache
@@ -25,7 +25,7 @@ commands:
     parameters:
       version:
         type: string
-        default: 1.31.0
+        default: 1.42.0
       gobin:
         type: string
         default: /go/bin
@@ -79,7 +79,7 @@ jobs:
 
   setup:
     docker:
-      - image: mattermost/mattermost-build-webapp:oct-2-2018
+      - image: mattermost/mattermost-build-server:20210810_golang-1.16.7
     working_directory: ~/go/src/github.com/mattermost/
     steps:
       - run:
@@ -131,7 +131,7 @@ jobs:
               --env MM_SQLSETTINGS_DATASOURCE=postgres \
               -v ~/go/src:/go/src \
               -w /go/src/github.com/mattermost/mmctl \
-              mattermost/mattermost-build-server:20201119_golang-1.15.5 \
+              mattermost/mattermost-build-server:20210810_golang-1.16.7 \
               bash -c 'ulimit -n 8096 && make coverage'
       - codecov/upload:
         file:  coverage.txt

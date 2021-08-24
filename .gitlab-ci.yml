@@ -8,11 +8,12 @@ include:
   file: private.yml
 
 variables:
-  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210824_golang-1.17.0
+  IMAGE_BUILD_MMCTL: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210824_golang-1.17.0
+  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210810_golang-1.16.7
 
 docs:
   stage: test
-  image: $IMAGE_BUILD_SERVER
+  image: $IMAGE_BUILD_MMCTL
   script:
     - echo $CI_COMMIT_REF_NAME
     - echo "Making sure docs are updated"
@@ -74,7 +75,7 @@ lint:
 
 build:
   stage: test
-  image: $IMAGE_BUILD_SERVER
+  image: $IMAGE_BUILD_MMCTL
   script:
     - make package
   artifacts:
