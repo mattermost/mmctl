@@ -88,7 +88,7 @@ jobs:
             git clone https://github.com/mattermost/mattermost-server.git
 
             cd mattermost-server
-            git checkout $CIRCLE_BRANCH || git checkout release-5.38
+            git checkout $CIRCLE_BRANCH || git checkout release-5.39
       - persist_to_workspace:
           root: ~/go/src/github.com/mattermost
           paths:
