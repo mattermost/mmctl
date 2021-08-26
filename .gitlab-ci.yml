@@ -7,9 +7,13 @@ include:
   ref: master
   file: private.yml
 
+variables:
+  IMAGE_BUILD_MMCTL: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210824_golang-1.17.0
+  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210810_golang-1.16.7
+
 docs:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+  image: $IMAGE_BUILD_MMCTL
   script:
     - echo $CI_COMMIT_REF_NAME
     - echo "Making sure docs are updated"
@@ -62,7 +66,7 @@ lint:
         --env MM_SQLSETTINGS_DATASOURCE=postgres \
         -v /builds/${CI_PROJECT_NAMESPACE}:/mattermost \
         -w /mattermost/mmctl \
-        $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5 \
+        $IMAGE_BUILD_SERVER \
         bash -c 'ulimit -n 8096; ls -al; make test-all'
     - docker logs -f server
     - exit $(docker inspect server --format='{{.State.ExitCode}}')
@@ -71,15 +75,10 @@ lint:
 
 build:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20201119_golang-1.15.5
+  image: $IMAGE_BUILD_MMCTL
   script:
     - make package
   artifacts:
     paths:
       - build
     expire_in: 3 hours
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
-    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
-    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
