@@ -11,6 +11,9 @@ import (
 	"os"
 	"os/user"
 	"syscall"
+
+	"github.com/isacikgoz/prompt"
+	"github.com/pkg/errors"
 )
 
 func checkValidSocket(socketPath string) error {
@@ -37,6 +40,40 @@ func checkValidSocket(socketPath string) error {
 	// if user id is "0", they are root and we should avoid this check
 	if fmt.Sprint(s.Uid) != cUser.Uid && cUser.Uid != "0" {
 		return fmt.Errorf("owner of the file %q must be the same user running mmctl", socketPath)
+	}
+
+	return nil
+}
+
+func getConfirmation(question string, dbConfirmation bool) error {
+	if err := checkInteractiveTerminal(); err != nil {
+		return fmt.Errorf("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: %w", err)
+	}
+
+	if dbConfirmation {
+		s, err := prompt.NewSelection("Have you performed a database backup?", []string{"no", "yes"}, "", 2)
+		if err != nil {
+			return fmt.Errorf("could not initiate prompt: %w", err)
+		}
+		ans, err := s.Run()
+		if err != nil {
+			return fmt.Errorf("error running prompt: %w", err)
+		}
+		if ans != "yes" {
+			return errors.New("aborted")
+		}
+	}
+
+	s, err := prompt.NewSelection(question, []string{"no", "yes"}, "WARNING: This operation is not reversible.", 2)
+	if err != nil {
+		return fmt.Errorf("could not initiate prompt: %w", err)
+	}
+	ans, err := s.Run()
+	if err != nil {
+		return fmt.Errorf("error running prompt: %w", err)
+	}
+	if ans != "yes" {
+		return errors.New("aborted")
 	}
 
 	return nil
