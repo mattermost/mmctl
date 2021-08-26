@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/isacikgoz/prompt"
 	"github.com/pkg/errors"
 )
 
@@ -40,40 +39,6 @@ func zipDir(zipPath, dir string) error {
 
 	if err := addToZip(zipWriter, dir, "."); err != nil {
 		return fmt.Errorf("could not add %q to zip: %w", dir, err)
-	}
-
-	return nil
-}
-
-func getConfirmation(question string, dbConfirmation bool) error {
-	if err := checkInteractiveTerminal(); err != nil {
-		return fmt.Errorf("could not proceed, either enable --confirm flag or use an interactive shell to complete operation: %w", err)
-	}
-
-	if dbConfirmation {
-		s, err := prompt.NewSelection("Have you performed a database backup?", []string{"no", "yes"}, "", 2)
-		if err != nil {
-			return fmt.Errorf("could not initiate prompt: %w", err)
-		}
-		ans, err := s.Run()
-		if err != nil {
-			return fmt.Errorf("error running prompt: %w", err)
-		}
-		if ans != "yes" {
-			return errors.New("aborted")
-		}
-	}
-
-	s, err := prompt.NewSelection(question, []string{"no", "yes"}, "WARNING: This operation is not reversible.", 2)
-	if err != nil {
-		return fmt.Errorf("could not initiate prompt: %w", err)
-	}
-	ans, err := s.Run()
-	if err != nil {
-		return fmt.Errorf("error running prompt: %w", err)
-	}
-	if ans != "yes" {
-		return errors.New("aborted")
 	}
 
 	return nil
