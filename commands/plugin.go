@@ -96,8 +96,8 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		if _, response := c.UploadPlugin(fileReader); response.Error != nil {
-			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + response.Error.Error())
+		if _, _, err := c.UploadPlugin(fileReader); err != nil {
+			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			printer.Print("Added plugin: " + plugin)
 		}
@@ -111,9 +111,9 @@ func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) er
 	force, _ := cmd.Flags().GetBool("force")
 
 	for _, plugin := range args {
-		manifest, resp := c.InstallPluginFromUrl(plugin, force)
-		if resp.Error != nil {
-			printer.PrintError("Unable to install plugin from URL \"" + plugin + "\". Error: " + resp.Error.Error())
+		manifest, _, err := c.InstallPluginFromURL(plugin, force)
+		if err != nil {
+			printer.PrintError("Unable to install plugin from URL \"" + plugin + "\". Error: " + err.Error())
 		} else {
 			printer.PrintT("Plugin {{.Name}} successfully installed", manifest)
 		}
@@ -124,8 +124,8 @@ func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) er
 
 func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	for _, plugin := range args {
-		if _, response := c.RemovePlugin(plugin); response.Error != nil {
-			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + response.Error.Error())
+		if _, err := c.RemovePlugin(plugin); err != nil {
+			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			printer.Print("Deleted plugin: " + plugin)
 		}
@@ -136,8 +136,8 @@ func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	for _, plugin := range args {
-		if _, response := c.EnablePlugin(plugin); response.Error != nil {
-			printer.PrintError("Unable to enable plugin: " + plugin + ". Error: " + response.Error.Error())
+		if _, err := c.EnablePlugin(plugin); err != nil {
+			printer.PrintError("Unable to enable plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			printer.Print("Enabled plugin: " + plugin)
 		}
@@ -148,8 +148,8 @@ func pluginEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 func pluginDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	for _, plugin := range args {
-		if _, response := c.DisablePlugin(plugin); response.Error != nil {
-			printer.PrintError("Unable to disable plugin: " + plugin + ". Error: " + response.Error.Error())
+		if _, err := c.DisablePlugin(plugin); err != nil {
+			printer.PrintError("Unable to disable plugin: " + plugin + ". Error: " + err.Error())
 		} else {
 			printer.Print("Disabled plugin: " + plugin)
 		}
@@ -159,9 +159,9 @@ func pluginDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	pluginsResp, response := c.GetPlugins()
-	if response.Error != nil {
-		return errors.New("Unable to list plugins. Error: " + response.Error.Error())
+	pluginsResp, _, err := c.GetPlugins()
+	if err != nil {
+		return errors.New("Unable to list plugins. Error: " + err.Error())
 	}
 
 	format, _ := cmd.Flags().GetString("format")

@@ -74,8 +74,8 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 
 		if !systemAdmin {
 			roles = append(roles, model.SystemAdminRoleId)
-			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); resp.Error != nil {
-				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
+			if _, err := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); err != nil {
+				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], err))
 				continue
 			}
 
@@ -108,8 +108,8 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		}
 
 		if shouldRemoveSysadmin {
-			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); resp.Error != nil {
-				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
+			if _, err := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); err != nil {
+				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], err))
 				continue
 			}
 

@@ -50,11 +50,11 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 			return nil
 		}
 
-		channel, _ = c.GetChannelByNameIncludeDeleted(channelPart, team.Id, "")
+		channel, _, _ = c.GetChannelByNameIncludeDeleted(channelPart, team.Id, "")
 	}
 
 	if channel == nil {
-		channel, _ = c.GetChannel(channelPart, "")
+		channel, _, _ = c.GetChannel(channelPart, "")
 	}
 
 	return channel
@@ -93,9 +93,9 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 		if err != nil {
 			return nil, err
 		}
-		channel, response = c.GetChannelByNameIncludeDeleted(channelArg, team.Id, "")
-		if response != nil && response.Error != nil {
-			err = ExtractErrorFromResponse(response)
+		channel, response, err = c.GetChannelByNameIncludeDeleted(channelArg, team.Id, "")
+		if err != nil {
+			err = ExtractErrorFromResponse(response, err)
 			var nfErr *NotFoundError
 			var badRequestErr *BadRequestError
 			if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
@@ -106,13 +106,14 @@ func getChannelFromArg(c client.Client, arg string) (*model.Channel, error) {
 	if channel != nil {
 		return channel, nil
 	}
-	channel, response = c.GetChannel(channelArg, "")
-	if response != nil && response.Error != nil {
-		err := ExtractErrorFromResponse(response)
+	var err error
+	channel, response, err = c.GetChannel(channelArg, "")
+	if err != nil {
+		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
 		var badRequestErr *BadRequestError
-		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-			return nil, err
+		if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+			return nil, nErr
 		}
 	}
 	if channel == nil {
