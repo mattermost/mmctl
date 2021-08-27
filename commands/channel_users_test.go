@@ -5,8 +5,10 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -42,24 +44,24 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, teamID, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(userEmail, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			AddChannelMember(channelID, userID).
-			Return(&model.ChannelMember{}, &model.Response{Error: nil}).
+			Return(&model.ChannelMember{}, &model.Response{}, nil).
 			Times(1)
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
 		s.Require().Nil(err)
@@ -73,19 +75,19 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		// No channel is returned by client.
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, teamID, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetChannel(channelName, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
@@ -101,12 +103,12 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetTeamByName(teamID, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
@@ -122,38 +124,38 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, teamID, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(nilUserArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByUsername(nilUserArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUser(nilUserArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(userEmail, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			AddChannelMember(channelID, userID).
-			Return(&model.ChannelMember{}, &model.Response{Error: nil}).
+			Return(&model.ChannelMember{}, &model.Response{}, nil).
 			Times(1)
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, nilUserArg, userEmail})
 		s.Require().Nil(err)
@@ -168,30 +170,30 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, teamID, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(userEmail, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			AddChannelMember(channelID, userID).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 		err := channelUsersAddCmdF(s.client, cmd, []string{channelArg, userEmail})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to add '"+userEmail+"' to "+channelName+". Error: : Mock error, ",
+		s.Equal("Unable to add '"+userEmail+"' to "+channelName+". Error: mock error",
 			printer.GetErrorLines()[0])
 	})
 }
@@ -223,25 +225,25 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(foundTeam, &model.Response{Error: nil}).
+			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
-			Return(foundChannel, &model.Response{Error: nil}).
+			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(userEmail, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := channelUsersRemoveCmdF(s.client, cmd, args)
@@ -287,37 +289,37 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(foundTeam, &model.Response{Error: nil}).
+			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
-			Return(foundChannel, &model.Response{Error: nil}).
+			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelMembers(foundChannel.Id, 0, 10000, "").
-			Return(&mockChannelMembers, &model.Response{Error: nil}).
+			Return(mockChannelMembers, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser2.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser3.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := channelUsersRemoveCmdF(s.client, cmd, args)
@@ -347,37 +349,37 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamName, "").
-			Return(foundTeam, &model.Response{Error: nil}).
+			Return(foundTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
-			Return(foundChannel, &model.Response{Error: nil}).
+			Return(foundChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(userEmail, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser2.Email, "").
-			Return(&mockUser2, &model.Response{Error: nil}).
+			Return(&mockUser2, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser2.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := channelUsersRemoveCmdF(s.client, cmd, args)

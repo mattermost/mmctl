@@ -62,9 +62,9 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	replyTo, _ := cmd.Flags().GetString("reply-to")
 	if replyTo != "" {
-		replyToPost, res := c.GetPost(replyTo, "")
-		if res.Error != nil {
-			return res.Error
+		replyToPost, _, err := c.GetPost(replyTo, "")
+		if err != nil {
+			return err
 		}
 		if replyToPost.RootId != "" {
 			replyTo = replyToPost.RootId
@@ -82,8 +82,8 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		RootId:    replyTo,
 	}
 
-	url := c.GetPostsRoute() + "?set_online=false"
-	if _, err := c.DoApiPost(url, post.ToUnsanitizedJson()); err != nil {
+	url := "/posts" + "?set_online=false"
+	if _, err := c.DoAPIPost(url, post.ToUnsanitizedJson()); err != nil {
 		return fmt.Errorf("could not create post: %s", err.Error())
 	}
 	return nil
@@ -111,8 +111,8 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	if usernames[post.UserId] != "" {
 		username = usernames[post.UserId]
 	} else {
-		user, res := c.GetUser(post.UserId, "")
-		if res.Error != nil {
+		user, _, err := c.GetUser(post.UserId, "")
+		if err != nil {
 			username = post.UserId
 		} else {
 			usernames[post.UserId] = user.Username
@@ -139,9 +139,9 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	showIds, _ := cmd.Flags().GetBool("show-ids")
 	follow, _ := cmd.Flags().GetBool("follow")
 
-	postList, res := c.GetPostsForChannel(channel.Id, 0, number, "", false)
-	if res.Error != nil {
-		return res.Error
+	postList, _, err := c.GetPostsForChannel(channel.Id, 0, number, "", false)
+	if err != nil {
+		return err
 	}
 
 	posts := postList.ToSlice()

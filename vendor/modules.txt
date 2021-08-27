@@ -318,11 +318,12 @@ github.com/mattermost/gorp
 github.com/mattermost/gziphandler
 # github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 github.com/mattermost/ldap
-# github.com/mattermost/logr v1.0.13
-github.com/mattermost/logr
-github.com/mattermost/logr/format
-github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v6 v6.0.0-20210804091053-a5463c865195
+# github.com/mattermost/logr/v2 v2.0.10
+github.com/mattermost/logr/v2
+github.com/mattermost/logr/v2/config
+github.com/mattermost/logr/v2/formatters
+github.com/mattermost/logr/v2/targets
+# github.com/mattermost/mattermost-server/v6 v6.0.0-20210823134507-77dc29308f80
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
 github.com/mattermost/mattermost-server/v6/app/email
@@ -363,7 +364,6 @@ github.com/mattermost/mattermost-server/v6/shared/mail
 github.com/mattermost/mattermost-server/v6/shared/markdown
 github.com/mattermost/mattermost-server/v6/shared/mfa
 github.com/mattermost/mattermost-server/v6/shared/mlog
-github.com/mattermost/mattermost-server/v6/shared/mlog/human
 github.com/mattermost/mattermost-server/v6/shared/templates
 github.com/mattermost/mattermost-server/v6/store
 github.com/mattermost/mattermost-server/v6/store/localcachelayer
@@ -620,10 +620,6 @@ github.com/vmihailenco/msgpack/v5/msgpcode
 github.com/vmihailenco/tagparser/v2
 github.com/vmihailenco/tagparser/v2/internal
 github.com/vmihailenco/tagparser/v2/internal/parser
-# github.com/wiggin77/cfg v1.0.2
-github.com/wiggin77/cfg
-github.com/wiggin77/cfg/ini
-github.com/wiggin77/cfg/timeconv
 # github.com/wiggin77/merror v1.0.3
 github.com/wiggin77/merror
 # github.com/wiggin77/srslog v1.0.1
@@ -659,15 +655,6 @@ go.opentelemetry.io/otel/metric/registry
 go.opentelemetry.io/otel/metric/unit
 # go.uber.org/atomic v1.8.0
 go.uber.org/atomic
-# go.uber.org/multierr v1.7.0
-go.uber.org/multierr
-# go.uber.org/zap v1.17.0
-go.uber.org/zap
-go.uber.org/zap/buffer
-go.uber.org/zap/internal/bufferpool
-go.uber.org/zap/internal/color
-go.uber.org/zap/internal/exit
-go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 golang.org/x/crypto/acme
 golang.org/x/crypto/acme/autocert

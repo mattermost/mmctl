@@ -6,10 +6,12 @@ package commands
 import (
 	"net/http"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mmctl/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
@@ -20,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 		s.client.
 			EXPECT().
 			ListImports().
-			Return(mockImports, &model.Response{Error: nil}).
+			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
 		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
@@ -41,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 		s.client.
 			EXPECT().
 			ListImports().
-			Return(mockImports, &model.Response{Error: nil}).
+			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
 		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
@@ -62,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 		s.client.
 			EXPECT().
 			GetUploadsForUser("me").
-			Return(mockUploads, &model.Response{Error: nil}).
+			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
 		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
@@ -92,7 +94,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 		s.client.
 			EXPECT().
 			GetUploadsForUser("me").
-			Return(mockUploads, &model.Response{Error: nil}).
+			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
 		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
@@ -113,7 +115,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.client.
 			EXPECT().
 			GetJob(jobID).
-			Return(nil, &model.Response{Error: model.NewAppError("not found", "", nil, "not found", http.StatusNotFound)}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
 		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{jobID})
@@ -131,7 +133,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.client.
 			EXPECT().
 			GetJob(mockJob.Id).
-			Return(mockJob, &model.Response{Error: nil}).
+			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
@@ -156,7 +158,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 		s.client.
 			EXPECT().
 			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
-			Return(mockJobs, &model.Response{Error: nil}).
+			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
 		err := importJobListCmdF(s.client, cmd, nil)
@@ -189,7 +191,7 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 		s.client.
 			EXPECT().
 			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
-			Return(mockJobs, &model.Response{Error: nil}).
+			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
 		err := importJobListCmdF(s.client, cmd, nil)
@@ -213,7 +215,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 	s.client.
 		EXPECT().
 		CreateJob(mockJob).
-		Return(mockJob, &model.Response{Error: nil}).
+		Return(mockJob, &model.Response{}, nil).
 		Times(1)
 
 	err := importProcessCmdF(s.client, &cobra.Command{}, []string{importFile})

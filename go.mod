@@ -10,9 +10,10 @@ require (
 	github.com/isacikgoz/prompt v0.1.0
 	github.com/magefile/mage v1.11.0
 	github.com/magiconair/properties v1.8.4 // indirect
-	github.com/mattermost/mattermost-server/v6 v6.0.0-20210804091053-a5463c865195
+	github.com/mattermost/mattermost-server/v6 v6.0.0-20210823134507-77dc29308f80
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/afero v1.4.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.3

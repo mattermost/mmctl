@@ -244,9 +244,9 @@ func createChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		CreatorId:   "",
 	}
 
-	newChannel, response := c.CreateChannel(channel)
-	if response.Error != nil {
-		return response.Error
+	newChannel, _, err := c.CreateChannel(channel)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT("New channel {{.Name}} successfully created", newChannel)
@@ -265,8 +265,8 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 			printer.PrintError("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if _, response := c.DeleteChannel(channel.Id); response.Error != nil {
-			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + response.Error.Error())
+		if _, err := c.DeleteChannel(channel.Id); err != nil {
+			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
 		}
 	}
 
@@ -278,9 +278,9 @@ func getAllPublicChannelsForTeam(c client.Client, teamID string) ([]*model.Chann
 	page := 0
 
 	for {
-		channelsPage, response := c.GetPublicChannelsForTeam(teamID, page, web.PerPageMaximum, "")
-		if response.Error != nil {
-			return nil, response.Error
+		channelsPage, _, err := c.GetPublicChannelsForTeam(teamID, page, web.PerPageMaximum, "")
+		if err != nil {
+			return nil, err
 		}
 
 		if len(channelsPage) == 0 {
@@ -299,9 +299,9 @@ func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Chan
 	page := 0
 
 	for {
-		channelsPage, response := c.GetDeletedChannelsForTeam(teamID, page, web.PerPageMaximum, "")
-		if response.Error != nil {
-			return nil, response.Error
+		channelsPage, _, err := c.GetDeletedChannelsForTeam(teamID, page, web.PerPageMaximum, "")
+		if err != nil {
+			return nil, err
 		}
 
 		if len(channelsPage) == 0 {
@@ -362,8 +362,8 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 			printer.PrintError("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if _, response := c.RestoreChannel(channel.Id); response.Error != nil {
-			printer.PrintError("Unable to unarchive channel '" + args[i] + "'. Error: " + response.Error.Error())
+		if _, _, err := c.RestoreChannel(channel.Id); err != nil {
+			printer.PrintError("Unable to unarchive channel '" + args[i] + "'. Error: " + err.Error())
 		}
 	}
 
@@ -384,8 +384,8 @@ func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		return errors.New("you can only change the type of public channels")
 	}
 
-	if _, response := c.UpdateChannelPrivacy(channel.Id, model.ChannelTypePrivate); response.Error != nil {
-		return response.Error
+	if _, _, err := c.UpdateChannelPrivacy(channel.Id, model.ChannelTypePrivate); err != nil {
+		return err
 	}
 
 	return nil
@@ -413,8 +413,8 @@ func modifyChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		privacy = model.ChannelTypePrivate
 	}
 
-	if _, response := c.UpdateChannelPrivacy(channel.Id, privacy); response.Error != nil {
-		return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], response.Error.Error())
+	if _, _, err := c.UpdateChannelPrivacy(channel.Id, privacy); err != nil {
+		return errors.Errorf("failed to update channel (%q) privacy: %s", args[0], err.Error())
 	}
 
 	return nil
@@ -455,9 +455,9 @@ func renameChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 	}
 
 	// Using PatchChannel API to rename channel
-	updatedChannel, response := c.PatchChannel(channel.Id, channelPatch)
-	if response.Error != nil {
-		return errors.Errorf("cannot rename channel %q, error: %s", channel.Name, response.Error.Error())
+	updatedChannel, _, err := c.PatchChannel(channel.Id, channelPatch)
+	if err != nil {
+		return errors.Errorf("cannot rename channel %q, error: %s", channel.Name, err.Error())
 	}
 
 	printer.PrintT("'{{.Name}}' channel renamed", updatedChannel)
@@ -475,22 +475,22 @@ func searchChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			return errors.Errorf("team %s was not found", teamArg)
 		}
 
-		var response *model.Response
-		channel, response = c.GetChannelByName(args[0], team.Id, "")
-		if response.Error != nil {
-			return response.Error
+		var err error
+		channel, _, err = c.GetChannelByName(args[0], team.Id, "")
+		if err != nil {
+			return err
 		}
 		if channel == nil {
 			return errors.Errorf("channel %s was not found in team %s", args[0], teamArg)
 		}
 	} else {
-		teams, response := c.GetAllTeams("", 0, 9999)
-		if response.Error != nil {
-			return response.Error
+		teams, _, err := c.GetAllTeams("", 0, 9999)
+		if err != nil {
+			return err
 		}
 
 		for _, team := range teams {
-			channel, _ = c.GetChannelByName(args[0], team.Id, "")
+			channel, _, _ = c.GetChannelByName(args[0], team.Id, "")
 			if channel != nil && channel.Name == args[0] {
 				break
 			}
@@ -528,9 +528,9 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		newChannel, resp := c.MoveChannel(channel.Id, team.Id, force)
-		if resp.Error != nil {
-			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, resp.Error))
+		newChannel, _, err := c.MoveChannel(channel.Id, team.Id, force)
+		if err != nil {
+			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, err))
 			continue
 		}
 		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
@@ -538,16 +538,16 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *model.AppError) {
+func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error) {
 	allPrivateChannels := []*model.Channel{}
 	page := 0
 	withoutError := true
 
 	for {
-		channelsPage, response := c.GetPrivateChannelsForTeam(teamID, page, web.PerPageMaximum, "")
-		if response.Error != nil && viper.GetBool("local") {
-			return nil, response.Error
-		} else if response.Error != nil {
+		channelsPage, _, err := c.GetPrivateChannelsForTeam(teamID, page, web.PerPageMaximum, "")
+		if err != nil && viper.GetBool("local") {
+			return nil, err
+		} else if err != nil {
 			// This means that the user is not in local mode neither
 			// an admin, so we need to continue fetching the private
 			// channels specific to their credentials
@@ -572,12 +572,12 @@ func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, *mode
 
 	// We are definitely not in local mode here so we can safely use
 	// "GetChannelsForTeamForUser" and "me" for userId
-	allChannels, response := c.GetChannelsForTeamForUser(teamID, "me", false, "")
-	if response.Error != nil {
+	allChannels, response, err := c.GetChannelsForTeamForUser(teamID, "me", false, "")
+	if err != nil {
 		if response.StatusCode == http.StatusNotFound { // user doesn't belong to any channels
 			return nil, nil
 		}
-		return nil, response.Error
+		return nil, err
 	}
 	privateChannels := make([]*model.Channel, 0, len(allChannels))
 	for _, channel := range allChannels {
@@ -603,8 +603,8 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 			printer.PrintError("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if _, response := c.PermanentDeleteChannel(channel.Id); response.Error != nil {
-			printer.PrintError("Unable to delete channel '" + channel.Name + "' error: " + response.Error.Error())
+		if _, err := c.PermanentDeleteChannel(channel.Id); err != nil {
+			printer.PrintError("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Deleted channel '{{.Name}}'", channel)
 		}

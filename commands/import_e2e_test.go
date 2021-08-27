@@ -67,19 +67,19 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 			userID = "nouser"
 		}
 
-		us, resp := c.CreateUpload(&model.UploadSession{
+		us, _, err := c.CreateUpload(&model.UploadSession{
 			Filename: importName,
 			FileSize: 276051,
 			Type:     model.UploadTypeImport,
 			UserId:   userID,
 		})
-		s.Require().Nil(resp.Error)
+		s.Require().NoError(err)
 
 		cmd.Flags().Bool("resume", true, "")
 		cmd.Flags().String("upload", us.Id, "")
 
-		err := importUploadCmdF(c, cmd, []string{importFilePath})
-		s.Require().Nil(err)
+		err = importUploadCmdF(c, cmd, []string{importFilePath})
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(importName, printer.GetLines()[0].(*model.FileInfo).Name)
@@ -197,8 +197,8 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		cmd := &cobra.Command{}
 		userID := "nouser"
 		if c == s.th.SystemAdminClient {
-			user, resp := s.th.SystemAdminClient.GetMe("")
-			s.Require().Nil(resp.Error)
+			user, _, err := s.th.SystemAdminClient.GetMe("")
+			s.Require().NoError(err)
 			userID = user.Id
 		} else {
 			cmd.Flags().Bool("local", true, "")

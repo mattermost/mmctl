@@ -91,43 +91,43 @@ func uploadAndProcess(c client.Client, zipPath string, isLocal bool) error {
 	}
 
 	// create session
-	us, resp := c.CreateUpload(&model.UploadSession{
+	us, _, err := c.CreateUpload(&model.UploadSession{
 		Filename: info.Name(),
 		FileSize: info.Size(),
 		Type:     model.UploadTypeImport,
 		UserId:   userID,
 	})
-	if resp.Error != nil {
-		return fmt.Errorf("failed to create upload session: %w", resp.Error)
+	if err != nil {
+		return fmt.Errorf("failed to create upload session: %w", err)
 	}
 
 	printer.PrintT("Upload session successfully created, ID: {{.Id}} ", us)
 
 	// upload file
-	finfo, resp := c.UploadData(us.Id, zipFile)
-	if resp.Error != nil {
-		return fmt.Errorf("failed to upload data: %w", resp.Error)
+	finfo, _, err := c.UploadData(us.Id, zipFile)
+	if err != nil {
+		return fmt.Errorf("failed to upload data: %w", err)
 	}
 
 	printer.PrintT("Import file successfully uploaded, name: {{.Name}}", finfo)
 
 	// process
-	job, resp := c.CreateJob(&model.Job{
+	job, _, err := c.CreateJob(&model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": us.Id + "_" + finfo.Name,
 		},
 	})
-	if resp.Error != nil {
-		return fmt.Errorf("failed to create import process job: %w", resp.Error)
+	if err != nil {
+		return fmt.Errorf("failed to create import process job: %w", err)
 	}
 
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
 
 	for {
-		job, resp = c.GetJob(job.Id)
-		if resp.Error != nil {
-			return fmt.Errorf("failed to get import job status: %w", resp.Error)
+		job, _, err = c.GetJob(job.Id)
+		if err != nil {
+			return fmt.Errorf("failed to get import job status: %w", err)
 		}
 
 		if job.Status != model.JobStatusPending && job.Status != model.JobStatusInProgress {
