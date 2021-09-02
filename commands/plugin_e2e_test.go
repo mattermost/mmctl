@@ -46,7 +46,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 		s.Require().Equal(1, len(printer.GetLines()))
 		s.Require().Equal(1, len(printer.GetErrorLines()))
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to add plugin"))
+		s.Require().Contains(printer.GetErrorLines()[0], "Unable to add plugin")
 		s.Require().Contains(printer.GetErrorLines()[0], "Unable to install plugin. A plugin with the same ID is already installed.")
 
 		plugins, appErr := s.th.App.GetPlugins()
