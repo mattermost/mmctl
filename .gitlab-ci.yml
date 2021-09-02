@@ -78,6 +78,9 @@ master-build:
   image: $IMAGE_BUILD_MMCTL
   script:
     - make package
+    - SHA_MMCTL=$(git rev-parse HEAD)
+    - echo "SHA_MMCTL=$SHA_MMCTL" > manifest_mmctl.txt
+    - echo "REF_MMCTL=$CI_COMMIT_REF_NAME" >> manifest_mmctl.txt
   artifacts:
     paths:
       - build
@@ -92,6 +95,9 @@ onprem-build:
   image: $IMAGE_BUILD_MMCTL
   script:
     - make package
+    - SHA_MMCTL=$(git rev-parse HEAD)
+    - echo "SHA_MMCTL=$SHA_MMCTL" > manifest_mmctl.txt
+    - echo "REF_MMCTL=$CI_COMMIT_REF_NAME" >> manifest_mmctl.txt
   artifacts:
     paths:
       - build
