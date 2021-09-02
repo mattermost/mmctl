@@ -73,7 +73,7 @@ lint:
   except:
     - tags
 
-build:
+master-build:
   stage: test
   image: $IMAGE_BUILD_MMCTL
   script:
@@ -82,3 +82,21 @@ build:
     paths:
       - build
     expire_in: 3 hours
+  rules:
+    - if: '$CI_COMMIT_REF_NAME !~ /^release-/'
+    - if: '$CI_COMMIT_REF_NAME !~ /^v.*\d/' # release
+    - if: '$CI_COMMIT_REF_NAME !~ /^v.*\D{3,}/' # -rc
+
+onprem-build:
+  stage: test
+  image: $IMAGE_BUILD_MMCTL
+  script:
+    - make package
+  artifacts:
+    paths:
+      - build
+    expire_in: 3 hours
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release-/'
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\d/' # release
+    - if: '$CI_COMMIT_REF_NAME =~ /^v.*\D{3,}/' # -rc
