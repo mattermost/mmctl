@@ -672,6 +672,8 @@ github.com/mattermost/logr/v2 v2.0.10 h1:i6rJbuX/EkBM9maM8M0eJ3rxB+fsBKNslPvzSlA
 github.com/mattermost/logr/v2 v2.0.10/go.mod h1:mpPp935r5dIkFDo2y9Q87cQWhFR/4xXpNh0k/y8Hmwg=
 github.com/mattermost/mattermost-server/v6 v6.0.0-20210823134507-77dc29308f80 h1:/NyrQ6sg0pTuE8BmhvM5Sxd+P03tzg4yg2gZs/1gvUM=
 github.com/mattermost/mattermost-server/v6 v6.0.0-20210823134507-77dc29308f80/go.mod h1:+S8CsNEPv1FOl1usaPBQ6Gu9+Sm1Cc9YdU/Qh1YMGVI=
+github.com/mattermost/mattermost-server/v6 v6.0.0-20210908134215-6a0ba98fabed h1:QbBGmkwk3MFzv3+4LjOHu5JyPNqVXYBjhR+9VMTLe0k=
+github.com/mattermost/mattermost-server/v6 v6.0.0-20210908134215-6a0ba98fabed/go.mod h1:kmxJuVgpX13Th+e5L1ZsBs4aq+ETmmDg9joo5r4cIw8=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
