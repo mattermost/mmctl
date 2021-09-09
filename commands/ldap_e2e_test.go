@@ -7,10 +7,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/utils/testutils"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -65,7 +65,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 	s.RunForSystemAdminAndLocal("MM-T2529 Should sync LDAP groups", func(c client.Client) {
 		printer.Clean()
 
-		jobs, appErr := s.th.App.GetJobsByTypePage(model.JOB_TYPE_LDAP_SYNC, 0, 100)
+		jobs, appErr := s.th.App.GetJobsByTypePage(model.JobTypeLdapSync, 0, 100)
 		s.Require().Nil(appErr)
 		initialNumJobs := len(jobs)
 
@@ -79,7 +79,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 		// we need to wait a bit for job creation
 		time.Sleep(time.Second)
 
-		jobs, appErr = s.th.App.GetJobsByTypePage(model.JOB_TYPE_LDAP_SYNC, 0, 100)
+		jobs, appErr = s.th.App.GetJobsByTypePage(model.JobTypeLdapSync, 0, 100)
 		s.Require().Nil(appErr)
 		s.Require().NotEmpty(jobs)
 		s.Assert().Equal(initialNumJobs+1, len(jobs))
@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 	ldapUser, appErr := s.th.App.AuthenticateUserForLogin(request.EmptyContext(), "", "dev.one", "Password1", "", "", true)
 	s.Require().Nil(appErr)
 	s.Require().NotNil(ldapUser)
-	s.Require().Equal(model.USER_AUTH_SERVICE_LDAP, ldapUser.AuthService)
+	s.Require().Equal(model.UserAuthServiceLdap, ldapUser.AuthService)
 	s.Require().Equal("dev.one", *ldapUser.AuthData)
 
 	s.Run("MM-T3973 Should not allow regular user to migrate LDAP ID attribute", func() {

@@ -5,7 +5,7 @@ BUILD_VERSION ?= $(shell git ls-remote --tags --refs git://github.com/mattermost
 # Needed to avoid install shadow in brew which is not permitted
 ADVANCED_VET ?= TRUE
 ENTERPRISE_DIR ?= ${MM_SERVER_PATH}/../enterprise
-VENDOR_MM_SERVER_DIR ?= vendor/github.com/mattermost/mattermost-server/v5/
+VENDOR_MM_SERVER_DIR ?= vendor/github.com/mattermost/mattermost-server/v6/
 ENTERPRISE_HASH ?= $(shell cat enterprise_hash)
 TESTFLAGS = -mod=vendor -timeout 30m -race -v
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
@@ -19,7 +19,7 @@ include config.mk
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifneq ($(wildcard ${ENTERPRISE_DIR}/.*),)
-	TESTFLAGS += -ldflags '-X "github.com/mattermost/mmctl/commands.EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/v5/model.BuildEnterpriseReady=true"'
+	TESTFLAGS += -ldflags '-X "github.com/mattermost/mmctl/commands.EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=true"'
 	BUILD_TAGS +=enterprise
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
 	IGNORE:=$(shell rm -rf $(VENDOR_MM_SERVER_DIR)/enterprise)

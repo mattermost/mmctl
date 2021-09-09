@@ -194,7 +194,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 		TeamId:           s.th.BasicTeam.Id,
 		Name:             channelName,
 		DisplayName:      "dn_" + channelName,
-		Type:             model.CHANNEL_OPEN,
+		Type:             model.ChannelTypeOpen,
 		GroupConstrained: model.NewBool(true),
 	}, false)
 	s.Require().Nil(appErr)
@@ -208,7 +208,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName2,
 		DisplayName: "dn_" + channelName2,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
@@ -247,7 +247,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
-		Type:        model.CHANNEL_OPEN,
+		Type:        model.ChannelTypeOpen,
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
@@ -391,7 +391,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 	team2, appErr := s.th.App.CreateTeam(request.EmptyContext(), &model.Team{
 		Name:        teamName2,
 		DisplayName: "dn_" + teamName2,
-		Type:        model.TEAM_INVITE,
+		Type:        model.TeamInvite,
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -473,7 +473,7 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 	team, appErr := s.th.App.CreateTeam(request.EmptyContext(), &model.Team{
 		Name:             teamName,
 		DisplayName:      "dn_" + teamName,
-		Type:             model.TEAM_OPEN,
+		Type:             model.TeamOpen,
 		GroupConstrained: model.NewBool(true),
 	})
 	s.Require().Nil(appErr)
