@@ -16,6 +16,7 @@ import (
 	_ "github.com/mattermost/mattermost-server/v6/utils/testutils"
 	_ "github.com/mattermost/rsc/qr"
 	_ "github.com/prometheus/client_golang/prometheus"
+	_ "github.com/prometheus/client_golang/prometheus/collectors"
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "github.com/tylerb/graceful"
 	_ "gopkg.in/olivere/elastic.v6"
