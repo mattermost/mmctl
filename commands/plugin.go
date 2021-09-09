@@ -76,6 +76,7 @@ var PluginListCmd = &cobra.Command{
 }
 
 func init() {
+	PluginAddCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 
 	PluginCmd.AddCommand(
@@ -90,13 +91,21 @@ func init() {
 }
 
 func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	force, _ := cmd.Flags().GetBool("force")
+
 	for i, plugin := range args {
 		fileReader, err := os.Open(plugin)
 		if err != nil {
 			return err
 		}
 
-		if _, _, err := c.UploadPlugin(fileReader); err != nil {
+		if force {
+			_, _, err = c.UploadPluginForced(fileReader)
+		} else {
+			_, _, err = c.UploadPlugin(fileReader)
+		}
+
+		if err != nil {
 			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			printer.Print("Added plugin: " + plugin)

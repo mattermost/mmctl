@@ -22,6 +22,86 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 	pluginPath := filepath.Join(os.Getenv("MM_SERVER_PATH"), "tests", "testplugin.tar.gz")
 
+	s.RunForSystemAdminAndLocal("add an already installed plugin without force", func(c client.Client) {
+		printer.Clean()
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+			*cfg.PluginSettings.EnableUploads = false
+		})
+
+		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
+		s.Require().Nil(err)
+
+		s.Require().Equal(1, len(printer.GetLines()))
+		s.Require().Contains(printer.GetLines()[0], "Added plugin: ")
+
+		printer.Clean()
+
+		err = pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
+		s.Require().Nil(err)
+
+		s.Require().Equal(0, len(printer.GetLines()))
+		s.Require().Equal(1, len(printer.GetErrorLines()))
+		s.Require().Contains(printer.GetErrorLines()[0], "Unable to install plugin. A plugin with the same ID is already installed.")
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
+
+		// teardown
+		pInfo := plugins.Inactive[0]
+		appErr = s.th.App.RemovePlugin(pInfo.Id)
+		s.Require().Nil(appErr)
+	})
+
+	s.RunForSystemAdminAndLocal("add an already installed plugin with force", func(c client.Client) {
+		printer.Clean()
+
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			*cfg.PluginSettings.EnableUploads = true
+		})
+
+		defer s.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+			*cfg.PluginSettings.EnableUploads = false
+		})
+
+		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
+		s.Require().Nil(err)
+
+		s.Require().Equal(1, len(printer.GetLines()))
+		s.Require().Contains(printer.GetLines()[0], "Added plugin: ")
+
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", true, "")
+		err = pluginAddCmdF(c, cmd, []string{pluginPath})
+		s.Require().Nil(err)
+
+		s.Require().Equal(1, len(printer.GetLines()))
+		s.Require().Equal(0, len(printer.GetErrorLines()))
+		s.Require().Contains(printer.GetLines()[0], "Added plugin: ")
+
+		plugins, appErr := s.th.App.GetPlugins()
+		s.Require().Nil(appErr)
+		s.Require().Len(plugins.Active, 0)
+		s.Require().Len(plugins.Inactive, 1)
+
+		// teardown
+		pInfo := plugins.Inactive[0]
+		appErr = s.th.App.RemovePlugin(pInfo.Id)
+		s.Require().Nil(appErr)
+	})
+
 	s.RunForSystemAdminAndLocal("admin and local can't add plugins if the config doesn't allow it", func(c client.Client) {
 		printer.Clean()
 

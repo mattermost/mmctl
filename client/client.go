@@ -52,6 +52,7 @@ type Client interface {
 	GetRoleByName(name string) (*model.Role, *model.Response, error)
 	PatchRole(roleId string, patch *model.RolePatch) (*model.Role, *model.Response, error)
 	UploadPlugin(file io.Reader) (*model.Manifest, *model.Response, error)
+	UploadPluginForced(file io.Reader) (*model.Manifest, *model.Response, error)
 	RemovePlugin(id string) (*model.Response, error)
 	EnablePlugin(id string) (*model.Response, error)
 	DisablePlugin(id string) (*model.Response, error)
