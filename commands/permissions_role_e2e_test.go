@@ -7,8 +7,8 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/app/request"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/app/request"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +22,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.Run("MM-T3721 Should not allow normal user to assign a role", func() {
 		printer.Clean()
 
-		err := assignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SYSTEM_ADMIN_ROLE_ID, user.Email})
+		err := assignUsersCmdF(s.th.Client, &cobra.Command{}, []string{model.SystemAdminRoleId, user.Email})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -40,7 +40,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 	s.RunForSystemAdminAndLocal("MM-T3648 Assigning a user to a role", func(c client.Client) {
 		printer.Clean()
 
-		err := assignUsersCmdF(c, &cobra.Command{}, []string{model.SYSTEM_MANAGER_ROLE_ID, user.Email})
+		err := assignUsersCmdF(c, &cobra.Command{}, []string{model.SystemManagerRoleId, user.Email})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
@@ -49,7 +49,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 
 		u, err2 := s.th.App.GetUser(user.Id)
 		s.Require().Nil(err2)
-		s.Require().True(u.IsInRole(model.SYSTEM_MANAGER_ROLE_ID))
+		s.Require().True(u.IsInRole(model.SystemManagerRoleId))
 
 		_, err2 = s.th.App.UpdateUserRoles(user.Id, roles, false)
 		s.Require().Nil(err2)

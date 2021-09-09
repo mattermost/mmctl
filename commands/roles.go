@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -21,14 +21,15 @@ var RolesCmd = &cobra.Command{
 }
 
 var RolesSystemAdminCmd = &cobra.Command{
-	Use:   "system_admin [users]",
-	Short: "Set a user as system admin",
-	Long:  "Make some users system admins.",
+	Use:     "system-admin [users]",
+	Aliases: []string{"system_admin"},
+	Short:   "Set a user as system admin",
+	Long:    "Make some users system admins.",
 	Example: `  # You can make one user a sysadmin
-  $ mmctl roles system_admin john_doe
+  $ mmctl roles system-admin john_doe
 
   # Or promote multiple users at the same time
-  $ mmctl roles system_admin john_doe jane_doe`,
+  $ mmctl roles system-admin john_doe jane_doe`,
 	RunE: withClient(rolesSystemAdminCmdF),
 	Args: cobra.MinimumNArgs(1),
 }
@@ -66,15 +67,15 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 		systemAdmin := false
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
-			if role == model.SYSTEM_ADMIN_ROLE_ID {
+			if role == model.SystemAdminRoleId {
 				systemAdmin = true
 			}
 		}
 
 		if !systemAdmin {
-			roles = append(roles, model.SYSTEM_ADMIN_ROLE_ID)
-			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); resp.Error != nil {
-				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
+			roles = append(roles, model.SystemAdminRoleId)
+			if _, err := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); err != nil {
+				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], err))
 				continue
 			}
 
@@ -99,7 +100,7 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		roles := strings.Fields(user.Roles)
 		for _, role := range roles {
 			switch role {
-			case model.SYSTEM_ADMIN_ROLE_ID:
+			case model.SystemAdminRoleId:
 				shouldRemoveSysadmin = true
 			default:
 				newRoles = append(newRoles, role)
@@ -107,8 +108,8 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		}
 
 		if shouldRemoveSysadmin {
-			if _, resp := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); resp.Error != nil {
-				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], resp.Error))
+			if _, err := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); err != nil {
+				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], err))
 				continue
 			}
 

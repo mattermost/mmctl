@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"errors"
 	"io/ioutil"
+	"net/http"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/printer"
@@ -27,7 +29,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -46,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -65,13 +67,13 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(int64(100*model.MB), *(printer.GetLines()[0].(*int64)))
+		s.Require().Equal(int64(100*(1<<20)), *(printer.GetLines()[0].(*int64)))
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
@@ -84,7 +86,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -103,7 +105,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -124,7 +126,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -145,7 +147,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -165,7 +167,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{StatusCode: 500, Error: &model.AppError{}}).
+			Return(outputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -192,7 +194,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(7)
 
 		printer.Clean()
@@ -250,7 +252,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(outputConfig, &model.Response{Error: nil}).
+			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
@@ -274,12 +276,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -302,12 +304,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -330,12 +332,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -358,12 +360,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -385,12 +387,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -412,7 +414,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -431,7 +433,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -453,12 +455,12 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{StatusCode: 500, Error: &model.AppError{}}).
+			Return(inputConfig, &model.Response{StatusCode: 500}, errors.New("")).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -493,13 +495,13 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(3)
 
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(3)
 
 		printer.Clean()
@@ -533,7 +535,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configSetCmdF(s.client, &cobra.Command{}, args)
@@ -574,12 +576,12 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			PatchConfig(inputConfig).
-			Return(inputConfig, &model.Response{Error: nil}).
+			Return(inputConfig, &model.Response{}, nil).
 			Times(1)
 
 		err = configPatchCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
@@ -597,7 +599,7 @@ func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		err = configPatchCmdF(s.client, &cobra.Command{}, []string{invalidFile.Name()})
@@ -625,12 +627,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			UpdateConfig(defaultConfig).
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		resetCmd := &cobra.Command{}
@@ -651,12 +653,12 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			UpdateConfig(defaultConfig).
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		resetCmd := &cobra.Command{}
@@ -678,7 +680,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(defaultConfig, &model.Response{Error: nil}).
+			Return(defaultConfig, &model.Response{}, nil).
 			Times(1)
 
 		resetCmd := &cobra.Command{}
@@ -699,7 +701,7 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(mockConfig, &model.Response{Error: nil}).
+			Return(mockConfig, &model.Response{}, nil).
 			Times(1)
 
 		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
@@ -711,12 +713,12 @@ func (s *MmctlUnitTestSuite) TestConfigShowCmd() {
 
 	s.Run("Should return an error", func() {
 		printer.Clean()
-		configError := &model.AppError{Message: "Config Error"}
+		configError := errors.New("config error")
 
 		s.client.
 			EXPECT().
 			GetConfig().
-			Return(nil, &model.Response{Error: configError}).
+			Return(nil, &model.Response{}, configError).
 			Times(1)
 
 		err := configShowCmdF(s.client, &cobra.Command{}, []string{})
@@ -732,7 +734,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 		s.client.
 			EXPECT().
 			ReloadConfig().
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
@@ -746,7 +748,7 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 		s.client.
 			EXPECT().
 			ReloadConfig().
-			Return(false, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
 		err := configReloadCmdF(s.client, &cobra.Command{}, []string{})
@@ -762,7 +764,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 		s.client.
 			EXPECT().
 			MigrateConfig(args[0], args[1]).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
@@ -777,7 +779,7 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 		s.client.
 			EXPECT().
 			MigrateConfig(args[0], args[1]).
-			Return(false, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
 		err := configMigrateCmdF(s.client, &cobra.Command{}, args)

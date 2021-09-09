@@ -5,10 +5,8 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/client"
@@ -422,7 +420,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Contains(err.Error(), "GetUserByEmail: Unable to find the user., resource: User id: email="+email)
 	})
 
-	s.Run("Should create a user but w/o system_admin privileges", func() {
+	s.Run("Should create a user but w/o system-admin privileges", func() {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewId()
@@ -430,7 +428,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
 		cmd.Flags().String("password", "password", "")
-		cmd.Flags().Bool("system_admin", true, "")
+		cmd.Flags().Bool("system-admin", true, "")
 
 		err := userCreateCmdF(s.th.Client, cmd, []string{})
 		s.EqualError(err, "Unable to update user roles. Error: : You do not have the appropriate permissions., ")
@@ -441,7 +439,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Equal(false, user.IsSystemAdmin())
 	})
 
-	s.RunForSystemAdminAndLocal("Should create new system_admin user given required params", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("Should create new system-admin user given required params", func(c client.Client) {
 		printer.Clean()
 		email := s.th.GenerateTestEmail()
 		username := model.NewId()
@@ -449,7 +447,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
 		cmd.Flags().String("password", "somepass", "")
-		cmd.Flags().Bool("system_admin", true, "")
+		cmd.Flags().Bool("system-admin", true, "")
 
 		err := userCreateCmdF(s.th.SystemAdminClient, cmd, []string{})
 		s.Require().Nil(err)
@@ -486,7 +484,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().String("username", username, "")
 		cmd.Flags().String("email", email, "")
 		cmd.Flags().String("password", "somepass", "")
-		cmd.Flags().Bool("email_verified", true, "")
+		cmd.Flags().Bool("email-verified", true, "")
 
 		err := userCreateCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -604,48 +602,6 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 
 		newUser := s.th.CreateUser()
 		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
-		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 1)
-		s.Len(printer.GetErrorLines(), 0)
-
-		deletedUser := printer.GetLines()[0].(*model.User)
-		s.Require().Equal(newUser.Username, deletedUser.Username)
-
-		// expect user deleted
-		_, err = s.th.App.GetUser(newUser.Id)
-		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
-	})
-
-	s.RunForSystemAdminAndLocal("Delete user confirm using prompt", func(c client.Client) {
-		printer.Clean()
-
-		previousVal := s.th.App.Config().ServiceSettings.EnableAPIUserDeletion
-		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
-		defer func() {
-			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = *previousVal })
-		}()
-
-		cmd := &cobra.Command{}
-
-		// create temp file to replace stdin
-		content := []byte("YES\nYES\n")
-		tmpfile, err := ioutil.TempFile("", "inputfile")
-		s.Require().Nil(err)
-		defer os.Remove(tmpfile.Name()) // remove temp file
-
-		_, err = tmpfile.Write(content)
-		s.Require().Nil(err)
-		_, err = tmpfile.Seek(0, 0)
-		s.Require().Nil(err)
-
-		// replace stdin to do input in testing
-		oldStdin := os.Stdin
-		defer func() { os.Stdin = oldStdin }() // restore
-		os.Stdin = tmpfile
-
-		newUser := s.th.CreateUser()
-		err = deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)

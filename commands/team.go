@@ -5,10 +5,9 @@ package commands
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -27,8 +26,8 @@ var TeamCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a team",
 	Long:  `Create a team.`,
-	Example: `  team create --name mynewteam --display_name "My New Team"
-  team create --name private --display_name "My New Private Team" --private`,
+	Example: `  team create --name mynewteam --display-name "My New Team"
+  team create --name private --display-name "My New Private Team" --private`,
 	RunE: withClient(createTeamCmdF),
 }
 
@@ -83,7 +82,7 @@ var RenameTeamCmd = &cobra.Command{
 	Use:     "rename [team]",
 	Short:   "Rename team",
 	Long:    "Rename an existing team",
-	Example: "  team rename old-team --display_name 'New Display Name'",
+	Example: "  team rename old-team --display-name 'New Display Name'",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(renameTeamCmdF),
 }
@@ -99,7 +98,9 @@ var ModifyTeamsCmd = &cobra.Command{
 
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
-	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
+	TeamCreateCmd.Flags().String("display-name", "", "Team Display Name")
+	TeamCreateCmd.Flags().String("display_name", "", "")
+	_ = TeamCreateCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 	TeamCreateCmd.Flags().Bool("private", false, "Create a private team.")
 	TeamCreateCmd.Flags().String("email", "", "Administrator Email (anyone with this email is automatically a team admin)")
 
@@ -110,8 +111,10 @@ func init() {
 	ModifyTeamsCmd.Flags().Bool("public", false, "Modify team to be public.")
 
 	// Add flag declaration for RenameTeam
-	RenameTeamCmd.Flags().String("display_name", "", "Team Display Name")
-	_ = RenameTeamCmd.MarkFlagRequired("display_name")
+	RenameTeamCmd.Flags().String("display-name", "", "Team Display Name")
+	// _ = RenameTeamCmd.MarkFlagRequired("display-name") // Uncomment this after fully deprecation of display_name
+	RenameTeamCmd.Flags().String("display_name", "", "")
+	_ = RenameTeamCmd.Flags().MarkDeprecated("display_name", "please use display-name instead")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -134,16 +137,19 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if errn != nil || name == "" {
 		return errors.New("name is required")
 	}
-	displayname, errdn := cmd.Flags().GetString("display_name")
+	displayname, errdn := cmd.Flags().GetString("display-name")
 	if errdn != nil || displayname == "" {
-		return errors.New("display Name is required")
+		displayname, errdn = cmd.Flags().GetString("display_name")
+		if errdn != nil || displayname == "" {
+			return errors.New("display Name is required")
+		}
 	}
 	email, _ := cmd.Flags().GetString("email")
 	useprivate, _ := cmd.Flags().GetBool("private")
 
-	teamType := model.TEAM_OPEN
+	teamType := model.TeamOpen
 	if useprivate {
-		teamType = model.TEAM_INVITE
+		teamType = model.TeamInvite
 	}
 
 	team := &model.Team{
@@ -153,9 +159,9 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		Type:        teamType,
 	}
 
-	newTeam, response := c.CreateTeam(team)
-	if response.Error != nil {
-		return errors.New("Team creation failed: " + response.Error.Error())
+	newTeam, _, err := c.CreateTeam(team)
+	if err != nil {
+		return errors.New("Team creation failed: " + err.Error())
 	}
 
 	printer.PrintT("New team {{.Name}} successfully created", newTeam)
@@ -163,24 +169,15 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteTeam(c client.Client, team *model.Team) (bool, *model.Response) {
+func deleteTeam(c client.Client, team *model.Team) (*model.Response, error) {
 	return c.PermanentDeleteTeam(team.Id)
 }
 
 func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to archive the specified teams? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to archive the specified teams?", true); err != nil {
+			return err
 		}
 	}
 
@@ -190,8 +187,8 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if _, response := c.SoftDeleteTeam(team.Id); response.Error != nil {
-			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + response.Error.Error())
+		if _, err := c.SoftDeleteTeam(team.Id); err != nil {
+			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
 		}
@@ -203,9 +200,9 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	page := 0
 	for {
-		teams, response := c.GetAllTeams("", page, APILimitMaximum)
-		if response.Error != nil {
-			return response.Error
+		teams, _, err := c.GetAllTeams("", page, APILimitMaximum)
+		if err != nil {
+			return err
 		}
 
 		for _, team := range teams {
@@ -230,9 +227,9 @@ func searchTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 
 	for _, searchTerm := range args {
-		foundTeams, response := c.SearchTeams(&model.TeamSearch{Term: searchTerm})
-		if response.Error != nil {
-			return response.Error
+		foundTeams, _, err := c.SearchTeams(&model.TeamSearch{Term: searchTerm})
+		if err != nil {
+			return err
 		}
 
 		if len(foundTeams) == 0 {
@@ -270,7 +267,15 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
+
 	newDisplayName, _ := cmd.Flags().GetString("display_name")
+
+	if newDisplayName == "" {
+		newDisplayName, _ = cmd.Flags().GetString("display-name")
+	}
+	if newDisplayName == "" {
+		return errors.New("display name is required")
+	}
 
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
@@ -280,9 +285,9 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	team.DisplayName = newDisplayName
 
 	// Using UpdateTeam API Method to rename team
-	_, response := c.UpdateTeam(team)
-	if response.Error != nil {
-		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + response.Error.Error())
+	_, _, err := c.UpdateTeam(team)
+	if err != nil {
+		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
 
 	printer.Print("'" + oldTeamName + "' team renamed")
@@ -292,17 +297,8 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
-		var confirm string
-		fmt.Println("Have you performed a database backup? (YES/NO): ")
-		fmt.Scanln(&confirm)
-
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
-		}
-		fmt.Println("Are you sure you want to delete the teams specified?  All data will be permanently deleted? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("aborted: You did not answer YES exactly, in all capitals")
+		if err := getConfirmation("Are you sure you want to delete the teams specified?  All data will be permanently deleted?", true); err != nil {
+			return err
 		}
 	}
 
@@ -312,8 +308,8 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if _, response := deleteTeam(c, team); response.Error != nil {
-			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + response.Error.Error())
+		if _, err := deleteTeam(c, team); err != nil {
+			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
@@ -332,9 +328,9 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// I = invite only (private)
 	// O = open (public)
-	privacy := model.TEAM_INVITE
+	privacy := model.TeamInvite
 	if public {
-		privacy = model.TEAM_OPEN
+		privacy = model.TeamOpen
 	}
 
 	teams := getTeamsFromTeamArgs(c, args)
@@ -343,8 +339,8 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if updatedTeam, response := c.UpdateTeamPrivacy(team.Id, privacy); response.Error != nil {
-			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + response.Error.Error())
+		if updatedTeam, _, err := c.UpdateTeamPrivacy(team.Id, privacy); err != nil {
+			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
 		}
@@ -360,8 +356,8 @@ func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if rteam, response := c.RestoreTeam(team.Id); response.Error != nil {
-			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + response.Error.Error())
+		if rteam, _, err := c.RestoreTeam(team.Id); err != nil {
+			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Restored team '{{.Name}}'", rteam)
 		}

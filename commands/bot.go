@@ -6,7 +6,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -102,12 +102,12 @@ func botCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	displayName, _ := cmd.Flags().GetString("display-name")
 	description, _ := cmd.Flags().GetString("description")
 
-	bot, res := c.CreateBot(&model.Bot{
+	bot, _, err := c.CreateBot(&model.Bot{
 		Username:    username,
 		DisplayName: displayName,
 		Description: description,
 	})
-	if err := res.Error; err != nil {
+	if err != nil {
 		return errors.Errorf("could not create bot: %s", err)
 	}
 
@@ -143,8 +143,8 @@ func botUpdateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		patch.Description = &description
 	}
 
-	bot, res := c.PatchBot(user.Id, &patch)
-	if err := res.Error; err != nil {
+	bot, _, err := c.PatchBot(user.Id, &patch)
+	if err != nil {
 		return errors.Errorf("could not update bot: %s", err)
 	}
 
@@ -162,16 +162,16 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	tpl := `{{.UserId}}: {{.Username}}`
 	for {
 		var bots []*model.Bot
-		var res *model.Response
+		var err error
 		if all { //nolint:gocritic
-			bots, res = c.GetBotsIncludeDeleted(page, perPage, "")
+			bots, _, err = c.GetBotsIncludeDeleted(page, perPage, "")
 		} else if orphaned {
-			bots, res = c.GetBotsOrphaned(page, perPage, "")
+			bots, _, err = c.GetBotsOrphaned(page, perPage, "")
 		} else {
-			bots, res = c.GetBots(page, perPage, "")
+			bots, _, err = c.GetBots(page, perPage, "")
 		}
-		if res.Error != nil {
-			return errors.Wrap(res.Error, "Failed to fetch bots")
+		if err != nil {
+			return errors.Wrap(err, "Failed to fetch bots")
 		}
 
 		userIds := []string{}
@@ -179,9 +179,9 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			userIds = append(userIds, bot.OwnerId)
 		}
 
-		users, res := c.GetUsersByIds(userIds)
-		if res.Error != nil {
-			return errors.Wrap(res.Error, "Failed to fetch bots")
+		users, _, err := c.GetUsersByIds(userIds)
+		if err != nil {
+			return errors.Wrap(err, "Failed to fetch bots")
 		}
 
 		usersByID := map[string]*model.User{}
@@ -222,8 +222,8 @@ func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		bot, res := c.EnableBot(user.Id)
-		if err := res.Error; err != nil {
+		bot, _, err := c.EnableBot(user.Id)
+		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not enable bot '%v'", args[i]))
 			continue
 		}
@@ -242,8 +242,8 @@ func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		bot, res := c.DisableBot(user.Id)
-		if err := res.Error; err != nil {
+		bot, _, err := c.DisableBot(user.Id)
+		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not disable bot '%v'", args[i]))
 			continue
 		}
@@ -264,8 +264,8 @@ func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("unable to find user '" + args[1] + "'")
 	}
 
-	newBot, res := c.AssignBot(botUser.Id, newOwnerUser.Id)
-	if err := res.Error; err != nil {
+	newBot, _, err := c.AssignBot(botUser.Id, newOwnerUser.Id)
+	if err != nil {
 		return errors.Errorf("can not assign bot '%s' to user '%s'", args[0], args[1])
 	}
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 )
@@ -26,16 +26,16 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	var user *model.User
 	if !checkDots(userArg) {
-		user, _ = c.GetUserByEmail(userArg, "")
+		user, _, _ = c.GetUserByEmail(userArg, "")
 	}
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, _ = c.GetUserByUsername(userArg, "")
+			user, _, _ = c.GetUserByUsername(userArg, "")
 		}
 
 		if user == nil {
-			user, _ = c.GetUser(userArg, "")
+			user, _, _ = c.GetUser(userArg, "")
 		}
 	}
 
@@ -73,39 +73,40 @@ func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error)
 func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
 	var user *model.User
 	var response *model.Response
+	var err error
 	if !checkDots(userArg) {
-		user, response = c.GetUserByEmail(userArg, "")
-		if response != nil && response.Error != nil {
-			err := ExtractErrorFromResponse(response)
+		user, response, err = c.GetUserByEmail(userArg, "")
+		if err != nil {
+			nErr := ExtractErrorFromResponse(response, err)
 			var nfErr *NotFoundError
 			var badRequestErr *BadRequestError
-			if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-				return nil, err
+			if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+				return nil, nErr
 			}
 		}
 	}
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, response = c.GetUserByUsername(userArg, "")
-			if response != nil && response.Error != nil {
-				err := ExtractErrorFromResponse(response)
+			user, response, err = c.GetUserByUsername(userArg, "")
+			if err != nil {
+				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError
 				var badRequestErr *BadRequestError
-				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-					return nil, err
+				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+					return nil, nErr
 				}
 			}
 		}
 
 		if user == nil {
-			user, response = c.GetUser(userArg, "")
-			if response != nil && response.Error != nil {
-				err := ExtractErrorFromResponse(response)
+			user, response, err = c.GetUser(userArg, "")
+			if err != nil {
+				nErr := ExtractErrorFromResponse(response, err)
 				var nfErr *NotFoundError
 				var badRequestErr *BadRequestError
-				if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-					return nil, err
+				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+					return nil, nErr
 				}
 			}
 		}

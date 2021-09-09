@@ -5,8 +5,10 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -24,25 +26,25 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			CreateUserAccessToken(mockUser.Id, mockToken.Description).
-			Return(&mockToken, &model.Response{Error: nil}).
+			Return(&mockToken, &model.Response{}, nil).
 			Times(1)
 
 		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockUser.Id, mockToken.Description})
@@ -58,19 +60,19 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given ID"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given ID")).
 			Times(1)
 
 		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{userArg, "description"})
@@ -87,19 +89,19 @@ func (s *MmctlUnitTestSuite) TestGenerateTokenForAUserCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(userArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			CreateUserAccessToken(mockUser.Id, "description").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "error-message"}}).
+			Return(nil, &model.Response{}, errors.New("error-message")).
 			Times(1)
 
 		err := generateTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"user1", "description"})
@@ -126,19 +128,19 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Id, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(mockUser.Id, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
@@ -146,7 +148,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 			GetUserAccessTokensForUser(mockUser.Id, 0, 9999).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
-				&model.Response{Error: nil},
+				&model.Response{}, nil,
 			).Times(1)
 
 		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Id})
@@ -173,7 +175,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(&mockUser, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(&mockUser, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
@@ -181,7 +183,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 			GetUserAccessTokensForUser(mockUser.Id, 0, 2).
 			Return(
 				[]*model.UserAccessToken{&mockToken1, &mockToken2},
-				&model.Response{Error: nil},
+				&model.Response{}, nil,
 			).Times(1)
 
 		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
@@ -204,19 +206,19 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given username"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given username")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(userArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "No user found with the given user ID"}}).
+			Return(nil, &model.Response{}, errors.New("no user found with the given user ID")).
 			Times(1)
 
 		err := listTokensOfAUserCmdF(s.client, &command, []string{userArg})
@@ -239,7 +241,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(&mockUser, &model.Response{Error: &model.AppError{Message: "No user found with the given email"}}).
+			Return(&mockUser, &model.Response{}, errors.New("no user found with the given email")).
 			Times(1)
 
 		s.client.
@@ -247,7 +249,7 @@ func (s *MmctlUnitTestSuite) TestListTokensOfAUserCmdF() {
 			GetUserAccessTokensForUser(mockUser.Id, 0, 2).
 			Return(
 				[]*model.UserAccessToken{},
-				&model.Response{Error: nil},
+				&model.Response{}, nil,
 			).Times(1)
 
 		err := listTokensOfAUserCmdF(s.client, &command, []string{mockUser.Email})
@@ -266,13 +268,13 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 		s.client.
 			EXPECT().
 			RevokeUserAccessToken(mockToken1.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RevokeUserAccessToken(mockToken2.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{mockToken1.Id, mockToken2.Id})
@@ -284,7 +286,7 @@ func (s *MmctlUnitTestSuite) TestRevokeTokenForAUserCmdF() {
 		s.client.
 			EXPECT().
 			RevokeUserAccessToken("token-id").
-			Return(false, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
 		err := revokeTokenForAUserCmdF(s.client, &cobra.Command{}, []string{"token-id"})

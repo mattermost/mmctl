@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -67,19 +67,19 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 			userID = "nouser"
 		}
 
-		us, resp := c.CreateUpload(&model.UploadSession{
+		us, _, err := c.CreateUpload(&model.UploadSession{
 			Filename: importName,
 			FileSize: 276051,
 			Type:     model.UploadTypeImport,
 			UserId:   userID,
 		})
-		s.Require().Nil(resp.Error)
+		s.Require().NoError(err)
 
 		cmd.Flags().Bool("resume", true, "")
 		cmd.Flags().String("upload", us.Id, "")
 
-		err := importUploadCmdF(c, cmd, []string{importFilePath})
-		s.Require().Nil(err)
+		err = importUploadCmdF(c, cmd, []string{importFilePath})
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(importName, printer.GetLines()[0].(*model.FileInfo).Name)
@@ -197,8 +197,8 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		cmd := &cobra.Command{}
 		userID := "nouser"
 		if c == s.th.SystemAdminClient {
-			user, resp := s.th.SystemAdminClient.GetMe("")
-			s.Require().Nil(resp.Error)
+			user, _, err := s.th.SystemAdminClient.GetMe("")
+			s.Require().NoError(err)
 			userID = user.Id
 		} else {
 			cmd.Flags().Bool("local", true, "")
@@ -251,7 +251,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
 	job, appErr := s.th.App.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{"import_file": "import1.zip"},
 	})
 	s.Require().Nil(appErr)
@@ -260,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 		printer.Clean()
 
 		job1, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -336,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -344,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job2, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -352,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job3, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import3.zip"},
 		})
 		s.Require().Nil(appErr)

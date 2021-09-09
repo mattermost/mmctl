@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 )
@@ -28,10 +28,10 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 	}
 
 	var team *model.Team
-	team, _ = c.GetTeam(teamArg, "")
+	team, _, _ = c.GetTeam(teamArg, "")
 
 	if team == nil {
-		team, _ = c.GetTeamByName(teamArg, "")
+		team, _, _ = c.GetTeamByName(teamArg, "")
 	}
 	return team
 }
@@ -60,25 +60,26 @@ func getTeamFromArg(c client.Client, teamArg string) (*model.Team, error) {
 	}
 	var team *model.Team
 	var response *model.Response
-	team, response = c.GetTeam(teamArg, "")
-	if response != nil && response.Error != nil {
-		err := ExtractErrorFromResponse(response)
+	var err error
+	team, response, err = c.GetTeam(teamArg, "")
+	if err != nil {
+		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
 		var badRequestErr *BadRequestError
-		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-			return nil, err
+		if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+			return nil, nErr
 		}
 	}
 	if team != nil {
 		return team, nil
 	}
-	team, response = c.GetTeamByName(teamArg, "")
-	if response != nil && response.Error != nil {
-		err := ExtractErrorFromResponse(response)
+	team, response, err = c.GetTeamByName(teamArg, "")
+	if err != nil {
+		nErr := ExtractErrorFromResponse(response, err)
 		var nfErr *NotFoundError
 		var badRequestErr *BadRequestError
-		if !errors.As(err, &nfErr) && !errors.As(err, &badRequestErr) {
-			return nil, err
+		if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+			return nil, nErr
 		}
 	}
 	if team == nil {

@@ -4,7 +4,8 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -32,7 +33,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		s.client.
 			EXPECT().
 			InstallMarketplacePlugin(pluginRequest).
-			Return(manifest, &model.Response{}).
+			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, args)
@@ -59,13 +60,13 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: id, PerPage: 200}).
-			Return(plugins, &model.Response{}).
+			Return(plugins, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			InstallMarketplacePlugin(pluginRequest).
-			Return(manifest, &model.Response{}).
+			Return(manifest, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, []string{id})
@@ -86,7 +87,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		s.client.
 			EXPECT().
 			InstallMarketplacePlugin(pluginRequest).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, args)
@@ -103,7 +104,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: id, PerPage: 200}).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, []string{id})
@@ -120,7 +121,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: id, PerPage: 200}).
-			Return([]*model.MarketplacePlugin{}, &model.Response{}).
+			Return([]*model.MarketplacePlugin{}, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, []string{id})
@@ -144,7 +145,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(pluginFilter).
-			Return(plugins, &model.Response{}).
+			Return(plugins, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginMarketplaceListCmdF(s.client, cmd, []string{})
@@ -166,19 +167,19 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Page: 0, PerPage: 1}).
-			Return([]*model.MarketplacePlugin{mockPlugin1}, &model.Response{}).
+			Return([]*model.MarketplacePlugin{mockPlugin1}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Page: 1, PerPage: 1}).
-			Return([]*model.MarketplacePlugin{mockPlugin2}, &model.Response{}).
+			Return([]*model.MarketplacePlugin{mockPlugin2}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Page: 2, PerPage: 1}).
-			Return([]*model.MarketplacePlugin{}, &model.Response{}).
+			Return([]*model.MarketplacePlugin{}, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginMarketplaceListCmdF(s.client, cmd, []string{})
@@ -198,7 +199,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(&model.MarketplacePluginFilter{Page: 0, PerPage: 200}).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := pluginMarketplaceListCmdF(s.client, cmd, []string{})
@@ -222,7 +223,7 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceListCmd() {
 		s.client.
 			EXPECT().
 			GetMarketplacePlugins(pluginFilter).
-			Return(plugins, &model.Response{}).
+			Return(plugins, &model.Response{}, nil).
 			Times(1)
 
 		err := pluginMarketplaceListCmdF(s.client, cmd, []string{})

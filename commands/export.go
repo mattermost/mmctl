@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -110,12 +110,12 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 		}
 	}
 
-	job, resp := c.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_EXPORT_PROCESS,
+	job, _, err := c.CreateJob(&model.Job{
+		Type: model.JobTypeExportProcess,
 		Data: data,
 	})
-	if resp.Error != nil {
-		return fmt.Errorf("failed to create export process job: %w", resp.Error)
+	if err != nil {
+		return fmt.Errorf("failed to create export process job: %w", err)
 	}
 
 	printer.PrintT("Export process job successfully created, ID: {{.Id}}", job)
@@ -124,9 +124,9 @@ func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) er
 }
 
 func exportListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	exports, resp := c.ListExports()
-	if resp.Error != nil {
-		return fmt.Errorf("failed to list exports: %w", resp.Error)
+	exports, _, err := c.ListExports()
+	if err != nil {
+		return fmt.Errorf("failed to list exports: %w", err)
 	}
 
 	if len(exports) == 0 {
@@ -144,8 +144,8 @@ func exportListCmdF(c client.Client, command *cobra.Command, args []string) erro
 func exportDeleteCmdF(c client.Client, command *cobra.Command, args []string) error {
 	name := args[0]
 
-	if _, resp := c.DeleteExport(name); resp.Error != nil {
-		return fmt.Errorf("failed to delete export: %w", resp.Error)
+	if _, err := c.DeleteExport(name); err != nil {
+		return fmt.Errorf("failed to delete export: %w", err)
 	}
 
 	printer.Print(fmt.Sprintf("Export file %q has been deleted", name))
@@ -195,21 +195,21 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		return fmt.Errorf("failed to seek export file: %w", err)
 	}
 
-	if _, resp := c.DownloadExport(name, outFile, off); resp.Error != nil {
-		return fmt.Errorf("failed to download export file: %w", resp.Error)
+	if _, _, err := c.DownloadExport(name, outFile, off); err != nil {
+		return fmt.Errorf("failed to download export file: %w", err)
 	}
 
 	return nil
 }
 
 func exportJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JOB_TYPE_EXPORT_PROCESS)
+	return jobListCmdF(c, command, model.JobTypeExportProcess)
 }
 
 func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, resp := c.GetJob(args[0])
-	if resp.Error != nil {
-		return fmt.Errorf("failed to get export job: %w", resp.Error)
+	job, _, err := c.GetJob(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to get export job: %w", err)
 	}
 
 	printJob(job)

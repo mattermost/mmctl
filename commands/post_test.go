@@ -4,7 +4,8 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/printer"
@@ -39,7 +40,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetPost(replyToArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
 		err := postCreateCmdF(s.client, cmd, []string{msgArg})
@@ -58,19 +59,13 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetChannel(channelArg, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsRoute().
-			Return("/posts").
-			Times(1)
-
-		s.client.
-			EXPECT().
-			DoApiPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
-			Return(nil, &model.AppError{Message: "some-error"}).
+			DoAPIPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
+			Return(nil, errors.New("some-error")).
 			Times(1)
 
 		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
@@ -89,18 +84,12 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetChannel(channelArg, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsRoute().
-			Return("/posts").
-			Times(1)
-
-		s.client.
-			EXPECT().
-			DoApiPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
+			DoAPIPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
 			Return(nil, nil).
 			Times(1)
 
@@ -125,24 +114,18 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetChannel(channelArg, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetPost(replyToArg, "").
-			Return(&mockReplyTo, &model.Response{Error: nil}).
+			Return(&mockReplyTo, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsRoute().
-			Return("/posts").
-			Times(1)
-
-		s.client.
-			EXPECT().
-			DoApiPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
+			DoAPIPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
 			Return(nil, nil).
 			Times(1)
 

@@ -5,10 +5,11 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -16,13 +17,13 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 	s.Run("create export", func() {
 		printer.Clean()
 		mockJob := &model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 		}
 
 		s.client.
 			EXPECT().
 			CreateJob(mockJob).
-			Return(mockJob, &model.Response{Error: nil}).
+			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		err := exportCreateCmdF(s.client, &cobra.Command{}, nil)
@@ -35,14 +36,14 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 	s.Run("create export with attachments", func() {
 		printer.Clean()
 		mockJob := &model.Job{
-			Type: model.JOB_TYPE_EXPORT_PROCESS,
+			Type: model.JobTypeExportProcess,
 			Data: map[string]string{"include_attachments": "true"},
 		}
 
 		s.client.
 			EXPECT().
 			CreateJob(mockJob).
-			Return(mockJob, &model.Response{Error: nil}).
+			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -64,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 	s.client.
 		EXPECT().
 		DeleteExport(exportName).
-		Return(true, &model.Response{Error: nil}).
+		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
 	err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
@@ -82,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 		s.client.
 			EXPECT().
 			ListExports().
-			Return(mockExports, &model.Response{Error: nil}).
+			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
 		err := exportListCmdF(s.client, &cobra.Command{}, nil)
@@ -103,7 +104,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 		s.client.
 			EXPECT().
 			ListExports().
-			Return(mockExports, &model.Response{Error: nil}).
+			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
 		err := exportListCmdF(s.client, &cobra.Command{}, nil)

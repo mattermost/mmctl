@@ -50,8 +50,8 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		return err
 	}
 
-	if _, response := c.UploadLicenseFile(fileBytes); response.Error != nil {
-		return response.Error
+	if _, err := c.UploadLicenseFile(fileBytes); err != nil {
+		return err
 	}
 
 	printer.Print("Uploaded license file")
@@ -60,8 +60,8 @@ func uploadLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func removeLicenseCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if _, response := c.RemoveLicenseFile(); response.Error != nil {
-		return response.Error
+	if _, err := c.RemoveLicenseFile(); err != nil {
+		return err
 	}
 
 	printer.Print("Removed license")

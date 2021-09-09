@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -63,8 +63,8 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, response := c.RemoveTeamMember(team.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + response.Error.Error())
+	if _, err := c.RemoveTeamMember(team.Id, user.Id); err != nil {
+		printer.PrintError("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
 	}
 }
 
@@ -88,7 +88,7 @@ func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg 
 		return
 	}
 
-	if _, response := c.AddTeamMember(team.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + response.Error.Error())
+	if _, _, err := c.AddTeamMember(team.Id, user.Id); err != nil {
+		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + err.Error())
 	}
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -115,9 +115,9 @@ func importListIncompleteCmdF(c client.Client, command *cobra.Command, args []st
 		userID = model.UploadNoUserID
 	}
 
-	uploads, resp := c.GetUploadsForUser(userID)
-	if resp.Error != nil {
-		return fmt.Errorf("failed to get uploads: %w", resp.Error)
+	uploads, _, err := c.GetUploadsForUser(userID)
+	if err != nil {
+		return fmt.Errorf("failed to get uploads: %w", err)
 	}
 
 	var hasImports bool
@@ -138,9 +138,9 @@ func importListIncompleteCmdF(c client.Client, command *cobra.Command, args []st
 }
 
 func importListAvailableCmdF(c client.Client, command *cobra.Command, args []string) error {
-	imports, resp := c.ListImports()
-	if resp.Error != nil {
-		return fmt.Errorf("failed to list imports: %w", resp.Error)
+	imports, _, err := c.ListImports()
+	if err != nil {
+		return fmt.Errorf("failed to list imports: %w", err)
 	}
 
 	if len(imports) == 0 {
@@ -171,24 +171,23 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 
 	shouldResume, _ := command.Flags().GetBool("resume")
 	var us *model.UploadSession
-	var resp *model.Response
 	if shouldResume {
-		uploadID, err := command.Flags().GetString("upload")
-		if err != nil || !model.IsValidId(uploadID) {
+		uploadID, nErr := command.Flags().GetString("upload")
+		if nErr != nil || !model.IsValidId(uploadID) {
 			return errors.New("upload session ID is missing or invalid")
 		}
 
-		us, resp = c.GetUpload(uploadID)
-		if resp.Error != nil {
-			return fmt.Errorf("failed to get upload session: %w", resp.Error)
+		us, _, err = c.GetUpload(uploadID)
+		if err != nil {
+			return fmt.Errorf("failed to get upload session: %w", err)
 		}
 
 		if us.FileSize != info.Size() {
 			return fmt.Errorf("file sizes do not match")
 		}
 
-		if _, err := file.Seek(us.FileOffset, io.SeekStart); err != nil {
-			return fmt.Errorf("failed to get seek file: %w", err)
+		if _, nErr := file.Seek(us.FileOffset, io.SeekStart); nErr != nil {
+			return fmt.Errorf("failed to get seek file: %w", nErr)
 		}
 	} else {
 		isLocal, _ := command.Flags().GetBool("local")
@@ -197,22 +196,22 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 			userID = model.UploadNoUserID
 		}
 
-		us, resp = c.CreateUpload(&model.UploadSession{
+		us, _, err = c.CreateUpload(&model.UploadSession{
 			Filename: info.Name(),
 			FileSize: info.Size(),
 			Type:     model.UploadTypeImport,
 			UserId:   userID,
 		})
-		if resp.Error != nil {
-			return fmt.Errorf("failed to create upload session: %w", resp.Error)
+		if err != nil {
+			return fmt.Errorf("failed to create upload session: %w", err)
 		}
 
 		printer.PrintT("Upload session successfully created, ID: {{.Id}} ", us)
 	}
 
-	finfo, resp := c.UploadData(us.Id, file)
-	if resp.Error != nil {
-		return fmt.Errorf("failed to upload data: %w", resp.Error)
+	finfo, _, err := c.UploadData(us.Id, file)
+	if err != nil {
+		return fmt.Errorf("failed to upload data: %w", err)
 	}
 
 	printer.PrintT("Import file successfully uploaded, name: {{.Id}}", finfo)
@@ -223,14 +222,14 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 func importProcessCmdF(c client.Client, command *cobra.Command, args []string) error {
 	importFile := args[0]
 
-	job, resp := c.CreateJob(&model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+	job, _, err := c.CreateJob(&model.Job{
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": importFile,
 		},
 	})
-	if resp.Error != nil {
-		return fmt.Errorf("failed to create import process job: %w", resp.Error)
+	if err != nil {
+		return fmt.Errorf("failed to create import process job: %w", err)
 	}
 
 	printer.PrintT("Import process job successfully created, ID: {{.Id}}", job)
@@ -249,9 +248,9 @@ func printJob(job *model.Job) {
 }
 
 func importJobShowCmdF(c client.Client, command *cobra.Command, args []string) error {
-	job, resp := c.GetJob(args[0])
-	if resp.Error != nil {
-		return fmt.Errorf("failed to get import job: %w", resp.Error)
+	job, _, err := c.GetJob(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to get import job: %w", err)
 	}
 
 	printJob(job)
@@ -278,9 +277,9 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error 
 	}
 
 	for {
-		jobs, resp := c.GetJobsByType(jobType, page, perPage)
-		if resp.Error != nil {
-			return fmt.Errorf("failed to get jobs: %w", resp.Error)
+		jobs, _, err := c.GetJobsByType(jobType, page, perPage)
+		if err != nil {
+			return fmt.Errorf("failed to get jobs: %w", err)
 		}
 
 		if len(jobs) == 0 {
@@ -305,5 +304,5 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error 
 }
 
 func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
-	return jobListCmdF(c, command, model.JOB_TYPE_IMPORT_PROCESS)
+	return jobListCmdF(c, command, model.JobTypeImportProcess)
 }

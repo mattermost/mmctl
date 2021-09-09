@@ -7,23 +7,24 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 )
 
 func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 	s.Run("team not found", func() {
 		notFoundTeam := "notfoundteam"
-		notFoundErr := &model.AppError{Message: "team not found", StatusCode: http.StatusNotFound}
+		notFoundErr := errors.New("team not found")
 
 		s.client.
 			EXPECT().
 			GetTeam(notFoundTeam, "").
-			Return(nil, &model.Response{Error: notFoundErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetTeamByName(notFoundTeam, "").
-			Return(nil, &model.Response{Error: notFoundErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{notFoundTeam})
@@ -33,17 +34,17 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 	})
 	s.Run("bad request", func() {
 		badRequestTeam := "badrequest"
-		badRequestErr := &model.AppError{Message: "team bad request", StatusCode: http.StatusBadRequest}
+		badRequestErr := errors.New("team bad request")
 
 		s.client.
 			EXPECT().
 			GetTeam(badRequestTeam, "").
-			Return(nil, &model.Response{Error: badRequestErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetTeamByName(badRequestTeam, "").
-			Return(nil, &model.Response{Error: badRequestErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{badRequestTeam})
@@ -53,33 +54,33 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 	})
 	s.Run("forbidden", func() {
 		forbidden := "forbidden"
-		forbiddenErr := &model.AppError{Message: "team forbidden", StatusCode: http.StatusForbidden}
+		forbiddenErr := errors.New("team forbidden")
 
 		s.client.
 			EXPECT().
 			GetTeam(forbidden, "").
-			Return(nil, &model.Response{Error: forbiddenErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{forbidden})
 		s.Require().Empty(teams)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "1 error occurred:\n\t* : team forbidden, \n\n")
+		s.Require().EqualError(err, "1 error occurred:\n\t* team forbidden\n\n")
 	})
 	s.Run("internal server error", func() {
 		errTeam := "internalServerError"
-		internalServerErrorErr := &model.AppError{Message: "team internalServerError", StatusCode: http.StatusInternalServerError}
+		internalServerErrorErr := errors.New("team internalServerError")
 
 		s.client.
 			EXPECT().
 			GetTeam(errTeam, "").
-			Return(nil, &model.Response{Error: internalServerErrorErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, internalServerErrorErr).
 			Times(1)
 
 		teams, err := getTeamsFromArgs(s.client, []string{errTeam})
 		s.Require().Empty(teams)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "1 error occurred:\n\t* : team internalServerError, \n\n")
+		s.Require().EqualError(err, "1 error occurred:\n\t* team internalServerError\n\n")
 	})
 	s.Run("success", func() {
 		successID := "success@success.com"
@@ -88,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestGetTeamArgs() {
 		s.client.
 			EXPECT().
 			GetTeam(successID, "").
-			Return(successTeam, nil).
+			Return(successTeam, nil, nil).
 			Times(1)
 
 		teams, summary := getTeamsFromArgs(s.client, []string{successID})

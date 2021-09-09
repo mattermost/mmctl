@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mmctl/printer"
 )
@@ -14,22 +15,22 @@ import (
 func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 	s.Run("user not found", func() {
 		notFoundEmail := "emailNotfound@notfound.com"
-		notFoundErr := &model.AppError{Message: "user not found", StatusCode: http.StatusNotFound}
+		notFoundErr := errors.New("user not found")
 		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUserByEmail(notFoundEmail, "").
-			Return(nil, &model.Response{Error: notFoundErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByUsername(notFoundEmail, "").
-			Return(nil, &model.Response{Error: notFoundErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUser(notFoundEmail, "").
-			Return(nil, &model.Response{Error: notFoundErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, notFoundErr).
 			Times(1)
 
 		users, err := getUsersFromArgs(s.client, []string{notFoundEmail})
@@ -40,22 +41,22 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 
 	s.Run("bad request don't throw unexpected error", func() {
 		badRequestEmail := "emailbadrequest@badrequest.com"
-		badRequestErr := &model.AppError{Message: "bad request", StatusCode: http.StatusBadRequest}
+		badRequestErr := errors.New("bad request")
 		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUserByEmail(badRequestEmail, "").
-			Return(nil, &model.Response{Error: badRequestErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByUsername(badRequestEmail, "").
-			Return(nil, &model.Response{Error: badRequestErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUser(badRequestEmail, "").
-			Return(nil, &model.Response{Error: badRequestErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusBadRequest}, badRequestErr).
 			Times(1)
 
 		users, err := getUsersFromArgs(s.client, []string{badRequestEmail})
@@ -66,31 +67,31 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 
 	s.Run("unexpected error throws according error", func() {
 		unexpectedErrEmail := "emailunexpected@unexpected.com"
-		unexpectedErr := &model.AppError{Message: "internal server error", StatusCode: http.StatusInternalServerError}
+		unexpectedErr := errors.New("internal server error")
 		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUserByEmail(unexpectedErrEmail, "").
-			Return(nil, &model.Response{Error: unexpectedErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, unexpectedErr).
 			Times(1)
 		users, err := getUsersFromArgs(s.client, []string{unexpectedErrEmail})
 		s.Require().Empty(users)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "1 error occurred:\n\t* : internal server error, \n\n")
+		s.Require().EqualError(err, "1 error occurred:\n\t* internal server error\n\n")
 	})
 	s.Run("forbidden error stops searching", func() {
 		forbiddenErrEmail := "forbidden@forbidden.com"
-		forbiddenErr := &model.AppError{Message: "forbidden", StatusCode: http.StatusForbidden}
+		forbiddenErr := errors.New("forbidden")
 		printer.Clean()
 		s.client.
 			EXPECT().
 			GetUserByEmail(forbiddenErrEmail, "").
-			Return(nil, &model.Response{Error: forbiddenErr}).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 		users, err := getUsersFromArgs(s.client, []string{forbiddenErrEmail})
 		s.Require().Empty(users)
 		s.Require().NotNil(err)
-		s.Require().EqualError(err, "1 error occurred:\n\t* : forbidden, \n\n")
+		s.Require().EqualError(err, "1 error occurred:\n\t* forbidden\n\n")
 	})
 	s.Run("success", func() {
 		successEmail := "success@success.com"
@@ -99,7 +100,7 @@ func (s *MmctlUnitTestSuite) TestGetUserFromArgs() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(successEmail, "").
-			Return(successUser, nil).
+			Return(successUser, nil, nil).
 			Times(1)
 		users, err := getUsersFromArgs(s.client, []string{successEmail})
 		s.Require().NoError(err)
