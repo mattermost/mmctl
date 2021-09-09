@@ -32,46 +32,63 @@ lint:
   except:
     - tags
 
-.test:
+test-mysql:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.12-1
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
   services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.12-1
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
+    DOCKER_CONTENT_TRUST: 0
+    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker login ${CI_REGISTRY} --username ${CI_REGISTRY_USER} --password ${CI_REGISTRY_PASSWORD}
   script:
-    - docker-compose version
-    - cd ..
-    - git clone -b $CI_COMMIT_REF_NAME https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/mattermost-server.git || git clone -b master https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_NAMESPACE}/mattermost-server.git
-    - cd mattermost-server/build
-    - docker-compose --no-ansi run --rm start_dependencies
-    - cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-    - docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-    - docker-compose --no-ansi ps
-    - sleep 5
-    - docker network ls
-    - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
-    - docker run --rm --net build_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}mysql"
+    - time cat .gitlab-ci/scripts/test/mysql.sh | /bin/bash
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+    paths:
+      - scripts/logs
+  timeout: 2 hours
+  tags:
+    - k8s-memory
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
-    - ulimit -n 8096
-    - >
-      docker run --name server -d --net build_mm-test \
-        --env-file=dotenv/test.env \
-        --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-        --env MM_SQLSETTINGS_DATASOURCE=postgres \
-        -v /builds/${CI_PROJECT_NAMESPACE}:/mattermost \
-        -w /mattermost/mmctl \
-        $IMAGE_BUILD_SERVER \
-        bash -c 'ulimit -n 8096; ls -al; make test-all'
-    - docker logs -f server
-    - exit $(docker inspect server --format='{{.State.ExitCode}}')
-  except:
-    - tags
+test-postgres:
+  stage: test
+  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
+  services:
+    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_CONTENT_TRUST: 0
+    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
+  before_script:
+    - docker login ${CI_REGISTRY} --username ${CI_REGISTRY_USER} --password ${CI_REGISTRY_PASSWORD}
+  script:
+    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}postgres"
+    - time cat .gitlab-ci/scripts/test/postgres.sh | /bin/bash
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+    paths:
+      - scripts/logs
+  timeout: 2 hours
+  tags:
+    - k8s-memory
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
 
 build:
   stage: test
