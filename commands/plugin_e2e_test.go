@@ -41,10 +41,12 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		s.Require().Equal(1, len(printer.GetLines()))
 		s.Require().Contains(printer.GetLines()[0], "Added plugin: ")
 
+		printer.Clean()
+
 		err = pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
 		s.Require().Nil(err)
 
-		s.Require().Equal(1, len(printer.GetLines()))
+		s.Require().Equal(0, len(printer.GetLines()))
 		s.Require().Equal(1, len(printer.GetErrorLines()))
 		s.Require().Contains(printer.GetErrorLines()[0], "Unable to install plugin. A plugin with the same ID is already installed.")
 
@@ -78,12 +80,14 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		s.Require().Equal(1, len(printer.GetLines()))
 		s.Require().Contains(printer.GetLines()[0], "Added plugin: ")
 
+		printer.Clean()
+
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("force", true, "")
 		err = pluginAddCmdF(c, cmd, []string{pluginPath})
 		s.Require().Nil(err)
 
-		s.Require().Equal(2, len(printer.GetLines()))
+		s.Require().Equal(1, len(printer.GetLines()))
 		s.Require().Equal(0, len(printer.GetErrorLines()))
 
 		plugins, appErr := s.th.App.GetPlugins()
