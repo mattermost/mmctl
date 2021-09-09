@@ -89,6 +89,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 		s.Require().Equal(1, len(printer.GetLines()))
 		s.Require().Equal(0, len(printer.GetErrorLines()))
+		s.Require().Contains(printer.GetLines()[0], "Added plugin: ")
 
 		plugins, appErr := s.th.App.GetPlugins()
 		s.Require().Nil(appErr)
