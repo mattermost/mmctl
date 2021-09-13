@@ -39,6 +39,29 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
 	})
 
+	s.Run("Add 1 plugin, with force active", func() {
+		printer.Clean()
+		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		s.Require().Nil(err)
+		defer os.Remove(tmpFile.Name())
+
+		pluginName := tmpFile.Name()
+
+		s.client.
+			EXPECT().
+			UploadPluginForced(gomock.AssignableToTypeOf(tmpFile)).
+			Return(&model.Manifest{}, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", true, "")
+
+		err = pluginAddCmdF(s.client, cmd, []string{pluginName})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
+	})
+
 	s.Run("Add 1 plugin no file", func() {
 		printer.Clean()
 		err := pluginAddCmdF(s.client, &cobra.Command{}, []string{"non_existent_plugin"})
