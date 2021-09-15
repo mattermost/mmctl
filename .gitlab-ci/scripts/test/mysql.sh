@@ -33,7 +33,7 @@ docker run -d --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
   -v "$DIR_MATTERMOST_ROOT":/mattermost \
   -w /mattermost/mmctl \
   $IMAGE_BUILD_SERVER \
-  bash -c 'ulimit -n 8096; ls -al; ls -al /mattermost; make test-all'
+  bash -c 'ulimit -n 8096; ls -al; make test-all'
 
 DIR_LOGS="$DIR_MATTERMOST_ROOT"/mmctl/logs
 mkdir -p "$DIR_LOGS"
