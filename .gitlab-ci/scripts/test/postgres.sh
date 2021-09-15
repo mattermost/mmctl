@@ -29,7 +29,7 @@ docker run --rm --name "${COMPOSE_PROJECT_NAME}_curl_elasticsearch" --net ${DOCK
 docker run -d --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
   --env-file="dotenv/test.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-  --env MM_SQLSETTINGS_DATASOURCE=postgres \
+  --env MM_SQLSETTINGS_DRIVERNAME=postgres \
   -v "$DIR_MATTERMOST_ROOT":/mattermost \
   -w /mattermost/mmctl \
   $IMAGE_BUILD_SERVER \
