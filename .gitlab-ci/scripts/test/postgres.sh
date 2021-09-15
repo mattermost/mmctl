@@ -13,24 +13,24 @@ fi
 
 echo "$DOCKER_HOST"
 docker ps
-DOCKER_NETWORK="${COMPOSE_PROJECT_NAME}"
+DOCKER_NETWORK=$COMPOSE_PROJECT_NAME
 DOCKER_COMPOSE_FILE="gitlab-dc.postgres.yml"
 CONTAINER_SERVER="${COMPOSE_PROJECT_NAME}_server_1"
-docker network create ${DOCKER_NETWORK}
+docker network create $DOCKER_NETWORK
 ulimit -n 8096
 cd "$DIR_MATTERMOST_ROOT"/mattermost-server/build/
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 sleep 5
-cat ../tests/test-data.ldif | docker exec ${COMPOSE_PROJECT_NAME}_openldap_1 bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-docker exec -d -T ${COMPOSE_PROJECT_NAME}_minio_1 sh -c 'mkdir -p /data/mattermost-test';
+cat "$DIR_MATTERMOST_ROOT"/mattermost-server/tests/test-data.ldif | docker exec ${COMPOSE_PROJECT_NAME}_openldap_1 bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+docker exec ${COMPOSE_PROJECT_NAME}_minio_1 sh -c 'mkdir -p /data/mattermost-test';
 timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isready ; do sleep 5 ; done"
 docker run --rm --name "${COMPOSE_PROJECT_NAME}_curl_elasticsearch" --net ${DOCKER_NETWORK} ${CI_REGISTRY}/mattermost/ci/images/curl:7.59.0-1 sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
 
-docker run -d -it --rm --name "${CONTAINER_SERVER}" --net ${DOCKER_NETWORK} \
+docker run -d --name "$CONTAINER_SERVER" --net $DOCKER_NETWORK \
   --env-file="dotenv/test.env" \
   --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
   --env MM_SQLSETTINGS_DATASOURCE=postgres \
-  -v "$CI_PROJECT_DIR":/mattermost \
+  -v "$DIR_MATTERMOST_ROOT":/mattermost \
   -w /mattermost/mmctl \
   $IMAGE_BUILD_SERVER \
   bash -c 'ulimit -n 8096; ls -al; make test-all'
