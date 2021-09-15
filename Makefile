@@ -5,7 +5,7 @@ BUILD_VERSION ?= $(shell git ls-remote --tags --refs git://github.com/mattermost
 # Needed to avoid install shadow in brew which is not permitted
 ADVANCED_VET ?= TRUE
 ENTERPRISE_DIR ?= ${MM_SERVER_PATH}/../enterprise
-VENDOR_MM_SERVER_DIR ?= vendor/github.com/mattermost/mattermost-server/v6/
+VENDOR_MM_SERVER_DIR ?= vendor/github.com/mattermost/mattermost-server/v6
 ENTERPRISE_HASH ?= $(shell cat enterprise_hash)
 TESTFLAGS = -mod=vendor -timeout 30m -race -v
 LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
@@ -26,6 +26,7 @@ ifneq ($(wildcard ${ENTERPRISE_DIR}/.*),)
 	IGNORE:=$(shell cp -R $(ENTERPRISE_DIR) $(VENDOR_MM_SERVER_DIR))
 	IGNORE:=$(shell git -C $(VENDOR_MM_SERVER_DIR)/enterprise checkout $(ENTERPRISE_HASH) --quiet)
 	IGNORE:=$(shell rm -f $(VENDOR_MM_SERVER_DIR)/imports/imports.go)
+	IGNORE:=$(shell mkdir $(VENDOR_MM_SERVER_DIR)/imports)
 	IGNORE:=$(shell cp $(VENDOR_MM_SERVER_DIR)/enterprise/imports/imports.go $(VENDOR_MM_SERVER_DIR)/imports/)
 endif
 
