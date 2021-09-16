@@ -61,35 +61,6 @@ test-mysql:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-test:
-  stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/mattermost-build-docker:19.03.14-1
-  services:
-    - name: $CI_REGISTRY/mattermost/ci/images/docker-dind:19.03.14-1
-      alias: docker
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_DRIVER: overlay2
-    DOCKER_CONTENT_TRUST: 0
-    DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE: ""
-  before_script:
-    - docker login ${CI_REGISTRY} --username ${CI_REGISTRY_USER} --password ${CI_REGISTRY_PASSWORD}
-  script:
-    - export COMPOSE_PROJECT_NAME="${CI_PIPELINE_IID}postgres"
-    - time cat .gitlab-ci/scripts/test/postgres.sh | /bin/bash
-  artifacts:
-    when: always
-    reports:
-      junit: report.xml
-    paths:
-      - scripts/logs
-  timeout: 2 hours
-  tags:
-    - k8s-memory
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-
 build:
   stage: test
   image: $IMAGE_BUILD_MMCTL

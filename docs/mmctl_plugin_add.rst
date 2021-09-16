@@ -27,7 +27,8 @@ Options
 
 ::
 
-  -h, --help   help for add
+  -f, --force   overwrite a previously installed plugin with the same ID, if any
+  -h, --help    help for add
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
