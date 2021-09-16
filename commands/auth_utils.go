@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
@@ -84,11 +83,9 @@ func resolveConfigFilePath() string {
 	if viper.IsSet("config-path") {
 		if !suppressWarnings {
 			once.Do(func() {
-				printer.PrintError(color.YellowString("WARNING: Since mmctl v6 we have been deprecated the --config-path and started to use --config flag instead."))
-				printer.PrintError(color.YellowString("Please use --config flag to set config file. (note that --config-path was pointing to a directory)\n"))
-				printer.PrintError(color.YellowString("After moving your config file to new directory, please unset the --config-path flag or MMCTL_CONFIG_PATH environment variable.\n"))
-
-				printer.Flush()
+				printer.PrintWarning("Since mmctl v6 we have been deprecated the --config-path and started to use --config flag instead.\n" +
+					"Please use --config flag to set config file. (note that --config-path was pointing to a directory)\n\n" +
+					"After moving your config file to new directory, please unset the --config-path flag or MMCTL_CONFIG_PATH environment variable.\n")
 			})
 		}
 

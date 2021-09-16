@@ -125,11 +125,11 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	} else {
 		printer.PrintT(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m {{.Message}}", username), post)
 	}
-	printer.Flush()
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
+
 	channel := getChannelFromChannelArg(c, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
