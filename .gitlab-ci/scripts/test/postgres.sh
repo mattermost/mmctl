@@ -21,8 +21,8 @@ ulimit -n 8096
 cd "$DIR_MATTERMOST_ROOT"/mattermost-server/build/
 docker-compose -f $DOCKER_COMPOSE_FILE run -d --rm start_dependencies
 sleep 5
-cat "$DIR_MATTERMOST_ROOT"/mattermost-server/tests/test-data.ldif | docker exec ${COMPOSE_PROJECT_NAME}_openldap_1 bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-docker exec ${COMPOSE_PROJECT_NAME}_minio_1 sh -c 'mkdir -p /data/mattermost-test';
+docker-compose exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest' < "$DIR_MATTERMOST_ROOT"/mattermost-server/tests/test-data.ldif
+docker-compose exec -T minio sh -c 'mkdir -p /data/mattermost-test'
 timeout 90s bash -c "until docker exec ${COMPOSE_PROJECT_NAME}_postgres_1 pg_isready ; do sleep 5 ; done"
 docker run --rm --name "${COMPOSE_PROJECT_NAME}_curl_elasticsearch" --net ${DOCKER_NETWORK} ${CI_REGISTRY}/mattermost/ci/images/curl:7.59.0-1 sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
 
