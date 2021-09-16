@@ -17,6 +17,7 @@ Options
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+      --disable-pager                disables paged output
   -h, --help                         help for mmctl
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1

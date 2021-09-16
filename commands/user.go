@@ -670,7 +670,7 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		return err
 	}
 
-	printer.Print("All users successfully deleted")
+	defer printer.Print("All users successfully deleted")
 
 	return nil
 }
@@ -738,7 +738,6 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
-
 	for {
 		var users []*model.User
 		var err error

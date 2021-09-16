@@ -4,7 +4,9 @@
 package commands
 
 import (
+	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -41,10 +43,26 @@ func Run(args []string) error {
 	_ = viper.BindPFlag("insecure-tls-version", RootCmd.PersistentFlags().Lookup("insecure-tls-version"))
 	RootCmd.PersistentFlags().Bool("local", false, "allows communicating with the server through a unix socket")
 	_ = viper.BindPFlag("local", RootCmd.PersistentFlags().Lookup("local"))
+	RootCmd.PersistentFlags().Bool("short-stat", false, "short stat will provide useful statistical data")
+	_ = RootCmd.PersistentFlags().MarkHidden("short-stat")
+	RootCmd.PersistentFlags().Bool("no-stat", false, "the statistical data won't be displayed")
+	_ = RootCmd.PersistentFlags().MarkHidden("no-stat")
+	RootCmd.PersistentFlags().Bool("disable-pager", false, "disables paged output")
+	_ = viper.BindPFlag("disable-pager", RootCmd.PersistentFlags().Lookup("disable-pager"))
 	RootCmd.PersistentFlags().Bool("quiet", false, "prevent mmctl to generate output for the commands")
 	_ = viper.BindPFlag("quiet", RootCmd.PersistentFlags().Lookup("quiet"))
 
 	RootCmd.SetArgs(args)
+
+	defer func() {
+		if x := recover(); x != nil {
+			printer.PrintError("Uh oh! Something unexpected happened :( Would you mind reporting it?\n")
+			printer.PrintError(`https://github.com/mattermost/mmctl/issues/new?title=%5Bbug%5D%20panic%20on%20mmctl%20v` + Version + "&body=%3C!---%20Please%20provide%20the%20stack%20trace%20--%3E\n")
+			printer.PrintError(string(debug.Stack()))
+
+			os.Exit(1)
+		}
+	}()
 
 	return RootCmd.Execute()
 }
@@ -56,6 +74,11 @@ var RootCmd = &cobra.Command{
 	DisableAutoGenTag: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		format := viper.GetString("format")
+		if viper.GetBool("disable-pager") {
+			printer.OverrideEnablePager(false)
+		}
+
+		printer.SetCommand(cmd)
 		isJSON := viper.GetBool("json")
 		if isJSON || format == printer.FormatJSON {
 			printer.SetFormat(printer.FormatJSON)
@@ -66,7 +89,7 @@ var RootCmd = &cobra.Command{
 		printer.SetQuiet(quiet)
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
-		printer.Flush()
+		_ = printer.Flush()
 	},
 	SilenceUsage: true,
 }
