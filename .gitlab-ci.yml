@@ -4,7 +4,7 @@ stages:
 
 include:
   project: mattermost/ci/mmctl
-  ref: enable-ee-tests-eli
+  ref: master
   file: private.yml
 
 variables:
