@@ -64,7 +64,7 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 			}
 		}
 
-		printer.SetServerAddres(c.ApiUrl)
+		printer.SetServerAddres(c.APIURL)
 		return fn(c, cmd, args)
 	}
 }
