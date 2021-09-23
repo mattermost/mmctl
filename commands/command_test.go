@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -764,8 +762,8 @@ func method2Bool(method string) bool {
 
 //nolint:golint,unused
 func copyCommand(cmd *model.Command) *model.Command {
-	js, _ := json.Marshal(cmd)
-	return model.CommandFromJson(bytes.NewReader(js))
+	c := *cmd
+	return &c
 }
 
 func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {

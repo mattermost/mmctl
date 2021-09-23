@@ -83,7 +83,12 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	url := "/posts" + "?set_online=false"
-	if _, err := c.DoAPIPost(url, post.ToUnsanitizedJson()); err != nil {
+	data, err := post.ToJSON()
+	if err != nil {
+		return fmt.Errorf("could not decode post: %w", err)
+	}
+
+	if _, err := c.DoAPIPost(url, data); err != nil {
 		return fmt.Errorf("could not create post: %s", err.Error())
 	}
 	return nil

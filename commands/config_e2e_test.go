@@ -92,6 +92,11 @@ func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
 func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 	s.SetupTestHelper().InitBasic()
 
+	var driver string
+	if d := s.th.App.Config().SqlSettings.DriverName; d != nil {
+		driver = *d
+	}
+
 	s.RunForSystemAdminAndLocal("Get config value for a given key", func(c client.Client) {
 		printer.Clean()
 
@@ -99,7 +104,7 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		err := configGetCmdF(c, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("postgres", *(printer.GetLines()[0].(*string)))
+		s.Require().Equal(driver, *(printer.GetLines()[0].(*string)))
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
