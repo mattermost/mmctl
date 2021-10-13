@@ -1,5 +1,5 @@
 # mmctl
-[![Mattermost](https://user-images.githubusercontent.com/7205829/136966909-2099588c-850b-420d-ab8b-07b099849c71.png)](https://mattermost.com)
+[![Mattermost](https://user-images.githubusercontent.com/7205829/137170381-fe86eef0-bccc-4fdd-8e92-b258884ebdd7.png)](https://mattermost.com)
 
 ![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg)
 [![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mmctl/master.svg)](https://codecov.io/gh/mattermost/mmctl/branch/master)
