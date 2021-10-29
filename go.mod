@@ -15,7 +15,7 @@ require (
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-	github.com/mattermost/mattermost-server/v6 v6.0.0-20210908134215-6a0ba98fabed
+	github.com/mattermost/mattermost-server/v6 v6.0.2
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
