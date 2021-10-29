@@ -17,8 +17,8 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
 	"github.com/mattermost/mattermost-server/v6/utils"
@@ -565,13 +565,22 @@ func (a *App) importUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	if data.ProfileImage != nil {
-		file, err := os.Open(*data.ProfileImage)
+		var file io.ReadCloser
+		var err error
+		if data.ProfileImageData != nil {
+			file, err = data.ProfileImageData.Open()
+		} else {
+			file, err = os.Open(*data.ProfileImage)
+		}
+
 		if err != nil {
 			mlog.Warn("Unable to open the profile image.", mlog.Err(err))
-		}
-		defer file.Close()
-		if err == nil {
-			if err := a.SetProfileImageFromMultiPartFile(savedUser.Id, file); err != nil {
+		} else {
+			defer file.Close()
+			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
+				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
+			}
+			if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
 				mlog.Warn("Unable to set the profile image from a file.", mlog.Err(err))
 			}
 		}
@@ -1100,7 +1109,10 @@ func (a *App) importReplies(c *request.Context, data []ReplyImportData, post *mo
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 
-		fileIDs := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
+		fileIDs, err := a.uploadAttachments(c, replyData.Attachments, reply, teamID)
+		if err != nil {
+			return err
+		}
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1377,7 +1389,10 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 			post.Props = *line.Post.Props
 		}
 
-		fileIDs := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
+		fileIDs, appErr := a.uploadAttachments(c, line.Post.Attachments, post, team.Id)
+		if appErr != nil {
+			return line.LineNumber, appErr
+		}
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1476,29 +1491,20 @@ func (a *App) importMultiplePostLines(c *request.Context, lines []LineImportWork
 }
 
 // uploadAttachments imports new attachments and returns current attachments of the post as a map
-func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) map[string]bool {
+func (a *App) uploadAttachments(c *request.Context, attachments *[]AttachmentImportData, post *model.Post, teamID string) (map[string]bool, *model.AppError) {
 	if attachments == nil {
-		return nil
+		return nil, nil
 	}
 	fileIDs := make(map[string]bool)
 	for _, attachment := range *attachments {
 		attachment := attachment
 		fileInfo, err := a.importAttachment(c, &attachment, post, teamID)
 		if err != nil {
-			if attachment.Path != nil {
-				mlog.Warn(
-					"failed to import attachment",
-					mlog.String("path", *attachment.Path),
-					mlog.String("error", err.Error()))
-			} else {
-				mlog.Warn("failed to import attachment; path was nil",
-					mlog.String("error", err.Error()))
-			}
-			continue
+			return nil, err
 		}
 		fileIDs[fileInfo.Id] = true
 	}
-	return fileIDs
+	return fileIDs, nil
 }
 
 func (a *App) updateFileInfoWithPostId(post *model.Post) {
@@ -1679,7 +1685,10 @@ func (a *App) importMultipleDirectPostLines(c *request.Context, lines []LineImpo
 			post.Props = *line.DirectPost.Props
 		}
 
-		fileIDs := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
+		fileIDs, err := a.uploadAttachments(c, line.DirectPost.Attachments, post, "noteam")
+		if err != nil {
+			return line.LineNumber, err
+		}
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
 				a.Srv().Store.FileInfo().PermanentDelete(fileID)
@@ -1804,7 +1813,12 @@ func (a *App) importEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 		emoji.PreSave()
 	}
 
-	file, err := os.Open(*data.Image)
+	var file io.ReadCloser
+	if data.Data != nil {
+		file, err = data.Data.Open()
+	} else {
+		file, err = os.Open(*data.Image)
+	}
 	if err != nil {
 		return model.NewAppError("BulkImport", "app.import.emoji.bad_file.error", map[string]interface{}{"EmojiName": *data.Name}, "", http.StatusBadRequest)
 	}

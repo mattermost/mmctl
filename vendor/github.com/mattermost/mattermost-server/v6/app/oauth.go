@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -824,6 +824,8 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	http.SetCookie(w, httpCookie)
 
 	teamID := stateProps["team_id"]
+
+	mlog.Debug("OAuth redirect uri: " + redirectURI)
 
 	p := url.Values{}
 	p.Set("client_id", *sso.Id)
