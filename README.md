@@ -11,7 +11,7 @@ A remote CLI tool for [Mattermost](https://github.com/mattermost/mattermost-serv
 To install the project in your `$GOPATH`, simply run:
 
 ```
-go get github.com/mattermost/mmctl
+go install github.com/mattermost/mmctl@latest
 ```
 
 ### Install shell completions
