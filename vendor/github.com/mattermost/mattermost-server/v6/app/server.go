@@ -40,7 +40,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/app/featureflag"
 	"github.com/mattermost/mattermost-server/v6/app/imaging"
 	"github.com/mattermost/mattermost-server/v6/app/request"
-	"github.com/mattermost/mattermost-server/v6/app/users"
 	"github.com/mattermost/mattermost-server/v6/audit"
 	"github.com/mattermost/mattermost-server/v6/config"
 	"github.com/mattermost/mattermost-server/v6/einterfaces"
@@ -59,6 +58,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/services/timezones"
 	"github.com/mattermost/mattermost-server/v6/services/tracing"
 	"github.com/mattermost/mattermost-server/v6/services/upgrader"
+	"github.com/mattermost/mattermost-server/v6/services/users"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 	"github.com/mattermost/mattermost-server/v6/shared/i18n"
 	"github.com/mattermost/mattermost-server/v6/shared/mail"
@@ -1492,7 +1492,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 }
 
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
-	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
 		doCheckAdminSupportStatus(a, c)
 	}, time.Hour*model.WarnMetricJobInterval)

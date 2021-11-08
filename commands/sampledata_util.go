@@ -142,7 +142,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 
 	// The 75% of the users have custom profile image
-	var profileImage *string = nil
+	var profileImage *string
 	if rand.Intn(4) != 0 {
 		profileImageSelector := rand.Int()
 		if len(profileImages) > 0 {
