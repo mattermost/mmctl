@@ -12,11 +12,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
@@ -28,7 +28,7 @@ var (
 		x509.DSAWithSHA1:   true,
 		x509.ECDSAWithSHA1: true,
 	}
-	expectedSocketMode os.FileMode = os.ModeSocket | 0600
+	expectedSocketMode = os.ModeSocket | 0600
 )
 
 func CheckVersionMatch(version, serverVersion string) bool {

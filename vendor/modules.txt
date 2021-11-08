@@ -332,7 +332,7 @@ github.com/mailru/easyjson
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
-# github.com/mattermost/go-i18n v1.11.0
+# github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404
 github.com/mattermost/go-i18n/i18n
 github.com/mattermost/go-i18n/i18n/bundle
 github.com/mattermost/go-i18n/i18n/language
@@ -352,7 +352,7 @@ github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
 github.com/mattermost/logr/v2/formatters
 github.com/mattermost/logr/v2/targets
-# github.com/mattermost/mattermost-server/v6 v6.0.0-20210908134215-6a0ba98fabed
+# github.com/mattermost/mattermost-server/v6 v6.0.2
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
 github.com/mattermost/mattermost-server/v6/app/email
@@ -360,7 +360,6 @@ github.com/mattermost/mattermost-server/v6/app/featureflag
 github.com/mattermost/mattermost-server/v6/app/imaging
 github.com/mattermost/mattermost-server/v6/app/opentracing
 github.com/mattermost/mattermost-server/v6/app/request
-github.com/mattermost/mattermost-server/v6/app/users
 github.com/mattermost/mattermost-server/v6/audit
 github.com/mattermost/mattermost-server/v6/config
 github.com/mattermost/mattermost-server/v6/db/migrations
@@ -400,6 +399,7 @@ github.com/mattermost/mattermost-server/v6/services/telemetry
 github.com/mattermost/mattermost-server/v6/services/timezones
 github.com/mattermost/mattermost-server/v6/services/tracing
 github.com/mattermost/mattermost-server/v6/services/upgrader
+github.com/mattermost/mattermost-server/v6/services/users
 github.com/mattermost/mattermost-server/v6/shared/filestore
 github.com/mattermost/mattermost-server/v6/shared/i18n
 github.com/mattermost/mattermost-server/v6/shared/mail

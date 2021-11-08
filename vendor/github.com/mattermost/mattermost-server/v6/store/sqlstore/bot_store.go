@@ -89,33 +89,37 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) (*model.Bot, er
 		JOIN
 			Users u ON (u.Id = b.UserId)
 		WHERE
-			b.UserId = ?
+			b.UserId = :user_id
 			` + excludeDeletedSql + `
 	`
 
-	var bot model.Bot
-	if err := us.GetReplicaX().Get(&bot, query, botUserId); err == sql.ErrNoRows {
+	var bot *model.Bot
+	if err := us.GetReplica().SelectOne(&bot, query, map[string]interface{}{"user_id": botUserId}); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("Bot", botUserId)
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "selectone: user_id=%s", botUserId)
 	}
 
-	return &bot, nil
+	return bot, nil
 }
 
 // GetAll fetches from all bots in the database.
 func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error) {
+	params := map[string]interface{}{
+		"offset": options.Page * options.PerPage,
+		"limit":  options.PerPage,
+	}
+
 	var conditions []string
 	var conditionsSql string
 	var additionalJoin string
-	var args []interface{}
 
 	if !options.IncludeDeleted {
 		conditions = append(conditions, "b.DeleteAt = 0")
 	}
 	if options.OwnerId != "" {
-		conditions = append(conditions, "b.OwnerId = ?")
-		args = append(args, options.OwnerId)
+		conditions = append(conditions, "b.OwnerId = :creator_id")
+		params["creator_id"] = options.OwnerId
 	}
 	if options.OnlyOrphaned {
 		additionalJoin = "JOIN Users o ON (o.Id = b.OwnerId)"
@@ -147,15 +151,13 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) ([]*model.Bot, error)
 			    b.CreateAt ASC,
 			    u.Username ASC
 			LIMIT
-			    ?
+			    :limit
 			OFFSET
-			    ?
+			    :offset
 		`
-	// append limit, offset
-	args = append(args, options.PerPage, options.Page*options.PerPage)
 
-	bots := []*model.Bot{}
-	if err := us.GetReplicaX().Select(&bots, sql, args...); err != nil {
+	var bots []*model.Bot
+	if _, err := us.GetReplica().Select(&bots, sql, params); err != nil {
 		return nil, errors.Wrap(err, "select")
 	}
 
@@ -172,10 +174,7 @@ func (us SqlBotStore) Save(bot *model.Bot) (*model.Bot, error) {
 		return nil, err
 	}
 
-	if _, err := us.GetMasterX().NamedExec(`INSERT INTO Bots
-		(UserId, Description, OwnerId, LastIconUpdate, CreateAt, UpdateAt, DeleteAt)
-		VALUES
-		(:UserId, :Description, :OwnerId, :LastIconUpdate, :CreateAt, :UpdateAt, :DeleteAt)`, botFromModel(bot)); err != nil {
+	if err := us.GetMaster().Insert(botFromModel(bot)); err != nil {
 		return nil, errors.Wrapf(err, "insert: user_id=%s", bot.UserId)
 	}
 
@@ -204,18 +203,9 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 	oldBot.DeleteAt = bot.DeleteAt
 	bot = oldBot
 
-	res, err := us.GetMasterX().NamedExec(`UPDATE Bots
-		SET Description=:Description, OwnerId=:OwnerId, LastIconUpdate=:LastIconUpdate,
-			UpdateAt=:UpdateAt, DeleteAt=:DeleteAt
-		WHERE UserId=:UserId`, botFromModel(bot))
-	if err != nil {
+	if count, err := us.GetMaster().Update(botFromModel(bot)); err != nil {
 		return nil, errors.Wrapf(err, "update: user_id=%s", bot.UserId)
-	}
-	count, err := res.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "error while getting rows_affected")
-	}
-	if count > 1 {
+	} else if count > 1 {
 		return nil, fmt.Errorf("unexpected count while updating bot: count=%d, userId=%s", count, bot.UserId)
 	}
 
@@ -225,8 +215,8 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, error) {
 // PermanentDelete removes the bot from the database altogether.
 // If the corresponding user is to be deleted, it must be done via the user store.
 func (us SqlBotStore) PermanentDelete(botUserId string) error {
-	query := "DELETE FROM Bots WHERE UserId = ?"
-	if _, err := us.GetMasterX().Exec(query, botUserId); err != nil {
+	query := "DELETE FROM Bots WHERE UserId = :user_id"
+	if _, err := us.GetMaster().Exec(query, map[string]interface{}{"user_id": botUserId}); err != nil {
 		return store.NewErrInvalidInput("Bot", "UserId", botUserId)
 	}
 	return nil

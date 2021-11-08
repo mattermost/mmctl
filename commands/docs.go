@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 )
@@ -37,7 +36,7 @@ func docsCmdF(cmd *cobra.Command, args []string) error {
 			return createErr
 		}
 	} else if !fileInfo.IsDir() {
-		return errors.New(fmt.Sprintf("File \"%s\" is not a directory", outDir))
+		return fmt.Errorf(fmt.Sprintf("File \"%s\" is not a directory", outDir))
 	}
 
 	err = doc.GenReSTTree(RootCmd, outDir)

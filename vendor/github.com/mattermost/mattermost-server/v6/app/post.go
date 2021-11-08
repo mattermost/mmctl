@@ -57,30 +57,6 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 			err.StatusCode = http.StatusBadRequest
 		}
 
-		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
-			if nErr != nil {
-				var nfErr *store.ErrNotFound
-				switch {
-				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-				default:
-					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-			}
-
-			T := i18n.GetUserTranslations(user.Locale)
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: channel.Id,
-					RootId:    post.RootId,
-					UserId:    post.UserId,
-					Message:   T("api.post.create_post.town_square_read_only"),
-					CreateAt:  model.GetMillis() + 1,
-				},
-			)
-		}
 		return nil, err
 	}
 
@@ -213,13 +189,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		!post.IsSystemMessage() &&
-		channel.Name == model.DefaultChannelName &&
-		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
-	}
-
 	var ephemeralPost *model.Post
 	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
@@ -297,6 +266,12 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	post = a.getEmbedsAndImages(post, true)
+	previewPost := post.GetPreviewPost()
+	if previewPost != nil {
+		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
+	}
+
 	rpost, nErr := a.Srv().Store.Post().Save(post)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -317,6 +292,14 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
+
+	// FIXME: Removes PreviewPost from the post payload sent to the MessageHasBeenPosted hook so that plugins compiled with older versions of
+	// Mattermost—without the gob registeration of the PreviewPost struct—won't crash.
+	if rPostCopy.Metadata != nil {
+		rPostCopy.Metadata = rPostCopy.Metadata.Copy()
+	}
+	rPostCopy.RemovePreviewPost()
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
@@ -344,11 +327,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
 	rpost = a.PreparePostForClient(rpost, true, false)
-
-	rpost, nErr = a.addPostPreviewProp(rpost)
-	if nErr != nil {
-		return nil, model.NewAppError("CreatePost", "app.post.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-	}
 
 	// Make sure poster is following the thread
 	if *a.Config().ServiceSettings.ThreadAutoFollow && rpost.RootId != "" {
@@ -520,7 +498,7 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := post.ToJSON()
@@ -543,7 +521,7 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
@@ -684,7 +662,7 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rpost, false, true)
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
@@ -1172,13 +1150,11 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)
 
-	if len(post.FileIds) > 0 {
-		a.Srv().Go(func() {
-			a.deletePostFiles(post.Id)
-		})
-	}
 	a.Srv().Go(func() {
-		a.deleteFlaggedPosts(post.Id)
+		a.DeletePostFiles(post)
+	})
+	a.Srv().Go(func() {
+		a.DeleteFlaggedPosts(post.Id)
 	})
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
@@ -1186,16 +1162,20 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 	return post, nil
 }
 
-func (a *App) deleteFlaggedPosts(postID string) {
+func (a *App) DeleteFlaggedPosts(postID string) {
 	if err := a.Srv().Store.Preference().DeleteCategoryAndName(model.PreferenceCategoryFlaggedPost, postID); err != nil {
 		mlog.Warn("Unable to delete flagged post preference when deleting post.", mlog.Err(err))
 		return
 	}
 }
 
-func (a *App) deletePostFiles(postID string) {
-	if _, err := a.Srv().Store.FileInfo().DeleteForPost(postID); err != nil {
-		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", postID), mlog.Err(err))
+func (a *App) DeletePostFiles(post *model.Post) {
+	if len(post.FileIds) == 0 {
+		return
+	}
+
+	if _, err := a.Srv().Store.FileInfo().DeleteForPost(post.Id); err != nil {
+		mlog.Warn("Encountered error when deleting files for post", mlog.String("post_id", post.Id), mlog.Err(err))
 	}
 }
 
