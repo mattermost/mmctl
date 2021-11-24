@@ -131,8 +131,8 @@ const (
 
 	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK = "https://mattermost.com/terms-of-service/"
 	SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK   = "https://mattermost.com/privacy-policy/"
-	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://docs.mattermost.com/overview/product.html"
-	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://academy.mattermost.com/"
+	SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK            = "https://about.mattermost.com/default-about/"
+	SUPPORT_SETTINGS_DEFAULT_HELP_LINK             = "https://about.mattermost.com/default-help/"
 	SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK = "https://about.mattermost.com/default-report-a-problem/"
 	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = ""
 	SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD  = 365
@@ -3855,9 +3855,11 @@ func (o *Config) Sanitize() {
 		*o.LdapSettings.BindPassword = FAKE_SETTING
 	}
 
-	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	if o.FileSettings.PublicLinkSalt != nil {
+		*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+	}
 
-	if *o.FileSettings.AmazonS3SecretAccessKey != "" {
+	if o.FileSettings.AmazonS3SecretAccessKey != nil && *o.FileSettings.AmazonS3SecretAccessKey != "" {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
 	}
 
@@ -3865,7 +3867,7 @@ func (o *Config) Sanitize() {
 		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
-	if *o.GitLabSettings.Secret != "" {
+	if o.GitLabSettings.Secret != nil && *o.GitLabSettings.Secret != "" {
 		*o.GitLabSettings.Secret = FAKE_SETTING
 	}
 
@@ -3881,10 +3883,17 @@ func (o *Config) Sanitize() {
 		*o.OpenIdSettings.Secret = FAKE_SETTING
 	}
 
-	*o.SqlSettings.DataSource = FAKE_SETTING
-	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+	if o.SqlSettings.DataSource != nil {
+		*o.SqlSettings.DataSource = FAKE_SETTING
+	}
 
-	*o.ElasticsearchSettings.Password = FAKE_SETTING
+	if o.SqlSettings.AtRestEncryptKey != nil {
+		*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
+	}
+
+	if o.ElasticsearchSettings.Password != nil {
+		*o.ElasticsearchSettings.Password = FAKE_SETTING
+	}
 
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
@@ -3894,7 +3903,9 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	if o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil && *o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
+	if o.MessageExportSettings.GlobalRelaySettings != nil &&
+		o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != nil &&
+		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword != "" {
 		*o.MessageExportSettings.GlobalRelaySettings.SmtpPassword = FAKE_SETTING
 	}
 
@@ -3902,7 +3913,9 @@ func (o *Config) Sanitize() {
 		*o.ServiceSettings.GfycatApiSecret = FAKE_SETTING
 	}
 
-	*o.ServiceSettings.SplitKey = FAKE_SETTING
+	if o.ServiceSettings.SplitKey != nil {
+		*o.ServiceSettings.SplitKey = FAKE_SETTING
+	}
 }
 
 // structToMapFilteredByTag converts a struct into a map removing those fields that has the tag passed

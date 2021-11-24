@@ -649,6 +649,11 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 
 	rpost = a.PreparePostForClient(rpost, false, true)
 
+	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
+	// and we don't want to have to populate it for every single user and broadcast to each
+	// individually.
+	rpost.IsFollowing = nil
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())
 	a.Publish(message)
@@ -1549,4 +1554,28 @@ func isPostMention(user *model.User, post *model.Post, keywords map[string][]str
 
 func (a *App) GetThreadMembershipsForUser(userID, teamID string) ([]*model.ThreadMembership, error) {
 	return a.Srv().Store.Thread().GetMembershipsForUser(userID, teamID)
+}
+
+func (a *App) GetPostIfAuthorized(postID string, session *model.Session) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !a.SessionHasPermissionToChannel(*session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+		if channel.Type == model.CHANNEL_OPEN {
+			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+				return nil, a.MakePermissionError(session, []*model.Permission{model.PERMISSION_READ_PUBLIC_CHANNEL})
+			}
+		} else {
+			return nil, a.MakePermissionError(session, []*model.Permission{model.PERMISSION_READ_CHANNEL})
+		}
+	}
+
+	return post, nil
 }

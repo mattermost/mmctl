@@ -4,6 +4,7 @@
 package web
 
 import (
+	"html"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -285,6 +286,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			hasRedirectURL = redirectURL != ""
 		}
 	}
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -337,11 +339,6 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		} else { // For web
 			c.App.AttachSessionCookies(c.AppContext, w, r)
-
-			// If no redirect url is passed, get the default one
-			if !hasRedirectURL {
-				redirectURL = c.GetSiteURLHeader()
-			}
 		}
 	}
 
@@ -384,7 +381,7 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectURL := r.URL.Query().Get("redirect_to")
+	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 
 	if redirectURL != "" && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
 		err := model.NewAppError("mobileLoginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
@@ -433,4 +430,16 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, authUrl, http.StatusFound)
+}
+
+func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string) string {
+	parsed, _ := url.Parse(targetURL)
+	if parsed == nil || parsed.Scheme != "" || parsed.Host != "" {
+		return targetURL
+	}
+
+	if targetURL != "" && targetURL[0] != '/' {
+		targetURL = "/" + targetURL
+	}
+	return siteURLPrefix + targetURL
 }

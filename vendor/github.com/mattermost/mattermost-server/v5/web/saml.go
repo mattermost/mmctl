@@ -5,6 +5,7 @@ package web
 
 import (
 	b64 "encoding/base64"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,7 +36,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectURL := r.URL.Query().Get("redirect_to")
+	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -109,6 +110,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = val
 		hasRedirectURL = val != ""
 	}
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -183,7 +185,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			})
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
-			redirectURL = c.GetSiteURLHeader() + redirectURL
 			http.Redirect(w, r, redirectURL, http.StatusFound)
 		}
 		return
