@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mmctl/printer"
 
@@ -22,7 +23,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.client.
 			EXPECT().
 			CreateJob(mockJob).
-			Return(mockJob, &model.Response{Error: nil}).
+			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		err := exportCreateCmdF(s.client, &cobra.Command{}, nil)
@@ -42,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.client.
 			EXPECT().
 			CreateJob(mockJob).
-			Return(mockJob, &model.Response{Error: nil}).
+			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		cmd := &cobra.Command{}
@@ -64,7 +65,7 @@ func (s *MmctlUnitTestSuite) TestExportDeleteCmdF() {
 	s.client.
 		EXPECT().
 		DeleteExport(exportName).
-		Return(true, &model.Response{Error: nil}).
+		Return(&model.Response{StatusCode: http.StatusOK}, nil).
 		Times(1)
 
 	err := exportDeleteCmdF(s.client, &cobra.Command{}, []string{exportName})
@@ -82,7 +83,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 		s.client.
 			EXPECT().
 			ListExports().
-			Return(mockExports, &model.Response{Error: nil}).
+			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
 		err := exportListCmdF(s.client, &cobra.Command{}, nil)
@@ -103,7 +104,7 @@ func (s *MmctlUnitTestSuite) TestExportListCmdF() {
 		s.client.
 			EXPECT().
 			ListExports().
-			Return(mockExports, &model.Response{Error: nil}).
+			Return(mockExports, &model.Response{}, nil).
 			Times(1)
 
 		err := exportListCmdF(s.client, &cobra.Command{}, nil)

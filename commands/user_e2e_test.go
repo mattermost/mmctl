@@ -952,3 +952,97 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", user.Email, ": You do not have the appropriate permissions., "), printer.GetErrorLines()[0])
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+	configForLdap(s.th)
+
+	s.Require().NoError(s.th.App.Srv().Jobs.StartWorkers()) // we need to start workers do actual sync
+
+	ldapUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+		Email:       s.th.GenerateTestEmail(),
+		Username:    model.NewId(),
+		AuthData:    model.NewString("test.user.1"),
+		AuthService: model.UserAuthServiceLdap,
+	})
+	s.Require().Nil(appErr)
+
+	samlUser, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
+		Email:       "success+devone@simulator.amazonses.com",
+		Username:    "dev.one",
+		AuthData:    model.NewString("dev.one"),
+		AuthService: model.UserAuthServiceSaml,
+	})
+	s.Require().Nil(appErr)
+
+	s.Run("Should fail when regular user tries to migrate auth", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", true, "")
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := migrateAuthCmdF(s.th.Client, cmd, []string{"ldap", "saml"})
+		s.Require().Error(err)
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("Migrate from ldap to saml", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("auto", true, "")
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := migrateAuthCmdF(c, cmd, []string{"ldap", "saml"})
+		s.Require().NoError(err)
+		defer func() {
+			_, appErr := s.th.App.UpdateUserAuth(ldapUser.Id, &model.UserAuth{
+				AuthData:    model.NewString("test.user.1"),
+				AuthService: model.UserAuthServiceLdap,
+			})
+			s.Require().Nil(appErr)
+
+			newUser, appErr := s.th.App.UpdateUser(ldapUser, false)
+			s.Require().Nil(appErr)
+			s.Require().Equal(model.UserAuthServiceLdap, newUser.AuthService)
+		}()
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
+		s.Require().Empty(printer.GetErrorLines())
+
+		updatedUser, appErr := s.th.App.GetUser(ldapUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.UserAuthServiceSaml, updatedUser.AuthService)
+	})
+
+	s.RunForSystemAdminAndLocal("Migrate from saml to ldap", func(c client.Client) {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		cmd.Flags().Bool("force", true, "")
+
+		err := migrateAuthCmdF(c, cmd, []string{"saml", "ldap", "email"})
+		s.Require().NoError(err)
+		defer func() {
+			_, appErr := s.th.App.UpdateUserAuth(samlUser.Id, &model.UserAuth{
+				AuthData:    model.NewString("dev.one"),
+				AuthService: model.UserAuthServiceSaml,
+			})
+			s.Require().Nil(appErr)
+
+			newUser, appErr := s.th.App.UpdateUser(samlUser, false)
+			s.Require().Nil(appErr)
+			s.Require().Equal(model.UserAuthServiceSaml, newUser.AuthService)
+		}()
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("Successfully migrated accounts.", printer.GetLines()[0])
+		s.Require().Empty(printer.GetErrorLines())
+
+		updatedUser, appErr := s.th.App.GetUser(samlUser.Id)
+		s.Require().Nil(appErr)
+		s.Require().Equal(model.UserAuthServiceLdap, updatedUser.AuthService)
+	})
+}

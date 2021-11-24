@@ -68,8 +68,8 @@ func addUserToChannel(c client.Client, channel *model.Channel, user *model.User,
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, response := c.AddChannelMember(channel.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + response.Error.Error())
+	if _, _, err := c.AddChannelMember(channel.Id, user.Id); err != nil {
+		printer.PrintError("Unable to add '" + userArg + "' to " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
@@ -105,20 +105,20 @@ func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.
 		printer.PrintError("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, response := c.RemoveUserFromChannel(channel.Id, user.Id); response.Error != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + response.Error.Error())
+	if _, err := c.RemoveUserFromChannel(channel.Id, user.Id); err != nil {
+		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
 func removeAllUsersFromChannel(c client.Client, channel *model.Channel) {
-	members, response := c.GetChannelMembers(channel.Id, 0, 10000, "")
-	if response.Error != nil {
-		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + response.Error.Error())
+	members, _, err := c.GetChannelMembers(channel.Id, 0, 10000, "")
+	if err != nil {
+		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
 	}
 
-	for _, member := range *members {
-		if _, response := c.RemoveUserFromChannel(channel.Id, member.UserId); response.Error != nil {
-			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + response.Error.Error())
+	for _, member := range members {
+		if _, err := c.RemoveUserFromChannel(channel.Id, member.UserId); err != nil {
+			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + err.Error())
 		}
 	}
 }

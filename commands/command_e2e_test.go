@@ -262,7 +262,7 @@ func (s *MmctlE2ETestSuite) TestModifyCommandCmdF() {
 		Trigger:   "trigger",
 	}
 
-	command, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
+	command, _, _ := s.th.SystemAdminClient.CreateCommand(newCmd)
 	index := 0
 	s.RunForSystemAdminAndLocal("modifyCommandCmdF", func(c client.Client) {
 		printer.Clean()

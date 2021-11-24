@@ -6,6 +6,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -172,9 +173,9 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		URL:              url,
 	}
 
-	createdCommand, response := c.CreateCommand(newCommand)
-	if response.Error != nil {
-		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + response.Error.Error())
+	createdCommand, _, err := c.CreateCommand(newCommand)
+	if err != nil {
+		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
 	}
 
 	printer.PrintT("created command {{.DisplayName}}", createdCommand)
@@ -185,9 +186,9 @@ func createCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	var teams []*model.Team
 	if len(args) < 1 {
-		teamList, response := c.GetAllTeams("", 0, 10000)
-		if response.Error != nil {
-			return response.Error
+		teamList, _, err := c.GetAllTeams("", 0, 10000)
+		if err != nil {
+			return err
 		}
 		teams = teamList
 	} else {
@@ -199,8 +200,8 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		commands, response := c.ListCommands(team.Id, true)
-		if response.Error != nil {
+		commands, _, err := c.ListCommands(team.Id, true)
+		if err != nil {
 			printer.PrintError("Unable to list commands for '" + team.Id + "'")
 			continue
 		}
@@ -212,12 +213,12 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	ok, response := c.DeleteCommand(args[0])
-	if response.Error != nil {
-		return errors.New("Unable to archive command '" + args[0] + "' error: " + response.Error.Error())
+	resp, err := c.DeleteCommand(args[0])
+	if err != nil {
+		return errors.New("Unable to archive command '" + args[0] + "' error: " + err.Error())
 	}
 
-	if ok {
+	if resp.StatusCode == http.StatusOK {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
 	} else {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
@@ -284,9 +285,9 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		}
 	}
 
-	modifiedCommand, response := c.UpdateCommand(command)
-	if response.Error != nil {
-		return fmt.Errorf("unable to modify command '%s'. %s", command.DisplayName, response.Error.Error())
+	modifiedCommand, _, err := c.UpdateCommand(command)
+	if err != nil {
+		return fmt.Errorf("unable to modify command '%s'. %s", command.DisplayName, err.Error())
 	}
 
 	printer.PrintT("modified command {{.DisplayName}}", modifiedCommand)
@@ -306,12 +307,12 @@ func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find command '%s'", args[1])
 	}
 
-	ok, response := c.MoveCommand(newTeam.Id, command.Id)
-	if response.Error != nil {
-		return fmt.Errorf("unable to move command '%s'. %s", command.Id, response.Error.Error())
+	resp, err := c.MoveCommand(newTeam.Id, command.Id)
+	if err != nil {
+		return fmt.Errorf("unable to move command '%s'. %s", command.Id, err.Error())
 	}
 
-	if ok {
+	if resp.StatusCode == http.StatusOK {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
 	} else {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})

@@ -106,9 +106,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Set EnableAPITeamDeletion
 		enableConfig := true
-		config, _ := c.GetConfig()
+		config, _, _ := c.GetConfig()
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _ = c.UpdateConfig(config)
+		_, _, _ = c.UpdateConfig(config)
 
 		// Deletion should succeed for both local and SystemAdmin client now
 		err = deleteTeamsCmdF(c, cmd, args)
@@ -119,9 +119,9 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Reset config
 		enableConfig = false
-		config, _ = c.GetConfig()
+		config, _, _ = c.GetConfig()
 		config.ServiceSettings.EnableAPITeamDeletion = &enableConfig
-		_, _ = c.UpdateConfig(config)
+		_, _, _ = c.UpdateConfig(config)
 	})
 
 	s.Run("Permission denied error for system admin when deleting a valid team", func() {

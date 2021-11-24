@@ -34,6 +34,6 @@ func websocketCmdF(cmd *cobra.Command, args []string) error {
 	fmt.Println("Press CTRL+C to exit")
 	for {
 		event := <-c.EventChannel
-		fmt.Println(event.ToJson())
+		fmt.Println(event.ToJSON())
 	}
 }

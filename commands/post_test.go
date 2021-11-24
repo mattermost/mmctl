@@ -5,6 +5,7 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/printer"
@@ -39,7 +40,7 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetPost(replyToArg, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "some-error"}}).
+			Return(nil, &model.Response{}, errors.New("some-error")).
 			Times(1)
 
 		err := postCreateCmdF(s.client, cmd, []string{msgArg})
@@ -51,6 +52,8 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		channelArg := "example-channel"
 		mockChannel := model.Channel{Name: channelArg}
 		mockPost := &model.Post{Message: msgArg}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
@@ -58,22 +61,16 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetChannel(channelArg, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsRoute().
-			Return("/posts").
+			DoAPIPost("/posts?set_online=false", data).
+			Return(nil, errors.New("some-error")).
 			Times(1)
 
-		s.client.
-			EXPECT().
-			DoApiPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
-			Return(nil, &model.AppError{Message: "some-error"}).
-			Times(1)
-
-		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Contains(err.Error(), "could not create post")
 	})
 
@@ -82,6 +79,8 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		channelArg := "example-channel"
 		mockChannel := model.Channel{Name: channelArg}
 		mockPost := model.Post{Message: msgArg}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("message", msgArg, "")
@@ -89,22 +88,16 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetChannel(channelArg, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsRoute().
-			Return("/posts").
-			Times(1)
-
-		s.client.
-			EXPECT().
-			DoApiPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
+			DoAPIPost("/posts?set_online=false", data).
 			Return(nil, nil).
 			Times(1)
 
-		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -117,6 +110,8 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		mockChannel := model.Channel{Name: channelArg}
 		mockReplyTo := model.Post{RootId: rootID}
 		mockPost := model.Post{Message: msgArg, RootId: rootID}
+		data, err := mockPost.ToJSON()
+		s.Require().NoError(err)
 
 		cmd := &cobra.Command{}
 		cmd.Flags().String("reply-to", replyToArg, "")
@@ -125,28 +120,22 @@ func (s *MmctlUnitTestSuite) TestPostCreateCmdF() {
 		s.client.
 			EXPECT().
 			GetChannel(channelArg, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetPost(replyToArg, "").
-			Return(&mockReplyTo, &model.Response{Error: nil}).
+			Return(&mockReplyTo, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetPostsRoute().
-			Return("/posts").
-			Times(1)
-
-		s.client.
-			EXPECT().
-			DoApiPost("/posts?set_online=false", mockPost.ToUnsanitizedJson()).
+			DoAPIPost("/posts?set_online=false", data).
 			Return(nil, nil).
 			Times(1)
 
-		err := postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
+		err = postCreateCmdF(s.client, cmd, []string{channelArg, msgArg})
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})

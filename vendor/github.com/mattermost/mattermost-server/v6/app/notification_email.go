@@ -172,14 +172,28 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 	return translateFunc("app.notification.subject.group_message.generic", subjectParameters)
 }
 
+/**
+* If the name is longer than i characters, replace remaining characters with ...
+ */
+func truncateUserNames(name string, i int) string {
+	runes := []rune(name)
+	if len(runes) > i {
+		newString := string(runes[:i])
+		return newString + "..."
+	}
+	return name
+}
+
 type postData struct {
-	SenderName  string
-	ChannelName string
-	Message     template.HTML
-	MessageURL  string
-	SenderPhoto string
-	PostPhoto   string
-	Time        string
+	SenderName               string
+	ChannelName              string
+	Message                  template.HTML
+	MessageURL               string
+	SenderPhoto              string
+	PostPhoto                string
+	Time                     string
+	ShowChannelIcon          bool
+	OtherChannelMembersCount int
 }
 
 /**
@@ -187,7 +201,7 @@ type postData struct {
  */
 func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc, senderPhoto string) (string, error) {
 	pData := postData{
-		SenderName:  senderName,
+		SenderName:  truncateUserNames(senderName, 22),
 		SenderPhoto: senderPhoto,
 	}
 
@@ -237,6 +251,26 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 		data.Props["Title"] = translateFunc("app.notification.body.mention.title", map[string]interface{}{"SenderName": senderName})
 		data.Props["SubTitle"] = translateFunc("app.notification.body.mention.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
 		pData.ChannelName = channelName
+	}
+
+	// Override title and subtile for replies with CRT enabled
+	if a.isCRTEnabledForUser(recipient.Id) && post.RootId != "" {
+		// Title is the same in all cases
+		data.Props["Title"] = translateFunc("app.notification.body.thread.title", map[string]interface{}{"SenderName": senderName})
+
+		if channel.Type == model.ChannelTypeDirect {
+			// Direct Reply
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_dm.subTitle", map[string]interface{}{"SenderName": senderName})
+		} else if channel.Type == model.ChannelTypeGroup {
+			// Group Reply
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_gm.subTitle", map[string]interface{}{"SenderName": senderName})
+		} else if emailNotificationContentsType == model.EmailNotificationContentsFull {
+			// Channel Reply with full content
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel_full.subTitle", map[string]interface{}{"SenderName": senderName, "ChannelName": channelName})
+		} else {
+			// Channel Reply with generic content
+			data.Props["SubTitle"] = translateFunc("app.notification.body.thread_channel.subTitle", map[string]interface{}{"SenderName": senderName})
+		}
 	}
 
 	// only include posts in notification email if email notification contents type is set to full

@@ -34,8 +34,9 @@ func TestPrintT(t *testing.T) {
 		PrintT(tpl, ts)
 		assert.Len(t, GetLines(), 1)
 
-		Flush()
 		assert.Equal(t, "testing template 123", printer.Lines[0])
+
+		_ = Flush()
 	})
 
 	t.Run("should fail to execute, no method or field", func(t *testing.T) {
@@ -44,8 +45,8 @@ func TestPrintT(t *testing.T) {
 		PrintT(tpl, ts)
 		assert.Len(t, GetErrorLines(), 1)
 
-		Flush()
 		assert.Equal(t, "Can't print the message using the provided template: "+tpl, printer.ErrorLines[0])
+		_ = Flush()
 	})
 }
 
@@ -60,7 +61,7 @@ func TestFlush(t *testing.T) {
 		Print("test string")
 		assert.Len(t, GetLines(), 1)
 
-		Flush()
+		_ = Flush()
 		assert.Equal(t, "[\n  \"test string\"\n]\n", string(*mw))
 		assert.Empty(t, GetLines(), 0)
 	})
@@ -74,7 +75,7 @@ func TestFlush(t *testing.T) {
 		Print("test string-2")
 		assert.Len(t, GetLines(), 2)
 
-		Flush()
+		_ = Flush()
 		assert.Equal(t, "[\n  \"test string-1\",\n  \"test string-2\"\n]\n", string(*mw))
 		assert.Empty(t, GetLines(), 0)
 	})

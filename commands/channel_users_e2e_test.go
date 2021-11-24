@@ -122,8 +122,8 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 
 		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 1)
-		s.Require().Equal(user.Id, (*members)[0].UserId)
+		s.Require().Len(members, 1)
+		s.Require().Equal(user.Id, (members)[0].UserId)
 	})
 
 	s.RunForSystemAdminAndLocal("Add user to channel", func(c client.Client) {
@@ -140,8 +140,8 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 
 		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 1)
-		s.Require().Equal(user.Id, (*members)[0].UserId)
+		s.Require().Len(members, 1)
+		s.Require().Equal(user.Id, (members)[0].UserId)
 	})
 }
 
@@ -224,13 +224,13 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 	s.Run("Remove user from channel without permission/Client", func() {
 		printer.Clean()
 
-		var members *model.ChannelMembers
+		var members model.ChannelMembers
 		_, appErr = s.th.App.AddChannelMember(s.th.Context, user.Id, channel, app.ChannelMemberOpts{})
 		s.Require().Nil(appErr)
 		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 1)
-		s.Require().Equal(user.Id, (*members)[0].UserId)
+		s.Require().Len(members, 1)
+		s.Require().Equal(user.Id, (members)[0].UserId)
 
 		err := channelUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
@@ -250,13 +250,13 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 			s.Require().Nil(appErr)
 		}()
 
-		var members *model.ChannelMembers
+		var members model.ChannelMembers
 		_, appErr = s.th.App.AddChannelMember(s.th.Context, user.Id, channel, app.ChannelMemberOpts{})
 		s.Require().Nil(appErr)
 		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 1)
-		s.Require().Equal(user.Id, (*members)[0].UserId)
+		s.Require().Len(members, 1)
+		s.Require().Equal(user.Id, (members)[0].UserId)
 
 		err := channelUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
@@ -265,7 +265,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 0)
+		s.Require().Len(members, 0)
 	})
 
 	s.RunForSystemAdminAndLocal("Remove user from channel", func(c client.Client) {
@@ -275,8 +275,8 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Nil(appErr)
 		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 1)
-		s.Require().Equal(user.Id, (*members)[0].UserId)
+		s.Require().Len(members, 1)
+		s.Require().Equal(user.Id, (members)[0].UserId)
 
 		err := channelUsersRemoveCmdF(c, &cobra.Command{}, []string{channel.Id, user.Id})
 		s.Require().Nil(err)
@@ -285,6 +285,6 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
-		s.Require().Len(*members, 0)
+		s.Require().Len(members, 0)
 	})
 }

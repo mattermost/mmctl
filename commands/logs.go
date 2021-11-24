@@ -10,12 +10,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/shared/mlog/human"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/mattermost/mmctl/client"
 	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/printer/human"
 )
 
 var LogsCmd = &cobra.Command{
@@ -39,9 +39,9 @@ func logsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	number, _ := cmd.Flags().GetInt("number")
-	logLines, response := c.GetLogs(0, number)
-	if response.Error != nil {
-		return errors.New("Unable to retrieve logs. Error: " + response.Error.Error())
+	logLines, _, err := c.GetLogs(0, number)
+	if err != nil {
+		return errors.New("Unable to retrieve logs. Error: " + err.Error())
 	}
 
 	reader := bytes.NewReader([]byte(strings.Join(logLines, "")))

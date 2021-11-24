@@ -39,12 +39,13 @@ func (m *MockClient) EXPECT() *MockClientMockRecorder {
 }
 
 // AddChannelMember mocks base method
-func (m *MockClient) AddChannelMember(arg0, arg1 string) (*model.ChannelMember, *model.Response) {
+func (m *MockClient) AddChannelMember(arg0, arg1 string) (*model.ChannelMember, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddChannelMember", arg0, arg1)
 	ret0, _ := ret[0].(*model.ChannelMember)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // AddChannelMember indicates an expected call of AddChannelMember
@@ -54,12 +55,13 @@ func (mr *MockClientMockRecorder) AddChannelMember(arg0, arg1 interface{}) *gomo
 }
 
 // AddTeamMember mocks base method
-func (m *MockClient) AddTeamMember(arg0, arg1 string) (*model.TeamMember, *model.Response) {
+func (m *MockClient) AddTeamMember(arg0, arg1 string) (*model.TeamMember, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddTeamMember", arg0, arg1)
 	ret0, _ := ret[0].(*model.TeamMember)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // AddTeamMember indicates an expected call of AddTeamMember
@@ -69,12 +71,13 @@ func (mr *MockClientMockRecorder) AddTeamMember(arg0, arg1 interface{}) *gomock.
 }
 
 // AssignBot mocks base method
-func (m *MockClient) AssignBot(arg0, arg1 string) (*model.Bot, *model.Response) {
+func (m *MockClient) AssignBot(arg0, arg1 string) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignBot", arg0, arg1)
 	ret0, _ := ret[0].(*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // AssignBot indicates an expected call of AssignBot
@@ -84,11 +87,11 @@ func (mr *MockClientMockRecorder) AssignBot(arg0, arg1 interface{}) *gomock.Call
 }
 
 // CancelJob mocks base method
-func (m *MockClient) CancelJob(arg0 string) (bool, *model.Response) {
+func (m *MockClient) CancelJob(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CancelJob", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -99,12 +102,13 @@ func (mr *MockClientMockRecorder) CancelJob(arg0 interface{}) *gomock.Call {
 }
 
 // CheckIntegrity mocks base method
-func (m *MockClient) CheckIntegrity() ([]model.IntegrityCheckResult, *model.Response) {
+func (m *MockClient) CheckIntegrity() ([]model.IntegrityCheckResult, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckIntegrity")
 	ret0, _ := ret[0].([]model.IntegrityCheckResult)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CheckIntegrity indicates an expected call of CheckIntegrity
@@ -114,11 +118,11 @@ func (mr *MockClientMockRecorder) CheckIntegrity() *gomock.Call {
 }
 
 // ClearServerBusy mocks base method
-func (m *MockClient) ClearServerBusy() (bool, *model.Response) {
+func (m *MockClient) ClearServerBusy() (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ClearServerBusy")
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -129,12 +133,13 @@ func (mr *MockClientMockRecorder) ClearServerBusy() *gomock.Call {
 }
 
 // ConvertBotToUser mocks base method
-func (m *MockClient) ConvertBotToUser(arg0 string, arg1 *model.UserPatch, arg2 bool) (*model.User, *model.Response) {
+func (m *MockClient) ConvertBotToUser(arg0 string, arg1 *model.UserPatch, arg2 bool) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertBotToUser", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ConvertBotToUser indicates an expected call of ConvertBotToUser
@@ -144,12 +149,13 @@ func (mr *MockClientMockRecorder) ConvertBotToUser(arg0, arg1, arg2 interface{})
 }
 
 // ConvertUserToBot mocks base method
-func (m *MockClient) ConvertUserToBot(arg0 string) (*model.Bot, *model.Response) {
+func (m *MockClient) ConvertUserToBot(arg0 string) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertUserToBot", arg0)
 	ret0, _ := ret[0].(*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ConvertUserToBot indicates an expected call of ConvertUserToBot
@@ -159,12 +165,13 @@ func (mr *MockClientMockRecorder) ConvertUserToBot(arg0 interface{}) *gomock.Cal
 }
 
 // CreateBot mocks base method
-func (m *MockClient) CreateBot(arg0 *model.Bot) (*model.Bot, *model.Response) {
+func (m *MockClient) CreateBot(arg0 *model.Bot) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateBot", arg0)
 	ret0, _ := ret[0].(*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateBot indicates an expected call of CreateBot
@@ -174,12 +181,13 @@ func (mr *MockClientMockRecorder) CreateBot(arg0 interface{}) *gomock.Call {
 }
 
 // CreateChannel mocks base method
-func (m *MockClient) CreateChannel(arg0 *model.Channel) (*model.Channel, *model.Response) {
+func (m *MockClient) CreateChannel(arg0 *model.Channel) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateChannel", arg0)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateChannel indicates an expected call of CreateChannel
@@ -189,12 +197,13 @@ func (mr *MockClientMockRecorder) CreateChannel(arg0 interface{}) *gomock.Call {
 }
 
 // CreateCommand mocks base method
-func (m *MockClient) CreateCommand(arg0 *model.Command) (*model.Command, *model.Response) {
+func (m *MockClient) CreateCommand(arg0 *model.Command) (*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateCommand", arg0)
 	ret0, _ := ret[0].(*model.Command)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateCommand indicates an expected call of CreateCommand
@@ -204,12 +213,13 @@ func (mr *MockClientMockRecorder) CreateCommand(arg0 interface{}) *gomock.Call {
 }
 
 // CreateIncomingWebhook mocks base method
-func (m *MockClient) CreateIncomingWebhook(arg0 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response) {
+func (m *MockClient) CreateIncomingWebhook(arg0 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateIncomingWebhook", arg0)
 	ret0, _ := ret[0].(*model.IncomingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateIncomingWebhook indicates an expected call of CreateIncomingWebhook
@@ -219,12 +229,13 @@ func (mr *MockClientMockRecorder) CreateIncomingWebhook(arg0 interface{}) *gomoc
 }
 
 // CreateJob mocks base method
-func (m *MockClient) CreateJob(arg0 *model.Job) (*model.Job, *model.Response) {
+func (m *MockClient) CreateJob(arg0 *model.Job) (*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateJob", arg0)
 	ret0, _ := ret[0].(*model.Job)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateJob indicates an expected call of CreateJob
@@ -234,12 +245,13 @@ func (mr *MockClientMockRecorder) CreateJob(arg0 interface{}) *gomock.Call {
 }
 
 // CreateOutgoingWebhook mocks base method
-func (m *MockClient) CreateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) CreateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateOutgoingWebhook", arg0)
 	ret0, _ := ret[0].(*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateOutgoingWebhook indicates an expected call of CreateOutgoingWebhook
@@ -249,12 +261,13 @@ func (mr *MockClientMockRecorder) CreateOutgoingWebhook(arg0 interface{}) *gomoc
 }
 
 // CreatePost mocks base method
-func (m *MockClient) CreatePost(arg0 *model.Post) (*model.Post, *model.Response) {
+func (m *MockClient) CreatePost(arg0 *model.Post) (*model.Post, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePost", arg0)
 	ret0, _ := ret[0].(*model.Post)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreatePost indicates an expected call of CreatePost
@@ -264,12 +277,13 @@ func (mr *MockClientMockRecorder) CreatePost(arg0 interface{}) *gomock.Call {
 }
 
 // CreateTeam mocks base method
-func (m *MockClient) CreateTeam(arg0 *model.Team) (*model.Team, *model.Response) {
+func (m *MockClient) CreateTeam(arg0 *model.Team) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTeam", arg0)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateTeam indicates an expected call of CreateTeam
@@ -279,12 +293,13 @@ func (mr *MockClientMockRecorder) CreateTeam(arg0 interface{}) *gomock.Call {
 }
 
 // CreateUpload mocks base method
-func (m *MockClient) CreateUpload(arg0 *model.UploadSession) (*model.UploadSession, *model.Response) {
+func (m *MockClient) CreateUpload(arg0 *model.UploadSession) (*model.UploadSession, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUpload", arg0)
 	ret0, _ := ret[0].(*model.UploadSession)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateUpload indicates an expected call of CreateUpload
@@ -294,12 +309,13 @@ func (mr *MockClientMockRecorder) CreateUpload(arg0 interface{}) *gomock.Call {
 }
 
 // CreateUser mocks base method
-func (m *MockClient) CreateUser(arg0 *model.User) (*model.User, *model.Response) {
+func (m *MockClient) CreateUser(arg0 *model.User) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUser", arg0)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateUser indicates an expected call of CreateUser
@@ -309,12 +325,13 @@ func (mr *MockClientMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 }
 
 // CreateUserAccessToken mocks base method
-func (m *MockClient) CreateUserAccessToken(arg0, arg1 string) (*model.UserAccessToken, *model.Response) {
+func (m *MockClient) CreateUserAccessToken(arg0, arg1 string) (*model.UserAccessToken, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateUserAccessToken", arg0, arg1)
 	ret0, _ := ret[0].(*model.UserAccessToken)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateUserAccessToken indicates an expected call of CreateUserAccessToken
@@ -324,11 +341,11 @@ func (mr *MockClientMockRecorder) CreateUserAccessToken(arg0, arg1 interface{}) 
 }
 
 // DeleteChannel mocks base method
-func (m *MockClient) DeleteChannel(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DeleteChannel(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteChannel", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -339,11 +356,11 @@ func (mr *MockClientMockRecorder) DeleteChannel(arg0 interface{}) *gomock.Call {
 }
 
 // DeleteCommand mocks base method
-func (m *MockClient) DeleteCommand(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DeleteCommand(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteCommand", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -354,11 +371,11 @@ func (mr *MockClientMockRecorder) DeleteCommand(arg0 interface{}) *gomock.Call {
 }
 
 // DeleteExport mocks base method
-func (m *MockClient) DeleteExport(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DeleteExport(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteExport", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -369,11 +386,11 @@ func (mr *MockClientMockRecorder) DeleteExport(arg0 interface{}) *gomock.Call {
 }
 
 // DeleteIncomingWebhook mocks base method
-func (m *MockClient) DeleteIncomingWebhook(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DeleteIncomingWebhook(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteIncomingWebhook", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -384,11 +401,11 @@ func (mr *MockClientMockRecorder) DeleteIncomingWebhook(arg0 interface{}) *gomoc
 }
 
 // DeleteOutgoingWebhook mocks base method
-func (m *MockClient) DeleteOutgoingWebhook(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DeleteOutgoingWebhook(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteOutgoingWebhook", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -399,11 +416,11 @@ func (mr *MockClientMockRecorder) DeleteOutgoingWebhook(arg0 interface{}) *gomoc
 }
 
 // DemoteUserToGuest mocks base method
-func (m *MockClient) DemoteUserToGuest(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DemoteUserToGuest(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DemoteUserToGuest", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -414,12 +431,13 @@ func (mr *MockClientMockRecorder) DemoteUserToGuest(arg0 interface{}) *gomock.Ca
 }
 
 // DisableBot mocks base method
-func (m *MockClient) DisableBot(arg0 string) (*model.Bot, *model.Response) {
+func (m *MockClient) DisableBot(arg0 string) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisableBot", arg0)
 	ret0, _ := ret[0].(*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // DisableBot indicates an expected call of DisableBot
@@ -429,11 +447,11 @@ func (mr *MockClientMockRecorder) DisableBot(arg0 interface{}) *gomock.Call {
 }
 
 // DisablePlugin mocks base method
-func (m *MockClient) DisablePlugin(arg0 string) (bool, *model.Response) {
+func (m *MockClient) DisablePlugin(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DisablePlugin", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -443,28 +461,29 @@ func (mr *MockClientMockRecorder) DisablePlugin(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DisablePlugin", reflect.TypeOf((*MockClient)(nil).DisablePlugin), arg0)
 }
 
-// DoApiPost mocks base method
-func (m *MockClient) DoApiPost(arg0, arg1 string) (*http.Response, *model.AppError) {
+// DoAPIPost mocks base method
+func (m *MockClient) DoAPIPost(arg0, arg1 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DoApiPost", arg0, arg1)
+	ret := m.ctrl.Call(m, "DoAPIPost", arg0, arg1)
 	ret0, _ := ret[0].(*http.Response)
-	ret1, _ := ret[1].(*model.AppError)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// DoApiPost indicates an expected call of DoApiPost
-func (mr *MockClientMockRecorder) DoApiPost(arg0, arg1 interface{}) *gomock.Call {
+// DoAPIPost indicates an expected call of DoAPIPost
+func (mr *MockClientMockRecorder) DoAPIPost(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoApiPost", reflect.TypeOf((*MockClient)(nil).DoApiPost), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoAPIPost", reflect.TypeOf((*MockClient)(nil).DoAPIPost), arg0, arg1)
 }
 
 // DownloadExport mocks base method
-func (m *MockClient) DownloadExport(arg0 string, arg1 io.Writer, arg2 int64) (int64, *model.Response) {
+func (m *MockClient) DownloadExport(arg0 string, arg1 io.Writer, arg2 int64) (int64, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DownloadExport", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // DownloadExport indicates an expected call of DownloadExport
@@ -474,12 +493,13 @@ func (mr *MockClientMockRecorder) DownloadExport(arg0, arg1, arg2 interface{}) *
 }
 
 // EnableBot mocks base method
-func (m *MockClient) EnableBot(arg0 string) (*model.Bot, *model.Response) {
+func (m *MockClient) EnableBot(arg0 string) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnableBot", arg0)
 	ret0, _ := ret[0].(*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // EnableBot indicates an expected call of EnableBot
@@ -489,11 +509,11 @@ func (mr *MockClientMockRecorder) EnableBot(arg0 interface{}) *gomock.Call {
 }
 
 // EnablePlugin mocks base method
-func (m *MockClient) EnablePlugin(arg0 string) (bool, *model.Response) {
+func (m *MockClient) EnablePlugin(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EnablePlugin", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -504,12 +524,13 @@ func (mr *MockClientMockRecorder) EnablePlugin(arg0 interface{}) *gomock.Call {
 }
 
 // GetAllTeams mocks base method
-func (m *MockClient) GetAllTeams(arg0 string, arg1, arg2 int) ([]*model.Team, *model.Response) {
+func (m *MockClient) GetAllTeams(arg0 string, arg1, arg2 int) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllTeams", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetAllTeams indicates an expected call of GetAllTeams
@@ -519,12 +540,13 @@ func (mr *MockClientMockRecorder) GetAllTeams(arg0, arg1, arg2 interface{}) *gom
 }
 
 // GetBots mocks base method
-func (m *MockClient) GetBots(arg0, arg1 int, arg2 string) ([]*model.Bot, *model.Response) {
+func (m *MockClient) GetBots(arg0, arg1 int, arg2 string) ([]*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBots", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetBots indicates an expected call of GetBots
@@ -534,12 +556,13 @@ func (mr *MockClientMockRecorder) GetBots(arg0, arg1, arg2 interface{}) *gomock.
 }
 
 // GetBotsIncludeDeleted mocks base method
-func (m *MockClient) GetBotsIncludeDeleted(arg0, arg1 int, arg2 string) ([]*model.Bot, *model.Response) {
+func (m *MockClient) GetBotsIncludeDeleted(arg0, arg1 int, arg2 string) ([]*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBotsIncludeDeleted", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetBotsIncludeDeleted indicates an expected call of GetBotsIncludeDeleted
@@ -549,12 +572,13 @@ func (mr *MockClientMockRecorder) GetBotsIncludeDeleted(arg0, arg1, arg2 interfa
 }
 
 // GetBotsOrphaned mocks base method
-func (m *MockClient) GetBotsOrphaned(arg0, arg1 int, arg2 string) ([]*model.Bot, *model.Response) {
+func (m *MockClient) GetBotsOrphaned(arg0, arg1 int, arg2 string) ([]*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBotsOrphaned", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetBotsOrphaned indicates an expected call of GetBotsOrphaned
@@ -564,12 +588,13 @@ func (mr *MockClientMockRecorder) GetBotsOrphaned(arg0, arg1, arg2 interface{}) 
 }
 
 // GetChannel mocks base method
-func (m *MockClient) GetChannel(arg0, arg1 string) (*model.Channel, *model.Response) {
+func (m *MockClient) GetChannel(arg0, arg1 string) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannel", arg0, arg1)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetChannel indicates an expected call of GetChannel
@@ -579,12 +604,13 @@ func (mr *MockClientMockRecorder) GetChannel(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // GetChannelByName mocks base method
-func (m *MockClient) GetChannelByName(arg0, arg1, arg2 string) (*model.Channel, *model.Response) {
+func (m *MockClient) GetChannelByName(arg0, arg1, arg2 string) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelByName", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetChannelByName indicates an expected call of GetChannelByName
@@ -594,12 +620,13 @@ func (mr *MockClientMockRecorder) GetChannelByName(arg0, arg1, arg2 interface{})
 }
 
 // GetChannelByNameIncludeDeleted mocks base method
-func (m *MockClient) GetChannelByNameIncludeDeleted(arg0, arg1, arg2 string) (*model.Channel, *model.Response) {
+func (m *MockClient) GetChannelByNameIncludeDeleted(arg0, arg1, arg2 string) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelByNameIncludeDeleted", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetChannelByNameIncludeDeleted indicates an expected call of GetChannelByNameIncludeDeleted
@@ -609,12 +636,13 @@ func (mr *MockClientMockRecorder) GetChannelByNameIncludeDeleted(arg0, arg1, arg
 }
 
 // GetChannelMembers mocks base method
-func (m *MockClient) GetChannelMembers(arg0 string, arg1, arg2 int, arg3 string) (*model.ChannelMembers, *model.Response) {
+func (m *MockClient) GetChannelMembers(arg0 string, arg1, arg2 int, arg3 string) (model.ChannelMembers, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelMembers", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].(*model.ChannelMembers)
+	ret0, _ := ret[0].(model.ChannelMembers)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetChannelMembers indicates an expected call of GetChannelMembers
@@ -624,12 +652,13 @@ func (mr *MockClientMockRecorder) GetChannelMembers(arg0, arg1, arg2, arg3 inter
 }
 
 // GetChannelsForTeamForUser mocks base method
-func (m *MockClient) GetChannelsForTeamForUser(arg0, arg1 string, arg2 bool, arg3 string) ([]*model.Channel, *model.Response) {
+func (m *MockClient) GetChannelsForTeamForUser(arg0, arg1 string, arg2 bool, arg3 string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetChannelsForTeamForUser", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetChannelsForTeamForUser indicates an expected call of GetChannelsForTeamForUser
@@ -639,12 +668,13 @@ func (mr *MockClientMockRecorder) GetChannelsForTeamForUser(arg0, arg1, arg2, ar
 }
 
 // GetCommandById mocks base method
-func (m *MockClient) GetCommandById(arg0 string) (*model.Command, *model.Response) {
+func (m *MockClient) GetCommandById(arg0 string) (*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCommandById", arg0)
 	ret0, _ := ret[0].(*model.Command)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetCommandById indicates an expected call of GetCommandById
@@ -654,12 +684,13 @@ func (mr *MockClientMockRecorder) GetCommandById(arg0 interface{}) *gomock.Call 
 }
 
 // GetConfig mocks base method
-func (m *MockClient) GetConfig() (*model.Config, *model.Response) {
+func (m *MockClient) GetConfig() (*model.Config, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConfig")
 	ret0, _ := ret[0].(*model.Config)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetConfig indicates an expected call of GetConfig
@@ -669,12 +700,13 @@ func (mr *MockClientMockRecorder) GetConfig() *gomock.Call {
 }
 
 // GetDeletedChannelsForTeam mocks base method
-func (m *MockClient) GetDeletedChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response) {
+func (m *MockClient) GetDeletedChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDeletedChannelsForTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetDeletedChannelsForTeam indicates an expected call of GetDeletedChannelsForTeam
@@ -684,13 +716,14 @@ func (mr *MockClientMockRecorder) GetDeletedChannelsForTeam(arg0, arg1, arg2, ar
 }
 
 // GetGroupsByChannel mocks base method
-func (m *MockClient) GetGroupsByChannel(arg0 string, arg1 model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response) {
+func (m *MockClient) GetGroupsByChannel(arg0 string, arg1 model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGroupsByChannel", arg0, arg1)
 	ret0, _ := ret[0].([]*model.GroupWithSchemeAdmin)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(*model.Response)
-	return ret0, ret1, ret2
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GetGroupsByChannel indicates an expected call of GetGroupsByChannel
@@ -700,13 +733,14 @@ func (mr *MockClientMockRecorder) GetGroupsByChannel(arg0, arg1 interface{}) *go
 }
 
 // GetGroupsByTeam mocks base method
-func (m *MockClient) GetGroupsByTeam(arg0 string, arg1 model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response) {
+func (m *MockClient) GetGroupsByTeam(arg0 string, arg1 model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGroupsByTeam", arg0, arg1)
 	ret0, _ := ret[0].([]*model.GroupWithSchemeAdmin)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(*model.Response)
-	return ret0, ret1, ret2
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // GetGroupsByTeam indicates an expected call of GetGroupsByTeam
@@ -716,12 +750,13 @@ func (mr *MockClientMockRecorder) GetGroupsByTeam(arg0, arg1 interface{}) *gomoc
 }
 
 // GetIncomingWebhook mocks base method
-func (m *MockClient) GetIncomingWebhook(arg0, arg1 string) (*model.IncomingWebhook, *model.Response) {
+func (m *MockClient) GetIncomingWebhook(arg0, arg1 string) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncomingWebhook", arg0, arg1)
 	ret0, _ := ret[0].(*model.IncomingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetIncomingWebhook indicates an expected call of GetIncomingWebhook
@@ -731,12 +766,13 @@ func (mr *MockClientMockRecorder) GetIncomingWebhook(arg0, arg1 interface{}) *go
 }
 
 // GetIncomingWebhooks mocks base method
-func (m *MockClient) GetIncomingWebhooks(arg0, arg1 int, arg2 string) ([]*model.IncomingWebhook, *model.Response) {
+func (m *MockClient) GetIncomingWebhooks(arg0, arg1 int, arg2 string) ([]*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncomingWebhooks", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.IncomingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetIncomingWebhooks indicates an expected call of GetIncomingWebhooks
@@ -746,12 +782,13 @@ func (mr *MockClientMockRecorder) GetIncomingWebhooks(arg0, arg1, arg2 interface
 }
 
 // GetIncomingWebhooksForTeam mocks base method
-func (m *MockClient) GetIncomingWebhooksForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.IncomingWebhook, *model.Response) {
+func (m *MockClient) GetIncomingWebhooksForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetIncomingWebhooksForTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.IncomingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetIncomingWebhooksForTeam indicates an expected call of GetIncomingWebhooksForTeam
@@ -761,12 +798,13 @@ func (mr *MockClientMockRecorder) GetIncomingWebhooksForTeam(arg0, arg1, arg2, a
 }
 
 // GetJob mocks base method
-func (m *MockClient) GetJob(arg0 string) (*model.Job, *model.Response) {
+func (m *MockClient) GetJob(arg0 string) (*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJob", arg0)
 	ret0, _ := ret[0].(*model.Job)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetJob indicates an expected call of GetJob
@@ -776,12 +814,13 @@ func (mr *MockClientMockRecorder) GetJob(arg0 interface{}) *gomock.Call {
 }
 
 // GetJobs mocks base method
-func (m *MockClient) GetJobs(arg0, arg1 int) ([]*model.Job, *model.Response) {
+func (m *MockClient) GetJobs(arg0, arg1 int) ([]*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJobs", arg0, arg1)
 	ret0, _ := ret[0].([]*model.Job)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetJobs indicates an expected call of GetJobs
@@ -791,12 +830,13 @@ func (mr *MockClientMockRecorder) GetJobs(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetJobsByType mocks base method
-func (m *MockClient) GetJobsByType(arg0 string, arg1, arg2 int) ([]*model.Job, *model.Response) {
+func (m *MockClient) GetJobsByType(arg0 string, arg1, arg2 int) ([]*model.Job, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetJobsByType", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.Job)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetJobsByType indicates an expected call of GetJobsByType
@@ -806,12 +846,13 @@ func (mr *MockClientMockRecorder) GetJobsByType(arg0, arg1, arg2 interface{}) *g
 }
 
 // GetLdapGroups mocks base method
-func (m *MockClient) GetLdapGroups() ([]*model.Group, *model.Response) {
+func (m *MockClient) GetLdapGroups() ([]*model.Group, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLdapGroups")
 	ret0, _ := ret[0].([]*model.Group)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetLdapGroups indicates an expected call of GetLdapGroups
@@ -821,12 +862,13 @@ func (mr *MockClientMockRecorder) GetLdapGroups() *gomock.Call {
 }
 
 // GetLogs mocks base method
-func (m *MockClient) GetLogs(arg0, arg1 int) ([]string, *model.Response) {
+func (m *MockClient) GetLogs(arg0, arg1 int) ([]string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLogs", arg0, arg1)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetLogs indicates an expected call of GetLogs
@@ -836,12 +878,13 @@ func (mr *MockClientMockRecorder) GetLogs(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetMarketplacePlugins mocks base method
-func (m *MockClient) GetMarketplacePlugins(arg0 *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.Response) {
+func (m *MockClient) GetMarketplacePlugins(arg0 *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMarketplacePlugins", arg0)
 	ret0, _ := ret[0].([]*model.MarketplacePlugin)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetMarketplacePlugins indicates an expected call of GetMarketplacePlugins
@@ -851,12 +894,13 @@ func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0 interface{}) *gomoc
 }
 
 // GetOutgoingWebhook mocks base method
-func (m *MockClient) GetOutgoingWebhook(arg0 string) (*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) GetOutgoingWebhook(arg0 string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOutgoingWebhook", arg0)
 	ret0, _ := ret[0].(*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetOutgoingWebhook indicates an expected call of GetOutgoingWebhook
@@ -866,12 +910,13 @@ func (mr *MockClientMockRecorder) GetOutgoingWebhook(arg0 interface{}) *gomock.C
 }
 
 // GetOutgoingWebhooks mocks base method
-func (m *MockClient) GetOutgoingWebhooks(arg0, arg1 int, arg2 string) ([]*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) GetOutgoingWebhooks(arg0, arg1 int, arg2 string) ([]*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOutgoingWebhooks", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetOutgoingWebhooks indicates an expected call of GetOutgoingWebhooks
@@ -881,12 +926,13 @@ func (mr *MockClientMockRecorder) GetOutgoingWebhooks(arg0, arg1, arg2 interface
 }
 
 // GetOutgoingWebhooksForChannel mocks base method
-func (m *MockClient) GetOutgoingWebhooksForChannel(arg0 string, arg1, arg2 int, arg3 string) ([]*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) GetOutgoingWebhooksForChannel(arg0 string, arg1, arg2 int, arg3 string) ([]*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOutgoingWebhooksForChannel", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetOutgoingWebhooksForChannel indicates an expected call of GetOutgoingWebhooksForChannel
@@ -896,12 +942,13 @@ func (mr *MockClientMockRecorder) GetOutgoingWebhooksForChannel(arg0, arg1, arg2
 }
 
 // GetOutgoingWebhooksForTeam mocks base method
-func (m *MockClient) GetOutgoingWebhooksForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) GetOutgoingWebhooksForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOutgoingWebhooksForTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetOutgoingWebhooksForTeam indicates an expected call of GetOutgoingWebhooksForTeam
@@ -911,12 +958,13 @@ func (mr *MockClientMockRecorder) GetOutgoingWebhooksForTeam(arg0, arg1, arg2, a
 }
 
 // GetPing mocks base method
-func (m *MockClient) GetPing() (string, *model.Response) {
+func (m *MockClient) GetPing() (string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPing")
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPing indicates an expected call of GetPing
@@ -926,12 +974,13 @@ func (mr *MockClientMockRecorder) GetPing() *gomock.Call {
 }
 
 // GetPingWithFullServerStatus mocks base method
-func (m *MockClient) GetPingWithFullServerStatus() (map[string]string, *model.Response) {
+func (m *MockClient) GetPingWithFullServerStatus() (map[string]string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPingWithFullServerStatus")
 	ret0, _ := ret[0].(map[string]string)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPingWithFullServerStatus indicates an expected call of GetPingWithFullServerStatus
@@ -941,12 +990,13 @@ func (mr *MockClientMockRecorder) GetPingWithFullServerStatus() *gomock.Call {
 }
 
 // GetPlugins mocks base method
-func (m *MockClient) GetPlugins() (*model.PluginsResponse, *model.Response) {
+func (m *MockClient) GetPlugins() (*model.PluginsResponse, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPlugins")
 	ret0, _ := ret[0].(*model.PluginsResponse)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPlugins indicates an expected call of GetPlugins
@@ -956,12 +1006,13 @@ func (mr *MockClientMockRecorder) GetPlugins() *gomock.Call {
 }
 
 // GetPost mocks base method
-func (m *MockClient) GetPost(arg0, arg1 string) (*model.Post, *model.Response) {
+func (m *MockClient) GetPost(arg0, arg1 string) (*model.Post, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPost", arg0, arg1)
 	ret0, _ := ret[0].(*model.Post)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPost indicates an expected call of GetPost
@@ -971,12 +1022,13 @@ func (mr *MockClientMockRecorder) GetPost(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetPostsForChannel mocks base method
-func (m *MockClient) GetPostsForChannel(arg0 string, arg1, arg2 int, arg3 string, arg4 bool) (*model.PostList, *model.Response) {
+func (m *MockClient) GetPostsForChannel(arg0 string, arg1, arg2 int, arg3 string, arg4 bool) (*model.PostList, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPostsForChannel", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*model.PostList)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPostsForChannel indicates an expected call of GetPostsForChannel
@@ -985,27 +1037,14 @@ func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3, arg4)
 }
 
-// GetPostsRoute mocks base method
-func (m *MockClient) GetPostsRoute() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPostsRoute")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// GetPostsRoute indicates an expected call of GetPostsRoute
-func (mr *MockClientMockRecorder) GetPostsRoute() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsRoute", reflect.TypeOf((*MockClient)(nil).GetPostsRoute))
-}
-
 // GetPrivateChannelsForTeam mocks base method
-func (m *MockClient) GetPrivateChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response) {
+func (m *MockClient) GetPrivateChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPrivateChannelsForTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPrivateChannelsForTeam indicates an expected call of GetPrivateChannelsForTeam
@@ -1015,12 +1054,13 @@ func (mr *MockClientMockRecorder) GetPrivateChannelsForTeam(arg0, arg1, arg2, ar
 }
 
 // GetPublicChannelsForTeam mocks base method
-func (m *MockClient) GetPublicChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response) {
+func (m *MockClient) GetPublicChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPublicChannelsForTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetPublicChannelsForTeam indicates an expected call of GetPublicChannelsForTeam
@@ -1030,12 +1070,13 @@ func (mr *MockClientMockRecorder) GetPublicChannelsForTeam(arg0, arg1, arg2, arg
 }
 
 // GetRoleByName mocks base method
-func (m *MockClient) GetRoleByName(arg0 string) (*model.Role, *model.Response) {
+func (m *MockClient) GetRoleByName(arg0 string) (*model.Role, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRoleByName", arg0)
 	ret0, _ := ret[0].(*model.Role)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetRoleByName indicates an expected call of GetRoleByName
@@ -1045,12 +1086,13 @@ func (mr *MockClientMockRecorder) GetRoleByName(arg0 interface{}) *gomock.Call {
 }
 
 // GetServerBusy mocks base method
-func (m *MockClient) GetServerBusy() (*model.ServerBusyState, *model.Response) {
+func (m *MockClient) GetServerBusy() (*model.ServerBusyState, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServerBusy")
 	ret0, _ := ret[0].(*model.ServerBusyState)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetServerBusy indicates an expected call of GetServerBusy
@@ -1060,12 +1102,13 @@ func (mr *MockClientMockRecorder) GetServerBusy() *gomock.Call {
 }
 
 // GetTeam mocks base method
-func (m *MockClient) GetTeam(arg0, arg1 string) (*model.Team, *model.Response) {
+func (m *MockClient) GetTeam(arg0, arg1 string) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeam", arg0, arg1)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetTeam indicates an expected call of GetTeam
@@ -1075,12 +1118,13 @@ func (mr *MockClientMockRecorder) GetTeam(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetTeamByName mocks base method
-func (m *MockClient) GetTeamByName(arg0, arg1 string) (*model.Team, *model.Response) {
+func (m *MockClient) GetTeamByName(arg0, arg1 string) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeamByName", arg0, arg1)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetTeamByName indicates an expected call of GetTeamByName
@@ -1090,12 +1134,13 @@ func (mr *MockClientMockRecorder) GetTeamByName(arg0, arg1 interface{}) *gomock.
 }
 
 // GetUpload mocks base method
-func (m *MockClient) GetUpload(arg0 string) (*model.UploadSession, *model.Response) {
+func (m *MockClient) GetUpload(arg0 string) (*model.UploadSession, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUpload", arg0)
 	ret0, _ := ret[0].(*model.UploadSession)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUpload indicates an expected call of GetUpload
@@ -1105,12 +1150,13 @@ func (mr *MockClientMockRecorder) GetUpload(arg0 interface{}) *gomock.Call {
 }
 
 // GetUploadsForUser mocks base method
-func (m *MockClient) GetUploadsForUser(arg0 string) ([]*model.UploadSession, *model.Response) {
+func (m *MockClient) GetUploadsForUser(arg0 string) ([]*model.UploadSession, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUploadsForUser", arg0)
 	ret0, _ := ret[0].([]*model.UploadSession)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUploadsForUser indicates an expected call of GetUploadsForUser
@@ -1120,12 +1166,13 @@ func (mr *MockClientMockRecorder) GetUploadsForUser(arg0 interface{}) *gomock.Ca
 }
 
 // GetUser mocks base method
-func (m *MockClient) GetUser(arg0, arg1 string) (*model.User, *model.Response) {
+func (m *MockClient) GetUser(arg0, arg1 string) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUser", arg0, arg1)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUser indicates an expected call of GetUser
@@ -1135,12 +1182,13 @@ func (mr *MockClientMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetUserAccessTokensForUser mocks base method
-func (m *MockClient) GetUserAccessTokensForUser(arg0 string, arg1, arg2 int) ([]*model.UserAccessToken, *model.Response) {
+func (m *MockClient) GetUserAccessTokensForUser(arg0 string, arg1, arg2 int) ([]*model.UserAccessToken, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserAccessTokensForUser", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.UserAccessToken)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUserAccessTokensForUser indicates an expected call of GetUserAccessTokensForUser
@@ -1150,12 +1198,13 @@ func (mr *MockClientMockRecorder) GetUserAccessTokensForUser(arg0, arg1, arg2 in
 }
 
 // GetUserByEmail mocks base method
-func (m *MockClient) GetUserByEmail(arg0, arg1 string) (*model.User, *model.Response) {
+func (m *MockClient) GetUserByEmail(arg0, arg1 string) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByEmail", arg0, arg1)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUserByEmail indicates an expected call of GetUserByEmail
@@ -1165,12 +1214,13 @@ func (mr *MockClientMockRecorder) GetUserByEmail(arg0, arg1 interface{}) *gomock
 }
 
 // GetUserByUsername mocks base method
-func (m *MockClient) GetUserByUsername(arg0, arg1 string) (*model.User, *model.Response) {
+func (m *MockClient) GetUserByUsername(arg0, arg1 string) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByUsername", arg0, arg1)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUserByUsername indicates an expected call of GetUserByUsername
@@ -1180,12 +1230,13 @@ func (mr *MockClientMockRecorder) GetUserByUsername(arg0, arg1 interface{}) *gom
 }
 
 // GetUsers mocks base method
-func (m *MockClient) GetUsers(arg0, arg1 int, arg2 string) ([]*model.User, *model.Response) {
+func (m *MockClient) GetUsers(arg0, arg1 int, arg2 string) ([]*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUsers", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUsers indicates an expected call of GetUsers
@@ -1195,12 +1246,13 @@ func (mr *MockClientMockRecorder) GetUsers(arg0, arg1, arg2 interface{}) *gomock
 }
 
 // GetUsersByIds mocks base method
-func (m *MockClient) GetUsersByIds(arg0 []string) ([]*model.User, *model.Response) {
+func (m *MockClient) GetUsersByIds(arg0 []string) ([]*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUsersByIds", arg0)
 	ret0, _ := ret[0].([]*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUsersByIds indicates an expected call of GetUsersByIds
@@ -1210,12 +1262,13 @@ func (mr *MockClientMockRecorder) GetUsersByIds(arg0 interface{}) *gomock.Call {
 }
 
 // GetUsersInTeam mocks base method
-func (m *MockClient) GetUsersInTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.User, *model.Response) {
+func (m *MockClient) GetUsersInTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUsersInTeam", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].([]*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetUsersInTeam indicates an expected call of GetUsersInTeam
@@ -1225,12 +1278,13 @@ func (mr *MockClientMockRecorder) GetUsersInTeam(arg0, arg1, arg2, arg3 interfac
 }
 
 // InstallMarketplacePlugin mocks base method
-func (m *MockClient) InstallMarketplacePlugin(arg0 *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.Response) {
+func (m *MockClient) InstallMarketplacePlugin(arg0 *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InstallMarketplacePlugin", arg0)
 	ret0, _ := ret[0].(*model.Manifest)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // InstallMarketplacePlugin indicates an expected call of InstallMarketplacePlugin
@@ -1239,27 +1293,28 @@ func (mr *MockClientMockRecorder) InstallMarketplacePlugin(arg0 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallMarketplacePlugin", reflect.TypeOf((*MockClient)(nil).InstallMarketplacePlugin), arg0)
 }
 
-// InstallPluginFromUrl mocks base method
-func (m *MockClient) InstallPluginFromUrl(arg0 string, arg1 bool) (*model.Manifest, *model.Response) {
+// InstallPluginFromURL mocks base method
+func (m *MockClient) InstallPluginFromURL(arg0 string, arg1 bool) (*model.Manifest, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InstallPluginFromUrl", arg0, arg1)
+	ret := m.ctrl.Call(m, "InstallPluginFromURL", arg0, arg1)
 	ret0, _ := ret[0].(*model.Manifest)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
-// InstallPluginFromUrl indicates an expected call of InstallPluginFromUrl
-func (mr *MockClientMockRecorder) InstallPluginFromUrl(arg0, arg1 interface{}) *gomock.Call {
+// InstallPluginFromURL indicates an expected call of InstallPluginFromURL
+func (mr *MockClientMockRecorder) InstallPluginFromURL(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallPluginFromUrl", reflect.TypeOf((*MockClient)(nil).InstallPluginFromUrl), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstallPluginFromURL", reflect.TypeOf((*MockClient)(nil).InstallPluginFromURL), arg0, arg1)
 }
 
 // InviteUsersToTeam mocks base method
-func (m *MockClient) InviteUsersToTeam(arg0 string, arg1 []string) (bool, *model.Response) {
+func (m *MockClient) InviteUsersToTeam(arg0 string, arg1 []string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InviteUsersToTeam", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1270,12 +1325,13 @@ func (mr *MockClientMockRecorder) InviteUsersToTeam(arg0, arg1 interface{}) *gom
 }
 
 // ListCommands mocks base method
-func (m *MockClient) ListCommands(arg0 string, arg1 bool) ([]*model.Command, *model.Response) {
+func (m *MockClient) ListCommands(arg0 string, arg1 bool) ([]*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListCommands", arg0, arg1)
 	ret0, _ := ret[0].([]*model.Command)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListCommands indicates an expected call of ListCommands
@@ -1285,12 +1341,13 @@ func (mr *MockClientMockRecorder) ListCommands(arg0, arg1 interface{}) *gomock.C
 }
 
 // ListExports mocks base method
-func (m *MockClient) ListExports() ([]string, *model.Response) {
+func (m *MockClient) ListExports() ([]string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListExports")
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListExports indicates an expected call of ListExports
@@ -1300,12 +1357,13 @@ func (mr *MockClientMockRecorder) ListExports() *gomock.Call {
 }
 
 // ListImports mocks base method
-func (m *MockClient) ListImports() ([]string, *model.Response) {
+func (m *MockClient) ListImports() ([]string, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListImports")
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListImports indicates an expected call of ListImports
@@ -1315,11 +1373,11 @@ func (mr *MockClientMockRecorder) ListImports() *gomock.Call {
 }
 
 // MigrateAuthToLdap mocks base method
-func (m *MockClient) MigrateAuthToLdap(arg0, arg1 string, arg2 bool) (bool, *model.Response) {
+func (m *MockClient) MigrateAuthToLdap(arg0, arg1 string, arg2 bool) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateAuthToLdap", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1330,11 +1388,11 @@ func (mr *MockClientMockRecorder) MigrateAuthToLdap(arg0, arg1, arg2 interface{}
 }
 
 // MigrateAuthToSaml mocks base method
-func (m *MockClient) MigrateAuthToSaml(arg0 string, arg1 map[string]string, arg2 bool) (bool, *model.Response) {
+func (m *MockClient) MigrateAuthToSaml(arg0 string, arg1 map[string]string, arg2 bool) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateAuthToSaml", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1345,11 +1403,11 @@ func (mr *MockClientMockRecorder) MigrateAuthToSaml(arg0, arg1, arg2 interface{}
 }
 
 // MigrateConfig mocks base method
-func (m *MockClient) MigrateConfig(arg0, arg1 string) (bool, *model.Response) {
+func (m *MockClient) MigrateConfig(arg0, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateConfig", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1360,11 +1418,11 @@ func (mr *MockClientMockRecorder) MigrateConfig(arg0, arg1 interface{}) *gomock.
 }
 
 // MigrateIdLdap mocks base method
-func (m *MockClient) MigrateIdLdap(arg0 string) (bool, *model.Response) {
+func (m *MockClient) MigrateIdLdap(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MigrateIdLdap", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1375,12 +1433,13 @@ func (mr *MockClientMockRecorder) MigrateIdLdap(arg0 interface{}) *gomock.Call {
 }
 
 // MoveChannel mocks base method
-func (m *MockClient) MoveChannel(arg0, arg1 string, arg2 bool) (*model.Channel, *model.Response) {
+func (m *MockClient) MoveChannel(arg0, arg1 string, arg2 bool) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MoveChannel", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // MoveChannel indicates an expected call of MoveChannel
@@ -1390,11 +1449,11 @@ func (mr *MockClientMockRecorder) MoveChannel(arg0, arg1, arg2 interface{}) *gom
 }
 
 // MoveCommand mocks base method
-func (m *MockClient) MoveCommand(arg0, arg1 string) (bool, *model.Response) {
+func (m *MockClient) MoveCommand(arg0, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MoveCommand", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1405,12 +1464,13 @@ func (mr *MockClientMockRecorder) MoveCommand(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // PatchBot mocks base method
-func (m *MockClient) PatchBot(arg0 string, arg1 *model.BotPatch) (*model.Bot, *model.Response) {
+func (m *MockClient) PatchBot(arg0 string, arg1 *model.BotPatch) (*model.Bot, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchBot", arg0, arg1)
 	ret0, _ := ret[0].(*model.Bot)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // PatchBot indicates an expected call of PatchBot
@@ -1420,12 +1480,13 @@ func (mr *MockClientMockRecorder) PatchBot(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // PatchChannel mocks base method
-func (m *MockClient) PatchChannel(arg0 string, arg1 *model.ChannelPatch) (*model.Channel, *model.Response) {
+func (m *MockClient) PatchChannel(arg0 string, arg1 *model.ChannelPatch) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchChannel", arg0, arg1)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // PatchChannel indicates an expected call of PatchChannel
@@ -1435,12 +1496,13 @@ func (mr *MockClientMockRecorder) PatchChannel(arg0, arg1 interface{}) *gomock.C
 }
 
 // PatchConfig mocks base method
-func (m *MockClient) PatchConfig(arg0 *model.Config) (*model.Config, *model.Response) {
+func (m *MockClient) PatchConfig(arg0 *model.Config) (*model.Config, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchConfig", arg0)
 	ret0, _ := ret[0].(*model.Config)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // PatchConfig indicates an expected call of PatchConfig
@@ -1450,12 +1512,13 @@ func (mr *MockClientMockRecorder) PatchConfig(arg0 interface{}) *gomock.Call {
 }
 
 // PatchRole mocks base method
-func (m *MockClient) PatchRole(arg0 string, arg1 *model.RolePatch) (*model.Role, *model.Response) {
+func (m *MockClient) PatchRole(arg0 string, arg1 *model.RolePatch) (*model.Role, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchRole", arg0, arg1)
 	ret0, _ := ret[0].(*model.Role)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // PatchRole indicates an expected call of PatchRole
@@ -1465,12 +1528,13 @@ func (mr *MockClientMockRecorder) PatchRole(arg0, arg1 interface{}) *gomock.Call
 }
 
 // PatchTeam mocks base method
-func (m *MockClient) PatchTeam(arg0 string, arg1 *model.TeamPatch) (*model.Team, *model.Response) {
+func (m *MockClient) PatchTeam(arg0 string, arg1 *model.TeamPatch) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PatchTeam", arg0, arg1)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // PatchTeam indicates an expected call of PatchTeam
@@ -1480,11 +1544,11 @@ func (mr *MockClientMockRecorder) PatchTeam(arg0, arg1 interface{}) *gomock.Call
 }
 
 // PermanentDeleteAllUsers mocks base method
-func (m *MockClient) PermanentDeleteAllUsers() (bool, *model.Response) {
+func (m *MockClient) PermanentDeleteAllUsers() (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PermanentDeleteAllUsers")
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1495,11 +1559,11 @@ func (mr *MockClientMockRecorder) PermanentDeleteAllUsers() *gomock.Call {
 }
 
 // PermanentDeleteChannel mocks base method
-func (m *MockClient) PermanentDeleteChannel(arg0 string) (bool, *model.Response) {
+func (m *MockClient) PermanentDeleteChannel(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PermanentDeleteChannel", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1510,11 +1574,11 @@ func (mr *MockClientMockRecorder) PermanentDeleteChannel(arg0 interface{}) *gomo
 }
 
 // PermanentDeleteTeam mocks base method
-func (m *MockClient) PermanentDeleteTeam(arg0 string) (bool, *model.Response) {
+func (m *MockClient) PermanentDeleteTeam(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PermanentDeleteTeam", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1525,11 +1589,11 @@ func (mr *MockClientMockRecorder) PermanentDeleteTeam(arg0 interface{}) *gomock.
 }
 
 // PermanentDeleteUser mocks base method
-func (m *MockClient) PermanentDeleteUser(arg0 string) (bool, *model.Response) {
+func (m *MockClient) PermanentDeleteUser(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PermanentDeleteUser", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1540,11 +1604,11 @@ func (mr *MockClientMockRecorder) PermanentDeleteUser(arg0 interface{}) *gomock.
 }
 
 // PromoteGuestToUser mocks base method
-func (m *MockClient) PromoteGuestToUser(arg0 string) (bool, *model.Response) {
+func (m *MockClient) PromoteGuestToUser(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PromoteGuestToUser", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1555,12 +1619,13 @@ func (mr *MockClientMockRecorder) PromoteGuestToUser(arg0 interface{}) *gomock.C
 }
 
 // RegenOutgoingHookToken mocks base method
-func (m *MockClient) RegenOutgoingHookToken(arg0 string) (*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) RegenOutgoingHookToken(arg0 string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegenOutgoingHookToken", arg0)
 	ret0, _ := ret[0].(*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // RegenOutgoingHookToken indicates an expected call of RegenOutgoingHookToken
@@ -1570,11 +1635,11 @@ func (mr *MockClientMockRecorder) RegenOutgoingHookToken(arg0 interface{}) *gomo
 }
 
 // ReloadConfig mocks base method
-func (m *MockClient) ReloadConfig() (bool, *model.Response) {
+func (m *MockClient) ReloadConfig() (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReloadConfig")
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1585,11 +1650,11 @@ func (mr *MockClientMockRecorder) ReloadConfig() *gomock.Call {
 }
 
 // RemoveLicenseFile mocks base method
-func (m *MockClient) RemoveLicenseFile() (bool, *model.Response) {
+func (m *MockClient) RemoveLicenseFile() (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveLicenseFile")
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1600,11 +1665,11 @@ func (mr *MockClientMockRecorder) RemoveLicenseFile() *gomock.Call {
 }
 
 // RemovePlugin mocks base method
-func (m *MockClient) RemovePlugin(arg0 string) (bool, *model.Response) {
+func (m *MockClient) RemovePlugin(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemovePlugin", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1615,11 +1680,11 @@ func (mr *MockClientMockRecorder) RemovePlugin(arg0 interface{}) *gomock.Call {
 }
 
 // RemoveTeamMember mocks base method
-func (m *MockClient) RemoveTeamMember(arg0, arg1 string) (bool, *model.Response) {
+func (m *MockClient) RemoveTeamMember(arg0, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveTeamMember", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1630,11 +1695,11 @@ func (mr *MockClientMockRecorder) RemoveTeamMember(arg0, arg1 interface{}) *gomo
 }
 
 // RemoveUserFromChannel mocks base method
-func (m *MockClient) RemoveUserFromChannel(arg0, arg1 string) (bool, *model.Response) {
+func (m *MockClient) RemoveUserFromChannel(arg0, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveUserFromChannel", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1645,12 +1710,13 @@ func (mr *MockClientMockRecorder) RemoveUserFromChannel(arg0, arg1 interface{}) 
 }
 
 // ResetSamlAuthDataToEmail mocks base method
-func (m *MockClient) ResetSamlAuthDataToEmail(arg0, arg1 bool, arg2 []string) (int64, *model.Response) {
+func (m *MockClient) ResetSamlAuthDataToEmail(arg0, arg1 bool, arg2 []string) (int64, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ResetSamlAuthDataToEmail", arg0, arg1, arg2)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ResetSamlAuthDataToEmail indicates an expected call of ResetSamlAuthDataToEmail
@@ -1660,12 +1726,13 @@ func (mr *MockClientMockRecorder) ResetSamlAuthDataToEmail(arg0, arg1, arg2 inte
 }
 
 // RestoreChannel mocks base method
-func (m *MockClient) RestoreChannel(arg0 string) (*model.Channel, *model.Response) {
+func (m *MockClient) RestoreChannel(arg0 string) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RestoreChannel", arg0)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // RestoreChannel indicates an expected call of RestoreChannel
@@ -1675,12 +1742,13 @@ func (mr *MockClientMockRecorder) RestoreChannel(arg0 interface{}) *gomock.Call 
 }
 
 // RestoreTeam mocks base method
-func (m *MockClient) RestoreTeam(arg0 string) (*model.Team, *model.Response) {
+func (m *MockClient) RestoreTeam(arg0 string) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RestoreTeam", arg0)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // RestoreTeam indicates an expected call of RestoreTeam
@@ -1690,11 +1758,11 @@ func (mr *MockClientMockRecorder) RestoreTeam(arg0 interface{}) *gomock.Call {
 }
 
 // RevokeUserAccessToken mocks base method
-func (m *MockClient) RevokeUserAccessToken(arg0 string) (bool, *model.Response) {
+func (m *MockClient) RevokeUserAccessToken(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RevokeUserAccessToken", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1705,12 +1773,13 @@ func (mr *MockClientMockRecorder) RevokeUserAccessToken(arg0 interface{}) *gomoc
 }
 
 // SearchTeams mocks base method
-func (m *MockClient) SearchTeams(arg0 *model.TeamSearch) ([]*model.Team, *model.Response) {
+func (m *MockClient) SearchTeams(arg0 *model.TeamSearch) ([]*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchTeams", arg0)
 	ret0, _ := ret[0].([]*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // SearchTeams indicates an expected call of SearchTeams
@@ -1720,11 +1789,11 @@ func (mr *MockClientMockRecorder) SearchTeams(arg0 interface{}) *gomock.Call {
 }
 
 // SendPasswordResetEmail mocks base method
-func (m *MockClient) SendPasswordResetEmail(arg0 string) (bool, *model.Response) {
+func (m *MockClient) SendPasswordResetEmail(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendPasswordResetEmail", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1735,11 +1804,11 @@ func (mr *MockClientMockRecorder) SendPasswordResetEmail(arg0 interface{}) *gomo
 }
 
 // SetServerBusy mocks base method
-func (m *MockClient) SetServerBusy(arg0 int) (bool, *model.Response) {
+func (m *MockClient) SetServerBusy(arg0 int) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetServerBusy", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1750,11 +1819,11 @@ func (mr *MockClientMockRecorder) SetServerBusy(arg0 interface{}) *gomock.Call {
 }
 
 // SoftDeleteTeam mocks base method
-func (m *MockClient) SoftDeleteTeam(arg0 string) (bool, *model.Response) {
+func (m *MockClient) SoftDeleteTeam(arg0 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SoftDeleteTeam", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1765,11 +1834,11 @@ func (mr *MockClientMockRecorder) SoftDeleteTeam(arg0 interface{}) *gomock.Call 
 }
 
 // SyncLdap mocks base method
-func (m *MockClient) SyncLdap(arg0 bool) (bool, *model.Response) {
+func (m *MockClient) SyncLdap(arg0 bool) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SyncLdap", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1780,12 +1849,13 @@ func (mr *MockClientMockRecorder) SyncLdap(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateChannelPrivacy mocks base method
-func (m *MockClient) UpdateChannelPrivacy(arg0 string, arg1 model.ChannelType) (*model.Channel, *model.Response) {
+func (m *MockClient) UpdateChannelPrivacy(arg0 string, arg1 model.ChannelType) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateChannelPrivacy", arg0, arg1)
 	ret0, _ := ret[0].(*model.Channel)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateChannelPrivacy indicates an expected call of UpdateChannelPrivacy
@@ -1795,12 +1865,13 @@ func (mr *MockClientMockRecorder) UpdateChannelPrivacy(arg0, arg1 interface{}) *
 }
 
 // UpdateCommand mocks base method
-func (m *MockClient) UpdateCommand(arg0 *model.Command) (*model.Command, *model.Response) {
+func (m *MockClient) UpdateCommand(arg0 *model.Command) (*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateCommand", arg0)
 	ret0, _ := ret[0].(*model.Command)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateCommand indicates an expected call of UpdateCommand
@@ -1810,12 +1881,13 @@ func (mr *MockClientMockRecorder) UpdateCommand(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateConfig mocks base method
-func (m *MockClient) UpdateConfig(arg0 *model.Config) (*model.Config, *model.Response) {
+func (m *MockClient) UpdateConfig(arg0 *model.Config) (*model.Config, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateConfig", arg0)
 	ret0, _ := ret[0].(*model.Config)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateConfig indicates an expected call of UpdateConfig
@@ -1825,12 +1897,13 @@ func (mr *MockClientMockRecorder) UpdateConfig(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateIncomingWebhook mocks base method
-func (m *MockClient) UpdateIncomingWebhook(arg0 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response) {
+func (m *MockClient) UpdateIncomingWebhook(arg0 *model.IncomingWebhook) (*model.IncomingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateIncomingWebhook", arg0)
 	ret0, _ := ret[0].(*model.IncomingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateIncomingWebhook indicates an expected call of UpdateIncomingWebhook
@@ -1840,12 +1913,13 @@ func (mr *MockClientMockRecorder) UpdateIncomingWebhook(arg0 interface{}) *gomoc
 }
 
 // UpdateOutgoingWebhook mocks base method
-func (m *MockClient) UpdateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response) {
+func (m *MockClient) UpdateOutgoingWebhook(arg0 *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateOutgoingWebhook", arg0)
 	ret0, _ := ret[0].(*model.OutgoingWebhook)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateOutgoingWebhook indicates an expected call of UpdateOutgoingWebhook
@@ -1855,12 +1929,13 @@ func (mr *MockClientMockRecorder) UpdateOutgoingWebhook(arg0 interface{}) *gomoc
 }
 
 // UpdateTeam mocks base method
-func (m *MockClient) UpdateTeam(arg0 *model.Team) (*model.Team, *model.Response) {
+func (m *MockClient) UpdateTeam(arg0 *model.Team) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTeam", arg0)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateTeam indicates an expected call of UpdateTeam
@@ -1870,12 +1945,13 @@ func (mr *MockClientMockRecorder) UpdateTeam(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateTeamPrivacy mocks base method
-func (m *MockClient) UpdateTeamPrivacy(arg0, arg1 string) (*model.Team, *model.Response) {
+func (m *MockClient) UpdateTeamPrivacy(arg0, arg1 string) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTeamPrivacy", arg0, arg1)
 	ret0, _ := ret[0].(*model.Team)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateTeamPrivacy indicates an expected call of UpdateTeamPrivacy
@@ -1885,12 +1961,13 @@ func (mr *MockClientMockRecorder) UpdateTeamPrivacy(arg0, arg1 interface{}) *gom
 }
 
 // UpdateUser mocks base method
-func (m *MockClient) UpdateUser(arg0 *model.User) (*model.User, *model.Response) {
+func (m *MockClient) UpdateUser(arg0 *model.User) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUser", arg0)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UpdateUser indicates an expected call of UpdateUser
@@ -1900,11 +1977,11 @@ func (mr *MockClientMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 }
 
 // UpdateUserActive mocks base method
-func (m *MockClient) UpdateUserActive(arg0 string, arg1 bool) (bool, *model.Response) {
+func (m *MockClient) UpdateUserActive(arg0 string, arg1 bool) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserActive", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1915,11 +1992,11 @@ func (mr *MockClientMockRecorder) UpdateUserActive(arg0, arg1 interface{}) *gomo
 }
 
 // UpdateUserHashedPassword mocks base method
-func (m *MockClient) UpdateUserHashedPassword(arg0, arg1 string) (bool, *model.Response) {
+func (m *MockClient) UpdateUserHashedPassword(arg0, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserHashedPassword", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1930,11 +2007,11 @@ func (mr *MockClientMockRecorder) UpdateUserHashedPassword(arg0, arg1 interface{
 }
 
 // UpdateUserMfa mocks base method
-func (m *MockClient) UpdateUserMfa(arg0, arg1 string, arg2 bool) (bool, *model.Response) {
+func (m *MockClient) UpdateUserMfa(arg0, arg1 string, arg2 bool) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserMfa", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1945,11 +2022,11 @@ func (mr *MockClientMockRecorder) UpdateUserMfa(arg0, arg1, arg2 interface{}) *g
 }
 
 // UpdateUserPassword mocks base method
-func (m *MockClient) UpdateUserPassword(arg0, arg1, arg2 string) (bool, *model.Response) {
+func (m *MockClient) UpdateUserPassword(arg0, arg1, arg2 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserPassword", arg0, arg1, arg2)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1960,11 +2037,11 @@ func (mr *MockClientMockRecorder) UpdateUserPassword(arg0, arg1, arg2 interface{
 }
 
 // UpdateUserRoles mocks base method
-func (m *MockClient) UpdateUserRoles(arg0, arg1 string) (bool, *model.Response) {
+func (m *MockClient) UpdateUserRoles(arg0, arg1 string) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserRoles", arg0, arg1)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -1975,12 +2052,13 @@ func (mr *MockClientMockRecorder) UpdateUserRoles(arg0, arg1 interface{}) *gomoc
 }
 
 // UploadData mocks base method
-func (m *MockClient) UploadData(arg0 string, arg1 io.Reader) (*model.FileInfo, *model.Response) {
+func (m *MockClient) UploadData(arg0 string, arg1 io.Reader) (*model.FileInfo, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UploadData", arg0, arg1)
 	ret0, _ := ret[0].(*model.FileInfo)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UploadData indicates an expected call of UploadData
@@ -1990,11 +2068,11 @@ func (mr *MockClientMockRecorder) UploadData(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // UploadLicenseFile mocks base method
-func (m *MockClient) UploadLicenseFile(arg0 []byte) (bool, *model.Response) {
+func (m *MockClient) UploadLicenseFile(arg0 []byte) (*model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UploadLicenseFile", arg0)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(*model.Response)
+	ret0, _ := ret[0].(*model.Response)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
@@ -2005,12 +2083,13 @@ func (mr *MockClientMockRecorder) UploadLicenseFile(arg0 interface{}) *gomock.Ca
 }
 
 // UploadPlugin mocks base method
-func (m *MockClient) UploadPlugin(arg0 io.Reader) (*model.Manifest, *model.Response) {
+func (m *MockClient) UploadPlugin(arg0 io.Reader) (*model.Manifest, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UploadPlugin", arg0)
 	ret0, _ := ret[0].(*model.Manifest)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // UploadPlugin indicates an expected call of UploadPlugin
@@ -2019,13 +2098,30 @@ func (mr *MockClientMockRecorder) UploadPlugin(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadPlugin", reflect.TypeOf((*MockClient)(nil).UploadPlugin), arg0)
 }
 
+// UploadPluginForced mocks base method
+func (m *MockClient) UploadPluginForced(arg0 io.Reader) (*model.Manifest, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UploadPluginForced", arg0)
+	ret0, _ := ret[0].(*model.Manifest)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// UploadPluginForced indicates an expected call of UploadPluginForced
+func (mr *MockClientMockRecorder) UploadPluginForced(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadPluginForced", reflect.TypeOf((*MockClient)(nil).UploadPluginForced), arg0)
+}
+
 // VerifyUserEmailWithoutToken mocks base method
-func (m *MockClient) VerifyUserEmailWithoutToken(arg0 string) (*model.User, *model.Response) {
+func (m *MockClient) VerifyUserEmailWithoutToken(arg0 string) (*model.User, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "VerifyUserEmailWithoutToken", arg0)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(*model.Response)
-	return ret0, ret1
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // VerifyUserEmailWithoutToken indicates an expected call of VerifyUserEmailWithoutToken

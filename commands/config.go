@@ -314,9 +314,9 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FormatJSON)
 
-	config, response := c.GetConfig()
-	if response.Error != nil {
-		return response.Error
+	config, _, err := c.GetConfig()
+	if err != nil {
+		return err
 	}
 
 	path := strings.Split(args[0], ".")
@@ -330,18 +330,18 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 }
 
 func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	config, response := c.GetConfig()
-	if response.Error != nil {
-		return response.Error
+	config, _, err := c.GetConfig()
+	if err != nil {
+		return err
 	}
 
 	path := parseConfigPath(args[0])
-	if err := setConfigValue(path, config, args[1:]); err != nil {
-		return err
+	if cErr := setConfigValue(path, config, args[1:]); cErr != nil {
+		return cErr
 	}
-	newConfig, res := c.PatchConfig(config)
-	if res.Error != nil {
-		return res.Error
+	newConfig, _, err := c.PatchConfig(config)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT("Value changed successfully", newConfig)
@@ -354,18 +354,18 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return err
 	}
 
-	config, res := c.GetConfig()
-	if res.Error != nil {
-		return res.Error
-	}
-
-	if err := json.Unmarshal(configBytes, config); err != nil {
+	config, _, err := c.GetConfig()
+	if err != nil {
 		return err
 	}
 
-	newConfig, res := c.PatchConfig(config)
-	if res.Error != nil {
-		return res.Error
+	if jErr := json.Unmarshal(configBytes, config); jErr != nil {
+		return jErr
+	}
+
+	newConfig, _, err := c.PatchConfig(config)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT("Config patched successfully", newConfig)
@@ -373,9 +373,9 @@ func configPatchCmdF(c client.Client, _ *cobra.Command, args []string) error {
 }
 
 func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
-	config, response := c.GetConfig()
-	if response.Error != nil {
-		return response.Error
+	config, _, err := c.GetConfig()
+	if err != nil {
+		return err
 	}
 
 	configBytes, err := json.MarshalIndent(config, "", "  ")
@@ -414,13 +414,13 @@ func configEditCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	if err := json.Unmarshal(newConfigBytes, config); err != nil {
-		return err
+	if jErr := json.Unmarshal(newConfigBytes, config); jErr != nil {
+		return jErr
 	}
 
-	newConfig, response := c.UpdateConfig(config)
-	if response.Error != nil {
-		return response.Error
+	newConfig, _, err := c.UpdateConfig(config)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT("Config updated successfully", newConfig)
@@ -440,9 +440,9 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	defaultConfig := &model.Config{}
 	defaultConfig.SetDefaults()
-	config, response := c.GetConfig()
-	if response.Error != nil {
-		return response.Error
+	config, _, err := c.GetConfig()
+	if err != nil {
+		return err
 	}
 
 	for _, arg := range args {
@@ -451,14 +451,14 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		if !ok {
 			return errors.New("invalid key")
 		}
-		err := resetConfigValue(path, config, defaultValue)
-		if err != nil {
-			return err
+		nErr := resetConfigValue(path, config, defaultValue)
+		if nErr != nil {
+			return nErr
 		}
 	}
-	newConfig, res := c.UpdateConfig(config)
-	if res.Error != nil {
-		return res.Error
+	newConfig, _, err := c.UpdateConfig(config)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT("Value/s reset successfully", newConfig)
@@ -468,9 +468,9 @@ func configResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 func configShowCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 	printer.SetFormat(printer.FormatJSON)
-	config, response := c.GetConfig()
-	if response.Error != nil {
-		return response.Error
+	config, _, err := c.GetConfig()
+	if err != nil {
+		return err
 	}
 
 	printer.Print(config)
@@ -483,18 +483,18 @@ func parseConfigPath(configPath string) []string {
 }
 
 func configReloadCmdF(c client.Client, _ *cobra.Command, _ []string) error {
-	_, response := c.ReloadConfig()
-	if response.Error != nil {
-		return response.Error
+	_, err := c.ReloadConfig()
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func configMigrateCmdF(c client.Client, _ *cobra.Command, args []string) error {
-	_, response := c.MigrateConfig(args[0], args[1])
-	if response.Error != nil {
-		return response.Error
+	_, err := c.MigrateConfig(args[0], args[1])
+	if err != nil {
+		return err
 	}
 
 	return nil

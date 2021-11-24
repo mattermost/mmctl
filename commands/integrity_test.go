@@ -39,7 +39,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		s.client.
 			EXPECT().
 			CheckIntegrity().
-			Return(mockResults, &model.Response{Error: nil}).
+			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
 		err := integrityCmdF(s.client, cmd, []string{})
@@ -57,14 +57,14 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		s.client.
 			EXPECT().
 			CheckIntegrity().
-			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := integrityCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal("unable to perform integrity check. Error: : , ", err.Error())
+		s.Require().Equal("unable to perform integrity check. Error: mock error", err.Error())
 	})
 
 	s.Run("Integrity check with errors", func() {
@@ -97,7 +97,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		s.client.
 			EXPECT().
 			CheckIntegrity().
-			Return(mockResults, &model.Response{Error: nil}).
+			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
 		err := integrityCmdF(s.client, cmd, []string{})

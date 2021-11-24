@@ -53,36 +53,10 @@ func (a *App) CreatePostAsUser(c *request.Context, post *model.Post, currentSess
 	rp, err := a.CreatePost(c, post, channel, true, setOnline)
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
-			err.Id == "api.post.create_post.channel_root_id.app_error" ||
-			err.Id == "api.post.create_post.parent_id.app_error" {
+			err.Id == "api.post.create_post.channel_root_id.app_error" {
 			err.StatusCode = http.StatusBadRequest
 		}
 
-		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, nErr := a.Srv().Store.User().Get(context.Background(), post.UserId)
-			if nErr != nil {
-				var nfErr *store.ErrNotFound
-				switch {
-				case errors.As(nErr, &nfErr):
-					return nil, model.NewAppError("CreatePostAsUser", MissingAccountError, nil, nfErr.Error(), http.StatusNotFound)
-				default:
-					return nil, model.NewAppError("CreatePostAsUser", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
-				}
-			}
-
-			T := i18n.GetUserTranslations(user.Locale)
-			a.SendEphemeralPost(
-				post.UserId,
-				&model.Post{
-					ChannelId: channel.Id,
-					ParentId:  post.ParentId,
-					RootId:    post.RootId,
-					UserId:    post.UserId,
-					Message:   T("api.post.create_post.town_square_read_only"),
-					CreateAt:  model.GetMillis() + 1,
-				},
-			)
-		}
 		return nil, err
 	}
 
@@ -215,13 +189,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		post.AddProp("from_bot", "true")
 	}
 
-	if a.Srv().License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
-		!post.IsSystemMessage() &&
-		channel.Name == model.DefaultChannelName &&
-		!a.RolesGrantPermission(user.GetRoles(), model.PermissionManageSystem.Id) {
-		return nil, model.NewAppError("createPost", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
-	}
-
 	var ephemeralPost *model.Post
 	if post.Type == "" && !a.HasPermissionToChannel(user.Id, channel.Id, model.PermissionUseChannelMentions) {
 		mention := post.DisableMentionHighlights()
@@ -230,7 +197,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 			ephemeralPost = &model.Post{
 				UserId:    user.Id,
 				RootId:    post.RootId,
-				ParentId:  post.ParentId,
 				ChannelId: channel.Id,
 				Message:   T("model.post.channel_notifications_disabled_in_channel.message", model.StringInterface{"ChannelName": channel.Name, "Mention": mention}),
 				Props:     model.StringInterface{model.PostPropsMentionHighlightDisabled: true},
@@ -253,17 +219,6 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		rootPost := parentPostList.Posts[post.RootId]
 		if rootPost.RootId != "" {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
-		}
-
-		if post.ParentId == "" {
-			post.ParentId = post.RootId
-		}
-
-		if post.RootId != post.ParentId {
-			parent := parentPostList.Posts[post.ParentId]
-			if parent == nil {
-				return nil, model.NewAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "", http.StatusInternalServerError)
-			}
 		}
 	}
 
@@ -311,6 +266,12 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		}
 	}
 
+	post = a.getEmbedsAndImages(post, true)
+	previewPost := post.GetPreviewPost()
+	if previewPost != nil {
+		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
+	}
+
 	rpost, nErr := a.Srv().Store.Post().Save(post)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -331,6 +292,14 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 
 	// We make a copy of the post for the plugin hook to avoid a race condition.
 	rPostCopy := rpost.Clone()
+
+	// FIXME: Removes PreviewPost from the post payload sent to the MessageHasBeenPosted hook so that plugins compiled with older versions of
+	// Mattermost—without the gob registeration of the PreviewPost struct—won't crash.
+	if rPostCopy.Metadata != nil {
+		rPostCopy.Metadata = rPostCopy.Metadata.Copy()
+	}
+	rPostCopy.RemovePreviewPost()
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv().Go(func() {
 			pluginContext := pluginContext(c)
@@ -379,7 +348,23 @@ func (a *App) CreatePost(c *request.Context, post *model.Post, channel *model.Ch
 		a.SendEphemeralPost(post.UserId, ephemeralPost)
 	}
 
+	rpost, err = a.SanitizePostMetadataForUser(rpost, c.Session().UserId)
+	if err != nil {
+		return nil, err
+	}
+
 	return rpost, nil
+}
+
+func (a *App) addPostPreviewProp(post *model.Post) (*model.Post, error) {
+	previewPost := post.GetPreviewPost()
+	if previewPost != nil {
+		updatedPost := post.Clone()
+		updatedPost.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
+		updatedPost, err := a.Srv().Store.Post().Update(updatedPost, post)
+		return updatedPost, err
+	}
+	return post, nil
 }
 
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
@@ -513,9 +498,14 @@ func (a *App) SendEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	message.Add("post", post.ToJson())
+
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	return post
@@ -531,9 +521,13 @@ func (a *App) UpdateEphemeralPost(userID string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil)
-	post = a.PreparePostForClient(post, true, false)
+	post = a.PreparePostForClientWithEmbedsAndImages(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 
 	return post
@@ -549,7 +543,11 @@ func (a *App) DeleteEphemeralPost(userID, postID string) {
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", "", userID, nil)
-	message.Add("post", post.ToJson())
+	postJSON, jsonErr := post.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+	}
+	message.Add("post", postJSON)
 	a.Publish(message)
 }
 
@@ -664,20 +662,93 @@ func (a *App) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) 
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rpost, false, true)
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
 	// individually.
 	rpost.IsFollowing = nil
 
+	rpost, nErr = a.addPostPreviewProp(rpost)
+	if nErr != nil {
+		return nil, model.NewAppError("UpdatePost", "app.post.update.app_error", nil, nErr.Error(), http.StatusInternalServerError)
+	}
+
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil)
-	message.Add("post", rpost.ToJson())
-	a.Publish(message)
+	postJSON, jsonErr := rpost.ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	message.Add("post", postJSON)
+
+	published, err := a.publishWebsocketEventForPermalinkPost(rpost, message)
+	if err != nil {
+		return nil, err
+	}
+	if !published {
+		a.Publish(message)
+	}
 
 	a.invalidateCacheForChannelPosts(rpost.ChannelId)
 
 	return rpost, nil
+}
+
+func (a *App) publishWebsocketEventForPermalinkPost(post *model.Post, message *model.WebSocketEvent) (published bool, err *model.AppError) {
+	var previewedPostID string
+	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
+		previewedPostID = val
+	} else {
+		return false, nil
+	}
+
+	if !model.IsValidId(previewedPostID) {
+		mlog.Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
+		return false, nil
+	}
+
+	previewedPost, err := a.GetSinglePost(previewedPostID)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
+			return false, nil
+		}
+		return false, err
+	}
+
+	previewedChannel, err := a.GetChannel(previewedPost.ChannelId)
+	if err != nil {
+		if err.StatusCode == http.StatusNotFound {
+			mlog.Warn("channel containing permalinked post not found", mlog.String("referenced_channel_id", previewedPost.ChannelId))
+			return false, nil
+		}
+		return false, err
+	}
+
+	channelMembers, err := a.GetChannelMembersPage(post.ChannelId, 0, 10000000)
+	if err != nil {
+		return false, err
+	}
+
+	for _, cm := range channelMembers {
+		postForUser := post.Clone()
+		if !a.HasPermissionToReadChannel(cm.UserId, previewedChannel) {
+			postForUser.Metadata.Embeds[0].Data = nil
+		}
+		messageCopy := message.Copy()
+		broadcastCopy := messageCopy.GetBroadcast()
+		broadcastCopy.UserId = cm.UserId
+		messageCopy.SetBroadcast(broadcastCopy)
+
+		postJSON, jsonErr := postForUser.ToJSON()
+		if jsonErr != nil {
+			mlog.Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
+		}
+		messageCopy.Add("post", postJSON)
+		a.Publish(messageCopy)
+	}
+
+	return true, nil
 }
 
 func (a *App) PatchPost(c *request.Context, postID string, patch *model.PostPatch) (*model.Post, *model.AppError) {
@@ -1063,15 +1134,18 @@ func (a *App) DeletePost(postID, deleteByID string) (*model.Post, *model.AppErro
 		}
 	}
 
-	postData := a.PreparePostForClient(post, false, false).ToJson()
+	postJSON, jsonErr := json.Marshal(post)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode post to JSON")
+	}
 
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
-	userMessage.Add("post", postData)
+	userMessage.Add("post", string(postJSON))
 	userMessage.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil)
-	adminMessage.Add("post", postData)
+	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
 	a.Publish(adminMessage)

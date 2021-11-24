@@ -357,6 +357,76 @@ func testPostStoreSaveMultiple(t *testing.T, ss store.Store) {
 		assert.Greater(t, rchannel.LastPostAt, channel.LastPostAt)
 		assert.Equal(t, int64(3), rchannel.TotalMsgCount)
 	})
+
+	t.Run("Thread participants", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = "jessica hyde" + model.NewId() + "b"
+
+		root, err := ss.Post().Save(&o1)
+		require.NoError(t, err)
+
+		o2 := model.Post{}
+		o2.ChannelId = model.NewId()
+		o2.UserId = model.NewId()
+		o2.RootId = root.Id
+		o2.Message = "zz" + model.NewId() + "b"
+
+		o3 := model.Post{}
+		o3.ChannelId = model.NewId()
+		o3.UserId = model.NewId()
+		o3.RootId = root.Id
+		o3.Message = "zz" + model.NewId() + "b"
+
+		o4 := model.Post{}
+		o4.ChannelId = model.NewId()
+		o4.UserId = o2.UserId
+		o4.RootId = root.Id
+		o4.Message = "zz" + model.NewId() + "b"
+
+		o5 := model.Post{}
+		o5.ChannelId = model.NewId()
+		o5.UserId = o1.UserId
+		o5.RootId = root.Id
+		o5.Message = "zz" + model.NewId() + "b"
+
+		_, err = ss.Post().Save(&o2)
+		require.NoError(t, err)
+		thread, errT := ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(1), thread.ReplyCount)
+		assert.Equal(t, int(1), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o2.UserId}, thread.Participants)
+
+		_, err = ss.Post().Save(&o3)
+		require.NoError(t, err)
+		thread, errT = ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(2), thread.ReplyCount)
+		assert.Equal(t, int(2), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o2.UserId, o3.UserId}, thread.Participants)
+
+		_, err = ss.Post().Save(&o4)
+		require.NoError(t, err)
+		thread, errT = ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(3), thread.ReplyCount)
+		assert.Equal(t, int(2), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o3.UserId, o2.UserId}, thread.Participants)
+
+		_, err = ss.Post().Save(&o5)
+		require.NoError(t, err)
+		thread, errT = ss.Thread().Get(root.Id)
+		require.NoError(t, errT)
+
+		assert.Equal(t, int64(4), thread.ReplyCount)
+		assert.Equal(t, int(3), len(thread.Participants))
+		assert.Equal(t, model.StringArray{o3.UserId, o2.UserId, o1.UserId}, thread.Participants)
+	})
 }
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
@@ -483,7 +553,7 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	o4.Message = model.NewRandomString(10)
 	o4.RootId = o1.Id
 
-	o3, err = ss.Post().Save(o3)
+	_, err = ss.Post().Save(o3)
 	require.NoError(t, err)
 
 	o4, err = ss.Post().Save(o4)
@@ -500,7 +570,7 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 	require.Equal(t, post.CreateAt, o1.CreateAt, "invalid returned post")
 	require.Equal(t, int64(1), post.ReplyCount, "wrong replyCount computed")
 
-	post, err = ss.Post().GetSingle(o2.Id, false)
+	_, err = ss.Post().GetSingle(o2.Id, false)
 	require.Error(t, err, "should not return deleted post")
 
 	post, err = ss.Post().GetSingle(o2.Id, true)
@@ -525,7 +595,6 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -616,7 +685,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
+	o1.Message = model.NewRandomString(10)
 	deleteByID := model.NewId()
 
 	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
@@ -657,7 +726,6 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -684,7 +752,6 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -693,7 +760,6 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o2.Id
 	o3.RootId = o1.Id
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
@@ -733,7 +799,6 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -773,7 +838,6 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -810,7 +874,6 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -819,7 +882,6 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o2.Id
 	o3.RootId = o1.Id
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
@@ -859,7 +921,6 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	_, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -869,7 +930,6 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o2a.ChannelId = o1.ChannelId
 	o2a.UserId = model.NewId()
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a.ParentId = o1.Id
 	o2a.RootId = o1.Id
 	o2a, err = ss.Post().Save(o2a)
 	require.NoError(t, err)
@@ -879,7 +939,6 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o3.ChannelId = o1.ChannelId
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3, err = ss.Post().Save(o3)
 	require.NoError(t, err)
@@ -897,7 +956,6 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o5.ChannelId = o1.ChannelId
 	o5.UserId = model.NewId()
 	o5.Message = "zz" + model.NewId() + "b"
-	o5.ParentId = o4.Id
 	o5.RootId = o4.Id
 	o5, err = ss.Post().Save(o5)
 	require.NoError(t, err)
@@ -1073,7 +1131,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post1.Id,
 			RootId:    post1.Id,
 			Message:   "message",
 		})
@@ -1085,7 +1142,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			ChannelId: channelId,
 			UserId:    userId,
 			RootId:    post2.Id,
-			ParentId:  post2.Id,
 			Message:   "message",
 		})
 		require.NoError(t, err)
@@ -1103,7 +1159,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post2.Id,
 			RootId:    post2.Id,
 			Message:   "message",
 		})
@@ -1174,7 +1229,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post1.Id,
 			RootId:    post1.Id,
 			Message:   "post3",
 		})
@@ -1186,7 +1240,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			ChannelId: channelId,
 			UserId:    userId,
 			RootId:    post2.Id,
-			ParentId:  post2.Id,
 			Message:   "post4",
 		})
 		require.NoError(t, err)
@@ -1204,7 +1257,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post2.Id,
 			RootId:    post2.Id,
 			Message:   "post6",
 		})
@@ -1283,7 +1335,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post3, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post1.Id,
 			RootId:    post1.Id,
 			Message:   "post3",
 		})
@@ -1295,7 +1346,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 			ChannelId: channelId,
 			UserId:    userId,
 			RootId:    post2.Id,
-			ParentId:  post2.Id,
 			Message:   "post4",
 		})
 		require.NoError(t, err)
@@ -1313,7 +1363,6 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post6, err := ss.Post().Save(&model.Post{
 			ChannelId: channelId,
 			UserId:    userId,
-			ParentId:  post2.Id,
 			RootId:    post2.Id,
 			Message:   "post6",
 		})
@@ -1606,7 +1655,6 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	o0a.ChannelId = channelId
 	o0a.UserId = model.NewId()
 	o0a.Message = "zz" + model.NewId() + "b"
-	o0a.ParentId = o1.Id
 	o0a.RootId = o1.Id
 	_, err = ss.Post().Save(o0a)
 	require.NoError(t, err)
@@ -1616,7 +1664,6 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	o0b.ChannelId = channelId
 	o0b.UserId = model.NewId()
 	o0b.Message = "deleted message"
-	o0b.ParentId = o1.Id
 	o0b.RootId = o1.Id
 	o0b.DeleteAt = 1
 	_, err = ss.Post().Save(o0b)
@@ -1643,7 +1690,6 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, ss store.Store) {
 	o2a.ChannelId = channelId
 	o2a.UserId = model.NewId()
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a.ParentId = o2.Id
 	o2a.RootId = o2.Id
 	_, err = ss.Post().Save(o2a)
 	require.NoError(t, err)
@@ -1963,7 +2009,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	r2, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
@@ -1979,7 +2025,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	r3, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
@@ -2007,7 +2053,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 		},
 	}
 
-	err = ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
@@ -2022,7 +2068,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 			Value:    "true",
 		},
 	}
-	err = ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
@@ -2041,7 +2087,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlStor
 			Value:    "true",
 		},
 	}
-	err = ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(preferences)
 	require.NoError(t, err)
 
 	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
@@ -2091,7 +2137,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	nErr := ss.Preference().Save(&preferences)
+	nErr := ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
 	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
@@ -2107,7 +2153,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	nErr = ss.Preference().Save(&preferences)
+	nErr = ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
 	r3, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)
@@ -2135,7 +2181,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	nErr = ss.Preference().Save(&preferences)
+	nErr = ss.Preference().Save(preferences)
 	require.NoError(t, nErr)
 
 	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
@@ -2189,7 +2235,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	nErr := ss.Preference().Save(&model.Preferences{preference})
+	nErr := ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
@@ -2197,11 +2243,11 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	require.Len(t, r.Order, 1, "should have 1 post")
 
 	preference.Name = o2.Id
-	nErr = ss.Preference().Save(&model.Preferences{preference})
+	nErr = ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
 	preference.Name = o3.Id
-	nErr = ss.Preference().Save(&model.Preferences{preference})
+	nErr = ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
@@ -2221,7 +2267,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	require.Len(t, r.Order, 2, "should have 2 posts")
 
 	preference.Name = o4.Id
-	nErr = ss.Preference().Save(&model.Preferences{preference})
+	nErr = ss.Preference().Save(model.Preferences{preference})
 	require.NoError(t, nErr)
 
 	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
@@ -2252,7 +2298,6 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2.CreateAt = createTime + 1
 	_, err = ss.Post().Save(o2)
@@ -2282,7 +2327,6 @@ func testPostStoreOverwriteMultiple(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -2409,7 +2453,6 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
-	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2, err = ss.Post().Save(o2)
 	require.NoError(t, err)
@@ -2583,7 +2626,6 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3 := &model.Post{}
 	o3.ChannelId = c1.Id
 	o3.UserId = model.NewId()
-	o3.ParentId = o1.Id
 	o3.RootId = o1.Id
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3, err = ss.Post().Save(o3)
@@ -2935,7 +2977,6 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	p2.UserId = u1.Id
 	p2.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	p2.CreateAt = 1001
-	p2.ParentId = p1.Id
 	p2.RootId = p1.Id
 	p2, nErr = ss.Post().Save(p2)
 	require.NoError(t, nErr)
@@ -3174,6 +3215,8 @@ func testHasAutoResponsePostByUserSince(t *testing.T, ss store.Store) {
 			Message:   "message",
 		})
 		require.NoError(t, err)
+		// We need to sleep because SendAutoResponseIfNecessary
+		// runs in a goroutine.
 		time.Sleep(time.Millisecond)
 
 		post2, err := ss.Post().Save(&model.Post{

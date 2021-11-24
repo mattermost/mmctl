@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -379,7 +380,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 	if !activate && user.IsSSOUser() {
 		printer.Print("You must also deactivate user " + user.Id + " in the SSO provider or they will be reactivated on next login or sync.")
 	}
-	if _, response := c.UpdateUserActive(user.Id, activate); response.Error != nil {
+	if _, err := c.UpdateUserActive(user.Id, activate); err != nil {
 		return fmt.Errorf("unable to change activation status of user: %v", user.Id)
 	}
 
@@ -434,19 +435,19 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		DisableWelcomeEmail: disableWelcomeEmail,
 	}
 
-	ruser, response := c.CreateUser(user)
+	ruser, _, err := c.CreateUser(user)
 
-	if response.Error != nil {
-		return errors.New("Unable to create user. Error: " + response.Error.Error())
+	if err != nil {
+		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
 	if systemAdmin {
-		if _, response := c.UpdateUserRoles(ruser.Id, "system_user system_admin"); response.Error != nil {
-			return errors.New("Unable to update user roles. Error: " + response.Error.Error())
+		if _, err := c.UpdateUserRoles(ruser.Id, "system_user system_admin"); err != nil {
+			return errors.New("Unable to update user roles. Error: " + err.Error())
 		}
 	} else if guest {
-		if _, response := c.DemoteUserToGuest(ruser.Id); response.Error != nil {
-			return errors.Wrapf(response.Error, "Unable to demote use to guest.")
+		if _, err := c.DemoteUserToGuest(ruser.Id); err != nil {
+			return errors.Wrapf(err, "Unable to demote use to guest.")
 		}
 	}
 
@@ -483,8 +484,8 @@ func inviteUser(c client.Client, email string, team *model.Team, teamArg string)
 		return fmt.Errorf("can't find team '%v'", teamArg)
 	}
 
-	if _, response := c.InviteUsersToTeam(team.Id, invites); response.Error != nil {
-		return errors.New("Unable to invite user with email " + email + " to team " + team.Name + ". Error: " + response.Error.Error())
+	if _, err := c.InviteUsersToTeam(team.Id, invites); err != nil {
+		return errors.New("Unable to invite user with email " + email + " to team " + team.Name + ". Error: " + err.Error())
 	}
 
 	printer.Print("Invites may or may not have been sent.")
@@ -502,8 +503,8 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
-		if _, response := c.SendPasswordResetEmail(email); response.Error != nil {
-			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + response.Error.Error())
+		if _, err := c.SendPasswordResetEmail(email); err != nil {
+			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
 	}
 
@@ -530,9 +531,9 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 	user.Email = newEmail
 
-	ruser, response := c.UpdateUser(user)
-	if response.Error != nil {
-		return errors.New(response.Error.Error())
+	ruser, _, err := c.UpdateUser(user)
+	if err != nil {
+		return errors.New(err.Error())
 	}
 
 	printer.PrintT("User {{.Username}} updated successfully", ruser)
@@ -556,9 +557,9 @@ func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 
 	user.Username = newUsername
 
-	ruser, response := c.UpdateUser(user)
-	if response.Error != nil {
-		return errors.New(response.Error.Error())
+	ruser, _, err := c.UpdateUser(user)
+	if err != nil {
+		return errors.New(err.Error())
 	}
 
 	printer.PrintT("User {{.Username}} updated successfully", ruser)
@@ -595,12 +596,12 @@ func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	if hashed {
-		if _, resp := c.UpdateUserHashedPassword(user.Id, password); resp.Error != nil {
-			return errors.Wrap(resp.Error, "changing user hashed password failed")
+		if _, err := c.UpdateUserHashedPassword(user.Id, password); err != nil {
+			return errors.Wrap(err, "changing user hashed password failed")
 		}
 	} else {
-		if _, resp := c.UpdateUserPassword(user.Id, current, password); resp.Error != nil {
-			return errors.Wrap(resp.Error, "changing user password failed")
+		if _, err := c.UpdateUserPassword(user.Id, current, password); err != nil {
+			return errors.Wrap(err, "changing user password failed")
 		}
 	}
 
@@ -619,15 +620,15 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	for _, user := range users {
-		if _, response := c.UpdateUserMfa(user.Id, "", false); response.Error != nil {
-			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + response.Error.Error())
+		if _, err := c.UpdateUserMfa(user.Id, "", false); err != nil {
+			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + err.Error())
 		}
 	}
 
 	return nil
 }
 
-func deleteUser(c client.Client, user *model.User) (bool, *model.Response) {
+func deleteUser(c client.Client, user *model.User) (*model.Response, error) {
 	return c.PermanentDeleteUser(user.Id)
 }
 
@@ -648,8 +649,8 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, response := deleteUser(c, user); response.Error != nil {
-			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + response.Error.Error())
+		if _, err := deleteUser(c, user); err != nil {
+			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
@@ -665,11 +666,11 @@ func deleteAllUsersCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	if _, response := c.PermanentDeleteAllUsers(); response.Error != nil {
-		return response.Error
+	if _, err := c.PermanentDeleteAllUsers(); err != nil {
+		return err
 	}
 
-	printer.Print("All users successfully deleted")
+	defer printer.Print("All users successfully deleted")
 
 	return nil
 }
@@ -729,27 +730,26 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 
 	var team *model.Team
 	if teamName != "" {
-		var resp *model.Response
-		team, resp = c.GetTeamByName(teamName, "")
-		if resp.Error != nil {
-			return errors.Wrap(resp.Error, fmt.Sprintf("Failed to get team %s", teamName))
+		var err error
+		team, _, err = c.GetTeamByName(teamName, "")
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Failed to get team %s", teamName))
 		}
 	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
-
 	for {
 		var users []*model.User
-		var res *model.Response
+		var err error
 		if team != nil {
-			users, res = c.GetUsersInTeam(team.Id, page, perPage, "")
-			if res.Error != nil {
-				return errors.Wrap(res.Error, fmt.Sprintf("Failed to fetch users for team %s", teamName))
+			users, _, err = c.GetUsersInTeam(team.Id, page, perPage, "")
+			if err != nil {
+				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
 			}
 		} else {
-			users, res = c.GetUsers(page, perPage, "")
-			if res.Error != nil {
-				return errors.Wrap(res.Error, "Failed to fetch users")
+			users, _, err = c.GetUsers(page, perPage, "")
+			if err != nil {
+				return errors.Wrap(err, "Failed to fetch users")
 			}
 		}
 		if len(users) == 0 {
@@ -776,8 +776,8 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 	}
 
 	for _, user := range users {
-		if newUser, resp := c.VerifyUserEmailWithoutToken(user.Id); resp.Error != nil {
-			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, resp.Error))
+		if newUser, _, err := c.VerifyUserEmailWithoutToken(user.Id); err != nil {
+			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
@@ -806,9 +806,9 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 		printer.PrintError(err.Error())
 	}
 	for _, user := range users {
-		bot, resp := c.ConvertUserToBot(user.Id)
-		if resp.Error != nil {
-			printer.PrintError(resp.Error.Error())
+		bot, _, err := c.ConvertUserToBot(user.Id)
+		if err != nil {
+			printer.PrintError(err.Error())
 			continue
 		}
 
@@ -873,9 +873,9 @@ func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) er
 		systemAdmin, _ = cmd.Flags().GetBool("system_admin")
 	}
 
-	user, resp := c.ConvertBotToUser(user.Id, up, systemAdmin)
-	if resp.Error != nil {
-		return resp.Error
+	user, _, err = c.ConvertBotToUser(user.Id, up, systemAdmin)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT("{{.Username}} converted to user.", user)
@@ -917,10 +917,10 @@ func migrateAuthToSamlCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 		return errors.New("invalid from_auth argument")
 	}
 
-	ok, resp := c.MigrateAuthToSaml(fromAuth, matches, auto)
-	if resp.Error != nil {
-		return resp.Error
-	} else if ok {
+	resp, err := c.MigrateAuthToSaml(fromAuth, matches, auto)
+	if err != nil {
+		return err
+	} else if resp.StatusCode == http.StatusOK {
 		printer.Print("Successfully migrated accounts.")
 	}
 
@@ -940,10 +940,10 @@ func migrateAuthToLdapCmdF(c client.Client, cmd *cobra.Command, userArgs []strin
 
 	force, _ := cmd.Flags().GetBool("force")
 
-	ok, resp := c.MigrateAuthToLdap(fromAuth, matchField, force)
-	if resp.Error != nil {
-		return resp.Error
-	} else if ok {
+	resp, err := c.MigrateAuthToLdap(fromAuth, matchField, force)
+	if err != nil {
+		return err
+	} else if resp.StatusCode == http.StatusOK {
 		printer.Print("Successfully migrated accounts.")
 	}
 
@@ -957,8 +957,8 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 			continue
 		}
 
-		if _, resp := c.PromoteGuestToUser(user.Id); resp.Error != nil {
-			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], resp.Error))
+		if _, err := c.PromoteGuestToUser(user.Id); err != nil {
+			printer.PrintError(fmt.Sprintf("unable to promote guest %s: %s", userArgs[i], err))
 			continue
 		}
 
@@ -975,8 +975,8 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 			continue
 		}
 
-		if _, resp := c.DemoteUserToGuest(user.Id); resp.Error != nil {
-			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], resp.Error))
+		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
+			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], err))
 			continue
 		}
 
