@@ -91,6 +91,7 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	var subscriptionChange *model.SubscriptionChange
 	if err = json.Unmarshal(bodyBytes, &subscriptionChange); err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	currentSubscription, appErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
@@ -102,42 +103,26 @@ func changeSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	changedSub, err := c.App.Cloud().ChangeSubscription(c.AppContext.Session().UserId, currentSubscription.ID, subscriptionChange)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	json, err := json.Marshal(changedSub)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.changeSubscription", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Write(json)
 }
 
 func getSubscriptionStats(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil || !*c.App.Srv().License().Features.Cloud {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.license_error", nil, "", http.StatusInternalServerError)
-		return
-	}
-
-	subscription, appErr := c.App.Cloud().GetSubscription("")
-
-	if appErr != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "api.cloud.request_error", nil, appErr.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	count, err := c.App.Srv().Store.User().Count(model.UserCountOptions{})
+	s, err := c.App.GetSubscriptionStats()
 	if err != nil {
-		c.Err = model.NewAppError("Api4.getSubscriptionStats", "app.user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		c.Err = err
 		return
 	}
-	cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
 
-	s := cloudUserLimit - count
-
-	stats, _ := json.Marshal(model.SubscriptionStats{
-		RemainingSeats: int(s),
-		IsPaidTier:     subscription.IsPaidTier,
-	})
+	stats, _ := json.Marshal(s)
 
 	w.Write([]byte(string(stats)))
 }

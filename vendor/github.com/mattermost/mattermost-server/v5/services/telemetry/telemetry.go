@@ -122,20 +122,16 @@ func (ts *TelemetryService) ensureTelemetryID() {
 	if ts.TelemetryID != "" {
 		return
 	}
-	props, err := ts.dbStore.System().Get()
+
+	id := model.NewId()
+	systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
+	systemID, err := ts.dbStore.System().InsertIfExists(systemID)
 	if err != nil {
 		mlog.Error("unable to get the telemetry ID", mlog.Err(err))
 		return
 	}
 
-	id := props[model.SYSTEM_TELEMETRY_ID]
-	if id == "" {
-		id = model.NewId()
-		systemID := &model.System{Name: model.SYSTEM_TELEMETRY_ID, Value: id}
-		ts.dbStore.System().Save(systemID)
-	}
-
-	ts.TelemetryID = id
+	ts.TelemetryID = systemID.Value
 }
 
 func (ts *TelemetryService) getRudderConfig() RudderConfig {
@@ -781,6 +777,7 @@ func (ts *TelemetryService) trackConfig() {
 		"message_retention_days":  *cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":     *cfg.DataRetentionSettings.FileRetentionDays,
 		"deletion_job_start_time": *cfg.DataRetentionSettings.DeletionJobStartTime,
+		"batch_size":              *cfg.DataRetentionSettings.BatchSize,
 	})
 
 	ts.sendTelemetry(TrackConfigMessageExport, map[string]interface{}{
@@ -1310,6 +1307,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"automatic_prepackaged_plugins": *cfg.PluginSettings.AutomaticPrepackagedPlugins,
 		"is_default_marketplace_url":    isDefault(*cfg.PluginSettings.MarketplaceUrl, model.PLUGIN_SETTINGS_DEFAULT_MARKETPLACE_URL),
 		"signature_public_key_files":    len(cfg.PluginSettings.SignaturePublicKeyFiles),
+		"chimera_oauth_proxy_url":       *cfg.PluginSettings.ChimeraOAuthProxyUrl,
 	}
 
 	// knownPluginIDs lists all known plugin IDs in the Marketplace
@@ -1336,6 +1334,7 @@ func (ts *TelemetryService) trackPluginConfig(cfg *model.Config, marketplaceURL 
 		"memes",
 		"skype4business",
 		"zoom",
+		"focalboard",
 	}
 
 	marketplacePlugins, err := ts.getAllMarketplaceplugins(marketplaceURL)
