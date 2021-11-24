@@ -386,11 +386,12 @@ func newSqlChannelStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 		table.ColMap("Purpose").SetMaxSize(250)
 		table.ColMap("CreatorId").SetMaxSize(26)
 		table.ColMap("SchemeId").SetMaxSize(26)
+		table.ColMap("LastRootPostAt").SetDefaultConstraint(model.NewString("0"))
 
 		tablem := db.AddTableWithName(channelMember{}, "ChannelMembers").SetKeys(false, "ChannelId", "UserId")
 		tablem.ColMap("ChannelId").SetMaxSize(26)
 		tablem.ColMap("UserId").SetMaxSize(26)
-		tablem.ColMap("Roles").SetMaxSize(64)
+		tablem.ColMap("Roles").SetMaxSize(model.UserRolesMaxLength)
 		tablem.ColMap("NotifyProps").SetDataType(sqlStore.jsonDataType())
 
 		tablePublicChannels := db.AddTableWithName(publicChannel{}, "PublicChannels").SetKeys(false, "Id")
@@ -955,13 +956,16 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 			sq.And{
 				sq.Expr("Id = ChannelId"),
 				sq.Eq{"UserId": userId},
-				sq.Or{
-					sq.Eq{"TeamId": teamId},
-					sq.Eq{"TeamId": ""},
-				},
 			},
 		).
 		OrderBy("DisplayName")
+
+	if teamId != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"TeamId": teamId},
+			sq.Eq{"TeamId": ""},
+		})
+	}
 
 	if includeDeleted {
 		if lastDeleteAt != 0 {
@@ -1630,6 +1634,52 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) (*model.Chann
 		return nil, err
 	}
 	return updatedMembers[0], nil
+}
+
+func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error) {
+	tx, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransaction(tx)
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		_, err = tx.Exec(`UPDATE channelmembers
+			SET notifyprops = notifyprops || $1::jsonb
+			WHERE userid=$2 AND channelid=$3`, model.MapToJSON(props), userID, channelID)
+	} else {
+		// It's difficult to construct a SQL query for MySQL
+		// to handle a case of empty map. So we just ignore it.
+		if len(props) > 0 {
+			// unpack the keys and values to pass to MySQL.
+			args, argString := constructMySQLJSONArgs(props)
+			args = append(args, userID, channelID)
+
+			// Example: UPDATE ChannelMembers
+			// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+			// WHERE ...
+			_, err = tx.Exec(`UPDATE ChannelMembers
+				SET NotifyProps = JSON_SET(NotifyProps, `+argString+`)
+				WHERE UserId=? AND ChannelId=?`, args...)
+		}
+	}
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to update ChannelMember with channelID=%s and userID=%s", channelID, userID)
+	}
+
+	var dbMember channelMemberWithSchemeRoles
+	if err2 := tx.SelectOne(&dbMember, ChannelMembersWithSchemeSelectQuery+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId = :UserId", map[string]interface{}{"ChannelId": channelID, "UserId": userID}); err2 != nil {
+		if err2 == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
+		}
+		return nil, errors.Wrapf(err2, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
+	}
+
+	if err2 := tx.Commit(); err2 != nil {
+		return nil, errors.Wrap(err2, "commit_transaction")
+	}
+
+	return dbMember.ToModel(), err
 }
 
 func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) (model.ChannelMembers, error) {

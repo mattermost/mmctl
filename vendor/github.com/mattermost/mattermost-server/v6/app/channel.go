@@ -21,26 +21,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/utils"
 )
 
-// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
-//
-func (a *App) CreateDefaultChannels(c *request.Context, teamID string) ([]*model.Channel, *model.AppError) {
-	displayNames := map[string]string{
-		"town-square": i18n.T("api.channel.create_default_channels.town_square"),
-		"off-topic":   i18n.T("api.channel.create_default_channels.off_topic"),
-	}
-	channels := []*model.Channel{}
-	defaultChannelNames := a.DefaultChannelNames()
-	for _, name := range defaultChannelNames {
-		displayName := i18n.TDefault(displayNames[name], name)
-		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.ChannelTypeOpen, TeamId: teamID}
-		if _, err := a.CreateChannel(c, channel, false); err != nil {
-			return nil, err
-		}
-		channels = append(channels, channel)
-	}
-	return channels, nil
-}
-
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
@@ -1211,39 +1191,54 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelID string, userID string, is
 }
 
 func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	var member *model.ChannelMember
-	var err *model.AppError
-	if member, err = a.GetChannelMember(context.Background(), channelID, userID); err != nil {
-		return nil, err
-	}
+	filteredProps := make(map[string]string)
 
 	// update whichever notify properties have been provided, but don't change the others
 	if markUnread, exists := data[model.MarkUnreadNotifyProp]; exists {
-		member.NotifyProps[model.MarkUnreadNotifyProp] = markUnread
+		filteredProps[model.MarkUnreadNotifyProp] = markUnread
 	}
 
 	if desktop, exists := data[model.DesktopNotifyProp]; exists {
-		member.NotifyProps[model.DesktopNotifyProp] = desktop
+		filteredProps[model.DesktopNotifyProp] = desktop
 	}
 
 	if email, exists := data[model.EmailNotifyProp]; exists {
-		member.NotifyProps[model.EmailNotifyProp] = email
+		filteredProps[model.EmailNotifyProp] = email
 	}
 
 	if push, exists := data[model.PushNotifyProp]; exists {
-		member.NotifyProps[model.PushNotifyProp] = push
+		filteredProps[model.PushNotifyProp] = push
 	}
 
 	if ignoreChannelMentions, exists := data[model.IgnoreChannelMentionsNotifyProp]; exists {
-		member.NotifyProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
+		filteredProps[model.IgnoreChannelMentionsNotifyProp] = ignoreChannelMentions
 	}
 
-	member, err = a.updateChannelMember(member)
+	member, err := a.Srv().Store.Channel().UpdateMemberNotifyProps(channelID, userID, filteredProps)
 	if err != nil {
-		return nil, err
+		var appErr *model.AppError
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("updateMemberNotifyProps", MissingChannelMemberError, nil, nfErr.Error(), http.StatusNotFound)
+		default:
+			return nil, model.NewAppError("updateMemberNotifyProps", "app.channel.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
+	a.InvalidateCacheForUser(member.UserId)
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
+
+	// Notify the clients that the member notify props changed
+	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil)
+	memberJSON, jsonErr := json.Marshal(member)
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode channel member to JSON", mlog.Err(jsonErr))
+	}
+	evt.Add("channelMember", string(memberJSON))
+	a.Publish(evt)
 
 	return member, nil
 }
@@ -2335,7 +2330,11 @@ func (a *App) removeUserFromChannel(c *request.Context, userIDToRemove string, r
 				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 
-			if err = a.RemoveTeamMemberFromTeam(c, teamMember, removerUserId); err != nil {
+			if err := a.ch.srv.teamService.RemoveTeamMember(teamMember); err != nil {
+				return model.NewAppError("removeUserFromChannel", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+
+			if err = a.postProcessTeamMemberLeave(c, teamMember, removerUserId); err != nil {
 				return err
 			}
 		}
