@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 
@@ -171,12 +172,16 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	updateMentionChans := []chan *model.AppError{}
 	mentionAutofollowChans := []chan *model.AppError{}
 	threadParticipants := map[string]bool{post.UserId: true}
+	participantMemberships := map[string]*model.ThreadMembership{}
+	membershipsMutex := &sync.Mutex{}
 	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId != "" {
 		var rootMentions *ExplicitMentions
 		if parentPostList != nil {
-			threadParticipants[parentPostList.Posts[parentPostList.Order[0]].UserId] = true
+			rootPost := parentPostList.Posts[parentPostList.Order[0]]
+			if rootPost.GetProp("from_webhook") != "true" {
+				threadParticipants[rootPost.UserId] = true
+			}
 			if channel.Type != model.CHANNEL_DIRECT {
-				rootPost := parentPostList.Posts[parentPostList.Order[0]]
 				rootMentions = getExplicitMentions(rootPost, keywords, groups)
 				for id := range rootMentions.Mentions {
 					threadParticipants[id] = true
@@ -191,7 +196,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mac := make(chan *model.AppError, 1)
 			go func(userID string) {
 				defer close(mac)
-				_, incrementMentions := mentions.Mentions[userID]
+				mentionType, incrementMentions := mentions.Mentions[userID]
 				// if the user was not explicitly mentioned, check if they explicitly unfollowed the thread
 				if !incrementMentions {
 					membership, err := a.Srv().Store.Thread().GetMembershipForUser(userID, post.RootId)
@@ -203,15 +208,33 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					}
 
 					if membership != nil && !membership.Following {
+						membershipsMutex.Lock()
+						participantMemberships[userID] = membership
+						membershipsMutex.Unlock()
 						return
 					}
 				}
-				_, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, true, incrementMentions, *a.Config().ServiceSettings.ThreadAutoFollow, userID == post.UserId, userID == post.UserId)
 
+				updateFollowing := *a.Config().ServiceSettings.ThreadAutoFollow
+				if mentionType == ThreadMention || mentionType == CommentMention {
+					incrementMentions = false
+					updateFollowing = false
+				}
+				opts := store.ThreadMembershipOpts{
+					Following:             true,
+					IncrementMentions:     incrementMentions,
+					UpdateFollowing:       updateFollowing,
+					UpdateViewedTimestamp: userID == post.UserId,
+					UpdateParticipants:    userID == post.UserId,
+				}
+				threadMembership, err := a.Srv().Store.Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
 					mac <- model.NewAppError("SendNotifications", "app.channel.autofollow.app_error", nil, err.Error(), http.StatusInternalServerError)
 					return
 				}
+				membershipsMutex.Lock()
+				participantMemberships[userID] = threadMembership
+				membershipsMutex.Unlock()
 
 				mac <- nil
 			}(id)
@@ -459,12 +482,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		for _, uid := range followers {
 			sendEvent := *a.Config().ServiceSettings.CollapsedThreads == model.COLLAPSED_THREADS_DEFAULT_ON
 			// check if a participant has overridden collapsed threads settings
-			if preference, err := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); err == nil {
+			if preference, prefErr := a.Srv().Store.Preference().Get(uid, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_COLLAPSED_THREADS_ENABLED); prefErr == nil {
 				sendEvent = preference.Value == "on"
 			}
 			if sendEvent {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_THREAD_UPDATED, team.Id, "", uid, nil)
-				userThread, err := a.Srv().Store.Thread().GetThreadForUser(uid, channel.TeamId, post.RootId, true)
+				threadMembership := participantMemberships[uid]
+				if threadMembership == nil {
+					threadMembership, err = a.Srv().Store.Thread().GetMembershipForUser(uid, post.RootId)
+					if err != nil {
+						return nil, errors.Wrapf(err, "Missing thread membership for participant in notifications. user_id=%q thread_id=%q", uid, post.RootId)
+					}
+					if threadMembership == nil {
+						continue
+					}
+				}
+				userThread, err := a.Srv().Store.Thread().GetThreadForUser(channel.TeamId, threadMembership, true)
 				if err != nil {
 					return nil, errors.Wrapf(err, "cannot get thread %q for user %q", post.RootId, uid)
 				}
@@ -1037,8 +1070,10 @@ func (n *PostNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	if overridesAllowed && n.Channel.Type != model.CHANNEL_DIRECT {
-		if value, ok := n.Post.GetProps()["override_username"]; ok && n.Post.GetProp("from_webhook") == "true" {
-			return value.(string)
+		if value := n.Post.GetProps()["override_username"]; value != nil && n.Post.GetProp("from_webhook") == "true" {
+			if s, ok := value.(string); ok {
+				return s
+			}
 		}
 	}
 

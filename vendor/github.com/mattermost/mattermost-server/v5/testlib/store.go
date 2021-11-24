@@ -62,7 +62,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_INTEGRATIONS_SUBSECTION_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SHARED_CHANNEL_PERMISSIONS, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS).Return(&model.System{Name: model.MIGRATION_KEY_ADD_MANAGE_SECURE_CONNECTIONS_PERMISSIONS, Value: "true"}, nil)
-	systemStore.On("Get").Return(make(model.StringMap), nil)
+	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
 
 	userStore := mocks.UserStore{}
@@ -87,6 +87,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	roleStore := mocks.RoleStore{}
 	roleStore.On("GetAll").Return([]*model.Role{}, nil)
 
+	sessionStore := mocks.SessionStore{}
+	oAuthStore := mocks.OAuthStore{}
+
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)
 	mockStore.On("Post").Return(&postStore)
@@ -98,5 +101,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	mockStore.On("Close").Return(nil)
 	mockStore.On("DropAllTables").Return(nil)
 	mockStore.On("MarkSystemRanUnitTests").Return(nil)
+	mockStore.On("Session").Return(&sessionStore)
+	mockStore.On("OAuth").Return(&oAuthStore)
 	return &mockStore
 }

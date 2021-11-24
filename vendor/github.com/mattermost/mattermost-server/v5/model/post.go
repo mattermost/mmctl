@@ -102,7 +102,7 @@ type Post struct {
 	ReplyCount   int64         `json:"reply_count" db:"-"`
 	LastReplyAt  int64         `json:"last_reply_at" db:"-"`
 	Participants []*User       `json:"participants" db:"-"`
-	IsFollowing  bool          `json:"is_following" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
+	IsFollowing  *bool         `json:"is_following,omitempty" db:"-"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty" db:"-"`
 }
 
@@ -207,7 +207,9 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.Participants = o.Participants
 	dst.LastReplyAt = o.LastReplyAt
 	dst.Metadata = o.Metadata
-	dst.IsFollowing = o.IsFollowing
+	if o.IsFollowing != nil {
+		dst.IsFollowing = NewBool(*o.IsFollowing)
+	}
 	dst.RemoteId = o.RemoteId
 	return nil
 }
@@ -369,6 +371,9 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 }
 
 func (o *Post) SanitizeProps() {
+	if o == nil {
+		return
+	}
 	membersToSanitize := []string{
 		PROPS_ADD_CHANNEL_MEMBER,
 	}
@@ -600,6 +605,7 @@ func (o *Post) Attachments() []*SlackAttachment {
 			if enc, err := json.Marshal(attachment); err == nil {
 				var decoded SlackAttachment
 				if json.Unmarshal(enc, &decoded) == nil {
+					// Ignoring nil actions
 					i := 0
 					for _, action := range decoded.Actions {
 						if action != nil {
@@ -608,6 +614,16 @@ func (o *Post) Attachments() []*SlackAttachment {
 						}
 					}
 					decoded.Actions = decoded.Actions[:i]
+
+					// Ignoring nil fields
+					i = 0
+					for _, field := range decoded.Fields {
+						if field != nil {
+							decoded.Fields[i] = field
+							i++
+						}
+					}
+					decoded.Fields = decoded.Fields[:i]
 					ret = append(ret, &decoded)
 				}
 			}
@@ -725,4 +741,11 @@ func RewriteImageURLs(message string, f func(string) string) string {
 func (o *Post) IsFromOAuthBot() bool {
 	props := o.GetProps()
 	return props["from_webhook"] == "true" && props["override_username"] != ""
+}
+
+func (o *Post) ToNilIfInvalid() *Post {
+	if o.Id == "" {
+		return nil
+	}
+	return o
 }

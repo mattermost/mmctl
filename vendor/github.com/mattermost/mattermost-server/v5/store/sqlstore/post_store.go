@@ -7,11 +7,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
@@ -34,7 +34,7 @@ type SqlPostStore struct {
 
 type postWithExtra struct {
 	ThreadReplyCount   int64
-	IsFollowing        bool
+	IsFollowing        *bool
 	ThreadParticipants model.StringArray
 	model.Post
 }
@@ -42,8 +42,34 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-func postSliceColumns() []string {
-	return []string{"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt", "IsPinned", "UserId", "ChannelId", "RootId", "ParentId", "OriginalId", "Message", "Type", "Props", "Hashtags", "Filenames", "FileIds", "HasReactions", "RemoteId"}
+func postSliceColumnsWithTypes() []struct {
+	Name string
+	Type reflect.Kind
+} {
+	return []struct {
+		Name string
+		Type reflect.Kind
+	}{
+		{"Id", reflect.String},
+		{"CreateAt", reflect.Int64},
+		{"UpdateAt", reflect.Int64},
+		{"EditAt", reflect.Int64},
+		{"DeleteAt", reflect.Int64},
+		{"IsPinned", reflect.Bool},
+		{"UserId", reflect.String},
+		{"ChannelId", reflect.String},
+		{"RootId", reflect.String},
+		{"ParentId", reflect.String},
+		{"OriginalId", reflect.String},
+		{"Message", reflect.String},
+		{"Type", reflect.String},
+		{"Props", reflect.Map},
+		{"Hashtags", reflect.String},
+		{"Filenames", reflect.Slice},
+		{"FileIds", reflect.Slice},
+		{"HasReactions", reflect.Bool},
+		{"RemoteId", reflect.String},
+	}
 }
 
 func postToSlice(post *model.Post) []interface{} {
@@ -68,6 +94,37 @@ func postToSlice(post *model.Post) []interface{} {
 		post.HasReactions,
 		post.RemoteId,
 	}
+}
+
+func postSliceColumns() []string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		cols[i] = colInfo.Name
+	}
+	return cols
+}
+
+func postSliceCoalesceQuery() string {
+	colInfos := postSliceColumnsWithTypes()
+	cols := make([]string, len(colInfos))
+	for i, colInfo := range colInfos {
+		var defaultValue string
+		switch colInfo.Type {
+		case reflect.String:
+			defaultValue = "''"
+		case reflect.Int64:
+			defaultValue = "0"
+		case reflect.Bool:
+			defaultValue = "false"
+		case reflect.Map:
+			defaultValue = "'{}'"
+		case reflect.Slice:
+			defaultValue = "'[]'"
+		}
+		cols[i] = "COALESCE(Posts." + colInfo.Name + "," + defaultValue + ") AS " + colInfo.Name
+	}
+	return strings.Join(cols, ",")
 }
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
@@ -101,7 +158,6 @@ func (s *SqlPostStore) createIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_update_at", "Posts", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_posts_create_at", "Posts", "CreateAt")
 	s.CreateIndexIfNotExists("idx_posts_delete_at", "Posts", "DeleteAt")
-	s.CreateIndexIfNotExists("idx_posts_channel_id", "Posts", "ChannelId")
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
@@ -541,13 +597,19 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, skipFetchThreads, col
 
 func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, error) {
 	query := s.getQueryBuilder().
-		Select("*").
+		Select("p.*").
+		From("Posts p").
+		Where(sq.Eq{"p.Id": id})
+
+	replyCountSubQuery := s.getQueryBuilder().
+		Select("COUNT(Posts.Id)").
 		From("Posts").
-		Where(sq.Eq{"Id": id})
+		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 
 	if !inclDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
+		query = query.Where(sq.Eq{"p.DeleteAt": 0})
 	}
+	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -740,7 +802,9 @@ func (s *SqlPostStore) prepareThreadedResponse(posts []*postWithExtra, extended,
 	}
 	processPost := func(p *postWithExtra) error {
 		p.Post.ReplyCount = p.ThreadReplyCount
-		p.Post.IsFollowing = p.IsFollowing
+		if p.IsFollowing != nil {
+			p.Post.IsFollowing = model.NewBool(*p.IsFollowing)
+		}
 		for _, th := range p.ThreadParticipants {
 			var participant *model.User
 			for _, u := range users {
@@ -976,20 +1040,21 @@ func (s *SqlPostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFr
 
 func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error) {
 	query := `
-		SELECT 1
-		FROM
-			Posts
-		WHERE
-			UpdateAt >= :Time
-			AND
-			ChannelId = :ChannelId
-			AND
-			UserId = :UserId
-			AND
-			Type = :Type
-		LIMIT 1`
+		SELECT EXISTS (SELECT 1
+				FROM
+					Posts
+				WHERE
+					UpdateAt >= :Time
+					AND
+					ChannelId = :ChannelId
+					AND
+					UserId = :UserId
+					AND
+					Type = :Type
+				LIMIT 1)`
 
-	exist, err := s.GetReplica().SelectInt(query, map[string]interface{}{
+	var exist bool
+	err := s.GetReplica().SelectOne(&exist, query, map[string]interface{}{
 		"ChannelId": options.ChannelId,
 		"Time":      options.Time,
 		"UserId":    userId,
@@ -998,10 +1063,10 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 
 	if err != nil {
 		return false, errors.Wrapf(err,
-			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, time.Unix(options.Time, 0).Format(time.RFC3339))
+			"failed to check if autoresponse posts in channelId=%s for userId=%s since %s", options.ChannelId, userId, model.GetTimeForMillis(options.Time))
 	}
 
-	return exist > 0, nil
+	return exist, nil
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
@@ -1926,6 +1991,46 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 	return posts, nil
 }
 
+// PermanentDeleteBatchForRetentionPolicies deletes a batch of records which are affected by
+// the global or a granular retention policy.
+// See `genericPermanentDeleteBatchForRetentionPolicies` for details.
+func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(now, globalPolicyEndTime, limit int64, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error) {
+	builder := s.getQueryBuilder().
+		Select("Posts.Id").
+		From("Posts")
+	return genericPermanentDeleteBatchForRetentionPolicies(RetentionPolicyBatchDeletionInfo{
+		BaseBuilder:         builder,
+		Table:               "Posts",
+		TimeColumn:          "CreateAt",
+		PrimaryKeys:         []string{"Id"},
+		ChannelIDTable:      "Posts",
+		NowMillis:           now,
+		GlobalPolicyEndTime: globalPolicyEndTime,
+		Limit:               limit,
+	}, s.SqlStore, cursor)
+}
+
+// DeleteOrphanedRows removes entries from Posts when a corresponding channel no longer exists.
+func (s *SqlPostStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
+	// We need the extra level of nesting to deal with MySQL's locking
+	const query = `
+	DELETE FROM Posts WHERE Id IN (
+		SELECT * FROM (
+			SELECT Posts.Id FROM Posts
+			LEFT JOIN Channels ON Posts.ChannelId = Channels.Id
+			WHERE Channels.Id IS NULL
+			LIMIT :Limit
+		) AS A
+	)`
+	props := map[string]interface{}{"Limit": limit}
+	result, err := s.GetMaster().Exec(query, props)
+	if err != nil {
+		return
+	}
+	deleted, err = result.RowsAffected()
+	return
+}
+
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == "postgres" {
@@ -2284,7 +2389,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 	if len(rootIds) == 0 {
 		return nil
 	}
-	now := model.GetMillis()
 	threadsByRootsSql, threadsByRootsArgs, _ := s.getQueryBuilder().Select("*").From("Threads").Where(sq.Eq{"PostId": rootIds}).ToSql()
 	var threadsByRoots []*model.Thread
 	if _, err := transaction.Select(&threadsByRoots, threadsByRootsSql, threadsByRootsArgs...); err != nil {
@@ -2308,23 +2412,30 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *gorp.Transaction, pos
 			if err != nil {
 				return err
 			}
+			// calculate last reply at
+			lastReplyAt, err := transaction.SelectInt("SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE RootID=:RootId and DeleteAt=0", map[string]interface{}{"RootId": rootId})
+			if err != nil {
+				return err
+			}
 			// no metadata entry, create one
 			if err := transaction.Insert(&model.Thread{
 				PostId:       rootId,
 				ChannelId:    posts[0].ChannelId,
 				ReplyCount:   count,
-				LastReplyAt:  now,
+				LastReplyAt:  lastReplyAt,
 				Participants: participants,
 			}); err != nil {
 				return err
 			}
 		} else {
 			// metadata exists, update it
-			thread.LastReplyAt = now
 			for _, post := range posts {
 				thread.ReplyCount += 1
 				if !thread.Participants.Contains(post.UserId) {
 					thread.Participants = append(thread.Participants, post.UserId)
+				}
+				if post.CreateAt > thread.LastReplyAt {
+					thread.LastReplyAt = post.CreateAt
 				}
 			}
 			if _, err := transaction.Update(thread); err != nil {

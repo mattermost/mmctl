@@ -17,6 +17,7 @@ func (api *API) InitConfigLocal() {
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localGetConfig)).Methods("GET")
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiLocal(localUpdateConfig)).Methods("PUT")
 	api.BaseRoutes.ApiRoot.Handle("/config/patch", api.ApiLocal(localPatchConfig)).Methods("PUT")
+	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiLocal(configReload)).Methods("POST")
 	api.BaseRoutes.ApiRoot.Handle("/config/migrate", api.ApiLocal(migrateConfig)).Methods("POST")
 }
 
@@ -68,7 +69,7 @@ func localUpdateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("updateConfig", "api.config.update_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	newCfg.Sanitize()
 
@@ -124,7 +125,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.patch_config.diff.app_error", nil, diffErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	auditRec.AddMeta("diff", diffs)
+	auditRec.AddMeta("diff", diffs.Sanitize())
 
 	auditRec.Success()
 

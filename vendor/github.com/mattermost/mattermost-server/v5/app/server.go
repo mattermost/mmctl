@@ -20,7 +20,6 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -38,6 +37,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/v5/app/featureflag"
+	"github.com/mattermost/mattermost-server/v5/app/imaging"
 	"github.com/mattermost/mattermost-server/v5/app/request"
 	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/config"
@@ -135,7 +135,6 @@ type Server struct {
 	newStore func() (store.Store, error)
 
 	htmlTemplateWatcher     *templates.Container
-	sessionCache            cache.Cache
 	seenPendingPostIdsCache cache.Cache
 	statusCache             cache.Cache
 	configListenerId        string
@@ -192,6 +191,7 @@ type Server struct {
 	Metrics          einterfaces.MetricsInterface
 	Notification     einterfaces.NotificationInterface
 	Saml             einterfaces.SamlInterface
+	LicenseManager   einterfaces.LicenseInterface
 
 	CacheProvider cache.Provider
 
@@ -207,6 +207,12 @@ type Server struct {
 	featureFlagStop              chan struct{}
 	featureFlagStopped           chan struct{}
 	featureFlagSynchronizerMutex sync.Mutex
+
+	imgDecoder *imaging.Decoder
+	imgEncoder *imaging.Encoder
+
+	dndTaskMut sync.Mutex
+	dndTask    *model.ScheduledTask
 }
 
 func NewServer(options ...Option) (*Server, error) {
@@ -229,7 +235,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.configStore == nil {
-		innerStore, err := config.NewFileStore("config.json", true)
+		innerStore, err := config.NewFileStore("config.json")
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to load config")
 		}
@@ -243,6 +249,20 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if err := s.initLogging(); err != nil {
 		mlog.Error("Could not initiate logging", mlog.Err(err))
+	}
+
+	var imgErr error
+	s.imgDecoder, imgErr = imaging.NewDecoder(imaging.DecoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image decoder")
+	}
+	s.imgEncoder, imgErr = imaging.NewEncoder(imaging.EncoderOptions{
+		ConcurrencyLevel: runtime.NumCPU(),
+	})
+	if imgErr != nil {
+		return nil, errors.Wrap(imgErr, "failed to create image encoder")
 	}
 
 	// This is called after initLogging() to avoid a race condition.
@@ -311,13 +331,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	var err error
-	if s.sessionCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
-		Size:           model.SESSION_CACHE_SIZE,
-		Striped:        true,
-		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	}); err != nil {
-		return nil, errors.Wrap(err, "Unable to create session cache")
-	}
 	if s.seenPendingPostIdsCache, err = s.CacheProvider.NewCache(&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
 	}); err != nil {
@@ -342,19 +355,6 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.newStore == nil {
 		s.newStore = func() (store.Store, error) {
 			s.sqlStore = sqlstore.New(s.Config().SqlSettings, s.Metrics)
-			if s.sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				ver, err2 := s.sqlStore.GetDbVersion(true)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot get DB version")
-				}
-				intVer, err2 := strconv.Atoi(ver)
-				if err2 != nil {
-					return nil, errors.Wrap(err2, "cannot parse DB version")
-				}
-				if intVer < sqlstore.MinimumRequiredPostgresVersion {
-					return nil, fmt.Errorf("minimum required postgres version is %s; found %s", sqlstore.VersionString(sqlstore.MinimumRequiredPostgresVersion), sqlstore.VersionString(intVer))
-				}
-			}
 
 			lcl, err2 := localcachelayer.NewLocalCacheLayer(
 				retrylayer.New(s.sqlStore),
@@ -390,26 +390,35 @@ func NewServer(options ...Option) (*Server, error) {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
-		mlog.Error("Failed find server templates", mlog.String("directory", "templates"))
-	} else {
-		htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
-		if err2 != nil {
-			return nil, errors.Wrap(err2, "cannot initialize server templates")
-		}
-		s.Go(func() {
-			for err2 := range errorsChan {
-				mlog.Warn("Server templates error", mlog.Err(err2))
-			}
-		})
-		s.htmlTemplateWatcher = htmlTemplateWatcher
+		return nil, errors.New("Failed find server templates in \"templates\" directory or MM_SERVER_PATH")
 	}
+	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+	if err2 != nil {
+		return nil, errors.Wrap(err2, "cannot initialize server templates")
+	}
+	s.Go(func() {
+		for err2 := range errorsChan {
+			mlog.Warn("Server templates error", mlog.Err(err2))
+		}
+	})
+	s.htmlTemplateWatcher = htmlTemplateWatcher
 
 	s.Store, err = s.newStore()
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot create store")
 	}
 
-	s.userService = users.New(s.Store.User(), s.Config)
+	s.userService, err = users.New(users.ServiceConfig{
+		UserStore:    s.Store.User(),
+		SessionStore: s.Store.Session(),
+		OAuthStore:   s.Store.OAuth(),
+		ConfigFn:     s.Config,
+		Metrics:      s.Metrics,
+		Cluster:      s.Cluster,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "unable to create users service")
+	}
 
 	s.configListenerId = s.AddConfigListener(func(_, _ *model.Config) {
 		s.configOrLicenseListener()
@@ -667,7 +676,7 @@ func NewServer(options ...Option) (*Server, error) {
 		s.Go(func() {
 			s.runLicenseExpirationCheckJob()
 			runCheckAdminSupportStatusJob(app, c)
-			runCheckWarnMetricStatusJob(app, c)
+			runDNDStatusExpireJob(app)
 		})
 		s.runJobs()
 	}
@@ -682,6 +691,14 @@ func NewServer(options ...Option) (*Server, error) {
 			s.initPlugins(c, *cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
 		} else {
 			s.ShutDownPlugins()
+		}
+	})
+	s.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !oldCfg.FeatureFlags.TimedDND && newCfg.FeatureFlags.TimedDND {
+			runDNDStatusExpireJob(app)
+		}
+		if oldCfg.FeatureFlags.TimedDND && !newCfg.FeatureFlags.TimedDND {
+			stopDNDStatusExpireJob(app)
 		}
 	})
 
@@ -1045,6 +1062,12 @@ func (s *Server) Shutdown() {
 	if err := mlog.Flush(timeoutCtx); err != nil {
 		mlog.Warn("Error flushing logs", mlog.Err(err))
 	}
+
+	s.dndTaskMut.Lock()
+	if s.dndTask != nil {
+		s.dndTask.Cancel()
+	}
+	s.dndTaskMut.Unlock()
 
 	mlog.Info("Server stopped")
 
@@ -1467,14 +1490,6 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	awsMeter.ReportUserCategoryUsage(reports)
 }
 
-//nolint:golint,unused,deadcode
-func runCheckWarnMetricStatusJob(a *App, c *request.Context) {
-	doCheckWarnMetricStatus(a, c)
-	model.CreateRecurringTask("Check Warn Metric Status Job", func() {
-		doCheckWarnMetricStatus(a, c)
-	}, time.Hour*model.WARN_METRIC_JOB_INTERVAL)
-}
-
 func runCheckAdminSupportStatusJob(a *App, c *request.Context) {
 	doCheckAdminSupportStatus(a, c)
 	model.CreateRecurringTask("Check Admin Support Status Job", func() {
@@ -1500,150 +1515,6 @@ const (
 
 func doSessionCleanup(s *Server) {
 	s.Store.Session().Cleanup(model.GetMillis(), SessionsCleanupBatchSize)
-}
-
-//nolint:golint,unused,deadcode
-func doCheckWarnMetricStatus(a *App, c *request.Context) {
-	license := a.Srv().License()
-	if license != nil {
-		mlog.Debug("License is present, skip")
-		return
-	}
-
-	// Get the system fields values from store
-	systemDataList, nErr := a.Srv().Store.System().Get()
-	if nErr != nil {
-		mlog.Error("No system properties obtained", mlog.Err(nErr))
-		return
-	}
-
-	warnMetricStatusFromStore := make(map[string]string)
-
-	for key, value := range systemDataList {
-		if strings.HasPrefix(key, model.WARN_METRIC_STATUS_STORE_PREFIX) {
-			if _, ok := model.WarnMetricsTable[key]; ok {
-				warnMetricStatusFromStore[key] = value
-				if value == model.WARN_METRIC_STATUS_ACK {
-					// If any warn metric has already been acked, we return
-					mlog.Debug("Warn metrics have been acked, skip")
-					return
-				}
-			}
-		}
-	}
-
-	lastWarnMetricRunTimestamp, err := a.Srv().getLastWarnMetricTimestamp()
-	if err != nil {
-		mlog.Debug("Cannot obtain last advisory run timestamp", mlog.Err(err))
-	} else {
-		currentTime := utils.MillisFromTime(time.Now())
-		// If the admin advisory has already been shown in the last 7 days
-		if (currentTime-lastWarnMetricRunTimestamp)/(model.WARN_METRIC_JOB_WAIT_TIME) < 1 {
-			mlog.Debug("No advisories should be shown during the wait interval time")
-			return
-		}
-	}
-
-	numberOfActiveUsers, err0 := a.Srv().Store.User().Count(model.UserCountOptions{})
-	if err0 != nil {
-		mlog.Debug("Error attempting to get active registered users.", mlog.Err(err0))
-	}
-
-	teamCount, err1 := a.Srv().Store.Team().AnalyticsTeamCount(nil)
-	if err1 != nil {
-		mlog.Debug("Error attempting to get number of teams.", mlog.Err(err1))
-	}
-
-	openChannelCount, err2 := a.Srv().Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
-	if err2 != nil {
-		mlog.Debug("Error attempting to get number of public channels.", mlog.Err(err2))
-	}
-
-	// If an account is created with a different email domain
-	// Search for an entry that has an email account different from the current domain
-	// Get domain account from site url
-	localDomainAccount := utils.GetHostnameFromSiteURL(*a.Srv().Config().ServiceSettings.SiteURL)
-	isDiffEmailAccount, err3 := a.Srv().Store.User().AnalyticsGetExternalUsers(localDomainAccount)
-	if err3 != nil {
-		mlog.Debug("Error attempting to get number of private channels.", mlog.Err(err3))
-	}
-
-	warnMetrics := []model.WarnMetric{}
-
-	if numberOfActiveUsers < model.WARN_METRIC_NUMBER_OF_ACTIVE_USERS_25 {
-		return
-	} else if teamCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5])
-	} else if *a.Config().ServiceSettings.EnableMultifactorAuthentication && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_MFA] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_MFA])
-	} else if isDiffEmailAccount && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_EMAIL_DOMAIN])
-	} else if openChannelCount >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50] != model.WARN_METRIC_STATUS_RUNONCE {
-		warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_50])
-	}
-
-	// If the system did not cross any of the thresholds for the Contextual Advisories
-	if len(warnMetrics) == 0 {
-		if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100] != model.WARN_METRIC_STATUS_RUNONCE {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200] != model.WARN_METRIC_STATUS_RUNONCE {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300].Limit && numberOfActiveUsers < model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300] != model.WARN_METRIC_STATUS_RUNONCE {
-			warnMetrics = append(warnMetrics, model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300])
-		} else if numberOfActiveUsers >= model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500].Limit {
-			var tWarnMetric model.WarnMetric
-
-			if warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500] != model.WARN_METRIC_STATUS_RUNONCE {
-				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500]
-			}
-
-			postsCount, err4 := a.Srv().Store.Post().AnalyticsPostCount("", false, false)
-			if err4 != nil {
-				mlog.Debug("Error attempting to get number of posts.", mlog.Err(err4))
-			}
-
-			if postsCount > model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M].Limit && warnMetricStatusFromStore[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M] != model.WARN_METRIC_STATUS_RUNONCE {
-				tWarnMetric = model.WarnMetricsTable[model.SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M]
-			}
-
-			if tWarnMetric != (model.WarnMetric{}) {
-				warnMetrics = append(warnMetrics, tWarnMetric)
-			}
-		}
-	}
-
-	isE0Edition := model.BuildEnterpriseReady == "true" // license == nil was already validated upstream
-
-	for _, warnMetric := range warnMetrics {
-		data, nErr := a.Srv().Store.System().GetByName(warnMetric.Id)
-		if nErr == nil && data != nil && warnMetric.IsBotOnly && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
-			mlog.Debug("This metric warning is bot only and ran once")
-			continue
-		}
-
-		warnMetricStatus, _ := a.getWarnMetricStatusAndDisplayTextsForId(warnMetric.Id, nil, isE0Edition)
-		if !warnMetric.IsBotOnly {
-			// Banner and bot metric types - send websocket event every interval
-			message := model.NewWebSocketEvent(model.WEBSOCKET_WARN_METRIC_STATUS_RECEIVED, "", "", "", nil)
-			message.Add("warnMetricStatus", warnMetricStatus.ToJson())
-			a.Publish(message)
-
-			// Banner and bot metric types, send the bot message only once
-			if data != nil && data.Value == model.WARN_METRIC_STATUS_RUNONCE {
-				continue
-			}
-		}
-
-		if nerr := a.notifyAdminsOfWarnMetricStatus(c, warnMetric.Id, isE0Edition); nerr != nil {
-			mlog.Error("Failed to send notifications to admin users.", mlog.Err(nerr))
-		}
-
-		if warnMetric.IsRunOnce {
-			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_RUNONCE)
-		} else {
-			a.setWarnMetricsStatusForId(warnMetric.Id, model.WARN_METRIC_STATUS_LIMIT_REACHED)
-		}
-	}
 }
 
 func doCheckAdminSupportStatus(a *App, c *request.Context) {
@@ -1756,6 +1627,52 @@ func (s *Server) startMetricsServer() {
 	s.Log.Info("Metrics and profiling server is started", mlog.String("address", l.Addr().String()))
 }
 
+func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, license *model.License) *model.AppError {
+	key := model.LICENSE_UP_FOR_RENEWAL_EMAIL_SENT + license.Id
+	if _, err := s.Store.System().GetByName(key); err == nil {
+		// return early because the key already exists and that means we already executed the code below to send email successfully
+		return nil
+	}
+
+	daysToExpiration := license.DaysToExpiration()
+
+	renewalLink, appErr := s.GenerateLicenseRenewalLink()
+	if appErr != nil {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_generating_link", nil, appErr.Error(), http.StatusInternalServerError)
+	}
+
+	// we want to at least have one email sent out to an admin
+	countNotOks := 0
+
+	for _, user := range users {
+		name := user.FirstName
+		if name == "" {
+			name = user.Username
+		}
+		ok, err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.Config().ServiceSettings.SiteURL, renewalLink, daysToExpiration)
+		if !ok || err != nil {
+			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email))
+			countNotOks++
+		}
+	}
+
+	// if not even one admin got an email, we consider that this operation errored
+	if countNotOks == len(users) {
+		return model.NewAppError("s.sendLicenseUpForRenewalEmail", "api.server.license_up_for_renewal.error_sending_email", nil, "", http.StatusInternalServerError)
+	}
+
+	system := model.System{
+		Name:  key,
+		Value: "true",
+	}
+
+	if err := s.Store.System().Save(&system); err != nil {
+		mlog.Debug("Failed to mark license up for renewal email sending as completed.", mlog.Err(err))
+	}
+
+	return nil
+}
+
 func (s *Server) doLicenseExpirationCheck() {
 	s.LoadLicense()
 	license := s.License()
@@ -1765,14 +1682,21 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if !license.IsPastGracePeriod() {
-		mlog.Debug("License is not past the grace period.")
-		return
-	}
-
 	users, err := s.Store.User().GetSystemAdminProfiles()
 	if err != nil {
 		mlog.Error("Failed to get system admins for license expired message from Mattermost.")
+		return
+	}
+
+	if license.IsWithinExpirationPeriod() {
+		appErr := s.sendLicenseUpForRenewalEmail(users, license)
+		if appErr != nil {
+			mlog.Debug(appErr.Error())
+		}
+	}
+
+	if !license.IsPastGracePeriod() {
+		mlog.Debug("License is not past the grace period.")
 		return
 	}
 
@@ -2240,18 +2164,18 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 }
 
 func (s *Server) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	var img []byte
-	var appErr *model.AppError
+	img, err := s.userService.GetDefaultProfileImage(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.DefaultFontError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
+		case errors.Is(err, users.UserInitialsError):
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
+		default:
+			return nil, model.NewAppError("GetDefaultProfileImage", "api.user.create_profile_image.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
 
-	if user.IsBot {
-		img = model.BotDefaultImage
-		appErr = nil
-	} else {
-		img, appErr = CreateProfileImage(user.Username, user.Id, *s.Config().FileSettings.InitialFont)
-	}
-	if appErr != nil {
-		return nil, appErr
-	}
 	return img, nil
 }
 
@@ -2279,3 +2203,41 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 // 	}
 // 	return result, nil
 // }
+
+func createDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	a.srv.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, 5*time.Minute)
+	a.srv.dndTaskMut.Unlock()
+}
+
+func cancelDNDStatusExpirationRecurringTask(a *App) {
+	a.srv.dndTaskMut.Lock()
+	if a.srv.dndTask != nil {
+		a.srv.dndTask.Cancel()
+		a.srv.dndTask = nil
+	}
+	a.srv.dndTaskMut.Unlock()
+}
+
+func runDNDStatusExpireJob(a *App) {
+	if !a.Config().FeatureFlags.TimedDND {
+		return
+	}
+	if a.IsLeader() {
+		createDNDStatusExpirationRecurringTask(a)
+	}
+	a.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
+		if a.IsLeader() {
+			createDNDStatusExpirationRecurringTask(a)
+		} else {
+			cancelDNDStatusExpirationRecurringTask(a)
+		}
+	})
+}
+
+func stopDNDStatusExpireJob(a *App) {
+	if a.IsLeader() {
+		cancelDNDStatusExpirationRecurringTask(a)
+	}
+}
