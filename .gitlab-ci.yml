@@ -24,7 +24,7 @@ docs:
 
 lint:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.31.0-1
+  image: docker.io/golangci/golangci-lint:v1.42.1
   script:
     - echo "Installing mattermost-govet"
     - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet
