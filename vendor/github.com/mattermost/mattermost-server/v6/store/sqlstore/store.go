@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	dbsql "database/sql"
 	"fmt"
 	"os"
@@ -341,7 +342,7 @@ func (ss *SqlStore) initConnection() {
 		var err error
 		dataSource, err = resetReadTimeout(dataSource)
 		if err != nil {
-			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err))
+			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(err), mlog.String("src", dataSource))
 		}
 	}
 
@@ -438,6 +439,15 @@ func (ss *SqlStore) GetMasterX() *sqlxDBWrapper {
 	return ss.masterX
 }
 
+func (ss *SqlStore) SetMasterX(db *sql.DB) {
+	ss.masterX = newSqlxDBWrapper(sqlx.NewDb(db, ss.DriverName()),
+		time.Duration(*ss.settings.QueryTimeout)*time.Second,
+		*ss.settings.Trace)
+	if ss.DriverName() == model.DatabaseDriverMysql {
+		ss.masterX.MapperFunc(noOpMapper)
+	}
+}
+
 func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 	ss.licenseMutex.RLock()
 	license := ss.license
@@ -452,6 +462,22 @@ func (ss *SqlStore) GetSearchReplica() *gorp.DbMap {
 
 	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicas))
 	return ss.searchReplicas[rrNum]
+}
+
+func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
+	ss.licenseMutex.RLock()
+	license := ss.license
+	ss.licenseMutex.RUnlock()
+	if license == nil {
+		return ss.GetMasterX()
+	}
+
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
+		return ss.GetReplicaX()
+	}
+
+	rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
+	return ss.searchReplicaXs[rrNum]
 }
 
 func (ss *SqlStore) GetReplica() *gorp.DbMap {
@@ -645,27 +671,6 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 		mlog.Fatal("Failed to check if column exists because of missing driver")
 		return false
 	}
-}
-
-func (ss *SqlStore) DoesIndexExist(indexName string, tableName string) bool {
-	if ss.DriverName() == model.DatabaseDriverPostgres {
-		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
-		// It should fail if the index does not exist
-		return err == nil
-	} else if ss.DriverName() == model.DatabaseDriverMysql {
-		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
-		if err != nil {
-			mlog.Fatal("Failed to check index", mlog.Err(err))
-		}
-
-		if count <= 0 {
-			return false
-		}
-	} else {
-		mlog.Fatal("Failed to check if index exists because of missing driver")
-	}
-
-	return true
 }
 
 // GetColumnInfo returns data type information about the given column.
@@ -1621,15 +1626,4 @@ func (ss *SqlStore) jsonDataType() string {
 		return "jsonb"
 	}
 	return "json"
-}
-
-func (ss *SqlStore) isMariaDB() (bool, error) {
-	ver, err := ss.GetDbVersion(true)
-	if err != nil {
-		return false, err
-	} else if strings.Contains(strings.ToLower(ver), "maria") {
-		return true, nil
-	}
-
-	return false, nil
 }

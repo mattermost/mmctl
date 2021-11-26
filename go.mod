@@ -9,13 +9,13 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/hashicorp/memberlist v0.2.4
+	github.com/hashicorp/memberlist v0.3.0
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/isacikgoz/prompt v0.1.0
 	github.com/magefile/mage v1.11.0
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-	github.com/mattermost/mattermost-server/v6 v6.1.0
+	github.com/mattermost/mattermost-server/v6 v6.0.0-20211125140117-009d02c57a92
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
