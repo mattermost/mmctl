@@ -57,8 +57,8 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 		// teardown
 		pInfo := plugins.Inactive[0]
-		appErr = s.th.App.RemovePlugin(pInfo.Id)
-		s.Require().Nil(appErr)
+		err = pluginDeleteCmdF(c, &cobra.Command{}, []string{pInfo.Id})
+		s.Require().Nil(err)
 	})
 
 	s.RunForSystemAdminAndLocal("add an already installed plugin with force", func(c client.Client) {
@@ -98,8 +98,8 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 		// teardown
 		pInfo := plugins.Inactive[0]
-		appErr = s.th.App.RemovePlugin(pInfo.Id)
-		s.Require().Nil(appErr)
+		err = pluginDeleteCmdF(c, &cobra.Command{}, []string{pInfo.Id})
+		s.Require().Nil(err)
 	})
 
 	s.RunForSystemAdminAndLocal("admin and local can't add plugins if the config doesn't allow it", func(c client.Client) {
@@ -136,8 +136,8 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 		// teardown
 		pInfo := res.Inactive[0]
-		appErr = s.th.App.RemovePlugin(pInfo.Id)
-		s.Require().Nil(appErr)
+		err = pluginDeleteCmdF(c, &cobra.Command{}, []string{pInfo.Id})
+		s.Require().Nil(err)
 	})
 
 	s.Run("normal user can't add plugin", func() {
@@ -176,8 +176,8 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 
 	s.RunForSystemAdminAndLocal("install new plugins", func(c client.Client) {
 		printer.Clean()
-		defer removePluginIfInstalled(s, jiraPluginID)
-		defer removePluginIfInstalled(s, githubPluginID)
+		defer removePluginIfInstalled(c, s, jiraPluginID)
+		defer removePluginIfInstalled(c, s, githubPluginID)
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL, githubURL})
 		s.Require().Nil(err)
@@ -194,7 +194,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 
 	s.Run("install a plugin without permissions", func() {
 		printer.Clean()
-		defer removePluginIfInstalled(s, jiraPluginID)
+		defer removePluginIfInstalled(s.th.Client, s, jiraPluginID)
 
 		err := pluginInstallURLCmdF(s.th.Client, &cobra.Command{}, []string{jiraURL})
 		s.Require().Nil(err)
@@ -229,7 +229,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 
 	s.RunForSystemAdminAndLocal("install an already installed plugin without force", func(c client.Client) {
 		printer.Clean()
-		defer removePluginIfInstalled(s, jiraPluginID)
+		defer removePluginIfInstalled(c, s, jiraPluginID)
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
 		s.Require().Nil(err)
@@ -252,7 +252,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 
 	s.RunForSystemAdminAndLocal("install an already installed plugin with force", func(c client.Client) {
 		printer.Clean()
-		defer removePluginIfInstalled(s, jiraPluginID)
+		defer removePluginIfInstalled(c, s, jiraPluginID)
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
 		s.Require().Nil(err)
