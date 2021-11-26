@@ -31,7 +31,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		pluginID := plugin.Manifest.Id
 		pluginVersion := plugin.Manifest.Version
 
-		defer removePluginIfInstalled(s, pluginID)
+		defer removePluginIfInstalled(c, s, pluginID)
 
 		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID, pluginVersion})
 		s.Require().Nil(err)
@@ -58,7 +58,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 			pluginVersion = "3.0.0"
 		)
 
-		defer removePluginIfInstalled(s, pluginID)
+		defer removePluginIfInstalled(s.th.Client, s, pluginID)
 
 		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginID, pluginVersion})
 		s.Require().NotNil(err)
@@ -79,7 +79,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 			pluginID = "jira"
 		)
 
-		defer removePluginIfInstalled(s, pluginID)
+		defer removePluginIfInstalled(c, s, pluginID)
 
 		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
 		s.Require().Nil(err)
@@ -106,7 +106,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 			pluginVersion = "invalid-version"
 		)
 
-		defer removePluginIfInstalled(s, pluginID)
+		defer removePluginIfInstalled(c, s, pluginID)
 
 		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID, pluginVersion})
 		s.Require().NotNil(err)
@@ -127,7 +127,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 			pluginID = "a-nonexistent-plugin"
 		)
 
-		defer removePluginIfInstalled(s, pluginID)
+		defer removePluginIfInstalled(c, s, pluginID)
 
 		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
 		s.Require().NotNil(err)
@@ -142,8 +142,8 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 	})
 }
 
-func removePluginIfInstalled(s *MmctlE2ETestSuite, pluginID string) {
-	appErr := s.th.App.RemovePlugin(pluginID)
+func removePluginIfInstalled(c client.Client, s *MmctlE2ETestSuite, pluginID string) {
+	appErr := pluginDeleteCmdF(c, &cobra.Command{}, []string{pluginID})
 	if appErr != nil {
 		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
 	}

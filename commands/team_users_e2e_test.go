@@ -42,7 +42,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		if teamMember == nil {
 			return nil
 		}
-		return s.th.App.RemoveTeamMemberFromTeam(s.th.Context, teamMember, s.th.SystemAdminUser.Id)
+		return s.th.App.RemoveUserFromTeam(s.th.Context, teamId, teamMember.UserId, s.th.SystemAdminUser.Id)
 	}
 
 	s.RunForSystemAdminAndLocal("Add user to team", func(c client.Client) {
