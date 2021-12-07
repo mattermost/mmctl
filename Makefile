@@ -1,14 +1,28 @@
 GO_PACKAGES=$(shell go list ./...)
 GO ?= $(shell command -v go 2> /dev/null)
-BUILD_HASH ?= $(shell git rev-parse HEAD)
-BUILD_VERSION ?= $(shell git ls-remote --tags --refs git://github.com/mattermost/mmctl | tail -n1 | sed 's/.*\///')
+GIT_HASH ?= $(shell git rev-parse HEAD)
+DATE_FMT = +'%Y-%m-%dT%H:%M:%SZ'
+SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
+ifdef SOURCE_DATE_EPOCH
+    BUILD_DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
+else
+    BUILD_DATE ?= $(shell date "$(DATE_FMT)")
+endif
+GIT_TREESTATE = "clean"
+DIFF = $(shell git diff --quiet >/dev/null 2>&1; if [ $$? -eq 1 ]; then echo "1"; fi)
+ifeq ($(DIFF), 1)
+    GIT_TREESTATE = "dirty"
+endif
 # Needed to avoid install shadow in brew which is not permitted
 ADVANCED_VET ?= TRUE
 ENTERPRISE_DIR ?= ${MM_SERVER_PATH}/../enterprise
 VENDOR_MM_SERVER_DIR ?= vendor/github.com/mattermost/mattermost-server/v6
 ENTERPRISE_HASH ?= $(shell cat enterprise_hash)
 TESTFLAGS = -mod=vendor -timeout 30m -race -v
-LDFLAGS += -X "github.com/mattermost/mmctl/commands.BuildHash=$(BUILD_HASH)"
+
+
+PKG=github.com/mattermost/mmctl/commands
+LDFLAGS= -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE)
 BUILD_TAGS =
 
 .PHONY: all
@@ -26,7 +40,7 @@ ifneq ($(wildcard ${ENTERPRISE_DIR}/.*),)
 	IGNORE:=$(shell cp -R $(ENTERPRISE_DIR) $(VENDOR_MM_SERVER_DIR))
 	IGNORE:=$(shell git -C $(VENDOR_MM_SERVER_DIR)/enterprise checkout $(ENTERPRISE_HASH) --quiet)
 	IGNORE:=$(shell rm -f $(VENDOR_MM_SERVER_DIR)/imports/imports.go)
-	IGNORE:=$(shell mkdir $(VENDOR_MM_SERVER_DIR)/imports)
+	IGNORE:=$(shell mkdir -p $(VENDOR_MM_SERVER_DIR)/imports)
 	IGNORE:=$(shell cp $(VENDOR_MM_SERVER_DIR)/enterprise/imports/imports.go $(VENDOR_MM_SERVER_DIR)/imports/)
 endif
 
