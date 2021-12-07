@@ -13,7 +13,6 @@ import (
 )
 
 var (
-
 	Version = "6.2.0"
 	// SHA1 from git, output of $(git rev-parse HEAD)
 	gitCommit = "dev mode"
@@ -30,7 +29,6 @@ var VersionCmd = &cobra.Command{
 }
 
 func init() {
-
 	RootCmd.AddCommand(VersionCmd)
 }
 
@@ -62,6 +60,4 @@ func getVersionInfo() Info {
 		Compiler:     runtime.Compiler,
 		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
 	}
-}
-
 }
