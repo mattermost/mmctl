@@ -208,6 +208,14 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		}
 		val.SetInt(v)
 		return nil
+	case reflect.Float32, reflect.Float64:
+		bits := val.Type().Bits()
+		v, err := strconv.ParseFloat(newValue.(string), bits)
+		if err != nil {
+			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
+		}
+		val.SetFloat(v)
+		return nil
 	case reflect.String:
 		val.SetString(newValue.(string))
 		return nil
