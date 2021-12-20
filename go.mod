@@ -15,7 +15,7 @@ require (
 	github.com/magefile/mage v1.11.0
 	github.com/mattermost/gosaml2 v0.3.3
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-	github.com/mattermost/mattermost-server/v6 v6.2.0
+	github.com/mattermost/mattermost-server/v6 v6.2.2-0.20211217224034-b97dd503c1d4
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
