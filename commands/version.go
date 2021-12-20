@@ -11,7 +11,7 @@ import (
 
 var (
 	BuildHash = "dev mode"
-	Version   = "5.37.6"
+	Version   = "5.37.7"
 )
 
 var VersionCmd = &cobra.Command{
