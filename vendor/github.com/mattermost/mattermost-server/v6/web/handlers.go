@@ -100,26 +100,28 @@ func generateDevCSP(c Context) string {
 	}
 
 	// Add supported flags for debugging during development, even if not on a dev build.
-	for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
-		devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
-		if len(devFlagKVSplit) != 2 {
-			c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
-			continue
-		}
-		devFlagKey := devFlagKVSplit[0]
-		devFlagValue := devFlagKVSplit[1]
+	if *c.App.Config().ServiceSettings.DeveloperFlags != "" {
+		for _, devFlagKVStr := range strings.Split(*c.App.Config().ServiceSettings.DeveloperFlags, ",") {
+			devFlagKVSplit := strings.SplitN(devFlagKVStr, "=", 2)
+			if len(devFlagKVSplit) != 2 {
+				c.Logger.Warn("Unable to parse developer flag", mlog.String("developer_flag", devFlagKVStr))
+				continue
+			}
+			devFlagKey := devFlagKVSplit[0]
+			devFlagValue := devFlagKVSplit[1]
 
-		// Ignore disabled keys
-		if devFlagValue != "true" {
-			continue
-		}
+			// Ignore disabled keys
+			if devFlagValue != "true" {
+				continue
+			}
 
-		// Honour only supported keys
-		switch devFlagKey {
-		case "unsafe-eval", "unsafe-inline":
-			devCSPMap[devFlagKey] = true
-		default:
-			c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+			// Honour only supported keys
+			switch devFlagKey {
+			case "unsafe-eval", "unsafe-inline":
+				devCSPMap[devFlagKey] = true
+			default:
+				c.Logger.Warn("Unrecognized developer flag", mlog.String("developer_flag", devFlagKVStr))
+			}
 		}
 	}
 	var devCSP string
@@ -146,6 +148,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			mlog.String("method", r.Method),
 			mlog.String("url", r.URL.Path),
 			mlog.String("request_id", requestID),
+			mlog.String("host", r.Host),
+			mlog.String("scheme", r.Header.Get(model.HeaderForwardedProto)),
 		}
 		// Websockets are returning status code 0 to requests after closing the socket
 		if statusCode != "0" {
@@ -203,8 +207,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// do not get cut off.
 	r.Body = http.MaxBytesReader(w, r.Body, *c.App.Config().FileSettings.MaxFileSize+bytes.MinRead)
 
-	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
+	siteURLHeader := *c.App.Config().ServiceSettings.SiteURL
 	c.SetSiteURLHeader(siteURLHeader)
 
 	w.Header().Set(model.HeaderRequestId, c.AppContext.RequestId())

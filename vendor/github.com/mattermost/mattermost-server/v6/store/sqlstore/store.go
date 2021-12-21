@@ -673,6 +673,27 @@ func (ss *SqlStore) DoesColumnExist(tableName string, columnName string) bool {
 	}
 }
 
+func (ss *SqlStore) DoesIndexExist(indexName string, tableName string) bool {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		// It should fail if the index does not exist
+		return err == nil
+	} else if ss.DriverName() == model.DatabaseDriverMysql {
+		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
+		if err != nil {
+			mlog.Fatal("Failed to check index", mlog.Err(err))
+		}
+
+		if count <= 0 {
+			return false
+		}
+	} else {
+		mlog.Fatal("Failed to check if index exists because of missing driver")
+	}
+
+	return true
+}
+
 // GetColumnInfo returns data type information about the given column.
 func (ss *SqlStore) GetColumnInfo(tableName, columnName string) (*ColumnInfo, error) {
 	var columnInfo ColumnInfo
@@ -1626,4 +1647,15 @@ func (ss *SqlStore) jsonDataType() string {
 		return "jsonb"
 	}
 	return "json"
+}
+
+func (ss *SqlStore) isMariaDB() (bool, error) {
+	ver, err := ss.GetDbVersion(true)
+	if err != nil {
+		return false, err
+	} else if strings.Contains(strings.ToLower(ver), "maria") {
+		return true, nil
+	}
+
+	return false, nil
 }
