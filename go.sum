@@ -1010,8 +1010,8 @@ github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d h1:/RJ/UV7M5c7L2TQ
 github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d/go.mod h1:HLbgMEI5K131jpxGazJ97AxfPDt31osq36YS1oxFQPQ=
 github.com/mattermost/logr/v2 v2.0.15 h1:+WNbGcsc3dBao65eXlceB6dTILNJRIrvubnsTl3zBew=
 github.com/mattermost/logr/v2 v2.0.15/go.mod h1:mpPp935r5dIkFDo2y9Q87cQWhFR/4xXpNh0k/y8Hmwg=
-github.com/mattermost/mattermost-server/v6 v6.0.0-20211125140117-009d02c57a92 h1:6M5D/3yBZZCmCUEX0cKomLrn0MbZ857PIbN4DLQDBKQ=
-github.com/mattermost/mattermost-server/v6 v6.0.0-20211125140117-009d02c57a92/go.mod h1:be9lN1LmfsUnK2ilK+Iao8Al9fGd57oZBQsfNlzsOHU=
+github.com/mattermost/mattermost-server/v6 v6.0.0-20211207222218-ecc375c8954d h1:0TL+pwsZKXuwZWSmLDihjw0n9zb/4HMmez1kN4ep+Tg=
+github.com/mattermost/mattermost-server/v6 v6.0.0-20211207222218-ecc375c8954d/go.mod h1:be9lN1LmfsUnK2ilK+Iao8Al9fGd57oZBQsfNlzsOHU=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0 h1:G9tL6JXRBMzjuD1kkBtcnd42kUiT6QDwxfFYu7adM6o=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=

@@ -374,7 +374,7 @@ github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
 github.com/mattermost/logr/v2/formatters
 github.com/mattermost/logr/v2/targets
-# github.com/mattermost/mattermost-server/v6 v6.0.0-20211125140117-009d02c57a92
+# github.com/mattermost/mattermost-server/v6 v6.0.0-20211207222218-ecc375c8954d
 ## explicit
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
