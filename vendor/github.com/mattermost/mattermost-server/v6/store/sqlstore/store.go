@@ -1429,8 +1429,11 @@ func (ss *SqlStore) migrate(direction migrationDirection) error {
 	var driver database.Driver
 	var err error
 
-	// When WithInstance is used in golang-migrate, the underlying driver connections are not tracked.
-	// So we will have to open a fresh connection for migrations and explicitly close it when all is done.
+	// golang-migrate doesn't have a way to reuse an existing connection in a migration.
+	// The current API will always close the current connection _as well as_ the *sql.DB
+	// instance along with it. Which means that we cannot pass an existing DB instance,
+	// because it will be closed. Therefore, we always have to create a new instance,
+	// and therefore a new connection.
 	dataSource, err := ss.appendMultipleStatementsFlag(*ss.settings.DataSource)
 	if err != nil {
 		return err
@@ -1626,4 +1629,12 @@ func (ss *SqlStore) jsonDataType() string {
 		return "jsonb"
 	}
 	return "json"
+}
+
+func (ss *SqlStore) toReserveCase(str string) string {
+	if ss.DriverName() == model.DatabaseDriverPostgres {
+		return fmt.Sprintf("%q", str)
+	}
+
+	return fmt.Sprintf("`%s`", strings.Title(str))
 }

@@ -176,7 +176,9 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsLock.RUnlock()
 	if pluginsEnvironment != nil || !*ch.srv.Config().PluginSettings.Enable {
 		ch.syncPluginsActiveState()
-		pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+		}
 		return
 	}
 
@@ -1034,7 +1036,7 @@ func getPrepackagedPlugin(pluginPath *pluginSignaturePath, pluginFile io.ReadSee
 	if manifest.IconPath != "" {
 		iconData, err := getIcon(filepath.Join(pluginDir, manifest.IconPath))
 		if err != nil {
-			return nil, "", errors.Wrapf(err, "Failed to read icon at %s", manifest.IconPath)
+			mlog.Warn("Error loading local plugin icon", mlog.String("plugin", plugin.Manifest.Id), mlog.String("icon_path", plugin.Manifest.IconPath), mlog.Err(err))
 		}
 		plugin.IconData = iconData
 	}
