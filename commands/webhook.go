@@ -6,8 +6,8 @@ package commands
 import (
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"

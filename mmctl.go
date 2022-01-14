@@ -6,7 +6,7 @@ package main
 import (
 	"os"
 
-	"github.com/mattermost/mmctl/commands"
+	"github.com/mattermost/mmctl/v6/commands"
 )
 
 func main() {
