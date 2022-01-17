@@ -76,7 +76,7 @@ github.com/beorn7/perks/quantile
 github.com/bits-and-blooms/bitset
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
-# github.com/blevesearch/bleve/v2 v2.2.2
+# github.com/blevesearch/bleve/v2 v2.3.0
 github.com/blevesearch/bleve/v2
 github.com/blevesearch/bleve/v2/analysis
 github.com/blevesearch/bleve/v2/analysis/analyzer/keyword
@@ -131,15 +131,15 @@ github.com/blevesearch/vellum
 github.com/blevesearch/vellum/levenshtein
 github.com/blevesearch/vellum/regexp
 github.com/blevesearch/vellum/utf8
-# github.com/blevesearch/zapx/v11 v11.3.1
+# github.com/blevesearch/zapx/v11 v11.3.2
 github.com/blevesearch/zapx/v11
-# github.com/blevesearch/zapx/v12 v12.3.1
+# github.com/blevesearch/zapx/v12 v12.3.2
 github.com/blevesearch/zapx/v12
-# github.com/blevesearch/zapx/v13 v13.3.1
+# github.com/blevesearch/zapx/v13 v13.3.2
 github.com/blevesearch/zapx/v13
-# github.com/blevesearch/zapx/v14 v14.3.1
+# github.com/blevesearch/zapx/v14 v14.3.2
 github.com/blevesearch/zapx/v14
-# github.com/blevesearch/zapx/v15 v15.3.1
+# github.com/blevesearch/zapx/v15 v15.3.2
 github.com/blevesearch/zapx/v15
 # github.com/cespare/xxhash/v2 v2.1.2
 github.com/cespare/xxhash/v2
@@ -374,7 +374,7 @@ github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
 github.com/mattermost/logr/v2/formatters
 github.com/mattermost/logr/v2/targets
-# github.com/mattermost/mattermost-server/v6 v6.0.0-20211207222218-ecc375c8954d
+# github.com/mattermost/mattermost-server/v6 v6.3.0
 ## explicit
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
@@ -397,7 +397,6 @@ github.com/mattermost/mattermost-server/v6/jobs/expirynotify
 github.com/mattermost/mattermost-server/v6/jobs/export_delete
 github.com/mattermost/mattermost-server/v6/jobs/export_process
 github.com/mattermost/mattermost-server/v6/jobs/extract_content
-github.com/mattermost/mattermost-server/v6/jobs/fix_crt_channel_unreads
 github.com/mattermost/mattermost-server/v6/jobs/import_delete
 github.com/mattermost/mattermost-server/v6/jobs/import_process
 github.com/mattermost/mattermost-server/v6/jobs/interfaces
@@ -785,7 +784,7 @@ golang.org/x/net/publicsuffix
 golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20211123173158-ef496fb156ab
+# golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
