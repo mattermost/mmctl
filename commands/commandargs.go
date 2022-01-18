@@ -6,7 +6,7 @@ package commands
 import (
 	"strings"
 
-	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/v6/client"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 )

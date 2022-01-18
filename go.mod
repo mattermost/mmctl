@@ -1,4 +1,4 @@
-module github.com/mattermost/mmctl
+module github.com/mattermost/mmctl/v6
 
 go 1.16
 

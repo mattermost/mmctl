@@ -21,7 +21,7 @@ ENTERPRISE_HASH ?= $(shell cat enterprise_hash)
 TESTFLAGS = -mod=vendor -timeout 30m -race -v
 
 
-PKG=github.com/mattermost/mmctl/commands
+PKG=github.com/mattermost/mmctl/v6/commands
 LDFLAGS= -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE)
 BUILD_TAGS =
 
@@ -33,7 +33,7 @@ include config.mk
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifneq ($(wildcard ${ENTERPRISE_DIR}/.*),)
-	TESTFLAGS += -ldflags '-X "github.com/mattermost/mmctl/commands.EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=true"'
+	TESTFLAGS += -ldflags '-X "github.com/mattermost/mmctl/v6/commands.EnableEnterpriseTests=true" -X "github.com/mattermost/mattermost-server/v6/model.BuildEnterpriseReady=true"'
 	BUILD_TAGS +=enterprise
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
 	IGNORE:=$(shell rm -rf $(VENDOR_MM_SERVER_DIR)/enterprise)
