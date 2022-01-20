@@ -1,0 +1,102 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+
+    - name: check docs
+      run: |
+        echo "Making sure docs are updated"
+        make docs
+        if [[ -n $(git status --porcelain) ]]; then echo "Please update the docs using make docs"; exit 1; fi
+
+  mm-govet:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+
+    - name: check lints
+      run: |
+        echo "Installing mattermost-govet"
+        go env GOPATH
+        go install github.com/mattermost/mattermost-govet@master
+        make gofmt govet
+
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        path: mmctl
+
+    - name: Checkout mm-server
+      uses: actions/checkout@v2
+      with:
+        repository: mattermost/mattermost-server
+        path: mattermost-server
+
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.x
+
+    - name: Setup mattermost-server
+      working-directory: mattermost-server
+      run: |
+        git checkout $GITHUB_HEAD_REF || git checkout master
+
+    - name: Start containers
+      working-directory: mattermost-server/build
+      env:
+        COMPOSE_PROJECT_NAME: "actions"
+      run: |
+        # cd ../mattermost-server/build
+        docker-compose --no-ansi run --rm start_dependencies
+        cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+        docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+        docker-compose --no-ansi ps
+
+    - name: Wait for docker compose
+      run: |
+        sleep 5
+        docker run --rm --net actions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://mysql:3306; do echo waiting for mysql; sleep 5; done;"
+        docker run --rm --net actions_mm-test appropriate/curl:latest sh -c "until curl --max-time 5 --output - http://elasticsearch:9200; do echo waiting for elasticsearch; sleep 5; done;"
+
+    - name: Run Tests
+      working-directory: mattermost-server/build
+      run: |
+        docker run --net actions_mm-test \
+          --env-file=dotenv/test.env \
+          --env MM_SQLSETTINGS_DATASOURCE="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+          --env MM_SQLSETTINGS_DATASOURCE=postgres \
+          -v $GITHUB_WORKSPACE:/go/src \
+          -w /go/src/mmctl \
+          mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+          bash -c 'ulimit -n 8096 && make coverage'
