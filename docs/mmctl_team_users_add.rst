@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    team add myteam user@example.com username
+    team users add myteam user@example.com username
 
 Options
 ~~~~~~~
