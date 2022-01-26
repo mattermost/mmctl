@@ -21,7 +21,7 @@ var TeamUsersRemoveCmd = &cobra.Command{
 	Use:     "remove [team] [users]",
 	Short:   "Remove users from team",
 	Long:    "Remove some users from team",
-	Example: "  team remove myteam user@example.com username",
+	Example: "  team users remove myteam user@example.com username",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(teamUsersRemoveCmdF),
 }
@@ -30,7 +30,7 @@ var TeamUsersAddCmd = &cobra.Command{
 	Use:     "add [team] [users]",
 	Short:   "Add users to team",
 	Long:    "Add some users to team",
-	Example: "  team add myteam user@example.com username",
+	Example: "  team users add myteam user@example.com username",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    withClient(teamUsersAddCmdF),
 }
