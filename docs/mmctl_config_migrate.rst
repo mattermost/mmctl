@@ -13,7 +13,7 @@ Migrate a file-based configuration to (or from) a database-based configuration. 
 
 ::
 
-  mmctl --local config migrate [from_config] [to_config] [flags]
+  mmctl config migrate [from_config] [to_config] [flags]
 
 Examples
 ~~~~~~~~

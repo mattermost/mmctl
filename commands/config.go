@@ -96,7 +96,7 @@ var ConfigReloadCmd = &cobra.Command{
 var ConfigMigrateCmd = &cobra.Command{
 	Use:     "migrate [from_config] [to_config]",
 	Short:   "Migrate existing config between backends",
-	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
+	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it. Note that this command is only available in `--local` mode.",
 	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
 	Args:    cobra.ExactArgs(2),
 	RunE:    withClient(configMigrateCmdF),
