@@ -499,7 +499,12 @@ func configReloadCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func configMigrateCmdF(c client.Client, _ *cobra.Command, args []string) error {
+func configMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	isLocal, _ := cmd.Flags().GetBool("local")
+	if !isLocal {
+		return errors.New("this command is only available in local mode. Please set the --local flag.")
+	}
+
 	_, err := c.MigrateConfig(args[0], args[1])
 	if err != nil {
 		return err

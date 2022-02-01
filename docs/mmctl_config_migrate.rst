@@ -9,11 +9,11 @@ Synopsis
 ~~~~~~~~
 
 
-Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it
+Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it. Note that this command is only available in `--local` mode.
 
 ::
 
-  mmctl config migrate [from_config] [to_config] [flags]
+  mmctl --local config migrate [from_config] [to_config] [flags]
 
 Examples
 ~~~~~~~~
