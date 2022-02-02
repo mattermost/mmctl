@@ -3,6 +3,7 @@ GO ?= $(shell command -v go 2> /dev/null)
 GIT_HASH ?= $(shell git rev-parse HEAD)
 DATE_FMT = +'%Y-%m-%dT%H:%M:%SZ'
 SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct)
+GOPATH ?= $(shell go env GOPATH)
 ifdef SOURCE_DATE_EPOCH
     BUILD_DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
 else
@@ -101,8 +102,8 @@ gofmt:
 	done
 	@echo Gofmt success
 
-.PHONY: govet
-govet:
+.PHONY: golangci-lint
+golangci-lint:
 ifeq ($(ADVANCED_VET), TRUE)
 	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
 		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
@@ -111,6 +112,12 @@ ifeq ($(ADVANCED_VET), TRUE)
 
 	@echo Running golangci-lint
 	golangci-lint run ./...
+endif
+	@echo golangci-lint success
+
+.PHONY: govet
+govet:
+ifeq ($(ADVANCED_VET), TRUE)
 	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
 		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
 		exit 1; \
@@ -144,7 +151,7 @@ coverage:
 	$(GO) tool cover -html=coverage.txt
 
 .PHONY: check
-check: gofmt govet
+check: gofmt govet golangci-lint
 
 .PHONY: vendor
 vendor:
