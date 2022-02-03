@@ -166,6 +166,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 			ChannelId:   channelID,
 			Username:    userName,
 			DisplayName: displayName,
+			UserId:      userID,
 		}
 		returnedIncomingWebhook := mockIncomingWebhook
 		returnedIncomingWebhook.Id = incomingWebhookID
@@ -210,6 +211,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 			ChannelId:   channelID,
 			Username:    userName,
 			DisplayName: displayName,
+			UserId:      userID,
 		}
 		mockError := errors.New("mock error")
 
