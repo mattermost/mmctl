@@ -1533,6 +1533,16 @@ func upgradeDatabaseToVersion600(sqlStore *SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("Threads", "Participants", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "Props", "JSON", "jsonb")
 		sqlStore.AlterColumnTypeIfExists("Users", "NotifyProps", "JSON", "jsonb")
+		info, err := sqlStore.GetColumnInfo("Users", "Timezone")
+		if err != nil {
+			mlog.Error("Error getting column info",
+				mlog.String("table", "Users"),
+				mlog.String("column", "Timezone"),
+				mlog.Err(err),
+			)
+		} else if info.DefaultValue != "" {
+			sqlStore.RemoveDefaultIfColumnExists("Users", "Timezone")
+		}
 		sqlStore.AlterColumnTypeIfExists("Users", "Timezone", "JSON", "jsonb")
 
 		sqlStore.GetMaster().ExecNoTimeout("UPDATE CommandWebhooks SET RootId = ParentId WHERE RootId = '' AND RootId != ParentId")
@@ -1582,7 +1592,7 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 				return true
 			}
 		} else if sqlStore.DriverName() == model.DatabaseDriverMysql {
-			jsonType := "JSON"
+			jsonType := "json"
 			// JSON is aliased as LONGTEXT for MariaDB.
 			// https://mariadb.com/kb/en/json-data-type/
 			if ok, err := sqlStore.isMariaDB(); ok {
@@ -1591,7 +1601,7 @@ func hasMissingMigrationsVersion600(sqlStore *SqlStore) bool {
 				mlog.Warn("Error checking db type", mlog.Err(err))
 			}
 
-			if info.DataType != jsonType {
+			if strings.ToLower(info.DataType) != jsonType {
 				return true
 			}
 		}
