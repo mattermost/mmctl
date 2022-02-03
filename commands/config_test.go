@@ -757,6 +757,14 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
+	s.Run("Should fail without the --local flag", func() {
+		printer.Clean()
+		args := []string{"from", "to"}
+
+		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Error(err)
+	})
+
 	s.Run("Should be able to migrate config", func() {
 		printer.Clean()
 		args := []string{"from", "to"}
@@ -767,7 +775,10 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -782,7 +793,10 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
 	})
 }
