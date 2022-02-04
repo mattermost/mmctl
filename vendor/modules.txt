@@ -309,7 +309,7 @@ github.com/mattermost/ldap
 github.com/mattermost/logr
 github.com/mattermost/logr/format
 github.com/mattermost/logr/target
-# github.com/mattermost/mattermost-server/v5 v5.37.6
+# github.com/mattermost/mattermost-server/v5 v5.37.7
 github.com/mattermost/mattermost-server/v5/api4
 github.com/mattermost/mattermost-server/v5/app
 github.com/mattermost/mattermost-server/v5/app/featureflag
