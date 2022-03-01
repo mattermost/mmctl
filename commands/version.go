@@ -10,8 +10,10 @@ import (
 )
 
 var (
+	// SHA1 from git, output of $(git rev-parse HEAD)
 	BuildHash = "dev mode"
-	Version   = "6.2.4"
+	// Version of the application
+	Version = "6.2.5"
 )
 
 var VersionCmd = &cobra.Command{
