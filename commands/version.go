@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	Version = "6.3.4"
+	Version = "6.3.5"
 	// SHA1 from git, output of $(git rev-parse HEAD)
 	gitCommit = "dev mode"
 	// State of git tree, either "clean" or "dirty"
