@@ -46,9 +46,10 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 
 		mockTeam := &model.Team{
-			Name:        mockTeamName,
-			DisplayName: mockTeamDisplayname,
-			Type:        model.TeamOpen,
+			Name:            mockTeamName,
+			DisplayName:     mockTeamDisplayname,
+			Type:            model.TeamOpen,
+			AllowOpenInvite: true,
 		}
 
 		s.client.
@@ -72,10 +73,11 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().Bool("private", true, "")
 
 		mockTeam := &model.Team{
-			Name:        mockTeamName,
-			DisplayName: mockTeamDisplayname,
-			Email:       mockTeamEmail,
-			Type:        model.TeamInvite,
+			Name:            mockTeamName,
+			DisplayName:     mockTeamDisplayname,
+			Email:           mockTeamEmail,
+			Type:            model.TeamInvite,
+			AllowOpenInvite: false,
 		}
 
 		s.client.
@@ -97,9 +99,10 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("display-name", mockTeamDisplayname, "")
 
 		mockTeam := &model.Team{
-			Name:        mockTeamName,
-			DisplayName: mockTeamDisplayname,
-			Type:        model.TeamOpen,
+			Name:            mockTeamName,
+			DisplayName:     mockTeamDisplayname,
+			Type:            model.TeamOpen,
+			AllowOpenInvite: true,
 		}
 		mockError := errors.New("remote error")
 

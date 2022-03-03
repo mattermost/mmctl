@@ -167,6 +167,7 @@ func createIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		IconURL:       iconURL,
 		ChannelLocked: channelLocked,
 		Username:      user.Username,
+		UserId:        user.Id,
 	}
 
 	createdIncoming, _, err := c.CreateIncomingWebhook(incomingWebhook)

@@ -294,6 +294,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		newTeam, err := s.th.App.GetTeamByName(teamName)
 		s.Require().Nil(err)
 		s.Equal(newTeam.Type, model.TeamOpen)
+		s.Equal(newTeam.AllowOpenInvite, true)
 	})
 
 	s.RunForAllClients("Should create a new private team", func(c client.Client) {
@@ -310,6 +311,7 @@ func (s *MmctlE2ETestSuite) TestTeamCreateCmdF() {
 		newTeam, err := s.th.App.GetTeamByName(teamName)
 		s.Require().Nil(err)
 		s.Equal(newTeam.Type, model.TeamInvite)
+		s.Equal(newTeam.AllowOpenInvite, false)
 	})
 }
 
