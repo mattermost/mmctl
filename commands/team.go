@@ -148,15 +148,18 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	useprivate, _ := cmd.Flags().GetBool("private")
 
 	teamType := model.TeamOpen
+	allowOpenInvite := true
 	if useprivate {
 		teamType = model.TeamInvite
+		allowOpenInvite = false
 	}
 
 	team := &model.Team{
-		Name:        name,
-		DisplayName: displayname,
-		Email:       email,
-		Type:        teamType,
+		Name:            name,
+		DisplayName:     displayname,
+		Email:           email,
+		Type:            teamType,
+		AllowOpenInvite: allowOpenInvite,
 	}
 
 	newTeam, _, err := c.CreateTeam(team)
