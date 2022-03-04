@@ -62,6 +62,7 @@ jobs:
       with:
         repository: mattermost/mattermost-server
         path: mattermost-server
+        fetch-depth: 0
 
     - name: Install Go
       uses: actions/setup-go@v2
