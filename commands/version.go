@@ -13,7 +13,7 @@ var (
 	// SHA1 from git, output of $(git rev-parse HEAD)
 	BuildHash = "dev mode"
 	// Version of the application
-	Version = "6.2.5"
+	Version = "6.2.6"
 )
 
 var VersionCmd = &cobra.Command{
