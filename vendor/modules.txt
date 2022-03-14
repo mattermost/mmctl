@@ -146,7 +146,7 @@ github.com/cespare/xxhash/v2
 # github.com/corpix/uarand v0.1.1
 ## explicit
 github.com/corpix/uarand
-# github.com/cpuguy83/go-md2man/v2 v2.0.0
+# github.com/cpuguy83/go-md2man/v2 v2.0.1
 github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
@@ -573,7 +573,7 @@ github.com/rudderlabs/analytics-go
 github.com/russellhaering/goxmldsig
 github.com/russellhaering/goxmldsig/etreeutils
 github.com/russellhaering/goxmldsig/types
-# github.com/russross/blackfriday/v2 v2.0.1
+# github.com/russross/blackfriday/v2 v2.1.0
 github.com/russross/blackfriday/v2
 # github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd
 github.com/rwcarlsen/goexif/exif
@@ -582,8 +582,6 @@ github.com/rwcarlsen/goexif/tiff
 github.com/sean-/seed
 # github.com/segmentio/backo-go v0.0.0-20200129164019-23eae7c10bd3
 github.com/segmentio/backo-go
-# github.com/shurcooL/sanitized_anchor_name v1.0.0
-github.com/shurcooL/sanitized_anchor_name
 # github.com/sirupsen/logrus v1.8.1
 ## explicit
 github.com/sirupsen/logrus
@@ -592,7 +590,7 @@ github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/cast v1.3.1
 github.com/spf13/cast
-# github.com/spf13/cobra v1.2.1
+# github.com/spf13/cobra v1.4.0
 ## explicit
 github.com/spf13/cobra
 github.com/spf13/cobra/doc
