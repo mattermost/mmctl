@@ -13,7 +13,11 @@ import (
 )
 
 var (
+<<<<<<< HEAD
 	Version = "6.4.3"
+=======
+	Version = "unspecified"
+>>>>>>> d5ed8eb4... Makefile: get version from the git tags (#488)
 	// SHA1 from git, output of $(git rev-parse HEAD)
 	gitCommit = "dev mode"
 	// State of git tree, either "clean" or "dirty"
