@@ -99,6 +99,9 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 	})
 
 	s.RunForSystemAdminAndLocal("install a plugin with invalid version", func(c client.Client) {
+		// Always install the latest compatible version
+		// https://mattermost.atlassian.net/browse/MM-41981
+		s.T().Skip("skipping due to MM-42721")
 		printer.Clean()
 
 		const (
