@@ -19,13 +19,12 @@ var PluginMarketplaceCmd = &cobra.Command{
 }
 
 var PluginMarketplaceInstallCmd = &cobra.Command{
-	Use:   "install <id>",
-	Short: "Install a plugin from the marketplace",
-	Long:  "Installs a plugin listed in the marketplace server",
-	Example: `  # you can specify with both the plugin id
-  $ mmctl plugin marketplace install jitsi`,
-	Args: cobra.ExactArgs(1),
-	RunE: withClient(pluginMarketplaceInstallCmdF),
+	Use:     "install <id>",
+	Short:   "Install a plugin from the marketplace",
+	Long:    "Installs a plugin listed in the marketplace server",
+	Example: `  plugin marketplace install jitsi`,
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(pluginMarketplaceInstallCmdF),
 }
 
 var PluginMarketplaceListCmd = &cobra.Command{

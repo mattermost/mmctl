@@ -20,8 +20,7 @@ Examples
 
 ::
 
-    # you can specify with both the plugin id
-    $ mmctl plugin marketplace install jitsi
+    plugin marketplace install jitsi
 
 Options
 ~~~~~~~
