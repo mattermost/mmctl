@@ -15,7 +15,6 @@ const (
 	SessionCookieToken            = "MMAUTHTOKEN"
 	SessionCookieUser             = "MMUSERID"
 	SessionCookieCsrf             = "MMCSRF"
-	SessionCookieCloudUrl         = "MMCLOUDURL"
 	SessionCacheSize              = 35000
 	SessionPropPlatform           = "platform"
 	SessionPropOs                 = "os"

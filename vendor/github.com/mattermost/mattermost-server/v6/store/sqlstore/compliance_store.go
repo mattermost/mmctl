@@ -36,6 +36,9 @@ func newSqlComplianceStore(sqlStore *SqlStore) store.ComplianceStore {
 	return s
 }
 
+func (s SqlComplianceStore) createIndexesIfNotExists() {
+}
+
 func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Compliance, error) {
 	compliance.PreSave()
 	if err := compliance.IsValid(); err != nil {
@@ -43,7 +46,12 @@ func (s SqlComplianceStore) Save(compliance *model.Compliance) (*model.Complianc
 	}
 
 	// DESC is a keyword
-	desc := s.toReserveCase("desc")
+	var desc string
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		desc = `"desc"`
+	} else {
+		desc = "`Desc`"
+	}
 
 	query := `INSERT INTO Compliances (Id, CreateAt, UserId, Status, Count, ` + desc + `, Type, StartAt, EndAt, Keywords, Emails)
 	VALUES
@@ -73,7 +81,11 @@ func (s SqlComplianceStore) Update(compliance *model.Compliance) (*model.Complia
 		Where(sq.Eq{"Id": compliance.Id})
 
 	// DESC is a keyword
-	query = query.Set(s.toReserveCase("desc"), compliance.Desc)
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query = query.Set(`"desc"`, compliance.Desc)
+	} else {
+		query = query.Set("`Desc`", compliance.Desc)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

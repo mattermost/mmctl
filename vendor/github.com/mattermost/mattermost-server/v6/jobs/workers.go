@@ -221,9 +221,9 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 	mlog.Debug("Workers received config change.")
 
 	if workers.DataRetention != nil {
-		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion && !*oldConfig.DataRetentionSettings.EnableBoardsDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion || *newConfig.DataRetentionSettings.EnableBoardsDeletion) {
+		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
-		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion || *oldConfig.DataRetentionSettings.EnableBoardsDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion && !*newConfig.DataRetentionSettings.EnableBoardsDeletion) {
+		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion) {
 			workers.DataRetention.Stop()
 		}
 	}

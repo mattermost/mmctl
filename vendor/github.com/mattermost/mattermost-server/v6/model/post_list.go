@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"sort"
 )
 
@@ -79,11 +78,6 @@ func (o *PostList) ToJSON() (string, error) {
 	copy.StripActionIntegrations()
 	b, err := json.Marshal(&copy)
 	return string(b), err
-}
-
-func (o *PostList) EncodeJSON(w io.Writer) error {
-	o.StripActionIntegrations()
-	return json.NewEncoder(w).Encode(o)
 }
 
 func (o *PostList) MakeNonNil() {

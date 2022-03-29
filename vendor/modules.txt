@@ -174,8 +174,6 @@ github.com/dyatlov/go-opengraph/opengraph
 github.com/fatih/color
 # github.com/fatih/set v0.2.1
 github.com/fatih/set
-# github.com/fcjr/aia-transport-go v1.2.2
-github.com/fcjr/aia-transport-go
 # github.com/felixge/httpsnoop v1.0.2
 github.com/felixge/httpsnoop
 # github.com/francoispqt/gojay v1.2.13
@@ -192,15 +190,6 @@ github.com/getsentry/sentry-go/internal/ratelimit
 github.com/gigawattio/window
 # github.com/go-asn1-ber/asn1-ber v1.5.3
 github.com/go-asn1-ber/asn1-ber
-# github.com/go-morph/morph v0.2.3-0.20220126093237-74bffc135498
-github.com/go-morph/morph
-github.com/go-morph/morph/drivers
-github.com/go-morph/morph/drivers/mysql
-github.com/go-morph/morph/drivers/postgres
-github.com/go-morph/morph/models
-github.com/go-morph/morph/sources
-github.com/go-morph/morph/sources/file
-github.com/go-morph/morph/sources/go_bindata
 # github.com/go-redis/redis/v8 v8.11.4
 github.com/go-redis/redis/v8
 github.com/go-redis/redis/v8/internal
@@ -215,8 +204,15 @@ github.com/go-resty/resty/v2
 # github.com/go-sql-driver/mysql v1.6.0
 github.com/go-sql-driver/mysql
 # github.com/golang-migrate/migrate/v4 v4.15.1
+github.com/golang-migrate/migrate/v4
+github.com/golang-migrate/migrate/v4/database
+github.com/golang-migrate/migrate/v4/database/multistmt
+github.com/golang-migrate/migrate/v4/database/mysql
+github.com/golang-migrate/migrate/v4/database/postgres
+github.com/golang-migrate/migrate/v4/internal/url
 github.com/golang-migrate/migrate/v4/source
 github.com/golang-migrate/migrate/v4/source/file
+github.com/golang-migrate/migrate/v4/source/go_bindata
 github.com/golang-migrate/migrate/v4/source/iofs
 # github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 github.com/golang/freetype
@@ -250,8 +246,6 @@ github.com/gorilla/mux
 github.com/gorilla/schema
 # github.com/gorilla/websocket v1.4.2
 github.com/gorilla/websocket
-# github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
-github.com/gregjones/httpcache
 # github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 github.com/h2non/go-is-svg
 # github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
@@ -376,7 +370,7 @@ github.com/mattermost/logr/v2
 github.com/mattermost/logr/v2/config
 github.com/mattermost/logr/v2/formatters
 github.com/mattermost/logr/v2/targets
-# github.com/mattermost/mattermost-server/v6 v6.4.1-0.20220216150418-661a6edad8b7
+# github.com/mattermost/mattermost-server/v6 v6.3.6
 ## explicit
 github.com/mattermost/mattermost-server/v6/api4
 github.com/mattermost/mattermost-server/v6/app
@@ -465,8 +459,6 @@ github.com/mattn/go-runewidth
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mholt/archiver/v3 v3.5.1
 github.com/mholt/archiver/v3
-# github.com/microcosm-cc/bluemonday v1.0.2
-github.com/microcosm-cc/bluemonday
 # github.com/miekg/dns v1.1.43
 github.com/miekg/dns
 # github.com/minio/md5-simd v1.1.2
@@ -497,12 +489,6 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/mschoch/smat v0.2.0
 github.com/mschoch/smat
-# github.com/muesli/smartcrop v0.3.0
-github.com/muesli/smartcrop
-github.com/muesli/smartcrop/nfnt
-github.com/muesli/smartcrop/options
-# github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-github.com/nfnt/resize
 # github.com/nwaples/rardecode v1.1.2
 github.com/nwaples/rardecode
 # github.com/oklog/run v1.1.0
@@ -759,16 +745,10 @@ golang.org/x/crypto/scrypt
 # golang.org/x/image v0.0.0-20211028202545-6944b10bf410
 golang.org/x/image/bmp
 golang.org/x/image/ccitt
-golang.org/x/image/draw
 golang.org/x/image/font
-golang.org/x/image/math/f64
 golang.org/x/image/math/fixed
-golang.org/x/image/riff
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-golang.org/x/image/vp8
-golang.org/x/image/vp8l
-golang.org/x/image/webp
 # golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -917,8 +897,3 @@ gopkg.in/olivere/elastic.v6
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# willnorris.com/go/gifresize v1.0.0
-willnorris.com/go/gifresize
-# willnorris.com/go/imageproxy v0.11.2
-willnorris.com/go/imageproxy
-willnorris.com/go/imageproxy/third_party/http

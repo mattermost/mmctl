@@ -32,6 +32,9 @@ func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
 	return s
 }
 
+func (s SqlTokenStore) createIndexesIfNotExists() {
+}
+
 func (s SqlTokenStore) Save(token *model.Token) error {
 	if err := token.IsValid(); err != nil {
 		return err
@@ -71,8 +74,10 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
-func (s SqlTokenStore) Cleanup(expiryTime int64) {
-	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", expiryTime); err != nil {
+func (s SqlTokenStore) Cleanup() {
+	mlog.Debug("Cleaning up token store.")
+	deltime := model.GetMillis() - model.MaxTokenExipryTime
+	if _, err := s.GetMasterX().Exec("DELETE FROM Tokens WHERE CreateAt < ?", deltime); err != nil {
 		mlog.Error("Unable to cleanup token store.")
 	}
 }

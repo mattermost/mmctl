@@ -69,7 +69,6 @@ type TeamMembersGetOptions struct {
 	ViewRestrictions *ViewUsersRestrictions
 }
 
-//msgp:ignore TeamInviteReminderData
 type TeamInviteReminderData struct {
 	Interval string
 }

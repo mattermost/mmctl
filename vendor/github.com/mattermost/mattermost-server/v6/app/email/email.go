@@ -20,8 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/shared/templates"
 	"github.com/pkg/errors"
-
-	"github.com/microcosm-cc/bluemonday"
 )
 
 func (es *Service) SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error {
@@ -527,10 +525,10 @@ func (es *Service) SendGuestInviteEmails(team *model.Team, channels []*model.Cha
 			data.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
 			data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 			data.Props["SenderName"] = senderName
+			data.Props["Message"] = ""
 			if message != "" {
-				message = bluemonday.NewPolicy().Sanitize(message)
+				data.Props["Message"] = message
 			}
-			data.Props["Message"] = message
 			data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
 			data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
 			data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")

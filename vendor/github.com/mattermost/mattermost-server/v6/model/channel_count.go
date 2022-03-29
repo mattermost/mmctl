@@ -17,7 +17,7 @@ type ChannelCounts struct {
 }
 
 func (o *ChannelCounts) Etag() string {
-	// we don't include CountsRoot in ETag calculation, since it's a derivative
+	// we don't include CountsRoot in ETag calculation, since it's a deriviative
 	ids := []string{}
 	for id := range o.Counts {
 		ids = append(ids, id)

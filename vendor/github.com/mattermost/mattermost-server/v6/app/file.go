@@ -648,7 +648,7 @@ type UploadFileTask struct {
 	imageType        string
 	imageOrientation int
 
-	// Testing: overridable dependency functions
+	// Testing: overrideable dependency functions
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
 	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, error)

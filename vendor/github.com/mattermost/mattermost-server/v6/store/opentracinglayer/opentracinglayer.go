@@ -1834,6 +1834,24 @@ func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelID strin
 	return result, err
 }
 
+func (s *OpenTracingLayerChannelStore) MigratePublicChannels() error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigratePublicChannels")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.ChannelStore.MigratePublicChannels()
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerChannelStore) PermanentDelete(channelID string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.PermanentDelete")
@@ -9411,7 +9429,7 @@ func (s *OpenTracingLayerThreadStore) UpdateUnreadsByChannel(userId string, chan
 	return err
 }
 
-func (s *OpenTracingLayerTokenStore) Cleanup(expiryTime int64) {
+func (s *OpenTracingLayerTokenStore) Cleanup() {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.Cleanup")
 	s.Root.Store.SetContext(newCtx)
@@ -9420,7 +9438,7 @@ func (s *OpenTracingLayerTokenStore) Cleanup(expiryTime int64) {
 	}()
 
 	defer span.Finish()
-	s.TokenStore.Cleanup(expiryTime)
+	s.TokenStore.Cleanup()
 
 }
 

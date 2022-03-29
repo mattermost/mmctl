@@ -76,12 +76,7 @@ func (sa StringArray) Equals(input StringArray) bool {
 
 // Value converts StringArray to database value
 func (sa StringArray) Value() (driver.Value, error) {
-	j, err := json.Marshal(sa)
-	if err != nil {
-		return nil, err
-	}
-	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
-	return string(j), err
+	return json.Marshal(sa)
 }
 
 // Scan converts database column value to StringArray
@@ -122,16 +117,6 @@ func (m *StringMap) Scan(value interface{}) error {
 	return errors.New("received value is neither a byte slice nor string")
 }
 
-// Value converts StringMap to database value
-func (m StringMap) Value() (driver.Value, error) {
-	j, err := json.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
-	return string(j), err
-}
-
 func (si *StringInterface) Scan(value interface{}) error {
 	if value == nil {
 		return nil
@@ -148,16 +133,6 @@ func (si *StringInterface) Scan(value interface{}) error {
 	}
 
 	return errors.New("received value is neither a byte slice nor string")
-}
-
-// Value converts StringInterface to database value
-func (si StringInterface) Value() (driver.Value, error) {
-	j, err := json.Marshal(si)
-	if err != nil {
-		return nil, err
-	}
-	// non utf8 characters are not supported https://mattermost.atlassian.net/browse/MM-41066
-	return string(j), err
 }
 
 var translateFunc i18n.TranslateFunc

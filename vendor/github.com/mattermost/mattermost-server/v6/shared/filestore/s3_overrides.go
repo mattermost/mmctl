@@ -23,7 +23,7 @@ type customTransport struct {
 
 // RoundTrip implements the http.Roundtripper interface.
 func (t *customTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// Roundtrippers should not modify the original request.
+	// Rountrippers should not modify the original request.
 	newReq := req.Clone(context.Background())
 	*newReq.URL = *req.URL
 	req.URL.Scheme = t.scheme

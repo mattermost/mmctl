@@ -2002,6 +2002,27 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 
 }
 
+func (s *RetryLayerChannelStore) MigratePublicChannels() error {
+
+	tries := 0
+	for {
+		err := s.ChannelStore.MigratePublicChannels()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) PermanentDelete(channelID string) error {
 
 	tries := 0
@@ -10750,9 +10771,9 @@ func (s *RetryLayerThreadStore) UpdateUnreadsByChannel(userId string, changedThr
 
 }
 
-func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
+func (s *RetryLayerTokenStore) Cleanup() {
 
-	s.TokenStore.Cleanup(expiryTime)
+	s.TokenStore.Cleanup()
 
 }
 
