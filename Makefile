@@ -23,7 +23,7 @@ TESTFLAGS = -mod=vendor -timeout 30m -race -v
 # We specify version for the build; it is the latest semantic version of the tags
 DIST_VER=$(shell git tag -l --sort=-version:refname "v6.3.*" | head -n 1)
 
-PKG=github.com/mattermost/mmctl/v6/commands
+PKG=github.com/mattermost/mmctl/commands
 LDFLAGS= -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE) -X $(PKG).Version=$(DIST_VER)
 BUILD_TAGS =
 
