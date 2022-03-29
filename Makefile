@@ -21,7 +21,7 @@ ENTERPRISE_HASH ?= $(shell cat enterprise_hash)
 TESTFLAGS = -mod=vendor -timeout 30m -race -v
 
 # We specify version for the build; it is the latest semantic version of the tags
-DIST_VER=v6.3.6
+DIST_VER=v6.3.7
 
 PKG=github.com/mattermost/mmctl/v6/commands
 LDFLAGS= -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE) -X $(PKG).Version=$(DIST_VER)
