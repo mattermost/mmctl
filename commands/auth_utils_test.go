@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,6 +85,29 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		p := resolveConfigFilePath()
 		require.Equal(t, expected, p)
+	})
+
+	t.Run("should create the user-defined config file path if one is set", func(t *testing.T) {
+		tmp, _ := ioutil.TempDir("", "mmctl-")
+		defer os.RemoveAll(tmp)
+
+		testUser.HomeDir = "path/should/be/ignored"
+		SetUser(testUser)
+		extraDir := "extra"
+
+		expected := filepath.Join(tmp, extraDir, "config.json")
+
+		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
+		require.NoError(t, err)
+		viper.Set("config", expected)
+
+		err = SaveCredentials(Credentials{})
+		require.NoError(t, err)
+		info, err := os.Stat(expected)
+		require.NoError(t, err)
+
+		assert.False(t, info.IsDir())
+		assert.True(t, info.Name() == "config.json")
 	})
 }
 
