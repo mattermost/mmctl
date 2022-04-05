@@ -209,8 +209,6 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			c, _, err = InitClientWithUsernameAndPassword(username, password, url, allowInsecureSHA1, allowInsecureTLS)
 		}
 		if err != nil {
-			printer.PrintError(err.Error())
-			// We don't want usage to be printed as the command was correctly built
 			return fmt.Errorf("could not initiate client: %w", err)
 		}
 		accessToken = c.AuthToken
@@ -222,8 +220,6 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			AuthToken:   accessToken,
 		}
 		if _, _, err := InitClientWithCredentials(&credentials, allowInsecureSHA1, allowInsecureTLS); err != nil {
-			printer.PrintError(err.Error())
-			// We don't want usage to be printed as the command was correctly built
 			return fmt.Errorf("could not initiate client: %w", err)
 		}
 	}
