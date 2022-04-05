@@ -447,7 +447,7 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	} else if guest {
 		if _, err := c.DemoteUserToGuest(ruser.Id); err != nil {
-			return errors.Wrapf(err, "Unable to demote use to guest.")
+			return errors.Wrapf(err, "unable to demote use to guest")
 		}
 	}
 
