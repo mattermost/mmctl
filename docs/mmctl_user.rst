@@ -54,5 +54,5 @@ SEE ALSO
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
 * `mmctl user username <mmctl_user_username.rst>`_ 	 - Change username of the user
-* `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Verify email of users
+* `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Mark user's email as verified
 

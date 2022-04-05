@@ -3,13 +3,13 @@
 mmctl user verify
 -----------------
 
-Verify email of users
+Mark user's email as verified
 
 Synopsis
 ~~~~~~~~
 
 
-Verify the user's email address.
+Mark user's email as verified without requiring user to complete email verification path.
 
 ::
 

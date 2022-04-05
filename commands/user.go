@@ -169,8 +169,8 @@ var ListUsersCmd = &cobra.Command{
 
 var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Use:     "verify [users]",
-	Short:   "Verify email of users",
-	Long:    "Verify the user's email address.",
+	Short:   "Mark user's email as verified",
+	Long:    "Mark user's email as verified without requiring user to complete email verification path.",
 	Example: "  user verify user1",
 	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
 	Args:    cobra.MinimumNArgs(1),
