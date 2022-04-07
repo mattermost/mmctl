@@ -21,7 +21,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
-	github.com/spf13/viper v1.8.1
+	github.com/spf13/viper v1.10.1
 	github.com/stretchr/testify v1.7.1
 	github.com/tylerb/graceful v1.2.15
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
