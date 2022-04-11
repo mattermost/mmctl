@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -108,6 +109,22 @@ func TestResolveConfigFilePath(t *testing.T) {
 
 		assert.False(t, info.IsDir())
 		assert.True(t, info.Name() == "config.json")
+	})
+
+	t.Run("should return error if the config flag is set to a directory", func(t *testing.T) {
+		tmp, _ := ioutil.TempDir("", "mmctl-")
+		defer os.RemoveAll(tmp)
+
+		testUser.HomeDir = "path/should/be/ignored"
+		SetUser(testUser)
+
+		err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
+		require.NoError(t, err)
+		viper.Set("config", tmp)
+
+		err = SaveCredentials(Credentials{})
+		require.Error(t, err)
+		require.True(t, strings.HasSuffix(err.Error(), "is a directory"))
 	})
 }
 
