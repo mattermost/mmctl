@@ -13,7 +13,7 @@ require (
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/isacikgoz/prompt v0.1.0
 	github.com/magefile/mage v1.13.0
-	github.com/mattermost/gosaml2 v0.3.3
+	github.com/mattermost/gosaml2 v0.8.0
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
 	github.com/mattermost/mattermost-server/v6 v6.4.1-0.20220216150418-661a6edad8b7
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0

@@ -361,7 +361,7 @@ github.com/mattermost/go-i18n/i18n/language
 github.com/mattermost/go-i18n/i18n/translation
 # github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f
 github.com/mattermost/gorp
-# github.com/mattermost/gosaml2 v0.3.3
+# github.com/mattermost/gosaml2 v0.8.0
 ## explicit
 github.com/mattermost/gosaml2
 github.com/mattermost/gosaml2/types
@@ -455,6 +455,8 @@ github.com/mattermost/mattermost-server/v6/wsapi
 github.com/mattermost/rsc/gf256
 github.com/mattermost/rsc/qr
 github.com/mattermost/rsc/qr/coding
+# github.com/mattermost/xml-roundtrip-validator v0.1.0
+github.com/mattermost/xml-roundtrip-validator
 # github.com/mattn/go-colorable v0.1.12
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.14
@@ -569,7 +571,7 @@ github.com/rs/cors
 github.com/rs/xid
 # github.com/rudderlabs/analytics-go v3.3.1+incompatible
 github.com/rudderlabs/analytics-go
-# github.com/russellhaering/goxmldsig v1.1.1
+# github.com/russellhaering/goxmldsig v1.2.0
 github.com/russellhaering/goxmldsig
 github.com/russellhaering/goxmldsig/etreeutils
 github.com/russellhaering/goxmldsig/types
