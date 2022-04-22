@@ -649,9 +649,13 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, err := deleteUser(c, user); err != nil {
+		if res, err := deleteUser(c, user); err != nil {
 			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
 		} else {
+			// res.StatusCode is checked for 202 to identify issues with file deletion.
+			if res.StatusCode == http.StatusAccepted {
+				printer.PrintT("There were issues with deleting profile image of the user. Please delete it manually. Id: '{{.Id}}'", user)
+			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}
