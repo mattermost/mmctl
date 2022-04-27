@@ -162,6 +162,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 
 	allowInsecureSHA1 := viper.GetBool("insecure-sha1-intermediate")
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")
+	allowSkipTLSVerification := viper.GetBool("insecure-skip-verify")
 
 	url := strings.TrimRight(args[0], "/")
 	method := MethodPassword
@@ -203,10 +204,12 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		var c *model.Client4
 		var err error
 		if mfaToken != "" {
-			c, _, err = InitClientWithMFA(username, password, mfaToken, url, allowInsecureSHA1, allowInsecureTLS)
+			c, _, err = InitClientWithMFA(
+				username, password, mfaToken, url, allowInsecureSHA1, allowInsecureTLS, allowSkipTLSVerification)
 			method = MethodMFA
 		} else {
-			c, _, err = InitClientWithUsernameAndPassword(username, password, url, allowInsecureSHA1, allowInsecureTLS)
+			c, _, err = InitClientWithUsernameAndPassword(
+				username, password, url, allowInsecureSHA1, allowInsecureTLS, allowSkipTLSVerification)
 		}
 		if err != nil {
 			return fmt.Errorf("could not initiate client: %w", err)
@@ -219,7 +222,8 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			InstanceURL: url,
 			AuthToken:   accessToken,
 		}
-		if _, _, err := InitClientWithCredentials(&credentials, allowInsecureSHA1, allowInsecureTLS); err != nil {
+		if _, _, err := InitClientWithCredentials(
+			&credentials, allowInsecureSHA1, allowInsecureTLS, allowSkipTLSVerification); err != nil {
 			return fmt.Errorf("could not initiate client: %w", err)
 		}
 	}
@@ -344,6 +348,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 	mfaToken, _ := cmd.Flags().GetString("mfa-token")
 	allowInsecureSHA1 := viper.GetBool("insecure-sha1-intermediate")
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")
+	allowSkipTLSVerification := viper.GetBool("insecure-skip-verify")
 
 	credentials, err := GetCredentials(args[0])
 	if err != nil {
@@ -363,7 +368,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 
 	switch credentials.AuthMethod {
 	case MethodPassword:
-		c, _, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS)
+		c, _, err := InitClientWithUsernameAndPassword(credentials.Username, password, credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS, allowSkipTLSVerification)
 		if err != nil {
 			return err
 		}
@@ -376,7 +381,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 		}
 
 		credentials.AuthToken = accessToken
-		if _, _, err := InitClientWithCredentials(credentials, allowInsecureSHA1, allowInsecureTLS); err != nil {
+		if _, _, err := InitClientWithCredentials(credentials, allowInsecureSHA1, allowInsecureTLS, allowSkipTLSVerification); err != nil {
 			return err
 		}
 
@@ -385,7 +390,7 @@ func renewCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("requires the --mfa-token parameter to be set")
 		}
 
-		c, _, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS)
+		c, _, err := InitClientWithMFA(credentials.Username, password, mfaToken, credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS, allowSkipTLSVerification)
 		if err != nil {
 			return err
 		}

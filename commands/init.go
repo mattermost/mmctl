@@ -49,7 +49,7 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 			return fn(c, cmd, args)
 		}
 
-		c, serverVersion, err := InitClient(viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"))
+		c, serverVersion, err := InitClient(viper.GetBool("insecure-sha1-intermediate"), viper.GetBool("insecure-tls-version"), viper.GetBool("insecure-skip-verify"))
 		if err != nil {
 			return err
 		}
@@ -107,13 +107,17 @@ func VerifyCertificates(rawCerts [][]byte, verifiedChains [][]*x509.Certificate)
 	return fmt.Errorf("insecure algorithm found in the certificate chain. Use --insecure-sha1-intermediate flag to ignore. Aborting")
 }
 
-func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) *model.Client4 {
+func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify bool) *model.Client4 {
 	client := model.NewAPIv4Client(instanceURL)
 	userAgent := fmt.Sprintf("mmctl/%s (%s)", Version, runtime.GOOS)
 	client.HTTPHeader = map[string]string{"User-Agent": userAgent}
 
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
+	}
+
+	if insecureSkipVerify {
+		tlsConfig.InsecureSkipVerify = true
 	}
 
 	if allowInsecureTLS {
@@ -133,8 +137,8 @@ func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool
 	return client
 }
 
-func InitClientWithUsernameAndPassword(username, password, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
-	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
+func InitClientWithUsernameAndPassword(username, password, instanceURL string, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify)
 
 	_, resp, err := client.Login(username, password)
 	if err != nil {
@@ -143,8 +147,8 @@ func InitClientWithUsernameAndPassword(username, password, instanceURL string, a
 	return client, resp.ServerVersion, nil
 }
 
-func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
-	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS)
+func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(instanceURL, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify)
 	_, resp, err := client.LoginWithMFA(username, password, mfaToken)
 	if err != nil {
 		return nil, "", checkInsecureTLSError(err, allowInsecureTLS)
@@ -152,8 +156,8 @@ func InitClientWithMFA(username, password, mfaToken, instanceURL string, allowIn
 	return client, resp.ServerVersion, nil
 }
 
-func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
-	client := NewAPIv4Client(credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS)
+func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify bool) (*model.Client4, string, error) {
+	client := NewAPIv4Client(credentials.InstanceURL, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify)
 
 	client.AuthType = model.HeaderBearer
 	client.AuthToken = credentials.AuthToken
@@ -166,12 +170,12 @@ func InitClientWithCredentials(credentials *Credentials, allowInsecureSHA1, allo
 	return client, resp.ServerVersion, nil
 }
 
-func InitClient(allowInsecureSHA1, allowInsecureTLS bool) (*model.Client4, string, error) {
+func InitClient(allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify bool) (*model.Client4, string, error) {
 	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return nil, "", err
 	}
-	return InitClientWithCredentials(credentials, allowInsecureSHA1, allowInsecureTLS)
+	return InitClientWithCredentials(credentials, allowInsecureSHA1, allowInsecureTLS, insecureSkipVerify)
 }
 
 func InitWebSocketClient() (*model.WebSocketClient, error) {
