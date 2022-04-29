@@ -210,6 +210,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	})
 
 	s.RunForAllClients("create channel with invalid name", func(c client.Client) {
+		s.T().Skip("MM-43873")
 		printer.Clean()
 
 		cmd := &cobra.Command{}
