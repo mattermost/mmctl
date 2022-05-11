@@ -74,6 +74,7 @@ func (a Array) Length() int {
 	return 0
 }
 
+// TODO: Array not implemented yet
 func MakeArray(f MakeType, b []byte) (Type, error) {
 	return Array{}, nil
 }
@@ -95,7 +96,18 @@ func (v Variant) Length() int {
 }
 
 func MakeVariant(b []byte) (Type, error) {
-	t, err := Evaluate(b)
+	if len(b) < 4 || binary.LittleEndian.Uint16(b[2:4]) != scalar { // only scalar values allowed
+		return Variant{}, ErrType
+	}
+	id := TypeID(binary.LittleEndian.Uint16(b[:2]))
+	if id == VT_VARIANT {
+		return Variant{}, ErrType // no recursive types allowed
+	}
+	f, ok := MakeTypes[id]
+	if !ok {
+		return Variant{}, ErrUnknownType
+	}
+	t, err := f(b[4:])
 	if err != nil {
 		return Variant{}, err
 	}

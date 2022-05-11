@@ -885,7 +885,10 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt)
+	channels, err := c.App.GetChannelsForTeamForUser(c.Params.TeamId, c.Params.UserId, &model.ChannelSearchOpts{
+		IncludeDeleted: c.Params.IncludeDeleted,
+		LastDeleteAt:   lastDeleteAt,
+	})
 	if err != nil {
 		c.Err = err
 		return
@@ -1698,6 +1701,14 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if postRootId != "" {
+		err := c.App.UpdateThreadFollowForUserFromChannelAdd(cm.UserId, channel.TeamId, postRootId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	auditRec.Success()
 	auditRec.AddMeta("add_user_id", cm.UserId)
 	c.LogAudit("name=" + channel.Name + " user_id=" + cm.UserId)
@@ -1781,7 +1792,7 @@ func updateChannelScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("new_scheme_id", *schemeID)
 
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.UpdateChannelScheme", "api.channel.update_channel_scheme.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1875,7 +1886,7 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 }
 
 func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.channelMemberCountsByGroup", "api.channel.channel_member_counts_by_group.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1908,7 +1919,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.GetChannelModerations", "api.channel.get_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -1945,7 +1956,7 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.patchChannelModerations", "api.channel.patch_channel_moderations.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
