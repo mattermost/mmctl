@@ -16,6 +16,7 @@ func TestCheckVersionMatch(t *testing.T) {
 		Version       string
 		ServerVersion string
 		Expected      bool
+		ErrExpected   bool
 	}{
 		{
 			Name:          "Both versions are equal",
@@ -45,7 +46,7 @@ func TestCheckVersionMatch(t *testing.T) {
 			Name:          "Minor version is greater",
 			Version:       "1.2.3",
 			ServerVersion: "1.3.3",
-			Expected:      false,
+			Expected:      true,
 		},
 		{
 			Name:          "Minor version is less",
@@ -53,12 +54,25 @@ func TestCheckVersionMatch(t *testing.T) {
 			ServerVersion: "1.1.3",
 			Expected:      false,
 		},
+		{
+			Name:          "Both versions are equal but one has v in front of it",
+			Version:       "v1.2.3",
+			ServerVersion: "1.2.3",
+			Expected:      true,
+		},
+		{
+			Name:          "unspecified version",
+			Version:       "",
+			ServerVersion: "1.2.3",
+			Expected:      false,
+			ErrExpected:   true,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			res := CheckVersionMatch(tc.Version, tc.ServerVersion)
-
+			res, err := CheckVersionMatch(tc.Version, tc.ServerVersion)
+			require.True(t, (err != nil) == tc.ErrExpected)
 			require.Equal(t, tc.Expected, res)
 		})
 	}

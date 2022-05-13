@@ -3,6 +3,7 @@ module github.com/mattermost/mmctl/v6
 go 1.16
 
 require (
+	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/corpix/uarand v0.1.1 // indirect
 	github.com/fatih/color v1.13.0
 	github.com/golang/mock v1.6.0

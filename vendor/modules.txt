@@ -5,6 +5,7 @@ code.sajari.com/docconv/snappy
 # github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198
 github.com/JalfResi/justext
 # github.com/Masterminds/semver/v3 v3.1.1
+## explicit
 github.com/Masterminds/semver/v3
 # github.com/Masterminds/squirrel v1.5.1
 github.com/Masterminds/squirrel
