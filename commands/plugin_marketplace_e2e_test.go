@@ -33,7 +33,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 
 		defer removePluginIfInstalled(c, s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID, pluginVersion})
+		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -54,63 +54,14 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		const (
-			pluginID      = "jira"
-			pluginVersion = "3.0.0"
+			pluginID = "jira"
 		)
 
 		defer removePluginIfInstalled(s.th.Client, s, pluginID)
 
-		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginID, pluginVersion})
+		err := pluginMarketplaceInstallCmdF(s.th.Client, &cobra.Command{}, []string{pluginID})
 		s.Require().NotNil(err)
 		s.Require().Contains(err.Error(), "You do not have the appropriate permissions.")
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 0)
-
-		plugins, appErr := s.th.App.GetPlugins()
-		s.Require().Nil(appErr)
-		s.Require().Len(plugins.Active, 0)
-		s.Require().Len(plugins.Inactive, 0)
-	})
-
-	s.RunForSystemAdminAndLocal("install a plugin without version", func(c client.Client) {
-		printer.Clean()
-
-		const (
-			pluginID = "jira"
-		)
-
-		defer removePluginIfInstalled(c, s, pluginID)
-
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 1)
-
-		manifest := printer.GetLines()[0].(*model.Manifest)
-		s.Require().Equal(pluginID, manifest.Id)
-		s.Require().NotEmpty(manifest.Version)
-
-		plugins, appErr := s.th.App.GetPlugins()
-		s.Require().Nil(appErr)
-		s.Require().Len(plugins.Active, 0)
-		s.Require().Len(plugins.Inactive, 1)
-		s.Require().Equal(pluginID, plugins.Inactive[0].Id)
-		s.Require().NotEmpty(plugins.Inactive[0].Version)
-	})
-
-	s.RunForSystemAdminAndLocal("install a plugin with invalid version", func(c client.Client) {
-		printer.Clean()
-
-		const (
-			pluginID      = "jira"
-			pluginVersion = "invalid-version"
-		)
-
-		defer removePluginIfInstalled(c, s, pluginID)
-
-		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID, pluginVersion})
-		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "Could not find the requested marketplace plugin.")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 
