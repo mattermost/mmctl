@@ -210,7 +210,6 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	})
 
 	s.RunForAllClients("create channel with invalid name", func(c client.Client) {
-		s.T().Skip("MM-43873")
 		printer.Clean()
 
 		cmd := &cobra.Command{}
@@ -223,7 +222,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 
 		err := createChannelCmdF(c, cmd, []string{})
 		s.Require().NotNil(err)
-		s.Require().Equal(": Name must be 2 or more lowercase alphanumeric characters., ", err.Error())
+		s.Require().Contains(err.Error(), "model.channel.is_valid.2_or_more.app_error")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 

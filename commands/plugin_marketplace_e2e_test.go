@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
@@ -82,7 +80,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 
 		err := pluginMarketplaceInstallCmdF(c, &cobra.Command{}, []string{pluginID})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), fmt.Sprintf(`couldn't find a plugin with id "%s"`, pluginID))
+		s.Require().Contains(err.Error(), "Could not find the requested marketplace plugin")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 
