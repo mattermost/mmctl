@@ -3,6 +3,7 @@ module github.com/mattermost/mmctl/v6
 go 1.16
 
 require (
+	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/RoaringBitmap/roaring v1.0.0 // indirect
 	github.com/armon/go-metrics v0.3.11 // indirect
 	github.com/aws/aws-sdk-go v1.44.11 // indirect
