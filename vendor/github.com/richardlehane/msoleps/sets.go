@@ -25,8 +25,8 @@ func addDefaults(m map[uint32]string) map[uint32]string {
 
 }
 
-var propertySets map[types.Guid]map[uint32]string = map[types.Guid]map[uint32]string{
-	types.MustGuidFromString("{D5CDD502-2E9C-101B-9397-08002B2CF9AE}"): map[uint32]string{
+var propertySets = map[types.Guid]map[uint32]string{
+	types.MustGuidFromString("{D5CDD502-2E9C-101B-9397-08002B2CF9AE}"): {
 		0x00000002: "Category",
 		0x00000003: "Presentation Format",
 		0x00000004: "Byte count",
@@ -54,7 +54,7 @@ var propertySets map[types.Guid]map[uint32]string = map[types.Guid]map[uint32]st
 		0x0000001C: "Language",
 		0x0000001D: "Document Version",
 	},
-	types.MustGuidFromString("{F29F85E0-4FF9-1068-AB91-08002B27B3D9}"): map[uint32]string{
+	types.MustGuidFromString("{F29F85E0-4FF9-1068-AB91-08002B27B3D9}"): {
 		0x00000002: "Title",
 		0x00000003: "Subject",
 		0x00000004: "Author",
