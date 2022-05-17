@@ -239,10 +239,18 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 
 func printJob(job *model.Job) {
 	if job.StartAt > 0 {
-		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
+		printer.PrintT(fmt.Sprintf(`  ID: {{.Id}}
+  Status: {{.Status}}
+  Created: %s
+  Started: %s
+  Data: {{.Data}}
+`,
 			time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
 	} else {
-		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n\n",
+		printer.PrintT(fmt.Sprintf(`  ID: {{.Id}}
+  Status: {{.Status}}
+  Created: %s
+`,
 			time.Unix(job.CreateAt/1000, 0)), job)
 	}
 }
