@@ -6,6 +6,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -38,6 +39,11 @@ var PostListCmd = &cobra.Command{
 	RunE: withClient(postListCmdF),
 }
 
+const (
+	ISO8601Layout  = "2006-01-02T15:04:05-07:00"
+	PostTimeFormat = "2006-01-02 15:04:05"
+)
+
 func init() {
 	PostCreateCmd.Flags().StringP("message", "m", "", "Message for the post")
 	PostCreateCmd.Flags().StringP("reply-to", "r", "", "Post id to reply to")
@@ -45,6 +51,7 @@ func init() {
 	PostListCmd.Flags().IntP("number", "n", 20, "Number of messages to list")
 	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
 	PostListCmd.Flags().BoolP("follow", "f", false, "Output appended data as new messages are posted to the channel")
+	PostListCmd.Flags().StringP("since", "s", "", "List messages posted after a certain time (ISO 8601)")
 
 	PostCmd.AddCommand(
 		PostCreateCmd,
@@ -111,7 +118,7 @@ func eventDataToPost(eventData map[string]interface{}) (*model.Post, error) {
 }
 
 func printPost(c client.Client, post *model.Post, usernames map[string]string, showIds bool) {
-	var username string
+	var username, createdAt string
 
 	if usernames[post.UserId] != "" {
 		username = usernames[post.UserId]
@@ -125,11 +132,25 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 		}
 	}
 
+	postTime := time.UnixMilli(post.CreateAt).UTC()
+	createdAt = postTime.Format(PostTimeFormat)
+
 	if showIds {
-		printer.PrintT(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, username), post)
+		printer.PrintT(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[0m \u001b[37;1m%s \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, createdAt, username), post)
 	} else {
-		printer.PrintT(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m {{.Message}}", username), post)
+		printer.PrintT(fmt.Sprintf("\u001b[0m \u001b[37;1m%s \u001b[34;1m[%s]\u001b[0m  {{.Message}}", createdAt, username), post)
 	}
+}
+
+func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
+	if len(since) > 0 {
+		sinceTime, err := time.Parse(ISO8601Layout, since)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid since time format: %v", err)
+		}
+		return client.GetPostsSince(channelID, sinceTime.UTC().UnixMilli(), false)
+	}
+	return client.GetPostsForChannel(channelID, 0, perPage, "", false)
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -143,8 +164,9 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	number, _ := cmd.Flags().GetInt("number")
 	showIds, _ := cmd.Flags().GetBool("show-ids")
 	follow, _ := cmd.Flags().GetBool("follow")
+	since, _ := cmd.Flags().GetString("since")
 
-	postList, _, err := c.GetPostsForChannel(channel.Id, 0, number, "", false)
+	postList, _, err := getPostList(c, channel.Id, since, number)
 	if err != nil {
 		return err
 	}
