@@ -1,1 +1,1 @@
-DIST_VER=$(shell git tag -l --sort=-version:refname "v6.7.*" | head -n 1)
+DIST_VER=$(shell git tag -l --sort=-version:refname "v7.0.*" | head -n 1)
