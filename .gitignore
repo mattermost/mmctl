@@ -10,7 +10,7 @@ build
 coverage.txt
 mmctl.md5.txt
 
-config.override.mk
+
 
 vendor/github.com/mattermost/mattermost-server/v6/enterprise
 vendor/github.com/mattermost/mattermost-server/v6/imports
