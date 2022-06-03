@@ -41,7 +41,7 @@ var PostListCmd = &cobra.Command{
 
 const (
 	ISO8601Layout  = "2006-01-02T15:04:05-07:00"
-	PostTimeFormat = "2006-01-02 15:04:05"
+	PostTimeFormat = "2006-01-02 15:04:05-07:00"
 )
 
 func init() {
@@ -117,8 +117,8 @@ func eventDataToPost(eventData map[string]interface{}) (*model.Post, error) {
 	return post, nil
 }
 
-func printPost(c client.Client, post *model.Post, usernames map[string]string, showIds bool) {
-	var username, createdAt string
+func printPost(c client.Client, post *model.Post, usernames map[string]string, showIds, showTimestamp bool) {
+	var username string
 
 	if usernames[post.UserId] != "" {
 		username = usernames[post.UserId]
@@ -132,13 +132,17 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 		}
 	}
 
-	postTime := time.UnixMilli(post.CreateAt).UTC()
-	createdAt = postTime.Format(PostTimeFormat)
+	postTime := model.GetTimeForMillis(post.CreateAt)
+	createdAt := postTime.Format(PostTimeFormat)
 
-	if showIds {
-		printer.PrintT(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[0m \u001b[37;1m%s \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, createdAt, username), post)
+	if showTimestamp {
+		printer.PrintT(fmt.Sprintf("\u001b[32m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", createdAt, username), post)
 	} else {
-		printer.PrintT(fmt.Sprintf("\u001b[0m \u001b[37;1m%s \u001b[34;1m[%s]\u001b[0m  {{.Message}}", createdAt, username), post)
+		if showIds {
+			printer.PrintT(fmt.Sprintf("\u001b[31m%s\u001b[0m \u001b[34;1m[%s]\u001b[0m {{.Message}}", post.Id, username), post)
+		} else {
+			printer.PrintT(fmt.Sprintf("\u001b[34;1m[%s]\u001b[0m {{.Message}}", username), post)
+		}
 	}
 }
 
@@ -148,7 +152,8 @@ func getPostList(client client.Client, channelID, since string, perPage int) (*m
 		if err != nil {
 			return nil, nil, fmt.Errorf("invalid since time format: %v", err)
 		}
-		return client.GetPostsSince(channelID, sinceTime.UTC().UnixMilli(), false)
+		sinceTimeMillis := model.GetMillisForTime(sinceTime)
+		return client.GetPostsSince(channelID, sinceTimeMillis, false)
 	}
 	return client.GetPostsForChannel(channelID, 0, perPage, "", false)
 }
@@ -168,14 +173,15 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	postList, _, err := getPostList(c, channel.Id, since, number)
 	if err != nil {
-		return err
+		return errors.New("Invalid since time '" + since + "'")
 	}
 
 	posts := postList.ToSlice()
+	showTimestamp := len(since) > 0
 	usernames := map[string]string{}
 	for i := 1; i <= len(posts); i++ {
 		post := posts[len(posts)-i]
-		printPost(c, post, usernames, showIds)
+		printPost(c, post, usernames, showIds, showTimestamp)
 	}
 
 	if follow {
@@ -198,7 +204,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 					fmt.Println("Error parsing incoming post: " + err.Error())
 				}
 				if post.ChannelId == channel.Id {
-					printPost(c, post, usernames, showIds)
+					printPost(c, post, usernames, showIds, showTimestamp)
 				}
 			}
 		}

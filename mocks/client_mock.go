@@ -1048,7 +1048,7 @@ func (m *MockClient) GetPostsSince(arg0 string, arg1 int64, arg2 bool) (*model.P
 }
 
 // GetPostsSince indicates an expected call of GetPostsSince
-func (mr *MockClientMockRecorder) GetPostsSince(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetPostsSince(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsSince", reflect.TypeOf((*MockClient)(nil).GetPostsSince), arg0, arg1, arg2)
 }
