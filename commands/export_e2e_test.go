@@ -177,7 +177,10 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 	s.Run("MM-T3879 - no permissions", func() {
 		printer.Clean()
 
-		err := exportDownloadCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("num_retries", 5, "")
+
+		err := exportDownloadCmdF(s.th.Client, cmd, []string{exportName})
 		s.Require().EqualError(err, "failed to download export after 5 retries")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
@@ -187,6 +190,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.Flags().Int("num_retries", 5, "")
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
@@ -204,6 +208,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.Flags().Int("num_retries", 5, "")
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
@@ -219,6 +224,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.Flags().Int("num_retries", 5, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
 		err := utils.CopyFile(importFilePath, exportFilePath)
@@ -242,6 +248,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
+		cmd.Flags().Int("num_retries", 5, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
 		err := utils.CopyFile(importFilePath, exportFilePath)
