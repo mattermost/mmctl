@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
@@ -164,6 +165,9 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 
 	resume, _ := command.Flags().GetBool("resume")
+	if resume {
+		printer.PrintWarning("The --resume flag has been deprecated and now the tool resumes a download automatically. The flag will be removed in a future version.")
+	}
 
 	var outFile *os.File
 	info, err := os.Stat(path)
@@ -171,12 +175,9 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	case err != nil && !os.IsNotExist(err):
 		// some error occurred and not because file doesn't exist
 		return fmt.Errorf("failed to stat export file: %w", err)
-	case err == nil && info.Size() > 0 && !resume:
+	case err == nil && info.Size() > 0:
 		// we exit to avoid overwriting an existing non-empty file
 		return fmt.Errorf("export file already exists")
-	case os.IsNotExist(err) && resume:
-		// cannot resume if the file does not exist
-		return fmt.Errorf("cannot resume download: export file does not exist")
 	case err != nil:
 		// file does not exist, we create it
 		outFile, err = os.Create(path)
@@ -190,13 +191,23 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 	defer outFile.Close()
 
-	off, err := outFile.Seek(0, io.SeekEnd)
-	if err != nil {
-		return fmt.Errorf("failed to seek export file: %w", err)
+	i := 0
+	for i < 5 {
+		off, err := outFile.Seek(0, io.SeekEnd)
+		if err != nil {
+			return fmt.Errorf("failed to seek export file: %w", err)
+		}
+
+		if _, _, err := c.DownloadExport(name, outFile, off); err != nil {
+			printer.PrintWarning(fmt.Sprintf("failed to download export file: %v. Retrying...", err))
+			i++
+			continue
+		}
+		break
 	}
 
-	if _, _, err := c.DownloadExport(name, outFile, off); err != nil {
-		return fmt.Errorf("failed to download export file: %w", err)
+	if i == 5 {
+		return errors.New("failed to download export after 5 retries.")
 	}
 
 	return nil
