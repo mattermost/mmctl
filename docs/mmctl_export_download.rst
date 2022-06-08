@@ -31,8 +31,9 @@ Options
 
 ::
 
-  -h, --help     help for download
-      --resume   Set to true to resume an export download.
+  -h, --help              help for download
+      --num_retries int   Number of retries to do to resume a download. (default 5)
+      --resume            Set to true to resume an export download.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -83,6 +83,7 @@ func init() {
 	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
+	ExportDownloadCmd.Flags().Int("num_retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")
 	ExportJobListCmd.Flags().Int("per-page", 200, "Number of export jobs to be fetched")
@@ -169,6 +170,8 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		printer.PrintWarning("The --resume flag has been deprecated and now the tool resumes a download automatically. The flag will be removed in a future version.")
 	}
 
+	retries, _ := command.Flags().GetInt("num_retries")
+
 	var outFile *os.File
 	info, err := os.Stat(path)
 	switch {
@@ -192,7 +195,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	defer outFile.Close()
 
 	i := 0
-	for i < 5 {
+	for i < retries {
 		off, err := outFile.Seek(0, io.SeekEnd)
 		if err != nil {
 			return fmt.Errorf("failed to seek export file: %w", err)
@@ -206,7 +209,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		break
 	}
 
-	if i == 5 {
+	if i == retries {
 		return errors.New("failed to download export after 5 retries")
 	}
 
