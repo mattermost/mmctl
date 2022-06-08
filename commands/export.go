@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -210,7 +209,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 
 	if i == retries {
-		return errors.New("failed to download export after 5 retries")
+		return fmt.Errorf("failed to download export after %d retries", retries)
 	}
 
 	return nil
