@@ -4,13 +4,13 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
-	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
@@ -207,7 +207,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 
 	if i == 5 {
-		return errors.New("failed to download export after 5 retries.")
+		return errors.New("failed to download export after 5 retries")
 	}
 
 	return nil
