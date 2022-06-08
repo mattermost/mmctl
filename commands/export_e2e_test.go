@@ -178,7 +178,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		err := exportDownloadCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
-		s.Require().EqualError(err, "failed to download export file: : You do not have the appropriate permissions., ")
+		s.Require().EqualError(err, "failed to download export after 5 retries")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -200,21 +200,6 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
-	s.RunForSystemAdminAndLocal("MM-T3381 - resuming non-existent file", func(c client.Client) {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("resume", true, "")
-
-		downloadPath, err := filepath.Abs(exportName)
-		s.Require().Nil(err)
-
-		err = exportDownloadCmdF(c, cmd, []string{exportName, downloadPath})
-		s.Require().EqualError(err, "cannot resume download: export file does not exist")
-		s.Require().Empty(printer.GetLines())
-		s.Require().Empty(printer.GetErrorLines())
-	})
-
 	s.RunForSystemAdminAndLocal("MM-T3882 - export does not exist", func(c client.Client) {
 		printer.Clean()
 
@@ -225,7 +210,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		defer os.Remove(downloadPath)
 
 		err = exportDownloadCmdF(c, cmd, []string{exportName, downloadPath})
-		s.Require().EqualError(err, "failed to download export file: : Unable to find export file., ")
+		s.Require().EqualError(err, "failed to download export after 5 retries")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -274,40 +259,6 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 
 		expected, err := ioutil.ReadFile(exportFilePath)
 		s.Require().Nil(err)
-		actual, err := ioutil.ReadFile(downloadPath)
-		s.Require().Nil(err)
-
-		s.Require().Equal(expected, actual)
-	})
-
-	s.RunForSystemAdminAndLocal("MM-T3884 - resume download", func(c client.Client) {
-		printer.Clean()
-
-		cmd := &cobra.Command{}
-		cmd.Flags().Bool("resume", true, "")
-
-		exportFilePath := filepath.Join(exportPath, exportName)
-		err := utils.CopyFile(importFilePath, exportFilePath)
-		s.Require().Nil(err)
-		defer os.Remove(exportFilePath)
-
-		downloadPath, err := filepath.Abs(exportName)
-		s.Require().Nil(err)
-		defer os.Remove(downloadPath)
-		f, err := os.Create(downloadPath)
-		s.Require().Nil(err)
-		defer f.Close()
-
-		expected, err := ioutil.ReadFile(exportFilePath)
-		s.Require().Nil(err)
-		_, err = f.Write(expected[:1024])
-		s.Require().Nil(err)
-
-		err = exportDownloadCmdF(c, cmd, []string{exportName, downloadPath})
-		s.Require().Nil(err)
-		s.Require().Empty(printer.GetLines())
-		s.Require().Empty(printer.GetErrorLines())
-
 		actual, err := ioutil.ReadFile(downloadPath)
 		s.Require().Nil(err)
 
