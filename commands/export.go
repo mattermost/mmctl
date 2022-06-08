@@ -194,7 +194,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	defer outFile.Close()
 
 	i := 0
-	for i < retries {
+	for i < retries+1 {
 		off, err := outFile.Seek(0, io.SeekEnd)
 		if err != nil {
 			return fmt.Errorf("failed to seek export file: %w", err)
@@ -208,7 +208,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		break
 	}
 
-	if i == retries {
+	if retries != 0 && i == retries+1 {
 		return fmt.Errorf("failed to download export after %d retries", retries)
 	}
 
