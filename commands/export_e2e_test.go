@@ -178,7 +178,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Int("num_retries", 5, "")
+		cmd.Flags().Int("num-retries", 5, "")
 
 		err := exportDownloadCmdF(s.th.Client, cmd, []string{exportName})
 		s.Require().EqualError(err, "failed to download export after 5 retries")
@@ -190,7 +190,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Int("num_retries", 5, "")
+		cmd.Flags().Int("num-retries", 5, "")
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
@@ -208,7 +208,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Int("num_retries", 5, "")
+		cmd.Flags().Int("num-retries", 5, "")
 
 		downloadPath, err := filepath.Abs(exportName)
 		s.Require().Nil(err)
@@ -224,7 +224,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Int("num_retries", 5, "")
+		cmd.Flags().Int("num-retries", 5, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
 		err := utils.CopyFile(importFilePath, exportFilePath)
@@ -248,7 +248,7 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Int("num_retries", 5, "")
+		cmd.Flags().Int("num-retries", 5, "")
 
 		exportFilePath := filepath.Join(exportPath, exportName)
 		err := utils.CopyFile(importFilePath, exportFilePath)

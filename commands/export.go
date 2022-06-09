@@ -82,7 +82,11 @@ func init() {
 	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
-	ExportDownloadCmd.Flags().Int("num_retries", 5, "Number of retries to do to resume a download.")
+	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
+	// Intentionally the message does not start with a capital letter because
+	// cobra prepends "Flag --resume has been deprecated,"
+	_ = ExportDownloadCmd.Flags().MarkDeprecated("resume", "the tool now resumes a download automatically. The flag will be removed in a future version.")
+	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")
 	ExportJobListCmd.Flags().Int("per-page", 200, "Number of export jobs to be fetched")
@@ -162,11 +166,6 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 	if path == "" {
 		path = name
-	}
-
-	resume, _ := command.Flags().GetBool("resume")
-	if resume {
-		printer.PrintWarning("The --resume flag has been deprecated and now the tool resumes a download automatically. The flag will be removed in a future version.")
 	}
 
 	retries, _ := command.Flags().GetInt("num_retries")
