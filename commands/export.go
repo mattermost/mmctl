@@ -168,7 +168,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		path = name
 	}
 
-	retries, _ := command.Flags().GetInt("num_retries")
+	retries, _ := command.Flags().GetInt("num-retries")
 
 	var outFile *os.File
 	info, err := os.Stat(path)
