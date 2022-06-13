@@ -57,7 +57,7 @@ require (
 	github.com/splitio/go-split-commons/v4 v4.0.4 // indirect
 	github.com/splitio/go-toolkit/v5 v5.1.0 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/tidwall/gjson v1.14.1 // indirect
 	github.com/tylerb/graceful v1.2.15
 	github.com/yuin/goldmark v1.4.12 // indirect
