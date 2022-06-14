@@ -147,15 +147,17 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 }
 
 func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
-	if len(since) > 0 {
-		sinceTime, err := time.Parse(ISO8601Layout, since)
-		if err != nil {
-			return nil, nil, fmt.Errorf("invalid since time format: %v", err)
-		}
-		sinceTimeMillis := model.GetMillisForTime(sinceTime)
-		return client.GetPostsSince(channelID, sinceTimeMillis, false)
+	if since == "" {
+		return client.GetPostsForChannel(channelID, 0, perPage, "", false)
 	}
-	return client.GetPostsForChannel(channelID, 0, perPage, "", false)
+
+	sinceTime, err := time.Parse(ISO8601Layout, since)
+	if err != nil {
+		return nil, nil, fmt.Errorf("invalid since time '%s'", since)
+	}
+
+	sinceTimeMillis := model.GetMillisForTime(sinceTime)
+	return client.GetPostsSince(channelID, sinceTimeMillis, false)
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -173,7 +175,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	postList, _, err := getPostList(c, channel.Id, since, number)
 	if err != nil {
-		return errors.New("Invalid since time '" + since + "'")
+		return err
 	}
 
 	posts := postList.ToSlice()

@@ -168,7 +168,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		cmd.Flags().String("since", sinceArg, "")
 
 		err := postListCmdF(s.client, cmd, []string{channelName, sinceArg})
-		s.Require().Contains(err.Error(), "Invalid since time 'invalid-date'")
+		s.Require().Contains(err.Error(), "invalid since time 'invalid-date'")
 	})
 
 	s.Run("list posts for a channel", func() {
