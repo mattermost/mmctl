@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -29,6 +30,7 @@ var (
 		x509.DSAWithSHA1:   true,
 		x509.ECDSAWithSHA1: true,
 	}
+	versionRegex       = regexp.MustCompile(`(v?)(\d+).(\d+).(\d+)`)
 	expectedSocketMode = os.ModeSocket | 0600
 )
 
@@ -38,6 +40,9 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 		return false, errors.Wrapf(err, "Cannot parse version range %s", version)
 	}
 
+	if versionRegex.MatchString(serverVersion) {
+		serverVersion = versionRegex.FindString(serverVersion)
+	}
 	serverVersionParsed, err := semver.NewVersion(serverVersion)
 	if err != nil {
 		return false, errors.Wrapf(err, "Cannot parse version range %s", serverVersion)

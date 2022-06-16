@@ -61,6 +61,20 @@ func TestCheckVersionMatch(t *testing.T) {
 			Expected:      true,
 		},
 		{
+			Name:          "Support server format",
+			Version:       "v1.2.3",
+			ServerVersion: "1.2.3.1.2.3.0ba491ddd1351941e9021d35baf164892856b34d",
+			Expected:      true,
+			ErrExpected:   false,
+		},
+		{
+			Name:          "Server returns only major and minor versions",
+			Version:       "v1.2.3",
+			ServerVersion: "1.2",
+			Expected:      true,
+			ErrExpected:   false,
+		},
+		{
 			Name:          "unspecified version",
 			Version:       "",
 			ServerVersion: "1.2.3",
@@ -72,7 +86,7 @@ func TestCheckVersionMatch(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			res, err := CheckVersionMatch(tc.Version, tc.ServerVersion)
-			require.True(t, (err != nil) == tc.ErrExpected)
+			require.True(t, (err != nil) == tc.ErrExpected, "unexpected error assertion")
 			require.Equal(t, tc.Expected, res)
 		})
 	}
