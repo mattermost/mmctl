@@ -38,6 +38,13 @@ func CheckVersionMatch(version, serverVersion string) (bool, error) {
 		return false, errors.Wrapf(err, "Cannot parse version range %s", version)
 	}
 
+	// Split and recombine the server version string
+	parts := strings.Split(serverVersion, ".")
+	if len(parts) < 3 {
+		return false, fmt.Errorf("incorrect server version format: %s", serverVersion)
+	}
+	serverVersion = strings.Join(parts[:3], ".")
+
 	serverVersionParsed, err := semver.NewVersion(serverVersion)
 	if err != nil {
 		return false, errors.Wrapf(err, "Cannot parse version range %s", serverVersion)
