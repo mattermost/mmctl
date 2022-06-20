@@ -72,6 +72,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlStore) {
 	t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, ss) })
 	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, ss) })
 	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, ss, s) })
+	t.Run("GetMany", func(t *testing.T) { testChannelStoreGetMany(t, ss, s) })
 	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, ss) })
 	t.Run("GetChannelsWithTeamDataByIds", func(t *testing.T) { testGetChannelsWithTeamDataByIds(t, ss) })
 	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, ss) })
@@ -469,6 +470,40 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	require.Greater(t, len(channelsTeam), 0, "too little")
 
 	_, err = ss.Channel().GetTeamChannels("notfound")
+	var nfErr *store.ErrNotFound
+	require.True(t, errors.As(err, &nfErr))
+
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMasterX().Exec("TRUNCATE Channels")
+}
+
+func testChannelStoreGetMany(t *testing.T, ss store.Store, s SqlStore) {
+	o1, nErr := ss.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, nErr)
+
+	o2, nErr := ss.Channel().Save(&model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name2",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, nErr)
+
+	res, err := ss.Channel().GetMany([]string{o1.Id, o2.Id}, true)
+	require.NoError(t, err)
+	assert.Len(t, res, 2)
+
+	res, err = ss.Channel().GetMany([]string{o1.Id, "notexists"}, true)
+	require.NoError(t, err)
+	assert.Len(t, res, 1)
+
+	_, err = ss.Channel().GetMany([]string{"notexists"}, true)
+	require.Error(t, err)
 	var nfErr *store.ErrNotFound
 	require.True(t, errors.As(err, &nfErr))
 
@@ -3805,8 +3840,8 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlStore) {
 	// Exclude policy constrained
 	policy, nErr := ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{c1.Id},
 	})
@@ -3978,6 +4013,12 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.ChannelTypePrivate)
 		require.NoError(t, err)
 		require.EqualValues(t, 2, count)
+	})
+
+	t.Run("verify analytics for all channels", func(t *testing.T) {
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, "")
+		require.NoError(t, err)
+		require.EqualValues(t, 6, count)
 	})
 }
 
@@ -5776,7 +5817,7 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run("AutoCompleteInTeam/"+testCase.Description, func(t *testing.T) {
-			channels, err := ss.Channel().AutocompleteInTeam(testCase.TeamID, testCase.UserID, testCase.Term, testCase.IncludeDeleted)
+			channels, err := ss.Channel().AutocompleteInTeam(testCase.TeamID, testCase.UserID, testCase.Term, testCase.IncludeDeleted, false)
 			require.NoError(t, err)
 			sort.Sort(ByChannelDisplayName(channels))
 			require.Equal(t, testCase.ExpectedResults, channels)
@@ -5821,6 +5862,15 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 	}
 	_, err = ss.Channel().Save(&o2, -1)
+	require.NoError(t, err)
+
+	o6 := model.Channel{
+		TeamId:      teamID,
+		DisplayName: "ChannelA3",
+		Name:        NewTestId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, err = ss.Channel().Save(&o6, -1)
 	require.NoError(t, err)
 
 	m1 := model.ChannelMember{
@@ -5940,20 +5990,22 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 		UserID             string
 		Term               string
 		IncludeDeleted     bool
+		IsGuest            bool
 		ExpectedChannelIds []string
 		ExpectedTeamNames  []string
 	}{
-		{"user 1, Channel A", m1.UserId, "ChannelA", false, []string{o1.Id, o2.Id}, []string{t1.Name, t2.Name}},
-		{"user 1, Channel B", m1.UserId, "ChannelB", false, []string{o4.Id}, []string{t2.Name}},
-		{"user 2, Channel A", m3.UserId, "ChannelA", false, []string{o3.Id, o1.Id, o2.Id}, []string{t2.Name, t1.Name, t1.Name}},
-		{"user 2, Channel B", m3.UserId, "ChannelB", false, nil, nil},
-		{"user 1, empty string", m1.UserId, "", false, []string{o1.Id, o2.Id, o4.Id}, []string{t1.Name, t2.Name, t2.Name}},
-		{"user 2, empty string", m3.UserId, "", false, []string{o1.Id, o2.Id, o3.Id}, []string{t1.Name, t2.Name, t1.Name}},
+		{"user 1, Channel A", m1.UserId, "ChannelA", false, false, []string{o1.Id, o2.Id, o6.Id}, []string{t1.Name, t2.Name, t1.Name}},
+		{"user 1, Channel B", m1.UserId, "ChannelB", false, false, []string{o4.Id}, []string{t2.Name}},
+		{"user 2, Channel A", m3.UserId, "ChannelA", false, false, []string{o3.Id, o1.Id, o2.Id, o6.Id}, []string{t2.Name, t1.Name, t1.Name, t1.Name}},
+		{"user 2 guest, Channel A", m3.UserId, "ChannelA", false, true, []string{o2.Id, o3.Id}, []string{t2.Name, t1.Name}},
+		{"user 2, Channel B", m3.UserId, "ChannelB", false, false, nil, nil},
+		{"user 1, empty string", m1.UserId, "", false, false, []string{o1.Id, o2.Id, o4.Id, o6.Id}, []string{t1.Name, t2.Name, t2.Name, t1.Name}},
+		{"user 2, empty string", m3.UserId, "", false, false, []string{o1.Id, o2.Id, o3.Id, o6.Id}, []string{t1.Name, t2.Name, t1.Name, t1.Name}},
 	}
 
 	for _, testCase := range testCases {
 		t.Run("Autocomplete/"+testCase.Description, func(t *testing.T) {
-			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted)
+			channels, err := ss.Channel().Autocomplete(testCase.UserID, testCase.Term, testCase.IncludeDeleted, testCase.IsGuest)
 			require.NoError(t, err)
 			var gotChannelIds []string
 			var gotTeamNames []string
@@ -5961,8 +6013,8 @@ func testAutocomplete(t *testing.T, ss store.Store) {
 				gotChannelIds = append(gotChannelIds, ch.Id)
 				gotTeamNames = append(gotTeamNames, ch.TeamName)
 			}
-			require.ElementsMatch(t, testCase.ExpectedChannelIds, gotChannelIds)
-			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames)
+			require.ElementsMatch(t, testCase.ExpectedChannelIds, gotChannelIds, "channels IDs are not as expected")
+			require.ElementsMatch(t, testCase.ExpectedTeamNames, gotTeamNames, "team names are not as expected")
 		})
 	}
 }
@@ -6263,8 +6315,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	_, nErr = ss.RetentionPolicy().Save(&model.RetentionPolicyWithTeamAndChannelIDs{
 		RetentionPolicy: model.RetentionPolicy{
-			DisplayName:  "Policy 1",
-			PostDuration: model.NewInt64(30),
+			DisplayName:      "Policy 1",
+			PostDurationDays: model.NewInt64(30),
 		},
 		ChannelIDs: []string{o14.Id},
 	})
@@ -7633,7 +7685,6 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	time.Sleep(10 * time.Millisecond)
-	startTime := c2.CreateAt
 
 	c3 := &model.Channel{}
 	c3.DisplayName = "Channel3"
@@ -7665,23 +7716,20 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	_, nErr = ss.Channel().Save(c6, -1)
 	require.NoError(t, nErr)
 
-	endTime := c6.CreateAt
-
 	// First and last channel should be outside the range
-	channels, err := ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	channels, err := ss.Channel().GetChannelsBatchForIndexing(c1.CreateAt, "", 4)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c4, c5}, channels)
+	assert.Len(t, channels, 4)
 
-	// Update the endTime, last channel should be in
-	endTime = model.GetMillis()
-	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	// From 4th createat+id
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(channels[3].CreateAt, channels[3].Id, 5)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c4, c5, c6}, channels)
+	assert.Len(t, channels, 2)
 
 	// Testing the limit
-	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(channels[1].CreateAt, channels[1].Id, 1)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
+	assert.Len(t, channels, 0)
 }
 
 func testGroupSyncedChannelCount(t *testing.T, ss store.Store) {
