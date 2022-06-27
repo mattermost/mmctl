@@ -719,9 +719,8 @@ github.com/splitio/go-toolkit/v5/workerpool
 # github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf
 github.com/ssor/bom
 # github.com/stretchr/objx v0.4.0
-## explicit
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.7.1
+# github.com/stretchr/testify v1.7.5
 ## explicit
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
@@ -1000,5 +999,5 @@ gopkg.in/natefinch/lumberjack.v2
 gopkg.in/olivere/elastic.v6
 # gopkg.in/yaml.v2 v2.4.0
 gopkg.in/yaml.v2
-# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+# gopkg.in/yaml.v3 v3.0.1
 gopkg.in/yaml.v3
