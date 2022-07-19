@@ -25,8 +25,8 @@ TESTFLAGS = -mod=vendor -timeout 30m -race -v
 include config.mk
 
 # In case DIST_VER is not assigned, fallback to using the latest semver tag available
-ifndef DIST_VER
-   DIST_VER=$(shell git tag | sort -r --version-sort | head -n1)
+ifeq ($(DIST_VER), )
+    DIST_VER=$(shell git tag | sort -r --version-sort | head -n1)
 endif
 
 PKG=github.com/mattermost/mmctl/v6/commands
