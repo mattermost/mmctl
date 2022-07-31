@@ -276,6 +276,7 @@ func init() {
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
+	ListUsersCmd.Flags().Bool("deleted", false, "If supplied, only deactivated users will be listed")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -723,6 +724,10 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
+	deactivatedUser, err := command.Flags().GetBool("deleted")
+	if err != nil {
+		return err
+	}
 
 	if showAll {
 		page = 0
@@ -757,7 +762,15 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		}
 
 		for _, user := range users {
-			printer.PrintT(tpl, user)
+			switch {
+			case deactivatedUser && user.DeleteAt > 0:
+				showAll = true
+				printer.PrintT(tpl, user)
+			case deactivatedUser && user.DeleteAt <= 0:
+				continue
+			default:
+				printer.PrintT(tpl, user)
+			}
 		}
 
 		if !showAll {
