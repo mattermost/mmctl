@@ -25,7 +25,7 @@ require (
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-plugin v1.4.4 // indirect
-	github.com/hashicorp/memberlist v0.3.1
+	github.com/hashicorp/memberlist v0.3.2
 	github.com/icrowley/fake v0.0.0-20180203215853-4178557ae428
 	github.com/isacikgoz/prompt v0.1.0
 	github.com/jmoiron/sqlx v1.3.5 // indirect
