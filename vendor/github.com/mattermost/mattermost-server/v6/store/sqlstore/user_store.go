@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
@@ -71,6 +71,7 @@ func (us SqlUserStore) insert(user *model.User) (sql.Result, error) {
 			:Props, :NotifyProps, :LastPasswordUpdate, :LastPictureUpdate, :FailedAttempts,
 			:Locale, :Timezone, :MfaActive, :MfaSecret, :RemoteId)`
 
+	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	return us.GetMasterX().NamedExec(query, user)
 }
 
@@ -201,6 +202,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 				MfaSecret=:MfaSecret, RemoteId=:RemoteId
 			WHERE Id=:Id`
 
+	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
 	res, err := us.GetMasterX().NamedExec(query, user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
@@ -222,13 +224,21 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 
 	user.Sanitize(map[string]bool{})
 	oldUser.Sanitize(map[string]bool{})
-	return &model.UserUpdate{New: user, Old: &oldUser}, nil
+	return &model.UserUpdate{New: user.DeepCopy(), Old: &oldUser}, nil
 }
 
 func (us SqlUserStore) UpdateNotifyProps(userID string, props map[string]string) error {
+	buf, err := json.Marshal(props)
+	if err != nil {
+		return errors.Wrap(err, "failed marshalling session props")
+	}
+	if us.IsBinaryParamEnabled() {
+		buf = AppendBinaryFlag(buf)
+	}
+
 	if _, err := us.GetMasterX().Exec(`UPDATE Users
 		SET NotifyProps = ?
-		WHERE Id = ?`, model.MapToJSON(props), userID); err != nil {
+		WHERE Id = ?`, buf, userID); err != nil {
 		return errors.Wrapf(err, "failed to update User with userId=%s", userID)
 	}
 
@@ -747,6 +757,37 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(options *model.UserGetOption
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "get_profiles_in_channel_by_status_tosql")
+	}
+
+	users := []*model.User{}
+	if err := us.GetReplicaX().Select(&users, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find Users")
+	}
+
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
+
+	return users, nil
+}
+
+func (us SqlUserStore) GetProfilesInChannelByAdmin(options *model.UserGetOptions) ([]*model.User, error) {
+	query := us.usersQuery.
+		Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
+		Where("cm.ChannelId = ?", options.InChannelId).
+		OrderBy(`cm.SchemeAdmin DESC`).
+		OrderBy("u.Username ASC").
+		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+	if options.Inactive && !options.Active {
+		query = query.Where("u.DeleteAt != 0")
+	} else if options.Active && !options.Inactive {
+		query = query.Where("u.DeleteAt = 0")
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_profiles_in_channel_by_admin_tosql")
 	}
 
 	users := []*model.User{}
@@ -1671,12 +1712,17 @@ func (us SqlUserStore) InferSystemInstallDate() (int64, error) {
 	return createAt, nil
 }
 
-func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, error) {
+func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	users := []*model.User{}
 	usersQuery, args, _ := us.usersQuery.
-		Where(sq.GtOrEq{"u.CreateAt": startTime}).
-		Where(sq.Lt{"u.CreateAt": endTime}).
-		OrderBy("u.CreateAt").
+		Where(sq.Or{
+			sq.Gt{"u.CreateAt": startTime},
+			sq.And{
+				sq.Eq{"u.CreateAt": startTime},
+				sq.Gt{"u.Id": startFileID},
+			},
+		}).
+		OrderBy("u.CreateAt ASC, u.Id ASC").
 		Limit(uint64(limit)).
 		ToSql()
 	err := us.GetSearchReplicaX().Select(&users, usersQuery, args...)

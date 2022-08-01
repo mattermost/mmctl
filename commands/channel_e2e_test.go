@@ -222,7 +222,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 
 		err := createChannelCmdF(c, cmd, []string{})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "model.channel.is_valid.2_or_more.app_error")
+		s.Require().Contains(err.Error(), "Name must be 1 or more lowercase alphanumeric character")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 

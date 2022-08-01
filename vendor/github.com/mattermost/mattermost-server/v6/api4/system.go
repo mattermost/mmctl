@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path"
+	"reflect"
 	"runtime"
 	"strconv"
 	"time"
@@ -198,6 +199,11 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJSON(r.Body)
 	if cfg == nil {
 		cfg = c.App.Config()
+	}
+
+	if checkHasNilFields(&cfg.EmailSettings) {
+		c.Err = model.NewAppError("testEmail", "api.file.test_connection_email_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestEmail) {
@@ -451,6 +457,11 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg = c.App.Config()
 	}
 
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
@@ -558,7 +569,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
-			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
+			if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session(), false); appErr != nil {
 				c.Err = appErr
 				return
 			}
@@ -959,4 +970,22 @@ func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Reque
 
 	w.Write(js)
 	auditRec.Success()
+}
+
+// returns true if the data has nil fields
+// this is being used for testS3 and testEmail methods
+func checkHasNilFields(value interface{}) bool {
+	v := reflect.Indirect(reflect.ValueOf(value))
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if field.Kind() == reflect.Ptr && field.IsNil() {
+			return true
+		}
+	}
+
+	return false
 }
