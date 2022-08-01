@@ -7,7 +7,7 @@ elif [[ "$GITLAB_CI" == "" ]]; then
   export DIR_MATTERMOST_ROOT=$PWD/..
   export CI_REGISTRY=registry.internal.mattermost.com
   export COMPOSE_PROJECT_NAME="1_mmctl_2"
-  export IMAGE_BUILD_SERVER=$CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210810_golang-1.16.7
+  export IMAGE_BUILD_SERVER=$CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20220415_golang-1.18.1
   # You need to log in to internal registry to run this script locally
 fi
 
