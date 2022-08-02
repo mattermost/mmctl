@@ -6,6 +6,7 @@ package commands
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -580,7 +581,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 			Times(1)
 
 		err = configSetCmdF(s.client, &cobra.Command{}, args)
-		s.Require().EqualError(err, "configuration is restricted to the cloud")
+		s.Require().EqualError(err, fmt.Sprintf("changing this config path: %s is restricted in a cloud environment", "ServiceSettings.EnableDeveloper"))
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

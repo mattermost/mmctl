@@ -336,7 +336,7 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	}
 
 	if cloudRestricted(config, path) && reflect.ValueOf(val).IsNil() {
-		return errors.New("configuration is restricted to the cloud")
+		return fmt.Errorf("accessing this config path: %s is restricted in a cloud environment", args[0])
 	}
 
 	printer.Print(val)
@@ -352,7 +352,7 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 	path := parseConfigPath(args[0])
 	if cErr := setConfigValue(path, config, args[1:]); cErr != nil {
 		if errors.Is(cErr, ErrConfigInvalidPath) && cloudRestricted(config, path) {
-			return errors.New("configuration is restricted to the cloud")
+			return fmt.Errorf("changing this config path: %s is restricted in a cloud environment", args[0])
 		}
 
 		return cErr
@@ -557,8 +557,8 @@ func cloudRestricted(cfg any, path []string) bool {
 				return cloudRestricted(v.Field(i).Interface(), path[1:])
 			}
 
-			accessTag := field.Tag.Get("access")
-			if strings.Contains(accessTag, "cloud_restrictable") {
+			accessTag := field.Tag.Get(model.ConfigAccessTagType)
+			if strings.Contains(accessTag, model.ConfigAccessTagCloudRestrictable) {
 				return true
 			}
 		}
