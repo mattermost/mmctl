@@ -25,6 +25,8 @@ import (
 
 const defaultEditor = "vi"
 
+var ErrConfigInvalidPath = errors.New("selected path object is not valid")
+
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Configuration",
@@ -246,7 +248,7 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	}
 
 	if val.Kind() == reflect.Invalid {
-		return errors.New("selected path object is not valid")
+		return ErrConfigInvalidPath
 	}
 
 	if len(path) == 1 {
@@ -333,6 +335,10 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return errors.New("invalid key")
 	}
 
+	if cloudRestricted(config, path) && reflect.ValueOf(val).IsNil() {
+		return errors.New("configuration is restricted to the cloud")
+	}
+
 	printer.Print(val)
 	return nil
 }
@@ -345,6 +351,10 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 
 	path := parseConfigPath(args[0])
 	if cErr := setConfigValue(path, config, args[1:]); cErr != nil {
+		if errors.Is(cErr, ErrConfigInvalidPath) && cloudRestricted(config, path) {
+			return errors.New("configuration is restricted to the cloud")
+		}
+
 		return cErr
 	}
 	newConfig, _, err := c.PatchConfig(config)
@@ -524,4 +534,35 @@ func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
 	printer.Print("Config subpath successfully modified")
 
 	return nil
+}
+
+// cloudRestricted checks if the config path is restricted to the cloud
+func cloudRestricted(cfg any, path []string) bool {
+	t := reflect.TypeOf(cfg)
+	v := reflect.ValueOf(cfg)
+
+	if t.Kind() == reflect.Ptr {
+		t = reflect.Indirect(v).Type()
+		v = reflect.Indirect(v)
+	}
+
+	if t.Kind() == reflect.Struct {
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			if len(path) == 0 || field.Name != path[0] {
+				continue
+			}
+
+			if field.Type.Kind() == reflect.Struct {
+				return cloudRestricted(v.Field(i).Interface(), path[1:])
+			}
+
+			accessTag := field.Tag.Get("access")
+			if strings.Contains(accessTag, "cloud_restrictable") {
+				return true
+			}
+		}
+	}
+
+	return false
 }
