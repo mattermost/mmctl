@@ -21,7 +21,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.x
+        go-version: 1.18.x
 
     - name: check docs
       run: |
@@ -39,7 +39,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.x
+        go-version: 1.18.x
 
     - name: check lints
       run: |
@@ -67,7 +67,7 @@ jobs:
     - name: Install Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.x
+        go-version: 1.18.x
 
     - name: Setup mattermost-server
       working-directory: mattermost-server

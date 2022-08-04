@@ -827,10 +827,10 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 
 		// expect users not deleted
-		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
-		})
+		}, true)
 		s.Require().Nil(err)
 		s.Require().NotZero(len(users))
 	})
@@ -848,10 +848,10 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		s.Len(printer.GetErrorLines(), 0)
 
 		// expect users not deleted
-		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
-		})
+		}, true)
 		s.Require().Nil(err)
 		s.Require().NotZero(len(users))
 	})
@@ -882,10 +882,10 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		s.Require().Equal(printer.GetLines()[0], "All users successfully deleted")
 
 		// expect users deleted
-		users, err := s.th.App.GetUsers(&model.UserGetOptions{
+		users, err := s.th.App.GetUsersPage(&model.UserGetOptions{
 			Page:    0,
 			PerPage: 10,
-		})
+		}, true)
 		s.Require().Nil(err)
 		s.Require().Zero(len(users))
 	})

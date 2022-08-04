@@ -43,6 +43,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(getTeam)).Methods("GET")
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(updateTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("", api.APISessionRequired(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/except", api.APISessionRequired(softDeleteTeamsExcept)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.APISessionRequired(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/restore", api.APISessionRequired(restoreTeam)).Methods("POST")
 	api.BaseRoutes.Team.Handle("/privacy", api.APISessionRequired(updateTeamPrivacy)).Methods("PUT")
@@ -92,6 +93,29 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionCreateTeam) {
 		c.Err = model.NewAppError("createTeam", "api.team.is_team_creation_allowed.disabled.app_error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	// On a cloud license, we must check limits before allowing to create
+	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
+		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.createTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
+		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
+			teamsUsage, appErr := c.App.GetTeamsUsage()
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			// if the number of active teams is greater than or equal to the limit, return 400
+			if teamsUsage.Active >= int64(*limits.Teams.Active) {
+				c.Err = model.NewAppError("Api4.createTeam", "api.cloud.teams_limit_reached.create", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
 	}
 
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
@@ -257,6 +281,28 @@ func restoreTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
+	// On a cloud license, we must check limits before allowing to restore
+	if c.App.Channels().License() != nil && c.App.Channels().License().Features != nil && *c.App.Channels().License().Features.Cloud {
+		limits, err := c.App.Cloud().GetCloudLimits(c.AppContext.Session().UserId)
+		if err != nil {
+			c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// If there are no limits for teams, for active teams, or the limit for active teams is less than 0, do nothing
+		if !(limits == nil || limits.Teams == nil || limits.Teams.Active == nil || *limits.Teams.Active <= 0) {
+			teamsUsage, appErr := c.App.GetTeamsUsage()
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			// if the number of active teams is greater than or equal to the limit, return 400
+			if teamsUsage.Active >= int64(*limits.Teams.Active) {
+				c.Err = model.NewAppError("Api4.restoreTeam", "api.cloud.teams_limit_reached.restore", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
+	}
 
 	err := c.App.RestoreTeam(c.Params.TeamId)
 	if err != nil {
@@ -399,6 +445,25 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func softDeleteTeamsExcept(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeam) {
+		c.SetPermissionError(model.PermissionManageTeam)
+		return
+	}
+
+	err := c.App.SoftDeleteAllTeamsExcept(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+	}
+
 	ReturnStatusOK(w)
 }
 
@@ -554,7 +619,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembersForUser(c.Params.UserId)
+	members, err := c.App.GetTeamMembersForUser(c.Params.UserId, "", true)
 	if err != nil {
 		c.Err = err
 		return
@@ -1275,7 +1340,18 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emailList := model.ArrayFromJSON(r.Body)
+	bf, err := io.ReadAll(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	memberInvite := &model.MemberInvite{}
+	if jsonErr := json.Unmarshal(bf, memberInvite); jsonErr != nil {
+		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, jsonErr.Error(), http.StatusBadRequest)
+		return
+	}
+
+	emailList := memberInvite.Emails
 
 	for i := range emailList {
 		emailList[i] = strings.ToLower(emailList[i])
@@ -1292,33 +1368,16 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("count", len(emailList))
 	auditRec.AddMeta("emails", emailList)
 
-	if graceful {
-		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
-		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && cloudUserLimit > 0 {
-			subscription, subErr := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-			if subErr != nil {
-				c.Err = model.NewAppError(
-					"Api4.inviteUsersToTeam",
-					"api.team.cloud.subscription.error",
-					nil,
-					subErr.Error(),
-					http.StatusInternalServerError)
-				return
-			}
-			if subscription == nil || subscription.IsPaidTier != "true" {
-				emailList, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(emailList, cloudUserLimit)
-			}
-		}
+	if len(memberInvite.ChannelIds) > 0 {
+		auditRec.AddMeta("channel_count", len(memberInvite.ChannelIds))
+		auditRec.AddMeta("channels", memberInvite.ChannelIds)
+	}
 
+	if graceful {
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 		if emailList != nil {
-			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(emailList, c.Params.TeamId, c.AppContext.Session().UserId, "")
-		}
-
-		if len(invitesOverLimit) > 0 {
-			invitesWithError = append(invitesWithError, invitesOverLimit...)
+			invitesWithError, err = c.App.InviteNewUsersToTeamGracefully(memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if invitesWithError != nil {
@@ -1342,6 +1401,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			"teamID":      c.Params.TeamId,
 			"senderID":    c.AppContext.Session().UserId,
 			"scheduledAt": strconv.FormatInt(scheduledAt, 10),
+		}
+
+		if len(memberInvite.ChannelIds) > 0 {
+			jobData["channelList"] = model.ArrayToJSON(memberInvite.ChannelIds)
 		}
 
 		// we then manually schedule the job to send another invite after 48 hours
@@ -1414,33 +1477,11 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec.AddMeta("channels", guestsInvite.Channels)
 
 	if graceful {
-		cloudUserLimit := *c.App.Config().ExperimentalSettings.CloudUserLimit
-		var invitesOverLimit []*model.EmailInviteWithError
-		if c.App.Channels().License() != nil && *c.App.Channels().License().Features.Cloud && cloudUserLimit > 0 && c.IsSystemAdmin() {
-			subscription, err := c.App.Cloud().GetSubscription(c.AppContext.Session().UserId)
-			if err != nil {
-				c.Err = model.NewAppError(
-					"Api4.inviteGuestsToChannel",
-					"api.team.cloud.subscription.error",
-					nil,
-					err.Error(),
-					http.StatusInternalServerError)
-				return
-			}
-			if subscription == nil || subscription.IsPaidTier != "true" {
-				guestsInvite.Emails, invitesOverLimit, _ = c.App.GetErrorListForEmailsOverLimit(guestsInvite.Emails, cloudUserLimit)
-			}
-		}
-
 		var invitesWithError []*model.EmailInviteWithError
 		var err *model.AppError
 
 		if guestsInvite.Emails != nil {
 			invitesWithError, err = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
-		}
-
-		if len(invitesOverLimit) > 0 {
-			invitesWithError = append(invitesWithError, invitesOverLimit...)
 		}
 
 		if err != nil {
@@ -1545,7 +1586,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "image/png")
-	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", 24*60*60)) // 24 hrs
+	w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, private", model.DayInSeconds)) // 24 hrs
 	w.Header().Set(model.HeaderEtagServer, etag)
 	w.Write(img)
 }
