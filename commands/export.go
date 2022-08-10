@@ -80,6 +80,10 @@ var ExportJobShowCmd = &cobra.Command{
 
 func init() {
 	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
+	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
+	ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
+
+	ExportCreateCmd.Flags().Bool("no-attachments", false, "Set to true to exclude file attachments in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
 	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
@@ -107,12 +111,11 @@ func init() {
 }
 
 func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	var data map[string]string
-	withAttachments, _ := command.Flags().GetBool("attachments")
-	if withAttachments {
-		data = map[string]string{
-			"include_attachments": "true",
-		}
+	data := make(map[string]string)
+
+	excludeAttachments, _ := command.Flags().GetBool("no-attachments")
+	if !excludeAttachments {
+		data["include_attachments"] = "true"
 	}
 
 	job, _, err := c.CreateJob(&model.Job{
