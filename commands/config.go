@@ -536,32 +536,33 @@ func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-// cloudRestricted checks if the config path is restricted to the cloud
 func cloudRestricted(cfg any, path []string) bool {
-	t := reflect.TypeOf(cfg)
-	v := reflect.ValueOf(cfg)
+	return cloudRestrictedR(reflect.TypeOf(cfg), path)
+}
 
+// cloudRestricted checks if the config path is restricted to the cloud
+func cloudRestrictedR(t reflect.Type, path []string) bool {
 	if t.Kind() == reflect.Ptr {
-		t = reflect.Indirect(v).Type()
-		v = reflect.Indirect(v)
+		t = t.Elem()
 	}
 
-	if t.Kind() == reflect.Struct {
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-			if len(path) == 0 || field.Name != path[0] {
-				continue
-			}
+	if t.Kind() != reflect.Struct {
+		return false
+	}
 
-			if field.Type.Kind() == reflect.Struct {
-				return cloudRestricted(v.Field(i).Interface(), path[1:])
-			}
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
 
-			accessTag := field.Tag.Get(model.ConfigAccessTagType)
-			if strings.Contains(accessTag, model.ConfigAccessTagCloudRestrictable) {
-				return true
-			}
+		if len(path) == 0 || field.Name != path[0] {
+			continue
 		}
+
+		accessTag := field.Tag.Get(model.ConfigAccessTagType)
+		if strings.Contains(accessTag, model.ConfigAccessTagCloudRestrictable) {
+			return true
+		}
+
+		return cloudRestrictedR(field.Type, path[1:])
 	}
 
 	return false
