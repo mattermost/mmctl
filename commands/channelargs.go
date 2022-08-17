@@ -62,6 +62,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 
 // getChannelsFromArgs obtains channels by the `channelArgs` parameter. It can return channels and errors
 // at the same time
+//
 //nolint:golint,unused
 func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, error) {
 	var channels []*model.Channel

@@ -38,6 +38,7 @@ func getTeamFromTeamArg(c client.Client, teamArg string) *model.Team {
 
 // getTeamsFromArgs obtains teams given `teamArgs` parameter. It can return
 // teams and errors at the same time
+//
 //nolint:golint,unused
 func getTeamsFromArgs(c client.Client, teamArgs []string) ([]*model.Team, error) {
 	var teams []*model.Team
