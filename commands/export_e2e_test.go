@@ -145,21 +145,21 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
-		s.Require().Nil(printer.GetLines()[0].(*model.Job).Data)
+		s.Require().Equal("true", printer.GetLines()[0].(*model.Job).Data["include_attachments"])
 	})
 
-	s.RunForSystemAdminAndLocal("MM-T3878 - create export with attachments", func(c client.Client) {
+	s.RunForSystemAdminAndLocal("MM-T3878 - create export without attachments", func(c client.Client) {
 		printer.Clean()
 
 		cmd := &cobra.Command{}
 
-		cmd.Flags().Bool("attachments", true, "")
+		cmd.Flags().Bool("no-attachments", true, "")
 
 		err := exportCreateCmdF(c, cmd, nil)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
-		s.Require().Equal("true", printer.GetLines()[0].(*model.Job).Data["include_attachments"])
+		s.Require().Empty(printer.GetLines()[0].(*model.Job).Data)
 	})
 }
 

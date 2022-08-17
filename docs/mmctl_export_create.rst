@@ -20,8 +20,8 @@ Options
 
 ::
 
-      --attachments   Set to true to include file attachments in the export file.
-  -h, --help          help for create
+  -h, --help             help for create
+      --no-attachments   Set to true to exclude file attachments in the export file.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
