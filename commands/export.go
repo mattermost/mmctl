@@ -81,7 +81,7 @@ var ExportJobShowCmd = &cobra.Command{
 func init() {
 	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
 	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
-	ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
+	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
 
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Set to true to exclude file attachments in the export file.")
 
