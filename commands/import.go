@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/commands/importer"
 	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -83,6 +85,14 @@ var ImportProcessCmd = &cobra.Command{
 	RunE:    withClient(importProcessCmdF),
 }
 
+var ImportValidateCmd = &cobra.Command{
+	Use:     "validate [filepath]",
+	Example: "  import validate import_file.zip",
+	Short:   "Validate an import file",
+	Args:    cobra.ExactArgs(1),
+	RunE:    importValidateCmdF,
+}
+
 func init() {
 	ImportUploadCmd.Flags().Bool("resume", false, "Set to true to resume an incomplete import upload.")
 	ImportUploadCmd.Flags().String("upload", "", "The ID of the import upload to resume.")
@@ -90,6 +100,8 @@ func init() {
 	ImportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
 	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
+
+	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined teams")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -104,6 +116,7 @@ func init() {
 		ImportListCmd,
 		ImportProcessCmd,
 		ImportJobCmd,
+		ImportValidateCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
 }
@@ -313,4 +326,67 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error 
 
 func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
 	return jobListCmdF(c, command, model.JobTypeImportProcess)
+}
+
+func importValidateCmdF(command *cobra.Command, args []string) error {
+	defer fmt.Println("Validation complete")
+
+	injectedTeams, err := command.Flags().GetStringArray("team")
+	if err != nil {
+		return err
+	}
+
+	validator := importer.NewValidator(args[0])
+
+	for _, team := range injectedTeams {
+		validator.InjectTeam(team)
+	}
+	fmt.Printf("Predefined teams: %s\n", strings.Join(injectedTeams, ", "))
+
+	validator.OnError(func(ive *importer.ImportValidationError) error {
+		fmt.Println(ive.Error())
+		return nil
+	})
+
+	err = validator.Validate()
+	if err != nil {
+		return err
+	}
+
+	var (
+		schemes            = validator.Schemes()
+		teams              = validator.Teams()
+		channels           = validator.Channels()
+		users              = validator.Users()
+		postCount          = validator.PostCount()
+		directChannelCount = validator.DirectChannelCount()
+		emojis             = validator.Emojis()
+		attachments        = validator.Attachments()
+		unusedAttachments  = validator.UnusedAttachments()
+	)
+
+	fmt.Printf("Schemes (%d):  [%s]\n", len(schemes), printMax(schemes, 5))
+	fmt.Printf("Teams (%d):    [%s]\n", len(teams), printMax(teams, 5))
+	fmt.Printf("Channels (%d): [%s]\n", len(channels), printMax(channels, 5))
+	fmt.Printf("Users (%d):    [%s]\n", len(users), printMax(users, 5))
+	fmt.Printf("Emojis (%d):   [%s]\n", len(emojis), printMax(emojis, 5))
+	fmt.Printf("Posts (%d)\n", postCount)
+	fmt.Printf("Direct Channels (%d)\n", directChannelCount)
+	fmt.Printf("Attachments (%d): [%s]\n", len(attachments), printMax(attachments, 2))
+
+	if len(unusedAttachments) > 0 {
+		fmt.Printf("Unused Attachments (%d):\n", len(unusedAttachments))
+		for _, attachment := range unusedAttachments {
+			fmt.Printf("  %s\n", attachment)
+		}
+	}
+
+	return nil
+}
+
+func printMax(sl []string, max int) string {
+	if len(sl) > max {
+		return strings.Join(sl[:max], ", ") + ", ..."
+	}
+	return strings.Join(sl, ", ")
 }
