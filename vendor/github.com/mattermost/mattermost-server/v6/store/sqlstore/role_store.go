@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -83,17 +83,7 @@ func (role Role) ToModel() *model.Role {
 }
 
 func newSqlRoleStore(sqlStore *SqlStore) store.RoleStore {
-	s := &SqlRoleStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(Role{}, "Roles").SetKeys(false, "Id")
-		table.ColMap("Id").SetMaxSize(26)
-		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
-		table.ColMap("DisplayName").SetMaxSize(128)
-		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("Permissions")
-	}
-	return s
+	return &SqlRoleStore{sqlStore}
 }
 
 func (s *SqlRoleStore) Save(role *model.Role) (*model.Role, error) {

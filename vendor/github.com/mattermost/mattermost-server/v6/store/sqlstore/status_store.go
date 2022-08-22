@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
+	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -20,17 +20,7 @@ type SqlStatusStore struct {
 }
 
 func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
-	s := &SqlStatusStore{sqlStore}
-
-	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(model.Status{}, "Status").SetKeys(false, "UserId")
-		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Status").SetMaxSize(32)
-		table.ColMap("ActiveChannel").SetMaxSize(26)
-		table.ColMap("PrevStatus").SetMaxSize(32)
-	}
-
-	return s
+	return &SqlStatusStore{sqlStore}
 }
 
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {

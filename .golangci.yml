@@ -75,3 +75,7 @@ issues:
     - linters:
         - goconst
       text: "YES"
+
+    - linters:
+      - staticcheck
+      text: SA1019

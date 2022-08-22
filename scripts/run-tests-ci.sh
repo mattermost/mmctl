@@ -10,5 +10,5 @@ docker run --net "$COMPOSE_PROJECT_NAME"_mm-test \
   --env MM_SQLSETTINGS_DATASOURCE=postgres \
   -v $GITHUB_WORKSPACE:/go/src \
   -w /go/src/mmctl \
-  mattermost/mattermost-build-server:20210810_golang-1.16.7 \
+  mattermost/mattermost-build-server:20220415_golang-1.18.1 \
   bash -c 'ulimit -n 8096 && make coverage'

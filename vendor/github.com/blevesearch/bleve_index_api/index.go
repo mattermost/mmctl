@@ -90,6 +90,14 @@ type IndexReaderContains interface {
 	FieldDictContains(field string) (FieldDictContains, error)
 }
 
+// SpatialIndexPlugin is an optional interface for exposing the
+// support for any custom analyzer plugins that are capable of
+// generating hierarchial spatial tokens for both indexing and
+// query purposes from the geo location data.
+type SpatialIndexPlugin interface {
+	GetSpatialAnalyzerPlugin(typ string) (SpatialAnalyzerPlugin, error)
+}
+
 type TermFieldVector struct {
 	Field          string
 	ArrayPositions []uint64

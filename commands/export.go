@@ -80,8 +80,17 @@ var ExportJobShowCmd = &cobra.Command{
 
 func init() {
 	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
+	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
+	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
+
+	ExportCreateCmd.Flags().Bool("no-attachments", false, "Set to true to exclude file attachments in the export file.")
 
 	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
+	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
+	// Intentionally the message does not start with a capital letter because
+	// cobra prepends "Flag --resume has been deprecated,"
+	_ = ExportDownloadCmd.Flags().MarkDeprecated("resume", "the tool now resumes a download automatically. The flag will be removed in a future version.")
+	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")
 	ExportJobListCmd.Flags().Int("per-page", 200, "Number of export jobs to be fetched")
@@ -102,12 +111,11 @@ func init() {
 }
 
 func exportCreateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	var data map[string]string
-	withAttachments, _ := command.Flags().GetBool("attachments")
-	if withAttachments {
-		data = map[string]string{
-			"include_attachments": "true",
-		}
+	data := make(map[string]string)
+
+	excludeAttachments, _ := command.Flags().GetBool("no-attachments")
+	if !excludeAttachments {
+		data["include_attachments"] = "true"
 	}
 
 	job, _, err := c.CreateJob(&model.Job{
@@ -163,7 +171,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 		path = name
 	}
 
-	resume, _ := command.Flags().GetBool("resume")
+	retries, _ := command.Flags().GetInt("num-retries")
 
 	var outFile *os.File
 	info, err := os.Stat(path)
@@ -171,12 +179,9 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	case err != nil && !os.IsNotExist(err):
 		// some error occurred and not because file doesn't exist
 		return fmt.Errorf("failed to stat export file: %w", err)
-	case err == nil && info.Size() > 0 && !resume:
+	case err == nil && info.Size() > 0:
 		// we exit to avoid overwriting an existing non-empty file
 		return fmt.Errorf("export file already exists")
-	case os.IsNotExist(err) && resume:
-		// cannot resume if the file does not exist
-		return fmt.Errorf("cannot resume download: export file does not exist")
 	case err != nil:
 		// file does not exist, we create it
 		outFile, err = os.Create(path)
@@ -190,13 +195,23 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 	}
 	defer outFile.Close()
 
-	off, err := outFile.Seek(0, io.SeekEnd)
-	if err != nil {
-		return fmt.Errorf("failed to seek export file: %w", err)
+	i := 0
+	for i < retries+1 {
+		off, err := outFile.Seek(0, io.SeekEnd)
+		if err != nil {
+			return fmt.Errorf("failed to seek export file: %w", err)
+		}
+
+		if _, _, err := c.DownloadExport(name, outFile, off); err != nil {
+			printer.PrintWarning(fmt.Sprintf("failed to download export file: %v. Retrying...", err))
+			i++
+			continue
+		}
+		break
 	}
 
-	if _, _, err := c.DownloadExport(name, outFile, off); err != nil {
-		return fmt.Errorf("failed to download export file: %w", err)
+	if retries != 0 && i == retries+1 {
+		return fmt.Errorf("failed to download export after %d retries", retries)
 	}
 
 	return nil

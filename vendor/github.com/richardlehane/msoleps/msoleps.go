@@ -29,7 +29,7 @@
 //       if oerr := props.Reset(doc); oerr != nil {
 //         log.Fatal(oerr)
 //       }
-//       for prop := range props.Property {
+//       for _, prop := range props.Property {
 //         fmt.Printf("Name: %s; Type: %s; Value: %v", prop.Name, prop.Type(), prop)
 //       }
 //     }
@@ -53,10 +53,7 @@ var (
 
 // IsMSOLEPS checks the first uint16 character of an mscfb name to test if it is a MSOLEPS stream
 func IsMSOLEPS(i uint16) bool {
-	if i == 0x0005 {
-		return true
-	}
-	return false
+	return i == 0x0005
 }
 
 // Reader is a reader for MS OLE Property Set Data structures
@@ -134,7 +131,7 @@ func (r *Reader) start(rdr io.Reader) error {
 			r.Property[i].T = types.Null{}
 			continue
 		}
-		t, _ := types.Evaluate(r.buf[int(v.offset+pss.offsetA):])
+		t, _ := types.Evaluate(r.buf[int(v.offset+pss.offsetA):]) // ignore errors for now as not all types implemented
 		if t.Type() == "CodeString" {
 			cs := t.(*types.CodeString)
 			cs.SetId(ps.code)
@@ -162,7 +159,7 @@ func (r *Reader) start(rdr io.Reader) error {
 			r.Property[i].T = types.Null{}
 			continue
 		}
-		t, _ := types.Evaluate(r.buf[int(v.offset+pss.offsetB):])
+		t, _ := types.Evaluate(r.buf[int(v.offset+pss.offsetB):]) // ignore errors for now as not all types implemented
 		if t.Type() == "CodeString" {
 			cs := t.(*types.CodeString)
 			cs.SetId(psb.code)

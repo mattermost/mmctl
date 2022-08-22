@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/blang/semver"
+	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -37,13 +38,35 @@ type pluginSignaturePath struct {
 	signaturePath string
 }
 
+type routerService struct {
+	mu        sync.Mutex
+	routerMap map[string]*mux.Router
+}
+
+func newRouterService() *routerService {
+	return &routerService{
+		routerMap: make(map[string]*mux.Router),
+	}
+}
+
+func (rs *routerService) RegisterRouter(productID string, sub *mux.Router) {
+	rs.mu.Lock()
+	defer rs.mu.Unlock()
+	rs.routerMap[productID] = sub
+}
+
+func (rs *routerService) getHandler(productID string) (http.Handler, bool) {
+	handler, ok := rs.routerMap[productID]
+	return handler, ok
+}
+
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
 // initialized.
 //
 // To get the plugins environment when the plugins are disabled, manually acquire the plugins
 // lock instead.
 func (ch *Channels) GetPluginsEnvironment() *plugin.Environment {
-	if !*ch.srv.Config().PluginSettings.Enable {
+	if !*ch.cfgSvc.Config().PluginSettings.Enable {
 		return nil
 	}
 
@@ -79,7 +102,7 @@ func (ch *Channels) syncPluginsActiveState() {
 		return
 	}
 
-	config := ch.srv.Config().PluginSettings
+	config := ch.cfgSvc.Config().PluginSettings
 
 	if *config.Enable {
 		availablePlugins, err := pluginsEnvironment.Available()
@@ -98,11 +121,8 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
-			// Tie Apps proxy disabled status to the feature flag.
-			if pluginID == "com.mattermost.apps" {
-				if !ch.srv.Config().FeatureFlags.AppsEnabled {
-					pluginEnabled = false
-				}
+			if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
+				pluginEnabled = value
 			}
 
 			if pluginEnabled {
@@ -159,6 +179,10 @@ func (ch *Channels) syncPluginsActiveState() {
 	if err := ch.notifyPluginStatusesChanged(); err != nil {
 		mlog.Warn("failed to notify plugin status changed", mlog.Err(err))
 	}
+
+	if err := ch.notifyIntegrationsUsageChanged(); err != nil {
+		mlog.Warn("Failed to notify integrations usage changed", mlog.Err(err))
+	}
 }
 
 func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
@@ -174,10 +198,10 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsLock.RLock()
 	pluginsEnvironment := ch.pluginsEnvironment
 	ch.pluginsLock.RUnlock()
-	if pluginsEnvironment != nil || !*ch.srv.Config().PluginSettings.Enable {
+	if pluginsEnvironment != nil || !*ch.cfgSvc.Config().PluginSettings.Enable {
 		ch.syncPluginsActiveState()
 		if pluginsEnvironment != nil {
-			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+			pluginsEnvironment.TogglePluginHealthCheckJob(*ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
 		}
 		return
 	}
@@ -207,7 +231,7 @@ func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir s
 	ch.pluginsEnvironment = env
 	ch.pluginsLock.Unlock()
 
-	ch.pluginsEnvironment.TogglePluginHealthCheckJob(*ch.srv.Config().PluginSettings.EnableHealthCheck)
+	ch.pluginsEnvironment.TogglePluginHealthCheckJob(*ch.cfgSvc.Config().PluginSettings.EnableHealthCheck)
 
 	if err := ch.syncPlugins(); err != nil {
 		mlog.Error("Failed to sync plugins from the file store", mlog.Err(err))
@@ -274,7 +298,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 		go func(pluginID string) {
 			defer wg.Done()
 			// Only handle managed plugins with .filestore flag file.
-			_, err := os.Stat(filepath.Join(*ch.srv.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
+			_, err := os.Stat(filepath.Join(*ch.cfgSvc.Config().PluginSettings.Directory, pluginID, managedPluginFileName))
 			if os.IsNotExist(err) {
 				mlog.Warn("Skipping sync for unmanaged plugin", mlog.String("plugin_id", pluginID))
 			} else if err != nil {
@@ -307,7 +331,7 @@ func (ch *Channels) syncPlugins() *model.AppError {
 			defer reader.Close()
 
 			var signature filestore.ReadCloseSeeker
-			if *ch.srv.Config().PluginSettings.RequirePluginSignature {
+			if *ch.cfgSvc.Config().PluginSettings.RequirePluginSignature {
 				signature, appErr = ch.srv.fileReader(plugin.signaturePath)
 				if appErr != nil {
 					mlog.Error("Failed to open plugin signature from file store.", mlog.Err(appErr))
@@ -373,6 +397,11 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 // activation if inactive anywhere in the cluster.
 // Notifies cluster peers through config change.
 func (a *App) EnablePlugin(id string) *model.AppError {
+	appErr := a.checkIfIntegrationsMeetFreemiumLimits([]string{id})
+	if appErr != nil {
+		return appErr
+	}
+
 	return a.ch.enablePlugin(id)
 }
 
@@ -401,12 +430,12 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
-	ch.srv.UpdateConfig(func(cfg *model.Config) {
+	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
 	})
 
 	// This call will implicitly invoke SyncPluginsActiveState which will activate enabled plugins.
-	if _, _, err := ch.srv.SaveConfig(ch.srv.Config(), true); err != nil {
+	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
 		if err.Id == "ent.cluster.save_config.error" {
 			return model.NewAppError("EnablePlugin", "app.plugin.cluster.save_config.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -419,7 +448,12 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 // Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
-	return a.ch.disablePlugin(id)
+	appErr := a.ch.disablePlugin(id)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
 func (ch *Channels) disablePlugin(id string) *model.AppError {
@@ -447,15 +481,29 @@ func (ch *Channels) disablePlugin(id string) *model.AppError {
 		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
 	}
 
-	ch.srv.UpdateConfig(func(cfg *model.Config) {
+	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
 	ch.unregisterPluginCommands(id)
 
 	// This call will implicitly invoke SyncPluginsActiveState which will deactivate disabled plugins.
-	if _, _, err := ch.srv.SaveConfig(ch.srv.Config(), true); err != nil {
+	if _, _, err := ch.cfgSvc.SaveConfig(ch.cfgSvc.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	return nil
+}
+
+func (ch *Channels) notifyIntegrationsUsageChanged() *model.AppError {
+	usage, appErr := ch.getIntegrationsUsage()
+	if appErr != nil {
+		return appErr
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventIntegrationsUsageChanged, "", "", "", nil)
+	message.Add("usage", usage)
+	message.GetBroadcast().ContainsSensitiveData = true
+	ch.Publish(message)
 
 	return nil
 }
@@ -538,6 +586,8 @@ func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*m
 }
 
 // getPrepackagedPlugin returns a pre-packaged plugin.
+//
+// If version is empty, the first matching plugin is returned.
 func (ch *Channels) getPrepackagedPlugin(pluginID, version string) (*plugin.PrepackagedPlugin, *model.AppError) {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -546,7 +596,7 @@ func (ch *Channels) getPrepackagedPlugin(pluginID, version string) (*plugin.Prep
 
 	prepackagedPlugins := pluginsEnvironment.PrepackagedPlugins()
 	for _, p := range prepackagedPlugins {
-		if p.Manifest.Id == pluginID && p.Manifest.Version == version {
+		if p.Manifest.Id == pluginID && (version == "" || p.Manifest.Version == version) {
 			return p, nil
 		}
 	}
@@ -555,9 +605,11 @@ func (ch *Channels) getPrepackagedPlugin(pluginID, version string) (*plugin.Prep
 }
 
 // getRemoteMarketplacePlugin returns plugin from marketplace-server.
+//
+// If version is empty, the latest compatible version is used.
 func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model.BaseMarketplacePlugin, *model.AppError) {
 	marketplaceClient, err := marketplace.NewClient(
-		*ch.srv.Config().PluginSettings.MarketplaceURL,
+		*ch.cfgSvc.Config().PluginSettings.MarketplaceURL,
 		ch.srv.HTTPService(),
 	)
 	if err != nil {
@@ -566,9 +618,13 @@ func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model
 
 	filter := ch.getBaseMarketplaceFilter()
 	filter.PluginId = pluginID
-	filter.ReturnAllVersions = true
 
-	plugin, err := marketplaceClient.GetPlugin(filter, version)
+	var plugin *model.BaseMarketplacePlugin
+	if version != "" {
+		plugin, err = marketplaceClient.GetPlugin(filter, version)
+	} else {
+		plugin, err = marketplaceClient.GetLatestPlugin(filter)
+	}
 	if err != nil {
 		return nil, model.NewAppError("GetMarketplacePlugin", "app.plugin.marketplace_plugins.not_found.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -815,7 +871,7 @@ func (ch *Channels) notifyPluginEnabled(manifest *model.Manifest) error {
 }
 
 func (ch *Channels) getPluginsFromFolder() (map[string]*pluginSignaturePath, *model.AppError) {
-	fileStorePaths, appErr := ch.srv.listDirectory(fileStorePluginFolder)
+	fileStorePaths, appErr := ch.srv.listDirectory(fileStorePluginFolder, false)
 	if appErr != nil {
 		return nil, model.NewAppError("getPluginsFromDir", "app.plugin.sync.list_filestore.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 	}
@@ -827,8 +883,8 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 	pluginSignaturePathMap := make(map[string]*pluginSignaturePath)
 
 	fsPrefix := ""
-	if *ch.srv.Config().FileSettings.DriverName == model.ImageDriverS3 {
-		ptr := ch.srv.Config().FileSettings.AmazonS3PathPrefix
+	if *ch.cfgSvc.Config().FileSettings.DriverName == model.ImageDriverS3 {
+		ptr := ch.cfgSvc.Config().FileSettings.AmazonS3PathPrefix
 		if ptr != nil && *ptr != "" {
 			fsPrefix = *ptr + "/"
 		}
@@ -928,12 +984,12 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 	}
 
 	// Skip installing the plugin at all if automatic prepackaged plugins is disabled
-	if !*ch.srv.Config().PluginSettings.AutomaticPrepackagedPlugins {
+	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
 		return plugin, nil
 	}
 
 	// Skip installing if the plugin is has not been previously enabled.
-	pluginState := ch.srv.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
+	pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[plugin.Manifest.Id]
 	if pluginState == nil || !pluginState.Enable {
 		return plugin, nil
 	}
@@ -948,16 +1004,16 @@ func (ch *Channels) processPrepackagedPlugin(pluginPath *pluginSignaturePath) (*
 
 // installFeatureFlagPlugins handles the automatic installation/upgrade of plugins from feature flags
 func (ch *Channels) installFeatureFlagPlugins() {
-	ffControledPlugins := ch.srv.Config().FeatureFlags.Plugins()
+	ffControledPlugins := ch.cfgSvc.Config().FeatureFlags.Plugins()
 
 	// Respect the automatic prepackaged disable setting
-	if !*ch.srv.Config().PluginSettings.AutomaticPrepackagedPlugins {
+	if !*ch.cfgSvc.Config().PluginSettings.AutomaticPrepackagedPlugins {
 		return
 	}
 
 	for pluginID, version := range ffControledPlugins {
 		// Skip installing if the plugin has been previously disabled.
-		pluginState := ch.srv.Config().PluginSettings.PluginStates[pluginID]
+		pluginState := ch.cfgSvc.Config().PluginSettings.PluginStates[pluginID]
 		if pluginState != nil && !pluginState.Enable {
 			ch.srv.Log.Debug("Not auto installing/upgrade because plugin was disabled", mlog.String("plugin_id", pluginID), mlog.String("version", version))
 			continue
@@ -1055,4 +1111,20 @@ func getIcon(iconPath string) (string, error) {
 	}
 
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
+}
+
+func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
+	switch pluginID {
+	case model.PluginIdApps:
+		// Tie Apps proxy disabled status to the feature flag.
+		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+			return true, false
+		}
+	case model.PluginIdCalls:
+		if !ch.cfgSvc.Config().FeatureFlags.CallsEnabled {
+			return true, false
+		}
+	}
+
+	return false, false
 }

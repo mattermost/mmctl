@@ -35,7 +35,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -106,7 +106,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -261,7 +261,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -484,7 +484,7 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 
