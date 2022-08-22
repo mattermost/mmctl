@@ -35,6 +35,7 @@ type Validator struct {
 
 	attachments     map[string]*zip.File
 	attachmentsUsed map[string]uint64
+	allFileNames    []string
 
 	schemes        map[string]ImportFileInfo
 	teams          map[string]ImportFileInfo
@@ -156,6 +157,7 @@ func (v *Validator) Validate() error {
 		if strings.HasPrefix(zfile.Name, "data/") {
 			v.attachments[zfile.Name] = zfile
 		}
+		v.allFileNames = append(v.allFileNames, zfile.Name)
 	}
 
 	lines, err := v.countLines(jsonlZip)
@@ -535,10 +537,16 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 			attachmentPath := path.Join("data", *attachment.Path)
 
 			if _, ok := v.attachments[attachmentPath]; !ok {
+				helpful := ""
+				candidates := v.findFileNameSuffix(*attachment.Path)
+				if len(candidates) != 0 {
+					helpful = "; we found a match outside the \"data/\" folder \"" + strings.Join(candidates, "\" or \"") + "\""
+				}
+
 				if err = v.onError(&ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      fmt.Sprintf("post.attachments[%d]", i),
-					Err:            fmt.Errorf("missing attachment file %q", attachmentPath),
+					Err:            fmt.Errorf("missing attachment file %q%s", attachmentPath, helpful),
 				}); err != nil {
 					return err
 				}
@@ -628,10 +636,16 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err
 
 			zfile, ok := v.attachments[attachmentPath]
 			if !ok {
+				helpful := ""
+				candidates := v.findFileNameSuffix(*data.Image)
+				if len(candidates) != 0 {
+					helpful = "; we found a match outside the \"data/\" folder \"" + strings.Join(candidates, "\" or \"") + "\""
+				}
+
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "emoji.image",
-					Err:            fmt.Errorf("missing image file for emoji %s: %s", *data.Name, attachmentPath),
+					Err:            fmt.Errorf("missing image file for emoji %s: %q%s", *data.Name, attachmentPath, helpful),
 				}
 			}
 
@@ -718,4 +732,14 @@ func validateNotNil[T any](info ImportFileInfo, name string, value *T, then func
 	}
 
 	return nil
+}
+
+func (v *Validator) findFileNameSuffix(name string) []string {
+	var candidates []string
+	for _, fileName := range v.allFileNames {
+		if strings.HasSuffix(fileName, name) {
+			candidates = append(candidates, fileName)
+		}
+	}
+	return candidates
 }
