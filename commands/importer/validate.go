@@ -24,6 +24,11 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 )
 
+type ChannelTeam struct {
+	Channel string
+	Team    string
+}
+
 type Validator struct {
 	archiveName string
 	onError     func(*ImportValidationError) error
@@ -33,7 +38,7 @@ type Validator struct {
 
 	schemes        map[string]ImportFileInfo
 	teams          map[string]ImportFileInfo
-	channels       map[string]ImportFileInfo
+	channels       map[ChannelTeam]ImportFileInfo
 	users          map[string]ImportFileInfo
 	posts          uint64
 	directChannels uint64
@@ -50,7 +55,7 @@ func NewValidator(name string) *Validator {
 
 		schemes:        map[string]ImportFileInfo{},
 		teams:          map[string]ImportFileInfo{},
-		channels:       map[string]ImportFileInfo{},
+		channels:       map[ChannelTeam]ImportFileInfo{},
 		users:          map[string]ImportFileInfo{},
 		posts:          0,
 		directChannels: 0,
@@ -67,7 +72,12 @@ func (v *Validator) Teams() []string {
 }
 
 func (v *Validator) Channels() []string {
-	return v.listMap(v.channels)
+	entries := make([]string, 0, len(v.channels))
+	for entry := range v.channels {
+		entries = append(entries, fmt.Sprintf("%s/%s", entry.Team, entry.Channel))
+	}
+	sort.Strings(entries)
+	return entries
 }
 
 func (v *Validator) Users() []string {
@@ -389,15 +399,24 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 			}
 		}
 
+		if data.Team != nil {
+			if _, ok := v.teams[*data.Team]; !ok {
+				return &ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      "channel.team",
+					Err:            fmt.Errorf("reference to unknown team %q", *data.Team),
+				}
+			}
+		}
 		if data.Name != nil {
-			if existing, ok := v.channels[*data.Name]; ok {
+			if existing, ok := v.channels[ChannelTeam{Channel: *data.Name, Team: *data.Team}]; ok {
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "channel",
 					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.LineNumber),
 				}
 			}
-			v.channels[*data.Name] = info
+			v.channels[ChannelTeam{Channel: *data.Name, Team: *data.Team}] = info
 		}
 		if data.Scheme != nil {
 			if _, ok := v.schemes[*data.Scheme]; !ok {
@@ -405,15 +424,6 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 					ImportFileInfo: info,
 					FieldName:      "channel.scheme",
 					Err:            fmt.Errorf("reference to unknown scheme %q", *data.Scheme),
-				}
-			}
-		}
-		if data.Team != nil {
-			if _, ok := v.teams[*data.Team]; !ok {
-				return &ImportValidationError{
-					ImportFileInfo: info,
-					FieldName:      "channel.team",
-					Err:            fmt.Errorf("reference to unknown team %q", *data.Team),
 				}
 			}
 		}
@@ -490,11 +500,11 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 			}
 		}
 		if data.Channel != nil {
-			if _, ok := v.channels[*data.Channel]; !ok {
+			if _, ok := v.channels[ChannelTeam{Channel: *data.Channel, Team: *data.Team}]; !ok {
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "post.channel",
-					Err:            fmt.Errorf("reference to unknown channel %q", *data.Channel),
+					Err:            fmt.Errorf("reference to unknown channel %q/%q", *data.Team, *data.Channel),
 				}
 			}
 		}

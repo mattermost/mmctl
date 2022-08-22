@@ -87,7 +87,7 @@ var ImportProcessCmd = &cobra.Command{
 
 var ImportValidateCmd = &cobra.Command{
 	Use:     "validate [filepath]",
-	Example: "  import validate import_file.zip",
+	Example: "  import validate import_file.zip --team myteam --team myotherteam",
 	Short:   "Validate an import file",
 	Args:    cobra.ExactArgs(1),
 	RunE:    importValidateCmdF,
