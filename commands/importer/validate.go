@@ -12,12 +12,14 @@ import (
 	_ "image/gif"  // image decoder
 	_ "image/jpeg" // image decoder
 	_ "image/png"  // image decoder
+	"io"
 	"mime"
 	"os"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	_ "golang.org/x/image/webp" // image decoder
 
@@ -30,8 +32,9 @@ type ChannelTeam struct {
 }
 
 type Validator struct {
-	archiveName string
-	onError     func(*ImportValidationError) error
+	archiveName       string
+	onError           func(*ImportValidationError) error
+	ignoreAttachments bool
 
 	attachments     map[string]*zip.File
 	attachmentsUsed map[string]uint64
@@ -43,7 +46,13 @@ type Validator struct {
 	users          map[string]ImportFileInfo
 	posts          uint64
 	directChannels uint64
+	directPosts    uint64
 	emojis         map[string]ImportFileInfo
+
+	start time.Time
+	end   time.Time
+
+	lines uint64
 }
 
 func NewValidator(name string) *Validator {
@@ -54,14 +63,16 @@ func NewValidator(name string) *Validator {
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
 
-		schemes:        map[string]ImportFileInfo{},
-		teams:          map[string]ImportFileInfo{},
-		channels:       map[ChannelTeam]ImportFileInfo{},
-		users:          map[string]ImportFileInfo{},
-		posts:          0,
-		directChannels: 0,
-		emojis:         map[string]ImportFileInfo{},
+		schemes:  map[string]ImportFileInfo{},
+		teams:    map[string]ImportFileInfo{},
+		channels: map[ChannelTeam]ImportFileInfo{},
+		users:    map[string]ImportFileInfo{},
+		emojis:   map[string]ImportFileInfo{},
 	}
+}
+
+func (v *Validator) IgnoreAttachments(ia bool) {
+	v.ignoreAttachments = ia
 }
 
 func (v *Validator) Schemes() []string {
@@ -93,8 +104,28 @@ func (v *Validator) DirectChannelCount() uint64 {
 	return v.directChannels
 }
 
+func (v *Validator) DirectPostCount() uint64 {
+	return v.directPosts
+}
+
 func (v *Validator) Emojis() []string {
 	return v.listMap(v.emojis)
+}
+
+func (v *Validator) StartTime() time.Time {
+	return v.start
+}
+
+func (v *Validator) EndTime() time.Time {
+	return v.end
+}
+
+func (v *Validator) Duration() time.Duration {
+	return v.end.Sub(v.start)
+}
+
+func (v *Validator) Lines() uint64 {
+	return v.lines
 }
 
 func (v *Validator) listMap(m map[string]ImportFileInfo) []string {
@@ -121,6 +152,11 @@ func (v *Validator) InjectTeam(name string) {
 }
 
 func (v *Validator) Validate() error {
+	v.start = time.Now()
+	defer func() {
+		v.end = time.Now()
+	}()
+
 	f, err := os.Open(v.archiveName)
 	if err != nil {
 		return fmt.Errorf("error opening the import file %q: %w", v.archiveName, err)
@@ -150,26 +186,28 @@ func (v *Validator) Validate() error {
 		return fmt.Errorf("could not find a .jsonl file in the import archive")
 	}
 
-	for _, zfile := range z.File {
-		if zfile.FileInfo().IsDir() {
-			continue
+	if !v.ignoreAttachments {
+		for _, zfile := range z.File {
+			if zfile.FileInfo().IsDir() {
+				continue
+			}
+			if strings.HasPrefix(zfile.Name, "data/") {
+				v.attachments[zfile.Name] = zfile
+			}
+			v.allFileNames = append(v.allFileNames, zfile.Name)
 		}
-		if strings.HasPrefix(zfile.Name, "data/") {
-			v.attachments[zfile.Name] = zfile
-		}
-		v.allFileNames = append(v.allFileNames, zfile.Name)
 	}
 
-	lines, err := v.countLines(jsonlZip)
+	v.lines, err = v.countLines(jsonlZip)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("The .jsonl file has %d lines\n", lines)
+	fmt.Printf("The .jsonl file has %d lines\n", v.lines)
 
 	info := ImportFileInfo{
 		ArchiveName: filepath.Base(v.archiveName),
 		FileName:    jsonlZip.Name,
-		TotalLines:  lines,
+		TotalLines:  v.lines,
 	}
 
 	err = v.validateLines(info, jsonlZip)
@@ -187,14 +225,25 @@ func (v *Validator) countLines(zf *zip.File) (uint64, error) {
 	}
 	defer f.Close()
 
+	buffer := make([]byte, 64*1024)
 	count := uint64(0)
 
-	s := bufio.NewScanner(f)
-	for s.Scan() {
-		count++
-	}
+	for {
+		n, err := f.Read(buffer)
 
-	return count, nil
+		for _, c := range buffer[:n] {
+			if c == '\n' {
+				count++
+			}
+		}
+
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+			return count, err
+		}
+	}
 }
 
 func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
@@ -277,6 +326,8 @@ func (v *Validator) validateLine(info ImportFileInfo, line LineImportData) error
 		err = v.validatePost(info, line)
 	case "direct_channel":
 		err = v.validateDirectChannel(info, line)
+	case "direct_post":
+		err = v.validateDirectPost(info, line)
 	case "emoji":
 		err = v.validateEmoji(info, line)
 	default:
@@ -528,7 +579,7 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 		}
 	}
 
-	if line.Post != nil && line.Post.Attachments != nil {
+	if !v.ignoreAttachments && line.Post != nil && line.Post.Attachments != nil {
 		for i, attachment := range *line.Post.Attachments {
 			if attachment.Path == nil {
 				continue
@@ -609,6 +660,82 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line LineImportDa
 	return nil
 }
 
+func (v *Validator) validateDirectPost(info ImportFileInfo, line LineImportData) (err error) {
+	ive := validateNotNil(info, "direct_post", line.DirectPost, func(data DirectPostImportData) *ImportValidationError {
+		appErr := validateDirectPostImportData(&data, model.PostMessageMaxRunesV1)
+		if appErr != nil {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "post",
+				Err:            appErr,
+			}
+		}
+
+		if data.User != nil {
+			if _, ok := v.users[*data.User]; !ok {
+				return &ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      "direct_post.user",
+					Err:            fmt.Errorf("reference to unknown user %q", *data.User),
+				}
+			}
+		}
+
+		return nil
+	})
+	if ive != nil {
+		if err = v.onError(ive); err != nil {
+			return err
+		}
+	}
+
+	if line.DirectPost != nil && line.DirectPost.ChannelMembers != nil {
+		for i, member := range *line.DirectPost.ChannelMembers {
+			if _, ok := v.users[member]; !ok {
+				if err = v.onError(&ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      fmt.Sprintf("direct_post.channel_members[%d]", i),
+					Err:            fmt.Errorf("reference to unknown user %q", member),
+				}); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	if !v.ignoreAttachments && line.DirectPost != nil && line.DirectPost.Attachments != nil {
+		for i, attachment := range *line.DirectPost.Attachments {
+			if attachment.Path == nil {
+				continue
+			}
+
+			attachmentPath := path.Join("data", *attachment.Path)
+
+			if _, ok := v.attachments[attachmentPath]; !ok {
+				helpful := ""
+				candidates := v.findFileNameSuffix(*attachment.Path)
+				if len(candidates) != 0 {
+					helpful = "; we found a match outside the \"data/\" folder \"" + strings.Join(candidates, "\" or \"") + "\""
+				}
+
+				if err = v.onError(&ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      fmt.Sprintf("direct_post.attachments[%d]", i),
+					Err:            fmt.Errorf("missing attachment file %q%s", attachmentPath, helpful),
+				}); err != nil {
+					return err
+				}
+			} else {
+				v.attachmentsUsed[attachmentPath]++
+			}
+		}
+	}
+
+	v.directPosts++
+
+	return nil
+}
+
 func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err error) {
 	ive := validateNotNil(info, "emoji", line.Emoji, func(data EmojiImportData) *ImportValidationError {
 		appErr := validateEmojiImportData(&data)
@@ -631,7 +758,7 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err
 			v.emojis[*data.Name] = info
 		}
 
-		if data.Image != nil {
+		if !v.ignoreAttachments && data.Image != nil {
 			attachmentPath := path.Join("data", *data.Image)
 
 			zfile, ok := v.attachments[attachmentPath]

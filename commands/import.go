@@ -102,6 +102,7 @@ func init() {
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
 
 	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined teams")
+	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -336,7 +337,14 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
+	ignoreAttachments, err := command.Flags().GetBool("ignore-attachments")
+	if err != nil {
+		return err
+	}
+
 	validator := importer.NewValidator(args[0])
+
+	validator.IgnoreAttachments(ignoreAttachments)
 
 	for _, team := range injectedTeams {
 		validator.InjectTeam(team)
@@ -360,18 +368,20 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		users              = validator.Users()
 		postCount          = validator.PostCount()
 		directChannelCount = validator.DirectChannelCount()
+		directPostCount    = validator.DirectPostCount()
 		emojis             = validator.Emojis()
 		attachments        = validator.Attachments()
 		unusedAttachments  = validator.UnusedAttachments()
 	)
 
-	fmt.Printf("Schemes (%d):  [%s]\n", len(schemes), printMax(schemes, 5))
-	fmt.Printf("Teams (%d):    [%s]\n", len(teams), printMax(teams, 5))
-	fmt.Printf("Channels (%d): [%s]\n", len(channels), printMax(channels, 5))
-	fmt.Printf("Users (%d):    [%s]\n", len(users), printMax(users, 5))
-	fmt.Printf("Emojis (%d):   [%s]\n", len(emojis), printMax(emojis, 5))
-	fmt.Printf("Posts (%d)\n", postCount)
+	fmt.Printf("Schemes (%d):  [%s]\n", len(schemes), printMax(schemes, 2))
+	fmt.Printf("Teams (%d):    [%s]\n", len(teams), printMax(teams, 2))
+	fmt.Printf("Channels (%d): [%s]\n", len(channels), printMax(channels, 2))
+	fmt.Printf("Users (%d):    [%s]\n", len(users), printMax(users, 2))
+	fmt.Printf("Emojis (%d):   [%s]\n", len(emojis), printMax(emojis, 2))
+	fmt.Printf("Posts           (%d)\n", postCount)
 	fmt.Printf("Direct Channels (%d)\n", directChannelCount)
+	fmt.Printf("Direct Posts    (%d)\n", directPostCount)
 	fmt.Printf("Attachments (%d): [%s]\n", len(attachments), printMax(attachments, 2))
 
 	if len(unusedAttachments) > 0 {
@@ -381,12 +391,14 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
+	fmt.Printf("It took %s to validate %d lines in %s\n", validator.Duration(), validator.Lines(), args[0])
+
 	return nil
 }
 
 func printMax(sl []string, max int) string {
 	if len(sl) > max {
-		return strings.Join(sl[:max], ", ") + ", ..."
+		return strings.Join(sl[:max], ", ") + ", …"
 	}
 	return strings.Join(sl, ", ")
 }
