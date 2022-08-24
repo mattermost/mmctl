@@ -628,10 +628,6 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	return nil
 }
 
-func deleteUser(c client.Client, user *model.User) (*model.Response, error) {
-	return c.PermanentDeleteUser(user.Id)
-}
-
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
@@ -649,9 +645,13 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, err := deleteUser(c, user); err != nil {
+		if res, err := c.PermanentDeleteUser(user.Id); err != nil {
 			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
 		} else {
+			// res.StatusCode is checked for 202 to identify issues with file deletion.
+			if res.StatusCode == http.StatusAccepted {
+				printer.PrintError("There were issues with deleting profile image of the user. Please delete it manually. Id: " + user.Id)
+			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}

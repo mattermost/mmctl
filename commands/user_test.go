@@ -510,6 +510,30 @@ func (s *MmctlUnitTestSuite) TestDeleteUsersCmd() {
 		s.Require().Equal("Unable to delete user 'User1' error: an error occurred on deleting a user",
 			printer.GetErrorLines()[0])
 	})
+
+	s.Run("partial delete of user, i.e failing to delete profile image gives a warning on the console.", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(email1, "").
+			Return(&mockUser1, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			PermanentDeleteUser(userID1).
+			Return(&model.Response{StatusCode: http.StatusAccepted}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		err := deleteUsersCmdF(s.client, cmd, []string{email1})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal(fmt.Sprintf("There were issues with deleting profile image of the user. Please delete it manually. Id: %s", mockUser1.Id), printer.GetErrorLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestDeleteAllUsersCmd() {
