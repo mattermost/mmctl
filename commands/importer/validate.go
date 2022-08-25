@@ -290,10 +290,20 @@ func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
 			return err
 		}
 
-		if info.LineNumber%10000 == 0 {
-			fmt.Printf("Progress: %d/%d (%.2f%%)\n", info.LineNumber, info.TotalLines, float64(info.LineNumber)*100/float64(info.TotalLines))
+		if info.LineNumber%1024 == 0 {
+			fmt.Printf("Progress: %d/%d (%.2f%%)\r", info.LineNumber, info.TotalLines, float64(info.LineNumber)*100/float64(info.TotalLines))
 		}
 	}
+	if err = s.Err(); err != nil {
+		if err = v.onError(&ImportValidationError{
+			ImportFileInfo: info,
+			Err:            err,
+		}); err != nil {
+			return err
+		}
+	}
+
+	fmt.Printf("Progress: %d/%d (100.00%%)\n", info.TotalLines, info.TotalLines)
 
 	return nil
 }
