@@ -17,7 +17,7 @@ type ImportValidationError struct {
 	FieldName       string
 	Err             error
 	Suggestion      string
-	SuggestedValue  []any
+	SuggestedValues []any
 	ApplySuggestion func(any) error
 }
 
