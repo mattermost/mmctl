@@ -15,16 +15,15 @@ require (
 	github.com/magefile/mage v1.13.0
 	github.com/mattermost/gosaml2 v0.8.0
 	github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-	github.com/mattermost/mattermost-server/v6 v6.6.1
+	github.com/mattermost/mattermost-server/v6 v6.0.0-20220721093312-c597ae719ae0
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.2
 	github.com/tylerb/graceful v1.2.15
-	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
 	gopkg.in/olivere/elastic.v6 v6.2.37
 )
@@ -32,7 +31,6 @@ require (
 require (
 	code.sajari.com/docconv v1.2.0 // indirect
 	github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198 // indirect
-	github.com/Masterminds/squirrel v1.5.2 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/fatih/color v1.13.0
 	github.com/golang/mock v1.6.0
@@ -85,10 +83,10 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/blevesearch/bleve/v2 v2.3.2 // indirect
-	github.com/blevesearch/bleve_index_api v1.0.1 // indirect
+	github.com/blevesearch/bleve_index_api v1.0.2 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
 	github.com/blevesearch/gtreap v0.1.1 // indirect
-	github.com/blevesearch/mmap-go v1.0.3 // indirect
+	github.com/blevesearch/mmap-go v1.0.4 // indirect
 	github.com/blevesearch/scorch_segment_api/v2 v2.1.0 // indirect
 	github.com/blevesearch/segment v0.9.0 // indirect
 	github.com/blevesearch/snowballstem v0.9.0 // indirect
