@@ -374,15 +374,15 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		unusedAttachments  = validator.UnusedAttachments()
 	)
 
-	fmt.Printf("Schemes (%d):  [%s]\n", len(schemes), printMax(schemes, 2))
-	fmt.Printf("Teams (%d):    [%s]\n", len(teams), printMax(teams, 2))
-	fmt.Printf("Channels (%d): [%s]\n", len(channels), printMax(channels, 2))
-	fmt.Printf("Users (%d):    [%s]\n", len(users), printMax(users, 2))
-	fmt.Printf("Emojis (%d):   [%s]\n", len(emojis), printMax(emojis, 2))
+	fmt.Printf("Schemes (%d):  [%s]\n", len(schemes), print2(schemes))
+	fmt.Printf("Teams (%d):    [%s]\n", len(teams), print2(teams))
+	fmt.Printf("Channels (%d): [%s]\n", len(channels), print2(channels))
+	fmt.Printf("Users (%d):    [%s]\n", len(users), print2(users))
+	fmt.Printf("Emojis (%d):   [%s]\n", len(emojis), print2(emojis))
 	fmt.Printf("Posts           (%d)\n", postCount)
 	fmt.Printf("Direct Channels (%d)\n", directChannelCount)
 	fmt.Printf("Direct Posts    (%d)\n", directPostCount)
-	fmt.Printf("Attachments (%d): [%s]\n", len(attachments), printMax(attachments, 2))
+	fmt.Printf("Attachments (%d): [%s]\n", len(attachments), print2(attachments))
 
 	if len(unusedAttachments) > 0 {
 		fmt.Printf("Unused Attachments (%d):\n", len(unusedAttachments))
@@ -396,9 +396,9 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func printMax(sl []string, max int) string {
-	if len(sl) > max {
-		return strings.Join(sl[:max], ", ") + ", …"
+func print2(sl []string) string {
+	if len(sl) > 2 {
+		return strings.Join(sl[:2], ", ") + ", …"
 	}
 	return strings.Join(sl, ", ")
 }

@@ -15,7 +15,7 @@ type ImportFileInfo struct {
 	TotalLines  uint64
 }
 
-type ImportValidationError struct {
+type ImportValidationError struct { //nolint:govet
 	ImportFileInfo
 	FieldName       string
 	Err             error

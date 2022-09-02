@@ -34,7 +34,7 @@ type ChannelTeam struct {
 	Team    string
 }
 
-type Validator struct {
+type Validator struct { //nolint:govet
 	archiveName       string
 	onError           func(*ImportValidationError) error
 	ignoreAttachments bool

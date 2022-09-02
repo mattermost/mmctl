@@ -11,7 +11,7 @@ import (
 
 // Import Data Models
 
-type LineImportData struct {
+type LineImportData struct { //nolint:govet
 	Type          string                   `json:"type"`
 	Scheme        *SchemeImportData        `json:"scheme,omitempty"`
 	Team          *TeamImportData          `json:"team,omitempty"`

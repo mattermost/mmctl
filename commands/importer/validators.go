@@ -14,8 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 )
 
-func validateSchemeImportData(data *SchemeImportData) *model.AppError {
-
+func validateSchemeImportData(data *SchemeImportData) *model.AppError { //nolint:gocyclo
 	if data.Scope == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
 	}
@@ -85,7 +84,6 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 }
 
 func validateRoleImportData(data *RoleImportData) *model.AppError {
-
 	if data.Name == nil || !model.IsValidRoleName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
@@ -118,14 +116,14 @@ func validateRoleImportData(data *RoleImportData) *model.AppError {
 }
 
 func validateTeamImportData(data *TeamImportData) *model.AppError {
-
-	if data.Name == nil {
+	switch {
+	case data.Name == nil:
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "", http.StatusBadRequest)
-	} else if len(*data.Name) > model.TeamNameMaxLength {
+	case len(*data.Name) > model.TeamNameMaxLength:
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "", http.StatusBadRequest)
-	} else if model.IsReservedTeamName(*data.Name) {
+	case model.IsReservedTeamName(*data.Name):
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidTeamName(*data.Name) {
+	case !model.IsValidTeamName(*data.Name):
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -153,16 +151,16 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 }
 
 func validateChannelImportData(data *ChannelImportData) *model.AppError {
-
 	if data.Team == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Name == nil {
+	switch {
+	case data.Name == nil:
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "", http.StatusBadRequest)
-	} else if len(*data.Name) > model.ChannelNameMaxLength {
+	case len(*data.Name) > model.ChannelNameMaxLength:
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "", http.StatusBadRequest)
-	} else if !model.IsValidChannelIdentifier(*data.Name) {
+	case !model.IsValidChannelIdentifier(*data.Name):
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -193,7 +191,7 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 	return nil
 }
 
-func validateUserImportData(data *UserImportData) *model.AppError {
+func validateUserImportData(data *UserImportData) *model.AppError { //nolint:gocyclo
 	if data.ProfileImage != nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
 			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest)
@@ -386,11 +384,12 @@ func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.CreateAt == nil {
+	switch {
+	case data.CreateAt == nil:
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt == 0 {
+	case *data.CreateAt == 0:
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt < parentCreateAt {
+	case *data.CreateAt < parentCreateAt:
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_before_parent.error", nil, "", http.StatusBadRequest)
 	}
 
@@ -408,11 +407,12 @@ func validateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.CreateAt == nil {
+	switch {
+	case data.CreateAt == nil:
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt == 0 {
+	case *data.CreateAt == 0:
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt < parentCreateAt {
+	case *data.CreateAt < parentCreateAt:
 		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int64("reply_create_at", *data.CreateAt), mlog.Int64("parent_create_at", parentCreateAt))
 	}
 
@@ -447,14 +447,18 @@ func validatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			validateReactionImportData(&reaction, *data.CreateAt)
+			if appErr := validateReactionImportData(&reaction, *data.CreateAt); appErr != nil {
+				return appErr
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if appErr := validateReplyImportData(&reply, *data.CreateAt, maxPostSize); appErr != nil {
+				return appErr
+			}
 		}
 	}
 
@@ -547,14 +551,18 @@ func validateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
 			reaction := reaction
-			validateReactionImportData(&reaction, *data.CreateAt)
+			if appErr := validateReactionImportData(&reaction, *data.CreateAt); appErr != nil {
+				return appErr
+			}
 		}
 	}
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
 			reply := reply
-			validateReplyImportData(&reply, *data.CreateAt, maxPostSize)
+			if appErr := validateReplyImportData(&reply, *data.CreateAt, maxPostSize); appErr != nil {
+				return appErr
+			}
 		}
 	}
 
