@@ -9,19 +9,19 @@ import (
 )
 
 type ImportFileInfo struct {
-	ArchiveName string
-	FileName    string
-	LineNumber  uint64
-	TotalLines  uint64
+	ArchiveName string `json:"archive_name"`
+	FileName    string `json:"file_name,omitempty"`
+	CurrentLine uint64 `json:"current_line,omitempty"`
+	TotalLines  uint64 `json:"total_lines,omitempty"`
 }
 
 type ImportValidationError struct { //nolint:govet
 	ImportFileInfo
-	FieldName       string
-	Err             error
-	Suggestion      string
-	SuggestedValues []any
-	ApplySuggestion func(any) error
+	FieldName       string          `json:"field_name,omitempty"`
+	Err             error           `json:"error"`
+	Suggestion      string          `json:"suggestion,omitempty"`
+	SuggestedValues []any           `json:"suggested_values,omitempty"`
+	ApplySuggestion func(any) error `json:"-"`
 }
 
 func (e *ImportValidationError) Error() string {
@@ -29,7 +29,7 @@ func (e *ImportValidationError) Error() string {
 	msg.WriteString("import validation error")
 
 	if e.FileName != "" || e.ArchiveName != "" {
-		fmt.Fprintf(msg, " in %q->%q:%d", e.ArchiveName, e.FileName, e.LineNumber)
+		fmt.Fprintf(msg, " in %q->%q:%d", e.ArchiveName, e.FileName, e.CurrentLine)
 	}
 
 	if e.FieldName != "" {

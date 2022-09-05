@@ -22,11 +22,13 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 	"time"
 
 	_ "golang.org/x/image/webp" // image decoder
 
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 type ChannelTeam struct {
@@ -205,7 +207,9 @@ func (v *Validator) Validate() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("The .jsonl file has %d lines\n", v.lines)
+	printer.PrintT("The .jsonl file has {{ .Total }} lines\n", struct {
+		Total uint64 `json:"total_lines"`
+	}{v.lines})
 
 	info := ImportFileInfo{
 		ArchiveName: filepath.Base(v.archiveName),
@@ -261,7 +265,7 @@ func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
 	s.Buffer(buf, 16*1024*1024)
 
 	for s.Scan() {
-		info.LineNumber++
+		info.CurrentLine++
 
 		rawLine := s.Bytes()
 
@@ -293,8 +297,8 @@ func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
 			return err
 		}
 
-		if info.LineNumber%1024 == 0 {
-			fmt.Printf("Progress: %d/%d (%.2f%%)\r", info.LineNumber, info.TotalLines, float64(info.LineNumber)*100/float64(info.TotalLines))
+		if info.CurrentLine%1024 == 0 {
+			printProgress(info.CurrentLine, info.TotalLines)
 		}
 	}
 	if err = s.Err(); err != nil {
@@ -306,7 +310,7 @@ func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
 		}
 	}
 
-	fmt.Printf("Progress: %d/%d (100.00%%)\n", info.TotalLines, info.TotalLines)
+	printProgress(info.TotalLines, info.TotalLines)
 
 	return nil
 }
@@ -315,7 +319,7 @@ func (v *Validator) validateLine(info ImportFileInfo, line LineImportData) error
 	var err error
 
 	// make sure the file starts with a version
-	if info.LineNumber == 1 && line.Type != "version" {
+	if info.CurrentLine == 1 && line.Type != "version" {
 		if err = v.onError(&ImportValidationError{
 			ImportFileInfo: info,
 			Err:            fmt.Errorf("first line has the wrong type: expected \"version\", got %q", line.Type),
@@ -355,7 +359,7 @@ func (v *Validator) validateLine(info ImportFileInfo, line LineImportData) error
 }
 
 func (v *Validator) validateVersion(info ImportFileInfo, line LineImportData) (err error) {
-	if info.LineNumber != 1 {
+	if info.CurrentLine != 1 {
 		if err = v.onError(&ImportValidationError{
 			ImportFileInfo: info,
 			Err:            fmt.Errorf("version info must be the first line of the file"),
@@ -399,7 +403,7 @@ func (v *Validator) validateScheme(info ImportFileInfo, line LineImportData) (er
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "scheme",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.LineNumber),
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
 				}
 			}
 			v.schemes[*data.Name] = info
@@ -430,7 +434,7 @@ func (v *Validator) validateTeam(info ImportFileInfo, line LineImportData) (err 
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "team",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.LineNumber),
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
 				}
 			}
 			v.teams[*data.Name] = info
@@ -479,7 +483,7 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "channel",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.LineNumber),
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
 				}
 			}
 			v.channels[ChannelTeam{Channel: *data.Name, Team: *data.Team}] = info
@@ -519,7 +523,7 @@ func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err 
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "user",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.LineNumber),
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
 				}
 			}
 			v.users[*data.Username] = info
@@ -765,7 +769,7 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "emoji",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.LineNumber),
+					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
 				}
 			}
 			v.emojis[*data.Name] = info
@@ -882,4 +886,19 @@ func (v *Validator) findFileNameSuffix(name string) []string {
 		}
 	}
 	return candidates
+}
+
+var progressTemplate = template.Must(template.New("").Parse("Progress: {{ .Current }}/{{ .Total }} ({{ printf \"%.2f\" .Percent }}%)\r"))
+
+func printProgress(current, total uint64) {
+	percent := float64(current) * 100 / float64(total)
+
+	data := struct {
+		Current uint64  `json:"current_line"`
+		Total   uint64  `json:"total_lines"`
+		Percent float64 `json:"percent"`
+	}{current, total, percent}
+
+	printer.PrintPreparedT(progressTemplate, data)
+	printer.Flush()
 }

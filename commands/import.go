@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -330,7 +331,11 @@ func importJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 func importValidateCmdF(command *cobra.Command, args []string) error {
-	defer fmt.Println("Validation complete")
+	configurePrinter()
+
+	defer printer.PrintT("Validation complete\n", struct {
+		Completed bool `json:"completed"`
+	}{true})
 
 	injectedTeams, err := command.Flags().GetStringArray("team")
 	if err != nil {
@@ -349,10 +354,13 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	for _, team := range injectedTeams {
 		validator.InjectTeam(team)
 	}
-	fmt.Printf("Predefined teams: %s\n", strings.Join(injectedTeams, ", "))
+	printer.PrintT("Predefined teams: {{ join .Teams \", \" }}\n", struct {
+		Teams []string `json:"injected_teams"`
+	}{injectedTeams})
 
+	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
 	validator.OnError(func(ive *importer.ImportValidationError) error {
-		fmt.Println(ive.Error())
+		printer.PrintPreparedT(templateError, ive)
 		return nil
 	})
 
@@ -361,44 +369,67 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	var (
-		schemes            = validator.Schemes()
-		teams              = validator.Teams()
-		channels           = validator.Channels()
-		users              = validator.Users()
-		postCount          = validator.PostCount()
-		directChannelCount = validator.DirectChannelCount()
-		directPostCount    = validator.DirectPostCount()
-		emojis             = validator.Emojis()
-		attachments        = validator.Attachments()
-		unusedAttachments  = validator.UnusedAttachments()
-	)
-
-	fmt.Printf("Schemes (%d):  [%s]\n", len(schemes), print2(schemes))
-	fmt.Printf("Teams (%d):    [%s]\n", len(teams), print2(teams))
-	fmt.Printf("Channels (%d): [%s]\n", len(channels), print2(channels))
-	fmt.Printf("Users (%d):    [%s]\n", len(users), print2(users))
-	fmt.Printf("Emojis (%d):   [%s]\n", len(emojis), print2(emojis))
-	fmt.Printf("Posts           (%d)\n", postCount)
-	fmt.Printf("Direct Channels (%d)\n", directChannelCount)
-	fmt.Printf("Direct Posts    (%d)\n", directPostCount)
-	fmt.Printf("Attachments (%d): [%s]\n", len(attachments), print2(attachments))
-
-	if len(unusedAttachments) > 0 {
-		fmt.Printf("Unused Attachments (%d):\n", len(unusedAttachments))
-		for _, attachment := range unusedAttachments {
-			fmt.Printf("  %s\n", attachment)
-		}
+	stat := Statistics{
+		Schemes:        len(validator.Schemes()),
+		Teams:          len(validator.Teams()),
+		Channels:       len(validator.Channels()),
+		Users:          len(validator.Users()),
+		Posts:          int(validator.PostCount()),
+		DirectChannels: int(validator.DirectChannelCount()),
+		DirectPosts:    int(validator.DirectPostCount()),
+		Emojis:         len(validator.Emojis()),
+		Attachments:    len(validator.Attachments()),
 	}
 
-	fmt.Printf("It took %s to validate %d lines in %s\n", validator.Duration(), validator.Lines(), args[0])
+	printStatistics(stat)
+
+	unusedAttachments := validator.UnusedAttachments()
+	if len(unusedAttachments) > 0 {
+		printer.PrintT("Unused Attachments ({{ len .UnusedAttachments }}):\n"+
+			"{{ range .UnusedAttachments }}  {{ . }}\n{{ end }}", struct {
+			UnusedAttachments []string `json:"unused_attachments"`
+		}{unusedAttachments})
+	}
+
+	printer.PrintT("It took {{ .Elapsed }} to validate {{ .TotalLines }} lines in {{ .FileName }}\n", struct {
+		FileName   string        `json:"file_name"`
+		TotalLines uint64        `json:"total_lines"`
+		Elapsed    time.Duration `json:"elapsed_time"`
+	}{args[0], validator.Lines(), validator.Duration()})
 
 	return nil
 }
 
-func print2(sl []string) string {
-	if len(sl) > 2 {
-		return strings.Join(sl[:2], ", ") + ", …"
-	}
-	return strings.Join(sl, ", ")
+func configurePrinter() {
+	// we want to manage the newlines ourselves
+	printer.SetNoNewline(true)
+
+	// define a join function
+	printer.SetTemplateFunc("join", strings.Join)
+}
+
+type Statistics struct {
+	Schemes        int `json:"schemes"`
+	Teams          int `json:"teams"`
+	Channels       int `json:"channels"`
+	Users          int `json:"users"`
+	Emojis         int `json:"emojis"`
+	Posts          int `json:"posts"`
+	DirectChannels int `json:"direct_channels"`
+	DirectPosts    int `json:"direct_posts"`
+	Attachments    int `json:"attachments"`
+}
+
+func printStatistics(stat Statistics) {
+	tmpl := "Schemes         {{ .Schemes }}\n" +
+		"Teams           {{ .Teams }}\n" +
+		"Channels        {{ .Channels }}\n" +
+		"Users           {{ .Users }}\n" +
+		"Emojis          {{ .Emojis }}\n" +
+		"Posts           {{ .Posts }}\n" +
+		"Direct Channels { .DirectChannels }}\n" +
+		"Direct Posts    {{ .DirectPosts }}\n" +
+		"Attachments     {{ .Attachments }}\n"
+
+	printer.PrintT(tmpl, stat)
 }
