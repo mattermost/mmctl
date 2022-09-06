@@ -421,13 +421,14 @@ type Statistics struct {
 }
 
 func printStatistics(stat Statistics) {
-	tmpl := "Schemes         {{ .Schemes }}\n" +
+	tmpl := "\n" +
+		"Schemes         {{ .Schemes }}\n" +
 		"Teams           {{ .Teams }}\n" +
 		"Channels        {{ .Channels }}\n" +
 		"Users           {{ .Users }}\n" +
 		"Emojis          {{ .Emojis }}\n" +
 		"Posts           {{ .Posts }}\n" +
-		"Direct Channels { .DirectChannels }}\n" +
+		"Direct Channels {{ .DirectChannels }}\n" +
 		"Direct Posts    {{ .DirectPosts }}\n" +
 		"Attachments     {{ .Attachments }}\n"
 
