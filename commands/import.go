@@ -357,6 +357,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	printer.PrintT("Predefined teams: {{ join .Teams \", \" }}\n", struct {
 		Teams []string `json:"injected_teams"`
 	}{injectedTeams})
+	printer.Flush() // flush the output, the next line could take a long time
 
 	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
 	validator.OnError(func(ive *importer.ImportValidationError) error {
@@ -394,7 +395,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	printer.PrintT("It took {{ .Elapsed }} to validate {{ .TotalLines }} lines in {{ .FileName }}\n", struct {
 		FileName   string        `json:"file_name"`
 		TotalLines uint64        `json:"total_lines"`
-		Elapsed    time.Duration `json:"elapsed_time"`
+		Elapsed    time.Duration `json:"elapsed_time_ns"`
 	}{args[0], validator.Lines(), validator.Duration()})
 
 	return nil
