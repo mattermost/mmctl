@@ -4,6 +4,7 @@
 package importer
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -17,11 +18,32 @@ type ImportFileInfo struct {
 
 type ImportValidationError struct { //nolint:govet
 	ImportFileInfo
-	FieldName       string          `json:"field_name,omitempty"`
-	Err             error           `json:"error"`
-	Suggestion      string          `json:"suggestion,omitempty"`
-	SuggestedValues []any           `json:"suggested_values,omitempty"`
-	ApplySuggestion func(any) error `json:"-"`
+	FieldName       string
+	Err             error
+	Suggestion      string
+	SuggestedValues []any
+	ApplySuggestion func(any) error
+}
+
+func (e *ImportValidationError) MarshalJSON() ([]byte, error) {
+	t := struct { //nolint:govet
+		ImportFileInfo
+		FieldName       string `json:"field_name,omitempty"`
+		Err             string `json:"error,omitempty"`
+		Suggestion      string `json:"suggestion,omitempty"`
+		SuggestedValues []any  `json:"suggested_values,omitempty"`
+	}{
+		ImportFileInfo:  e.ImportFileInfo,
+		FieldName:       e.FieldName,
+		Suggestion:      e.Suggestion,
+		SuggestedValues: e.SuggestedValues,
+	}
+
+	if e.Err != nil {
+		t.Err = e.Err.Error()
+	}
+
+	return json.Marshal(t)
 }
 
 func (e *ImportValidationError) Error() string {
