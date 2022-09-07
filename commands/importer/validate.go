@@ -815,7 +815,7 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err
 }
 
 func (v *Validator) Attachments() []string {
-	var used []string
+	used := make([]string, 0, len(v.attachmentsUsed))
 	for attachment := range v.attachmentsUsed {
 		used = append(used, attachment)
 	}
