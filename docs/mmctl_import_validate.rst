@@ -29,7 +29,7 @@ Options
 
   -h, --help                 help for validate
       --ignore-attachments   Don't check if the attached files are present in the archive
-      --team stringArray     Predefined teams
+      --team stringArray     The names of the team[s] (flag can be repeated)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
