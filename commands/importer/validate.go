@@ -60,6 +60,18 @@ type Validator struct { //nolint:govet
 	lines uint64
 }
 
+const (
+	LineTypeVersion       = "version"
+	LineTypeScheme        = "scheme"
+	LineTypeTeam          = "team"
+	LineTypeChannel       = "channel"
+	LineTypeUser          = "user"
+	LineTypePost          = "post"
+	LineTypeDirectChannel = "direct_channel"
+	LineTypeDirectPost    = "direct_post"
+	LineTypeEmoji         = "emoji"
+)
+
 func NewValidator(name string, ignoreAttachments bool) *Validator {
 	return &Validator{
 		archiveName:       name,
@@ -326,23 +338,23 @@ func (v *Validator) validateLine(info ImportFileInfo, line LineImportData) error
 	}
 
 	switch line.Type {
-	case "version":
+	case LineTypeVersion:
 		err = v.validateVersion(info, line)
-	case "scheme":
+	case LineTypeScheme:
 		err = v.validateScheme(info, line)
-	case "team":
+	case LineTypeTeam:
 		err = v.validateTeam(info, line)
-	case "channel":
+	case LineTypeChannel:
 		err = v.validateChannel(info, line)
-	case "user":
+	case LineTypeUser:
 		err = v.validateUser(info, line)
-	case "post":
+	case LineTypePost:
 		err = v.validatePost(info, line)
-	case "direct_channel":
+	case LineTypeDirectChannel:
 		err = v.validateDirectChannel(info, line)
-	case "direct_post":
+	case LineTypeDirectPost:
 		err = v.validateDirectPost(info, line)
-	case "emoji":
+	case LineTypeEmoji:
 		err = v.validateEmoji(info, line)
 	default:
 		err = v.onError(&ImportValidationError{
