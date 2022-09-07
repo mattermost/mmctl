@@ -20,6 +20,18 @@ import (
 	"github.com/mattermost/mmctl/v6/printer"
 )
 
+type Statistics struct {
+	Schemes        int `json:"schemes"`
+	Teams          int `json:"teams"`
+	Channels       int `json:"channels"`
+	Users          int `json:"users"`
+	Emojis         int `json:"emojis"`
+	Posts          int `json:"posts"`
+	DirectChannels int `json:"direct_channels"`
+	DirectPosts    int `json:"direct_posts"`
+	Attachments    int `json:"attachments"`
+}
+
 var ImportCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Management of imports",
@@ -401,18 +413,6 @@ func configurePrinter() {
 
 	// define a join function
 	printer.SetTemplateFunc("join", strings.Join)
-}
-
-type Statistics struct {
-	Schemes        int `json:"schemes"`
-	Teams          int `json:"teams"`
-	Channels       int `json:"channels"`
-	Users          int `json:"users"`
-	Emojis         int `json:"emojis"`
-	Posts          int `json:"posts"`
-	DirectChannels int `json:"direct_channels"`
-	DirectPosts    int `json:"direct_posts"`
-	Attachments    int `json:"attachments"`
 }
 
 func printStatistics(stat Statistics) {
