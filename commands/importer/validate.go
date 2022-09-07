@@ -60,10 +60,11 @@ type Validator struct { //nolint:govet
 	lines uint64
 }
 
-func NewValidator(name string) *Validator {
+func NewValidator(name string, ignoreAttachments bool) *Validator {
 	return &Validator{
-		archiveName: name,
-		onError:     func(ive *ImportValidationError) error { return ive },
+		archiveName:       name,
+		onError:           func(ive *ImportValidationError) error { return ive },
+		ignoreAttachments: ignoreAttachments,
 
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
@@ -74,10 +75,6 @@ func NewValidator(name string) *Validator {
 		users:    map[string]ImportFileInfo{},
 		emojis:   map[string]ImportFileInfo{},
 	}
-}
-
-func (v *Validator) IgnoreAttachments(ia bool) {
-	v.ignoreAttachments = ia
 }
 
 func (v *Validator) Schemes() []string {

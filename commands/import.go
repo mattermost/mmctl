@@ -347,17 +347,11 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	validator := importer.NewValidator(args[0])
-
-	validator.IgnoreAttachments(ignoreAttachments)
+	validator := importer.NewValidator(args[0], ignoreAttachments)
 
 	for _, team := range injectedTeams {
 		validator.InjectTeam(team)
 	}
-	printer.PrintT("Predefined teams: {{ join .Teams \", \" }}\n", struct {
-		Teams []string `json:"injected_teams"`
-	}{injectedTeams})
-	printer.Flush() // flush the output, the next line could take a long time
 
 	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
 	validator.OnError(func(ive *importer.ImportValidationError) error {
