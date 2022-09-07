@@ -20,18 +20,6 @@ import (
 	"github.com/mattermost/mmctl/v6/printer"
 )
 
-type Statistics struct {
-	Schemes        int `json:"schemes"`
-	Teams          int `json:"teams"`
-	Channels       int `json:"channels"`
-	Users          int `json:"users"`
-	Emojis         int `json:"emojis"`
-	Posts          int `json:"posts"`
-	DirectChannels int `json:"direct_channels"`
-	DirectPosts    int `json:"direct_posts"`
-	Attachments    int `json:"attachments"`
-}
-
 var ImportCmd = &cobra.Command{
 	Use:   "import",
 	Short: "Management of imports",
@@ -114,7 +102,7 @@ func init() {
 	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
 
-	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined teams")
+	ImportValidateCmd.Flags().StringArray("team", nil, "The names of the team[s] (flag can be repeated)")
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 
 	ImportListCmd.AddCommand(
@@ -340,6 +328,18 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error 
 
 func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
 	return jobListCmdF(c, command, model.JobTypeImportProcess)
+}
+
+type Statistics struct {
+	Schemes        int `json:"schemes"`
+	Teams          int `json:"teams"`
+	Channels       int `json:"channels"`
+	Users          int `json:"users"`
+	Emojis         int `json:"emojis"`
+	Posts          int `json:"posts"`
+	DirectChannels int `json:"direct_channels"`
+	DirectPosts    int `json:"direct_posts"`
+	Attachments    int `json:"attachments"`
 }
 
 func importValidateCmdF(command *cobra.Command, args []string) error {
