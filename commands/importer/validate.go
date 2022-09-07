@@ -75,7 +75,7 @@ const (
 func NewValidator(name string, ignoreAttachments bool) *Validator {
 	return &Validator{
 		archiveName:       name,
-		onError:           func(ive *ImportValidationError) error { return ive },
+		onError:           func(ivErr *ImportValidationError) error { return ivErr },
 		ignoreAttachments: ignoreAttachments,
 
 		attachments:     make(map[string]*zip.File),
@@ -151,9 +151,9 @@ func (v *Validator) listMap(m map[string]ImportFileInfo) []string {
 	return entries
 }
 
-func (v *Validator) OnError(f func(ive *ImportValidationError) error) {
+func (v *Validator) OnError(f func(*ImportValidationError) error) {
 	if f == nil {
-		f = func(ive *ImportValidationError) error { return ive }
+		f = func(ivErr *ImportValidationError) error { return ivErr }
 	}
 
 	v.onError = f
@@ -397,7 +397,7 @@ func (v *Validator) validateVersion(info ImportFileInfo, line LineImportData) (e
 }
 
 func (v *Validator) validateScheme(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "scheme", line.Scheme, func(data SchemeImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "scheme", line.Scheme, func(data SchemeImportData) *ImportValidationError {
 		appErr := validateSchemeImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -420,15 +420,15 @@ func (v *Validator) validateScheme(info ImportFileInfo, line LineImportData) (er
 
 		return nil
 	})
-	if ive != nil {
-		return v.onError(ive)
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
 }
 
 func (v *Validator) validateTeam(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "team", line.Team, func(data TeamImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "team", line.Team, func(data TeamImportData) *ImportValidationError {
 		appErr := validateTeamImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -460,15 +460,15 @@ func (v *Validator) validateTeam(info ImportFileInfo, line LineImportData) (err 
 
 		return nil
 	})
-	if ive != nil {
-		return v.onError(ive)
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
 }
 
 func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "channel", line.Channel, func(data ChannelImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "channel", line.Channel, func(data ChannelImportData) *ImportValidationError {
 		appErr := validateChannelImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -509,15 +509,15 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 
 		return nil
 	})
-	if ive != nil {
-		return v.onError(ive)
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
 }
 
 func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "user", line.User, func(data UserImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "user", line.User, func(data UserImportData) *ImportValidationError {
 		appErr := validateUserImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -551,15 +551,15 @@ func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err 
 
 		return nil
 	})
-	if ive != nil {
-		return v.onError(ive)
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
 }
 
 func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "post", line.Post, func(data PostImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "post", line.Post, func(data PostImportData) *ImportValidationError {
 		appErr := validatePostImportData(&data, model.PostMessageMaxRunesV1)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -599,8 +599,8 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 
 		return nil
 	})
-	if ive != nil {
-		if err = v.onError(ive); err != nil {
+	if ivErr != nil {
+		if err = v.onError(ivErr); err != nil {
 			return err
 		}
 	}
@@ -639,7 +639,7 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 }
 
 func (v *Validator) validateDirectChannel(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "direct_channel", line.DirectChannel, func(data DirectChannelImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "direct_channel", line.DirectChannel, func(data DirectChannelImportData) *ImportValidationError {
 		appErr := validateDirectChannelImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -675,8 +675,8 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line LineImportDa
 
 		return nil
 	})
-	if ive != nil {
-		if err = v.onError(ive); err != nil {
+	if ivErr != nil {
+		if err = v.onError(ivErr); err != nil {
 			return err
 		}
 	}
@@ -687,7 +687,7 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line LineImportDa
 }
 
 func (v *Validator) validateDirectPost(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "direct_post", line.DirectPost, func(data DirectPostImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "direct_post", line.DirectPost, func(data DirectPostImportData) *ImportValidationError {
 		appErr := validateDirectPostImportData(&data, model.PostMessageMaxRunesV1)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -709,8 +709,8 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line LineImportData)
 
 		return nil
 	})
-	if ive != nil {
-		if err = v.onError(ive); err != nil {
+	if ivErr != nil {
+		if err = v.onError(ivErr); err != nil {
 			return err
 		}
 	}
@@ -763,7 +763,7 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line LineImportData)
 }
 
 func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err error) {
-	ive := validateNotNil(info, "emoji", line.Emoji, func(data EmojiImportData) *ImportValidationError {
+	ivErr := validateNotNil(info, "emoji", line.Emoji, func(data EmojiImportData) *ImportValidationError {
 		appErr := validateEmojiImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
@@ -807,8 +807,8 @@ func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err
 
 		return nil
 	})
-	if ive != nil {
-		return v.onError(ive)
+	if ivErr != nil {
+		return v.onError(ivErr)
 	}
 
 	return nil
