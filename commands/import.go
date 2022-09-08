@@ -393,7 +393,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 
 	printStatistics(stat)
 
-	if createMissingTeams {
+	if createMissingTeams && len(teams) != 0 {
 		printer.PrintT("Automatically created teams: {{ join .CreatedTeams \", \" }}\n", struct {
 			CreatedTeams []string `json:"created_teams"`
 		}{teams})
