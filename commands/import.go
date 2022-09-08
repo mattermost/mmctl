@@ -359,7 +359,8 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	validator := importer.NewValidator(args[0], ignoreAttachments)
+	createMissingTeams := len(injectedTeams) == 0
+	validator := importer.NewValidator(args[0], ignoreAttachments, createMissingTeams)
 
 	for _, team := range injectedTeams {
 		validator.InjectTeam(team)

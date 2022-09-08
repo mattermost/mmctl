@@ -37,9 +37,10 @@ type ChannelTeam struct {
 }
 
 type Validator struct { //nolint:govet
-	archiveName       string
-	onError           func(*ImportValidationError) error
-	ignoreAttachments bool
+	archiveName        string
+	onError            func(*ImportValidationError) error
+	ignoreAttachments  bool
+	createMissingTeams bool
 
 	attachments     map[string]*zip.File
 	attachmentsUsed map[string]uint64
@@ -72,11 +73,12 @@ const (
 	LineTypeEmoji         = "emoji"
 )
 
-func NewValidator(name string, ignoreAttachments bool) *Validator {
+func NewValidator(name string, ignoreAttachments, createMissingTeams bool) *Validator {
 	return &Validator{
-		archiveName:       name,
-		onError:           func(ivErr *ImportValidationError) error { return ivErr },
-		ignoreAttachments: ignoreAttachments,
+		archiveName:        name,
+		onError:            func(ivErr *ImportValidationError) error { return ivErr },
+		ignoreAttachments:  ignoreAttachments,
+		createMissingTeams: createMissingTeams,
 
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
@@ -162,6 +164,12 @@ func (v *Validator) OnError(f func(*ImportValidationError) error) {
 func (v *Validator) InjectTeam(name string) {
 	v.teams[name] = ImportFileInfo{
 		ArchiveName: "injected",
+	}
+}
+
+func (v *Validator) createTeam(name string) {
+	v.teams[name] = ImportFileInfo{
+		ArchiveName: "autocreated",
 	}
 }
 
@@ -480,6 +488,10 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 
 		if data.Team != nil {
 			if _, ok := v.teams[*data.Team]; !ok {
+				if v.createMissingTeams {
+					v.createTeam(*data.Team)
+				}
+
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "channel.team",
@@ -540,6 +552,10 @@ func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err 
 		if data.Teams != nil {
 			for i, team := range *data.Teams {
 				if _, ok := v.teams[*team.Name]; !ok {
+					if v.createMissingTeams {
+						v.createTeam(*team.Name)
+					}
+
 					return &ImportValidationError{
 						ImportFileInfo: info,
 						FieldName:      fmt.Sprintf("user.teams[%d]", i),
@@ -571,6 +587,10 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 
 		if data.Team != nil {
 			if _, ok := v.teams[*data.Team]; !ok {
+				if v.createMissingTeams {
+					v.createTeam(*data.Team)
+				}
+
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "post.team",
