@@ -51,7 +51,7 @@ func (e *ImportValidationError) Error() string {
 	msg.WriteString("import validation error")
 
 	if e.FileName != "" || e.ArchiveName != "" {
-		fmt.Fprintf(msg, " in %q->%q:%d", e.ArchiveName, e.FileName, e.CurrentLine)
+		fmt.Fprintf(msg, " in %s->%s:%d", e.ArchiveName, e.FileName, e.CurrentLine)
 	}
 
 	if e.FieldName != "" {

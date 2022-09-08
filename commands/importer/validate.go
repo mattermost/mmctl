@@ -261,6 +261,8 @@ func (v *Validator) countLines(zf *zip.File) (uint64, error) {
 			}
 		}
 
+		printCount(count)
+
 		if err != nil {
 			if err == io.EOF {
 				err = nil
@@ -929,5 +931,16 @@ func printProgress(current, total uint64) {
 	}{current, total, percent}
 
 	printer.PrintPreparedT(progressTemplate, data)
+	printer.Flush()
+}
+
+var countTemplate = template.Must(template.New("").Parse("Counting lines: {{ .Current }}\r"))
+
+func printCount(total uint64) {
+	data := struct {
+		Total uint64 `json:"total_lines"`
+	}{total}
+
+	printer.PrintPreparedT(countTemplate, data)
 	printer.Flush()
 }
