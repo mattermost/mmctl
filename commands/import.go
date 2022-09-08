@@ -377,9 +377,11 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
+	teams := validator.Teams()
+
 	stat := Statistics{
 		Schemes:        len(validator.Schemes()),
-		Teams:          len(validator.Teams()),
+		Teams:          len(teams),
 		Channels:       len(validator.Channels()),
 		Users:          len(validator.Users()),
 		Posts:          int(validator.PostCount()),
@@ -390,6 +392,12 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	printStatistics(stat)
+
+	if createMissingTeams {
+		printer.PrintT("Automatically created teams: {{ join .CreatedTeams \", \" }}\n", struct {
+			CreatedTeams []string `json:"created_teams"`
+		}{teams})
+	}
 
 	unusedAttachments := validator.UnusedAttachments()
 	if len(unusedAttachments) > 0 {
