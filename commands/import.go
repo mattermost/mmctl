@@ -345,9 +345,7 @@ type Statistics struct {
 func importValidateCmdF(command *cobra.Command, args []string) error {
 	configurePrinter()
 
-	defer printer.PrintT("Validation complete\n", struct {
-		Completed bool `json:"completed"`
-	}{true})
+	defer printer.Print("Validation complete\n")
 
 	injectedTeams, err := command.Flags().GetStringArray("team")
 	if err != nil {
