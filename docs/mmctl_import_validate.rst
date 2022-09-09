@@ -29,7 +29,7 @@ Options
 
   -h, --help                 help for validate
       --ignore-attachments   Don't check if the attached files are present in the archive
-      --team stringArray     The names of the team[s] (flag can be repeated)
+      --team stringArray     The names of the team[s]. The flag can be repeated. Omit this flag to disable the check
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
