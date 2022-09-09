@@ -102,7 +102,7 @@ func init() {
 	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
 
-	ImportValidateCmd.Flags().StringArray("team", nil, "The names of the team[s] (flag can be repeated)")
+	ImportValidateCmd.Flags().StringArray("team", nil, "The names of the team[s]. The flag can be repeated. Omit this flag to disable the check")
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 
 	ImportListCmd.AddCommand(
