@@ -934,7 +934,7 @@ func printProgress(current, total uint64) {
 	printer.Flush()
 }
 
-var countTemplate = template.Must(template.New("").Parse("Counting lines: {{ .Current }}\r"))
+var countTemplate = template.Must(template.New("").Parse("Counting lines: {{ .Total }}\r"))
 
 func printCount(total uint64) {
 	data := struct {
