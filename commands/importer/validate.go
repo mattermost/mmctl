@@ -492,12 +492,12 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 			if _, ok := v.teams[*data.Team]; !ok {
 				if v.createMissingTeams {
 					v.createTeam(*data.Team)
-				}
-
-				return &ImportValidationError{
-					ImportFileInfo: info,
-					FieldName:      "channel.team",
-					Err:            fmt.Errorf("reference to unknown team %q", *data.Team),
+				} else {
+					return &ImportValidationError{
+						ImportFileInfo: info,
+						FieldName:      "channel.team",
+						Err:            fmt.Errorf("reference to unknown team %q", *data.Team),
+					}
 				}
 			}
 		}
@@ -556,12 +556,12 @@ func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err 
 				if _, ok := v.teams[*team.Name]; !ok {
 					if v.createMissingTeams {
 						v.createTeam(*team.Name)
-					}
-
-					return &ImportValidationError{
-						ImportFileInfo: info,
-						FieldName:      fmt.Sprintf("user.teams[%d]", i),
-						Err:            fmt.Errorf("reference to unknown team %q", *team.Name),
+					} else {
+						return &ImportValidationError{
+							ImportFileInfo: info,
+							FieldName:      fmt.Sprintf("user.teams[%d]", i),
+							Err:            fmt.Errorf("reference to unknown team %q", *team.Name),
+						}
 					}
 				}
 			}
@@ -591,12 +591,12 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 			if _, ok := v.teams[*data.Team]; !ok {
 				if v.createMissingTeams {
 					v.createTeam(*data.Team)
-				}
-
-				return &ImportValidationError{
-					ImportFileInfo: info,
-					FieldName:      "post.team",
-					Err:            fmt.Errorf("reference to unknown team %q", *data.Team),
+				} else {
+					return &ImportValidationError{
+						ImportFileInfo: info,
+						FieldName:      "post.team",
+						Err:            fmt.Errorf("reference to unknown team %q", *data.Team),
+					}
 				}
 			}
 		}
