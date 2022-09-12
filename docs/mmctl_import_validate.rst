@@ -27,9 +27,10 @@ Options
 
 ::
 
-  -h, --help                 help for validate
-      --ignore-attachments   Don't check if the attached files are present in the archive
-      --team stringArray     The names of the team[s]. The flag can be repeated. Omit this flag to disable the check
+      --check-missing-teams   Check for teams that are not defined but referenced in the archive
+  -h, --help                  help for validate
+      --ignore-attachments    Don't check if the attached files are present in the archive
+      --team stringArray      Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

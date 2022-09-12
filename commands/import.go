@@ -102,7 +102,8 @@ func init() {
 	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
 
-	ImportValidateCmd.Flags().StringArray("team", nil, "The names of the team[s]. The flag can be repeated. Omit this flag to disable the check")
+	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated")
+	ImportValidateCmd.Flags().Bool("check-missing-teams", false, "Check for teams that are not defined but referenced in the archive")
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 
 	ImportListCmd.AddCommand(
@@ -351,13 +352,17 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	checkMissingTeams, err := command.Flags().GetBool("check-missing-teams")
+	if err != nil {
+		return err
+	}
 
 	ignoreAttachments, err := command.Flags().GetBool("ignore-attachments")
 	if err != nil {
 		return err
 	}
 
-	createMissingTeams := len(injectedTeams) == 0
+	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
 	validator := importer.NewValidator(args[0], ignoreAttachments, createMissingTeams)
 
 	for _, team := range injectedTeams {
