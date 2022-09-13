@@ -345,13 +345,13 @@ type Statistics struct {
 
 func importValidateCmdF(command *cobra.Command, args []string) error {
 	configurePrinter()
-
 	defer printer.Print("Validation complete\n")
 
 	injectedTeams, err := command.Flags().GetStringArray("team")
 	if err != nil {
 		return err
 	}
+
 	checkMissingTeams, err := command.Flags().GetBool("check-missing-teams")
 	if err != nil {
 		return err
