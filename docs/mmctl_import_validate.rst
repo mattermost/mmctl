@@ -1,22 +1,36 @@
-.. _mmctl_import:
+.. _mmctl_import_validate:
 
-mmctl import
-------------
+mmctl import validate
+---------------------
 
-Management of imports
+Validate an import file
 
 Synopsis
 ~~~~~~~~
 
 
-Management of imports
+Validate an import file
+
+::
+
+  mmctl import validate [filepath] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    import validate import_file.zip --team myteam --team myotherteam
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for import
+      --check-missing-teams   Check for teams that are not defined but referenced in the archive
+  -h, --help                  help for validate
+      --ignore-attachments    Don't check if the attached files are present in the archive
+      --team stringArray      Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,10 +50,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl import job <mmctl_import_job.rst>`_ 	 - List and show import jobs
-* `mmctl import list <mmctl_import_list.rst>`_ 	 - List import files
-* `mmctl import process <mmctl_import_process.rst>`_ 	 - Start an import job
-* `mmctl import upload <mmctl_import_upload.rst>`_ 	 - Upload import files
-* `mmctl import validate <mmctl_import_validate.rst>`_ 	 - Validate an import file
+* `mmctl import <mmctl_import.rst>`_ 	 - Management of imports
 

@@ -24,6 +24,7 @@ require (
 	github.com/spf13/viper v1.11.0
 	github.com/stretchr/testify v1.7.2
 	github.com/tylerb/graceful v1.2.15
+	golang.org/x/image v0.0.0-20220601225756-64ec528b34cd
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
 	gopkg.in/olivere/elastic.v6 v6.2.37
 )
@@ -32,6 +33,9 @@ require (
 	code.sajari.com/docconv v1.2.0 // indirect
 	github.com/JalfResi/justext v0.0.0-20170829062021-c0282dea7198 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
+)
+
+require (
 	github.com/RoaringBitmap/roaring v1.2.1 // indirect
 	github.com/advancedlogic/GoOse v0.0.0-20210820140952-9d5822d4a625 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -201,7 +205,6 @@ require (
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
-	golang.org/x/image v0.0.0-20220601225756-64ec528b34cd // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.0.0-20220614195744-fb05da6f9022 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
