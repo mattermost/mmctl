@@ -1,22 +1,33 @@
-.. _mmctl_export:
+.. _mmctl_export_job_cancel:
 
-mmctl export
-------------
+mmctl export job cancel
+---------------------
 
-Management of exports
+Cancel export job
 
 Synopsis
 ~~~~~~~~
 
 
-Management of exports
+Cancel export job
+
+::
+
+  mmctl export job cancel [exportJobID] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+    export job cancel o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for export
+  -h, --help   help for cancel
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,9 +47,4 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl export create <mmctl_export_create.rst>`_ 	 - Create export file
-* `mmctl export delete <mmctl_export_delete.rst>`_ 	 - Delete export file
-* `mmctl export download <mmctl_export_download.rst>`_ 	 - Download export files
 * `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
-* `mmctl export list <mmctl_export_list.rst>`_ 	 - List export files

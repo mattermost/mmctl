@@ -58,7 +58,7 @@ var ExportListCmd = &cobra.Command{
 
 var ExportJobCmd = &cobra.Command{
 	Use:   "job",
-	Short: "List and show export jobs",
+	Short: "List, show and cancel export jobs",
 }
 
 var ExportJobListCmd = &cobra.Command{
@@ -72,7 +72,7 @@ var ExportJobListCmd = &cobra.Command{
 
 var ExportJobShowCmd = &cobra.Command{
 	Use:     "show [exportJobID]",
-	Example: "  export job show",
+	Example: "  export job show o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Show export job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(exportJobShowCmdF),
@@ -80,7 +80,7 @@ var ExportJobShowCmd = &cobra.Command{
 
 var ExportJobCancelCmd = &cobra.Command{
 	Use:     "cancel [exportJobID]",
-	Example: "  export job cancel",
+	Example: "  export job cancel o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Cancel export job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(exportJobCancelCmdF),

@@ -3,13 +3,13 @@
 mmctl export job
 ----------------
 
-List and show export jobs
+List, show and cancel export jobs
 
 Synopsis
 ~~~~~~~~
 
 
-List and show export jobs
+List, show and cancel export jobs
 
 Options
 ~~~~~~~
@@ -39,4 +39,3 @@ SEE ALSO
 * `mmctl export <mmctl_export.rst>`_ 	 - Management of exports
 * `mmctl export job list <mmctl_export_job_list.rst>`_ 	 - List export jobs
 * `mmctl export job show <mmctl_export_job_show.rst>`_ 	 - Show export job
-
