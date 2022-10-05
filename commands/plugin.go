@@ -107,6 +107,7 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		if err != nil {
 			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
+			return -1, errors.New("Unable to add plugin:  " + plugin )
 		} else {
 			printer.Print("Added plugin: " + plugin)
 		}
