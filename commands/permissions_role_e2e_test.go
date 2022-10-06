@@ -37,6 +37,15 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.RunForSystemAdminAndLocal("Assigning non existen user to a role", func(c client.Client) {
+		printer.Clean()
+
+		err := assignUsersCmdF(c, &cobra.Command{}, []string{model.SystemManagerRoleId, "non_existent_user"})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.RunForSystemAdminAndLocal("MM-T3648 Assigning a user to a role", func(c client.Client) {
 		printer.Clean()
 
