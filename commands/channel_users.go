@@ -93,21 +93,24 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		removeAllUsersFromChannel(c, channel)
 	} else {
 		for i, user := range getUsersFromUserArgs(c, args[1:]) {
-			removeUserFromChannel(c, channel, user, args[i+1])
+			if err := removeUserFromChannel(c, channel, user, args[i+1]); err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) {
+func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.User, userArg string) error {
 	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
+		return errors.Errorf("can't find user '%s'", userArg)
 	}
 	if _, err := c.RemoveUserFromChannel(channel.Id, user.Id); err != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
+		return errors.Errorf("unable to remove '%s' from %s. Error: %s", userArg, channel.Name, err.Error())
 	}
+
+	return nil
 }
 
 func removeAllUsersFromChannel(c client.Client, channel *model.Channel) {

@@ -251,6 +251,52 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
+	s.Run("should throw error if user not found", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		args := []string{argsTeamChannel, userEmail}
+
+		foundTeam := &model.Team{
+			Id:          teamID,
+			DisplayName: teamDisplayName,
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          channelID,
+			Name:        channelName,
+			DisplayName: channelDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamName, "").
+			Return(foundTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(channelName, foundTeam.Id, "").
+			Return(foundChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(userEmail, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
+			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("user not found")).
+			Times(1)
+
+		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		s.Require().EqualError(err, "unable to remove '"+userEmail+"' from "+foundChannel.Name+". Error: user not found")
+	})
+
 	s.Run("should throw error if both --all-users flag and user email are passed", func() {
 		printer.Clean()
 
