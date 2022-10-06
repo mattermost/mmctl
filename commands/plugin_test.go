@@ -198,7 +198,7 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 			Times(1)
 
 		err := pluginInstallURLCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to install plugin from URL \"https://example.com/plugin2.tar.gz\". Error: mock error", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 1)
