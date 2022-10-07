@@ -1,9 +1,9 @@
-.. _mmctl_license_upload_string:
+.. _mmctl_license_upload-string:
 
-mmctl license upload string
---------------------
+mmctl license upload-string
+---------------------------
 
-Upload a license from a string
+Upload a license from a string.
 
 Synopsis
 ~~~~~~~~
@@ -20,14 +20,14 @@ Examples
 
 ::
 
-    license upload "your-license-string"
+   license upload-string "mylicensestring"
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for upload
+  -h, --help   help for upload-string
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -45,6 +45,7 @@ var RemoveLicenseCmd = &cobra.Command{
 func init() {
 	LicenseCmd.AddCommand(UploadLicenseCmd)
 	LicenseCmd.AddCommand(RemoveLicenseCmd)
+	LicenseCmd.AddCommand(UploadLicenseStringCmd)
 	RootCmd.AddCommand(LicenseCmd)
 }
 
