@@ -1,4 +1,4 @@
-.. _mmctl_license_upload:
+.. _mmctl_license_upload_string:
 
 mmctl license upload string
 --------------------
