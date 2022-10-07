@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/api4"
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -325,11 +327,12 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		printer.Clean()
 		err := deleteChannelsCmdF(s.th.Client, cmd, args)
 
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Nil(err)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, otherChannel.Id), printer.GetErrorLines()[0])
+		arg := team.Id + ":" + otherChannel.Id
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
+
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
 
 		channel, err := s.th.App.GetChannel(otherChannel.Id)
 
@@ -346,10 +349,12 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		printer.Clean()
 		err := deleteChannelsCmdF(c, cmd, args)
 
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s:%s'", team.Id, notExistingChannelID), printer.GetErrorLines()[0])
+		arg := team.Id + ":" + notExistingChannelID
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
+
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
 
 		channel, err := s.th.App.GetChannel(notExistingChannelID)
 
