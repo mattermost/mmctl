@@ -6,6 +6,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -236,22 +237,26 @@ func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args)
+
+	var result *multierror.Error
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError(fmt.Sprintf("can't find user '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("can't find user '%v'", args[i]))
 			continue
 		}
 
 		bot, _, err := c.DisableBot(user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not disable bot '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("could not disable bot '%v'", args[i]))
 			continue
 		}
 
 		printer.PrintT("Disabled bot {{.UserId}} ({{.Username}})", bot)
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {
