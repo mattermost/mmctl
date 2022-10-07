@@ -238,7 +238,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 		printer.Clean()
 
 		err := archiveChannelsCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
-		s.Require().Error(err)
+		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
