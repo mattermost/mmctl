@@ -517,7 +517,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			Times(1)
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -555,7 +555,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			Times(1)
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -578,7 +578,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			Times(1)
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -611,7 +611,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 			Times(1)
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -626,7 +626,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		args := []string{":"}
 
 		err := archiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -640,7 +640,7 @@ func (s *MmctlUnitTestSuite) TestArchiveChannelCmdF() {
 		arg := "team:/../hello/channel-test"
 
 		err := archiveChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Equal("Unable to find channel 'team:/../hello/channel-test'", printer.GetErrorLines()[0])
 	})
 }

@@ -231,6 +231,44 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Archive channel", func() {
+		printer.Clean()
+
+		err := archiveChannelsCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Archive channel without permissions", func() {
+		printer.Clean()
+
+		err := archiveChannelsCmdF(s.th.Client, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicChannel.Name)})
+		s.Require().Error(err)
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to archive channel '%s:%s'", s.th.BasicTeam.Id, s.th.BasicChannel.Name))
+		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions.")
+	})
+
+	s.RunForAllClients("Archive nonexistent channel", func(c client.Client) {
+		printer.Clean()
+
+		err := archiveChannelsCmdF(c, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, "nonexistent-channel")})
+		s.Require().Error(err)
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to find channel '%s:%s'", s.th.BasicTeam.Id, "nonexistent-channel"))
+	})
+
+	s.Run("Archive deleted channel", func() {
+		printer.Clean()
+
+		err := archiveChannelsCmdF(s.th.SystemAdminClient, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
+		s.Require().Error(err)
+		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to archive channel '%s:%s'", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name))
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 	s.SetupTestHelper().InitBasic()
 

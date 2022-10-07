@@ -13,6 +13,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -260,17 +262,20 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	channels := getChannelsFromChannelArgs(c, args)
+	var errors *multierror.Error
 	for i, channel := range channels {
 		if channel == nil {
 			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			errors = multierror.Append(errors, fmt.Errorf("Unable to find channel '%s'", args[i]))
 			continue
 		}
 		if _, err := c.DeleteChannel(channel.Id); err != nil {
 			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
+			errors = multierror.Append(errors, fmt.Errorf("Unable to archive channel '%s', error: %s", channel.Name, err.Error()))
 		}
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func getAllPublicChannelsForTeam(c client.Client, teamID string) ([]*model.Channel, error) {
