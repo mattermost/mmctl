@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
+	
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
@@ -194,22 +195,25 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	} else {
 		teams = getTeamsFromTeamArgs(c, args)
 	}
-
+	
+	var errs *multierror.Error
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			errs = multierror.Append(errs, fmt.Errorf("unable to find team '%s'", args[i]))
 			continue
 		}
 		commands, _, err := c.ListCommands(team.Id, true)
 		if err != nil {
 			printer.PrintError("Unable to list commands for '" + team.Id + "'")
+			errs = multierror.Append(errs, fmt.Errorf("unable to list commands for '%s'", team.Id))
 			continue
 		}
 		for _, command := range commands {
 			printer.PrintT("{{.Id}}: {{.DisplayName}} (team: "+team.Name+")", command)
 		}
 	}
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
