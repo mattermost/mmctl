@@ -312,7 +312,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		s.Require().Nil(appErr)
 
 		err := botDisableCmdF(c, &cobra.Command{}, []string{newBot.UserId})
-		s.Require().Error(err)
+		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
