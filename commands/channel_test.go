@@ -2480,7 +2480,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, "team:channel"})
-		s.Require().NotNil(err)
+
 		s.Require().EqualError(err, fmt.Sprintf("unable to find destination team %q", dstTeamName))
 	})
 
@@ -2511,9 +2511,10 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
-		s.Require().Nil(err)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", channelID), printer.GetErrorLines()[0])
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to find channel %q", channelID))
+
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Fail on client.MoveChannel to another team by using Ids", func() {
@@ -2547,9 +2548,10 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
-		s.Require().Nil(err)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to move channel %q: ", "some-name"))
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to move channel %q: some-error", "some-name"))
+
+		s.Require().EqualError(err, expected.Error())
 	})
 }
 
