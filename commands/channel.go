@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -356,18 +357,23 @@ func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		return errors.New("enter at least one channel")
 	}
 
+	var result error
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
 		if channel == nil {
-			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			partialError := fmt.Sprintf("Unable to find channel '" + args[i] + "'")
+			printer.PrintError(partialError)
+			result = multierror.Append(result, errors.New(partialError))
 			continue
 		}
 		if _, _, err := c.RestoreChannel(channel.Id); err != nil {
-			printer.PrintError("Unable to unarchive channel '" + args[i] + "'. Error: " + err.Error())
+			restoreError := fmt.Sprintf("Unable to unarchive channel '" + args[i] + "'. Error: " + err.Error())
+			printer.PrintError(restoreError)
+			result = multierror.Append(result, errors.New(restoreError))
 		}
 	}
 
-	return nil
+	return result
 }
 
 func makeChannelPrivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
