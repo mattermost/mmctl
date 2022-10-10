@@ -1774,7 +1774,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -1812,7 +1812,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -1835,7 +1835,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -1866,7 +1866,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 			Times(1)
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -1882,7 +1882,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		args := []string{":"}
 
 		err := unarchiveChannelsCmdF(s.client, cmd, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
