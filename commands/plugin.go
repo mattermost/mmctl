@@ -6,10 +6,10 @@ package commands
 import (
 	"os"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
