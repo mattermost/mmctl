@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -126,9 +127,13 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
+		expectedError := &multierror.Error{}
+		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user 'notfound'"))
+
 		args := []string{mockRole.Name, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
 		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
 
 	s.Run("Assigning to a non-existent role", func() {
@@ -215,9 +220,13 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
+		expectedError := &multierror.Error{}
+		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user '%s'", requestedUser))
+
 		args := []string{mockRole.Name, requestedUser}
 		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
 }
 
