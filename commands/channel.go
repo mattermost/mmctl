@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -597,17 +598,19 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
+	var result error
+
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
 		if channel == nil {
-			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			result = multierror.Append(result, fmt.Errorf("unable to find channel '%s'", args[i]))
 			continue
 		}
 		if _, err := c.PermanentDeleteChannel(channel.Id); err != nil {
-			printer.PrintError("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
+			result = multierror.Append(result, fmt.Errorf("unable to delete channel '%q' error: %w", channel.Name, err))
 		} else {
 			printer.PrintT("Deleted channel '{{.Name}}'", channel)
 		}
 	}
-	return nil
+	return result
 }
