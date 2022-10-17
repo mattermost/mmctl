@@ -20,7 +20,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.6.0
 	github.com/spf13/viper v1.11.0
 	github.com/stretchr/testify v1.7.2
 	github.com/tylerb/graceful v1.2.15
@@ -109,7 +109,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/yamux v0.0.0-20211028200310-0bc27b27de87 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/isacikgoz/fuzzy v0.2.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20211105163654-bc68cce691ba // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
