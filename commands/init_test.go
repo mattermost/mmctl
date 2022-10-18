@@ -5,8 +5,15 @@ package commands
 
 import (
 	"crypto/x509"
+	"encoding/json"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
+	"github.com/gorilla/mux"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -156,4 +163,33 @@ func TestVerifyCertificates(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNewAPIv4Client(t *testing.T) {
+	t.Run("should take http proxy into account", func(t *testing.T) {
+		router := mux.NewRouter()
+		router.Handle("/api/v4/users/me", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user := &model.User{
+				Id: model.NewId(),
+			}
+			err := json.NewEncoder(w).Encode(user)
+			require.NoError(t, err)
+
+			w.WriteHeader(http.StatusOK)
+		}))
+		s := httptest.NewServer(router)
+		defer s.Close()
+
+		proxyAddr := s.Listener.Addr().String()
+		_, port, err := net.SplitHostPort(proxyAddr)
+		require.NoError(t, err)
+
+		err = os.Setenv("HTTP_PROXY", proxyAddr)
+		require.NoError(t, err)
+		defer os.Unsetenv("HTTP_PROXY")
+
+		client := NewAPIv4Client("http://somethingelse:"+port, false, false)
+		_, _, err = client.GetMe("")
+		require.NoError(t, err)
+	})
 }
