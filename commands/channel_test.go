@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 
@@ -2838,8 +2839,9 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		arg := teamID + ":" + channelName
 		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
-		s.Require().Nil(err)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg), printer.GetErrorLines()[0])
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Delete channel from team that does not exist in db returns an error", func() {
@@ -2862,8 +2864,10 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		arg := teamName + ":" + channelName
 		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
-		s.Require().Nil(err)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg), printer.GetErrorLines()[0])
+
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Delete channel should delete channel", func() {
@@ -2937,10 +2941,10 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		arg1 := teamID + ":" + channelNameDoesNotExist
 		arg2 := teamID + ":" + channelName
 		err := deleteChannelsCmdF(s.client, cmd, []string{arg1, arg2})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg1), printer.GetErrorLines()[0])
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to find channel '%s'", arg1))
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Equal(&mockChannel, printer.GetLines()[0])
 	})
 }

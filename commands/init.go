@@ -156,6 +156,7 @@ func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool
 	client.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,
+			Proxy:           http.ProxyFromEnvironment,
 		},
 	}
 

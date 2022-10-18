@@ -197,7 +197,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		defer removePluginIfInstalled(s.th.Client, s, jiraPluginID)
 
 		err := pluginInstallURLCmdF(s.th.Client, &cobra.Command{}, []string{jiraURL})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", jiraURL))
@@ -215,7 +215,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		const pluginURL = "https://plugins-store.test.mattermost.com/release/mattermost-nonexistent-plugin-v2.0.0.tar.gz"
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{pluginURL})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", pluginURL))
@@ -238,7 +238,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		s.Require().Equal(jiraPluginID, printer.GetLines()[0].(*model.Manifest).Id)
 
 		err = pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", jiraURL))
