@@ -9,11 +9,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mmctl/v6/printer"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 
+	"github.com/mattermost/mmctl/v6/printer"
+
+	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
 )
 

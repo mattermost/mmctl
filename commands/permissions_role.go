@@ -9,11 +9,12 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/mattermost/mattermost-server/v6/model"
+
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
