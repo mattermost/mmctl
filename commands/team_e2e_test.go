@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -451,9 +453,12 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		teamName := "non-existent-team"
 
 		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{teamName})
-		s.Require().Nil(err)
-
+		var expected error
 		errMessage := "Unable to find team '" + teamName + "'"
+		expected = multierror.Append(expected, errors.New(errMessage))
+
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
 	})
@@ -466,9 +471,12 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		s.Require().Nil(appErr)
 
 		err := restoreTeamsCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
-		s.Require().Nil(err)
-
+		var expected error
 		errMessage := "Unable to find team '" + team.Name + "'"
+		expected = multierror.Append(expected, errors.New(errMessage))
+
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
 	})
