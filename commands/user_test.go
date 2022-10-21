@@ -626,6 +626,75 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		s.Require().Nil(err)
 		s.Require().Equal("1 error occurred:\n\t* user test/../hello?@mattermost.com not found\n\n", printer.GetErrorLines()[0])
 	})
+
+	s.Run("Got error while getting user by email", func() {
+		printer.Clean()
+		arg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(arg, "").
+			Return(nil, &model.Response{}, errors.New("Error while getting user by email")).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "Error while getting user by email")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by email\n\n", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Got error while getting user by username", func() {
+		printer.Clean()
+		arg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(arg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(arg, "").
+			Return(nil, &model.Response{}, errors.New("Error while getting user by username")).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "Error while getting user by username")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by username\n\n", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Got error while getting user", func() {
+		printer.Clean()
+		arg := "example@example.com"
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(arg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(arg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(arg, "").
+			Return(nil, &model.Response{}, errors.New("Error while getting user")).
+			Times(1)
+
+		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), "Error while getting user")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user\n\n", printer.GetErrorLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestChangePasswordUserCmdF() {
