@@ -850,7 +850,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
 		var expected error
-		expected = multierror.Append(expected, errors.New("Unable to find team '"+teamName+"'"))
+		expected = multierror.Append(expected, errors.New("Unable to find team '" + teamName + "'"))
 
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
@@ -903,7 +903,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
 		var expected error
-		expected = multierror.Append(expected, errors.New("Unable to restore team '"+teamName+"' error: an error occurred restoring a team"))
+		expected = multierror.Append(expected, errors.New("Unable to restore team '" + teamName + "' error: an error occurred restoring a team"))
 
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
