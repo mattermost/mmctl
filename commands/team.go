@@ -5,13 +5,14 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
-	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
 )
 
@@ -339,12 +340,12 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			Error = multierror.Append(Error, "Unable to find team '" + args[i] + "'")
+			Error = multierror.Append(Error, fmt.Errorf("Unable to find team '" + args[i] + "'"))
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
 		if updatedTeam, _, err := c.UpdateTeamPrivacy(team.Id, privacy); err != nil {
-			Error = multierror.Append(Error, "Unable to modify team '" + team.Name + "' error: " + err.Error())
+			Error = multierror.Append(Error, fmt.Errorf("Unable to modify team '" + team.Name + "' error: " + err.Error()))
 			printer.PrintError("Unable to modify team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Modified team '{{.Name}}'", updatedTeam)
