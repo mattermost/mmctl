@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
-
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 )
@@ -194,14 +194,16 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	} else {
 		teams = getTeamsFromTeamArgs(c, args)
 	}
-
+	var Error error
 	for i, team := range teams {
 		if team == nil {
+			Error = multierror.Append(Error, fmt.Errorf("Unable to find team '" + args[i] + "'"))
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
 		commands, _, err := c.ListCommands(team.Id, true)
 		if err != nil {
+			Error = multierror.Append(Error, fmt.Errorf("Unable to list commands for '" + team.Id + "'"))
 			printer.PrintError("Unable to list commands for '" + team.Id + "'")
 			continue
 		}
@@ -209,7 +211,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintT("{{.Id}}: {{.DisplayName}} (team: "+team.Name+")", command)
 		}
 	}
-	return nil
+	return Error
 }
 
 func archiveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
