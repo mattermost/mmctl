@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
@@ -195,7 +195,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	} else {
 		teams = getTeamsFromTeamArgs(c, args)
 	}
-	
+
 	var errs *multierror.Error
 	for i, team := range teams {
 		if team == nil {
