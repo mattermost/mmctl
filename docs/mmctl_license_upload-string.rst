@@ -1,22 +1,33 @@
-.. _mmctl_license:
+.. _mmctl_license_upload-string:
 
-mmctl license
--------------
+mmctl license upload-string
+---------------------------
 
-Licensing commands
+Upload a license from a string.
 
 Synopsis
 ~~~~~~~~
 
 
-Licensing commands
+Upload a license from a string. Replaces current license.
+
+::
+
+  mmctl license upload-string [license] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+   license upload-string "mylicensestring"
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for license
+  -h, --help   help for upload-string
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl license remove <mmctl_license_remove.rst>`_ 	 - Remove the current license.
-* `mmctl license upload <mmctl_license_upload.rst>`_ 	 - Upload a license.
-* `mmctl license upload-string <mmctl_license_upload-string.rst>`_ 	 - Upload a license from a string.
+* `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
 
