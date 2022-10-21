@@ -266,12 +266,12 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	for i, channel := range channels {
 		if channel == nil {
 			printer.PrintError("Unable to find channel '" + args[i] + "'")
-			errors = multierror.Append(errors, fmt.Errorf("Unable to find channel '%s'", args[i]))
+			errors = multierror.Append(errors, fmt.Errorf("unable to find channel '%s'", args[i]))
 			continue
 		}
 		if _, err := c.DeleteChannel(channel.Id); err != nil {
 			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
-			errors = multierror.Append(errors, fmt.Errorf("Unable to archive channel '%s', error: %s", channel.Name, err.Error()))
+			errors = multierror.Append(errors, fmt.Errorf("unable to archive channel '%s', error: %s", channel.Name, err.Error()))
 		}
 	}
 
