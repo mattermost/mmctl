@@ -1779,7 +1779,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 
 		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
+		expected := fmt.Sprintf("unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
 	})
 
@@ -1817,7 +1817,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 
 		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
+		expected := fmt.Sprintf("unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
 	})
 
@@ -1840,7 +1840,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 
 		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
+		expected := fmt.Sprintf("unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
 	})
 
@@ -1871,7 +1871,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 
 		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to unarchive channel '%s'. Error: %s", channelName, mockErr.Error())
+		expected := fmt.Sprintf("unable to unarchive channel '%s'. Error: %s", channelName, mockErr.Error())
 		s.Require().Equal(expected, actual)
 	})
 
@@ -1887,7 +1887,7 @@ func (s *MmctlUnitTestSuite) TestUnarchiveChannelCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 
 		actual := printer.GetErrorLines()[0]
-		expected := fmt.Sprintf("Unable to find channel '%s'", args[0])
+		expected := fmt.Sprintf("unable to find channel '%s'", args[0])
 		s.Require().Equal(expected, actual)
 	})
 }
