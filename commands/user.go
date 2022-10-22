@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -359,21 +360,27 @@ Global Flags:
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	changeUsersActiveStatus(c, args, true)
+	if err := changeUsersActiveStatus(c, args, true); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
+func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
+	var multiErr *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
 		printer.PrintError(err.Error())
+		multiErr = multierror.Append(multiErr, err)
 	}
 	for _, user := range users {
 		if err := changeUserActiveStatus(c, user, active); err != nil {
 			printer.PrintError(err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
+	return multiErr.ErrorOrNil()
 }
 
 func changeUserActiveStatus(c client.Client, user *model.User, activate bool) error {
@@ -388,7 +395,9 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	changeUsersActiveStatus(c, args, false)
+	if err := changeUsersActiveStatus(c, args, false); err != nil {
+		return err
+	}
 
 	return nil
 }
