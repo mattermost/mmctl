@@ -503,8 +503,8 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 
 	for _, email := range args {
 		if !model.IsValidEmail(email) {
-			printer.PrintError("Invalid email '" + email + "'")
 			result = multierror.Append(result, errors.Errorf("Invalid email '%s'", email))
+			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
 		if _, err := c.SendPasswordResetEmail(email); err != nil {
