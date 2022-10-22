@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -498,17 +499,21 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
+	var result *multierror.Error
+
 	for _, email := range args {
 		if !model.IsValidEmail(email) {
 			printer.PrintError("Invalid email '" + email + "'")
+			result = multierror.Append(result, errors.Errorf("Invalid email '%s'", email))
 			continue
 		}
 		if _, err := c.SendPasswordResetEmail(email); err != nil {
+			result = multierror.Append(result, errors.Wrapf(err, "Unable send reset password email to email %s.", email))
 			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
