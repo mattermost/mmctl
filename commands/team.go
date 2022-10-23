@@ -7,6 +7,7 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -184,20 +185,23 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		}
 	}
 
+	var multiErr *multierror.Error
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			multiErr = multierror.Append(multiErr, errors.New("unable to find team '"+args[i]+"'"))
 			continue
 		}
 		if _, err := c.SoftDeleteTeam(team.Id); err != nil {
 			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
 		}
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func listTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
