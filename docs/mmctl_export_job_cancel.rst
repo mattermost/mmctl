@@ -1,7 +1,7 @@
 .. _mmctl_export_job_cancel:
 
 mmctl export job cancel
----------------------
+-----------------------
 
 Cancel export job
 
@@ -48,3 +48,4 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
+
