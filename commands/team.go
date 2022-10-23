@@ -7,6 +7,7 @@ import (
 	"errors"
 	"sort"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -305,20 +306,24 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	var result error
+
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			result = multierror.Append(result, errors.New("unable to find team '"+args[i]+"'"))
 			continue
 		}
 		if _, err := deleteTeam(c, team); err != nil {
 			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + err.Error())
+			result = multierror.Append(result, errors.New("unable to delete team '"+team.Name+"' error: "+err.Error()))
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
 	}
 
-	return nil
+	return result
 }
 
 func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
