@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
@@ -57,10 +59,13 @@ func init() {
 }
 
 func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) error {
+	var errs error
 	users := getUsersFromUserArgs(c, args)
 	for i, user := range users {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("unable to find user %q", args[i]))
+			errStr := fmt.Sprintf("unable to find user %q", args[i])
+			errs = multierror.Append(errs, errors.New(errStr))
+			printer.PrintError(errStr)
 			continue
 		}
 
@@ -75,7 +80,9 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 		if !systemAdmin {
 			roles = append(roles, model.SystemAdminRoleId)
 			if _, err := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); err != nil {
-				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], err))
+				errStr := fmt.Sprintf("can't update roles for user %q: %s", args[i], err)
+				errs = multierror.Append(errs, errors.New(errStr))
+				printer.PrintError(errStr)
 				continue
 			}
 
@@ -83,7 +90,7 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 		}
 	}
 
-	return nil
+	return errs
 }
 
 func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
