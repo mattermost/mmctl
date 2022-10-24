@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
@@ -188,13 +189,17 @@ func archiveTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	var multiErr *multierror.Error
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
+		var err error
+
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
-			multiErr = multierror.Append(multiErr, errors.New("unable to find team '"+args[i]+"'"))
+			err = fmt.Errorf("unable to find team '%s'", args[i])
+			printer.PrintError(err.Error())
+			multiErr = multierror.Append(multiErr, err)
 			continue
 		}
+
 		if _, err := c.SoftDeleteTeam(team.Id); err != nil {
-			printer.PrintError("Unable to archive team '" + team.Name + "' error: " + err.Error())
+			printer.PrintError(err.Error())
 			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.PrintT("Archived team '{{.Name}}'", team)
