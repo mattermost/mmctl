@@ -79,7 +79,7 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 		if !systemAdmin {
 			roles = append(roles, model.SystemAdminRoleId)
 			if _, err := c.UpdateUserRoles(user.Id, strings.Join(roles, " ")); err != nil {
-				err := fmt.Errorf("can't update roles for user %q: %s", args[i], err)
+				err := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
 				errs = multierror.Append(errs, err)
 				printer.PrintError(err.Error())
 				continue
