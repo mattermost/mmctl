@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -457,25 +458,26 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var errs *multierror.Error
 	if len(args) < 2 {
 		return errors.New("expected at least two arguments. See help text for details")
 	}
 
 	email := args[0]
 	if !model.IsValidEmail(email) {
-		return errors.New("invalid email")
+		errs = multierror.Append(errs, fmt.Errorf("invalid email %q", email))
 	}
 
 	teams := getTeamsFromTeamArgs(c, args[1:])
 	for i, team := range teams {
 		err := inviteUser(c, email, team, args[i+1])
-
 		if err != nil {
+			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
 		}
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func inviteUser(c client.Client, email string, team *model.Team, teamArg string) error {
