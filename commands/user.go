@@ -508,7 +508,7 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 			continue
 		}
 		if _, err := c.SendPasswordResetEmail(email); err != nil {
-			result = multierror.Append(result, fmt.Errorf("unable send reset password email to email %s. Error: %v", email, err))
+			result = multierror.Append(result, fmt.Errorf("unable send reset password email to email %s: %w", email, err))
 			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
 	}

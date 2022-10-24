@@ -885,7 +885,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Times(1)
 
 		var expected error
-		expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s. Error: %v", emailArg, mockError))
+		expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", emailArg, mockError))
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
 
@@ -915,7 +915,7 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 					SendPasswordResetEmail(email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
-				expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s. Error: %v", email, mockError))
+				expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", email, mockError))
 			case strings.ToLower(email) != email:
 				expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", email))
 			default:
