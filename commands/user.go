@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -770,19 +772,20 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	var result error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
-		printer.PrintError(err.Error())
+		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
 		if newUser, _, err := c.VerifyUserEmailWithoutToken(user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, err))
+			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %s", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
 	}
-	return nil
+	return result
 }
 
 func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
