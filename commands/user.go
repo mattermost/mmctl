@@ -970,24 +970,24 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 }
 
 func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
-	var errs error
+	var errs *multierror.Error
 	for i, user := range getUsersFromUserArgs(c, userArgs) {
 		if user == nil {
-			errStr := fmt.Sprintf("can't find user '%v'", userArgs[i])
-			errs = multierror.Append(errs, errors.New(errStr))
-			printer.PrintError(errStr)
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
-			errStr := fmt.Sprintf("unable to demote user %s: %s", userArgs[i], err)
-			errs = multierror.Append(errs, errors.New(errStr))
-			printer.PrintError(errStr)
+			err := fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		printer.PrintT("User {{.Username}} demoted.", user)
 	}
 
-	return errs
+	return errs.ErrorOrNil()
 }

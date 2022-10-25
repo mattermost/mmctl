@@ -2663,7 +2663,6 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 			Times(1)
 
 		err := demoteUserToGuestCmdF(s.client, nil, []string{emailArg})
-		s.Require().Error(err)
 		s.Require().ErrorContains(err, "unable to demote user")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
