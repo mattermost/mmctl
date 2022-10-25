@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -614,18 +615,19 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
+	var result *multierror.Error
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
-		printer.PrintError(err.Error())
+		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
 		if _, err := c.UpdateUserMfa(user.Id, "", false); err != nil {
-			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + err.Error())
+			result = multierror.Append(result, fmt.Errorf("Unable to reset user '"+user.Id+"' MFA. Error: "+err.Error()))
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
