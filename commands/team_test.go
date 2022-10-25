@@ -496,7 +496,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Equal("Unable to delete team 'team1' error: an error occurred on deleting a team",
 			printer.GetErrorLines()[0])
 	})

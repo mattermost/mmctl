@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	"github.com/hashicorp/go-multierror"
@@ -306,24 +307,24 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	var result error
+	var result *multierror.Error
 
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
-			result = multierror.Append(result, errors.New("unable to find team '"+args[i]+"'"))
+			result = multierror.Append(result, fmt.Errorf("unable to find team %s", args[i]))
 			continue
 		}
 		if _, err := deleteTeam(c, team); err != nil {
 			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + err.Error())
-			result = multierror.Append(result, errors.New("unable to delete team '"+team.Name+"' error: "+err.Error()))
+			result = multierror.Append(result, fmt.Errorf("unable to delete team %s error: %s", team.Name, args[i]))
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
 	}
 
-	return result
+	return result.ErrorOrNil()
 }
 
 func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
