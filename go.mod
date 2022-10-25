@@ -7,6 +7,7 @@ require (
 	github.com/fatih/color v1.13.0
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/handlers v1.5.1
+	github.com/gorilla/mux v1.8.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/memberlist v0.3.1
@@ -22,7 +23,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.1
 	github.com/tylerb/graceful v1.2.15
 	golang.org/x/image v0.0.0-20220601225756-64ec528b34cd
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
@@ -94,7 +95,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/graph-gophers/dataloader/v6 v6.0.0 // indirect
@@ -185,7 +185,7 @@ require (
 	github.com/splitio/go-split-commons/v4 v4.0.4 // indirect
 	github.com/splitio/go-toolkit/v5 v5.1.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/throttled/throttled v2.2.5+incompatible // indirect
 	github.com/tidwall/gjson v1.14.1 // indirect
