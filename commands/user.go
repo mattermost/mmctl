@@ -772,7 +772,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
-	var result error
+	var result *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
 		result = multierror.Append(result, err)
@@ -785,7 +785,7 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
 	}
-	return result
+	return result.ErrorOrNil()
 }
 
 func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {

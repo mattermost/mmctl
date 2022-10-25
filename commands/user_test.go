@@ -2226,7 +2226,6 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			),
 		)
 
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -2256,7 +2255,6 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			expected, fmt.Errorf("unable to verify user %s email: %s", mockUser.Id, errors.New("some-message")),
 		)
 
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 	})

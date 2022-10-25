@@ -5,13 +5,14 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/spf13/cobra"
+
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
-	"github.com/spf13/cobra"
-	"net/http"
 )
 
 func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
@@ -362,7 +363,6 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			expected, fmt.Errorf("unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., "),
 		)
 
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 	})
@@ -380,7 +380,6 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			),
 		)
 
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 	})
