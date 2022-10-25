@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/printer"
@@ -114,6 +115,102 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 
 		err := createTeamCmdF(s.client, cmd, []string{})
 		s.Require().Equal("Team creation failed: remote error", err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestArchiveTeamsCmdF() {
+	s.Run("Archive team with a non-existent team returns an error", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		teamArg := "non-existent-team"
+		mockErr := fmt.Errorf("unable to find team '%s'", teamArg)
+
+		var multiErr *multierror.Error
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(teamArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := archiveTeamsCmdF(s.client, cmd, []string{teamArg})
+
+		s.Require().EqualError(err, multierror.Append(multiErr, mockErr).Error())
+		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Archive team with an existent team returns no error", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		teamArg := "existent-team"
+		mockTeamID := "existent-team-id"
+		mockTeam := model.Team{Id: mockTeamID, Name: teamArg}
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(teamArg, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			SoftDeleteTeam(mockTeamID).
+			Return(&model.Response{}, nil).
+			Times(1)
+
+		err := archiveTeamsCmdF(s.client, cmd, []string{teamArg})
+		s.Require().NoError(err)
+	})
+
+	s.Run("Archive team with an existent team but returns an error", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+
+		teamArg := "existent-team"
+
+		mockTeamID := "existent-team-id"
+		mockTeam := model.Team{Id: mockTeamID, Name: teamArg}
+		mockErr := fmt.Errorf("mock error")
+
+		var multiErr *multierror.Error
+
+		s.client.
+			EXPECT().
+			GetTeam(teamArg, "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetTeamByName(teamArg, "").
+			Return(&mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			SoftDeleteTeam(mockTeamID).
+			Return(&model.Response{}, mockErr).
+			Times(1)
+
+		err := archiveTeamsCmdF(s.client, cmd, []string{teamArg})
+		s.Require().EqualError(err, multierror.Append(multiErr, mockErr).Error())
 		s.Require().Len(printer.GetLines(), 0)
 	})
 }
