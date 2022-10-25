@@ -120,7 +120,7 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 			if _, err := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); err != nil {
 				updateErr := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
 				errs = multierror.Append(errs, updateErr)
-				printer.PrintError(err.Error())
+				printer.PrintError(updateErr.Error())
 				continue
 			}
 
