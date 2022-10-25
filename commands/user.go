@@ -780,7 +780,7 @@ func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userAr
 
 	for _, user := range users {
 		if newUser, _, err := c.VerifyUserEmailWithoutToken(user.Id); err != nil {
-			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %s", user.Id, err))
+			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %w", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
