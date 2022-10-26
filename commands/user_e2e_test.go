@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -361,20 +362,31 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		printer.Clean()
 
 		err := verifyUserEmailWithoutTokenCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().Nil(err)
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., "),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., ")
 	})
 
 	s.RunForAllClients("Verify user email without token for nonexistent user", func(c client.Client) {
 		printer.Clean()
 
 		err := verifyUserEmailWithoutTokenCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().Nil(err)
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: "nonexistent@email"},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
 	})
 }
 
