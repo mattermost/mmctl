@@ -1051,7 +1051,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
@@ -1077,7 +1077,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultName+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -1185,7 +1185,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 4)
 		for i := 0; i < 4; i++ {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
