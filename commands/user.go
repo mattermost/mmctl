@@ -980,7 +980,7 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 		}
 
 		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
-			err := fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
+			err = fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
 			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
 			continue
