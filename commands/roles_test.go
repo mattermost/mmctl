@@ -85,7 +85,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -111,7 +111,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
