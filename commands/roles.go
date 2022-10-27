@@ -93,10 +93,13 @@ func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) erro
 }
 
 func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
+	var errs *multierror.Error
 	users := getUsersFromUserArgs(c, args)
 	for i, user := range users {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("unable to find user %q", args[i]))
+			userErr := fmt.Errorf("unable to find user %q", args[i])
+			errs = multierror.Append(errs, userErr)
+			printer.PrintError(userErr.Error())
 			continue
 		}
 
@@ -115,7 +118,9 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 
 		if shouldRemoveSysadmin {
 			if _, err := c.UpdateUserRoles(user.Id, strings.Join(newRoles, " ")); err != nil {
-				printer.PrintError(fmt.Sprintf("can't update roles for user %q: %s", args[i], err))
+				updateErr := fmt.Errorf("can't update roles for user %q: %w", args[i], err)
+				errs = multierror.Append(errs, updateErr)
+				printer.PrintError(updateErr.Error())
 				continue
 			}
 
@@ -123,5 +128,5 @@ func rolesMemberCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		}
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
