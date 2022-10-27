@@ -624,7 +624,7 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 	for _, user := range users {
 		if _, err := c.UpdateUserMfa(user.Id, "", false); err != nil {
-			result = multierror.Append(result, fmt.Errorf("Unable to reset user %q MFA. Error: %w", user.Id, err))
+			result = multierror.Append(result, fmt.Errorf("unable to reset user %q MFA. Error: %w", user.Id, err))
 		}
 	}
 

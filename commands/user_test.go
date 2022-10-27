@@ -1662,7 +1662,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		var expected error
 
 		expected = multierror.Append(
-			expected, fmt.Errorf("Unable to reset user 'userId' MFA. Error: "+mockError.Error()),
+			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: "+mockError.Error()),
 		)
 
 		s.Require().EqualError(err, expected.Error())
@@ -1729,7 +1729,7 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			),
 		)
 		expected = multierror.Append(
-			expected, fmt.Errorf("Unable to reset user '"+users[1]+"' MFA. Error: "+mockError.Error()),
+			expected, fmt.Errorf("unable to reset user \""+users[1]+"\" MFA. Error: "+mockError.Error()),
 		)
 
 		s.Require().EqualError(err, expected.ErrorOrNil().Error())
