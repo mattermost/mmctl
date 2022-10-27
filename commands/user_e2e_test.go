@@ -335,7 +335,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		var expected error
 
 		expected = multierror.Append(
-			expected, fmt.Errorf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Id),
+			expected, fmt.Errorf(`unable to reset user %q MFA. Error: : You do not have the appropriate permissions., `, user.Id),
 		)
 
 		s.Require().EqualError(err, expected.Error())
