@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+	"github.com/hashicorp/go-multierror"
 
 	"github.com/mattermost/mmctl/v6/printer"
 
@@ -99,9 +100,11 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 			CheckIntegrity().
 			Return(mockResults, &model.Response{}, nil).
 			Times(1)
+		var expected error
+		expected = multierror.Append(expected, errors.New("test error"))
 
 		err := integrityCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(mockData, printer.GetLines()[0])
