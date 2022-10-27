@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
@@ -90,7 +91,9 @@ func channelUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	if allUsers {
-		removeAllUsersFromChannel(c, channel)
+		if err := removeAllUsersFromChannel(c, channel); err != nil {
+			return err
+		}
 	} else {
 		for i, user := range getUsersFromUserArgs(c, args[1:]) {
 			removeUserFromChannel(c, channel, user, args[i+1])
@@ -110,15 +113,20 @@ func removeUserFromChannel(c client.Client, channel *model.Channel, user *model.
 	}
 }
 
-func removeAllUsersFromChannel(c client.Client, channel *model.Channel) {
+func removeAllUsersFromChannel(c client.Client, channel *model.Channel) error {
+	var result *multierror.Error
 	members, _, err := c.GetChannelMembers(channel.Id, 0, 10000, "")
 	if err != nil {
 		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
+		return errors.Errorf("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
 	}
 
 	for _, member := range members {
 		if _, err := c.RemoveUserFromChannel(channel.Id, member.UserId); err != nil {
+			result = multierror.Append(result, errors.Errorf("Unable to remove '"+member.UserId+"' from "+channel.Name+". Error: "+err.Error()))
 			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + err.Error())
 		}
 	}
+
+	return result.ErrorOrNil()
 }
