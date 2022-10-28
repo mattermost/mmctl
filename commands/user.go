@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -614,18 +615,19 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
+	var result *multierror.Error
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
-		printer.PrintError(err.Error())
+		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
 		if _, err := c.UpdateUserMfa(user.Id, "", false); err != nil {
-			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + err.Error())
+			result = multierror.Append(result, fmt.Errorf("unable to reset user %q MFA. Error: %w", user.Id, err))
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -770,19 +772,20 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	var result *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
-		printer.PrintError(err.Error())
+		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
 		if newUser, _, err := c.VerifyUserEmailWithoutToken(user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, err))
+			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %w", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
@@ -969,19 +972,24 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 }
 
 func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	var errs *multierror.Error
 	for i, user := range getUsersFromUserArgs(c, userArgs) {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], err))
+			err = fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		printer.PrintT("User {{.Username}} demoted.", user)
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }

@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/printer"
@@ -1626,10 +1627,18 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			Times(1)
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
-		s.Require().Nil(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: "userId"},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "1 error occurred:\n\t* user userId not found\n\n")
 	})
 
 	s.Run("One user, unable to reset", func() {
@@ -1649,10 +1658,15 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			Times(1)
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
-		s.Require().Nil(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: "+mockError.Error()),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to reset user 'userId' MFA. Error: "+mockError.Error())
 	})
 
 	s.Run("Several users, with unknown users and users unable to be reset", func() {
@@ -1705,11 +1719,21 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		}
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, users)
-		s.Require().Nil(err)
+
+		var expected *multierror.Error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: users[3]},
+			),
+		)
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to reset user \""+users[1]+"\" MFA. Error: "+mockError.Error()),
+		)
+
+		s.Require().EqualError(err, expected.ErrorOrNil().Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", users[3]), printer.GetErrorLines()[0])
-		s.Require().Equal("Unable to reset user '"+users[1]+"' MFA. Error: "+mockError.Error(), printer.GetErrorLines()[1])
 	})
 }
 
@@ -2215,9 +2239,18 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			Times(1)
 
 		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{userArg})
-		s.Require().NoError(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: userArg},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 
 	s.Run("Could not verify user", func() {
@@ -2238,10 +2271,15 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			Times(1)
 
 		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to verify user %s email: %s", mockUser.Id, errors.New("some-message")),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to verify user %s email", mockUser.Id))
 	})
 }
 
@@ -2663,7 +2701,7 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 			Times(1)
 
 		err := demoteUserToGuestCmdF(s.client, nil, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().ErrorContains(err, "unable to demote user")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", emailArg, "some-error"), printer.GetErrorLines()[0])
