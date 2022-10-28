@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -852,12 +852,28 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Times(1)
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Send one reset email and receive error", func() {
+	s.Run("Send one reset email and receive error on email validation", func() {
+		printer.Clean()
+		emailArg := "invalid.Email@example.com"
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg))
+
+		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+
+		s.Require().EqualError(err, expected.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Invalid email '"+emailArg+"'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Send one reset email and receive error on email sending", func() {
 		printer.Clean()
 		emailArg := "example@example.com"
 		mockError := errors.New("mock error")
@@ -868,8 +884,12 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", emailArg, mockError))
+
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable send reset password email to email "+emailArg+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -880,19 +900,25 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 		emailArg := []string{
 			"example1@example.com",
 			"error1@example.com",
-			"error2@example.com",
+			"invalid.Email@example.com",
 			"example2@example.com",
 			"example3@example.com"}
 		mockError := errors.New("mock error")
 
+		var expected error
+
 		for _, email := range emailArg {
-			if strings.HasPrefix(email, "error") {
+			switch {
+			case strings.HasPrefix(email, "error"):
 				s.client.
 					EXPECT().
 					SendPasswordResetEmail(email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
-			} else {
+				expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", email, mockError))
+			case strings.ToLower(email) != email:
+				expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", email))
+			default:
 				s.client.
 					EXPECT().
 					SendPasswordResetEmail(email).
@@ -902,11 +928,12 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 		}
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, emailArg)
-		s.Require().NoError(err)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal("Unable send reset password email to email "+emailArg[1]+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
-		s.Require().Equal("Unable send reset password email to email "+emailArg[2]+". Error: "+mockError.Error(), printer.GetErrorLines()[1])
+		s.Require().Equal("Invalid email '"+emailArg[2]+"'", printer.GetErrorLines()[1])
 	})
 }
 

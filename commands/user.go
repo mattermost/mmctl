@@ -499,17 +499,21 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
+	var result *multierror.Error
+
 	for _, email := range args {
 		if !model.IsValidEmail(email) {
+			result = multierror.Append(result, fmt.Errorf("invalid email '%s'", email))
 			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
 		if _, err := c.SendPasswordResetEmail(email); err != nil {
+			result = multierror.Append(result, fmt.Errorf("unable send reset password email to email %s: %w", email, err))
 			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
