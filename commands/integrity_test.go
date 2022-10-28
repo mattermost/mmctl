@@ -5,6 +5,7 @@ package commands
 
 import (
 	"errors"
+
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/mattermost/mmctl/v6/printer"
