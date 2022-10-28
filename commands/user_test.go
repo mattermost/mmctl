@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/printer"
@@ -2243,9 +2244,18 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			Times(1)
 
 		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{userArg})
-		s.Require().NoError(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: userArg},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 
 	s.Run("Could not verify user", func() {
@@ -2266,10 +2276,15 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			Times(1)
 
 		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to verify user %s email: %s", mockUser.Id, errors.New("some-message")),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to verify user %s email", mockUser.Id))
 	})
 }
 
