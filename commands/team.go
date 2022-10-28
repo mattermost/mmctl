@@ -318,7 +318,7 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 		if _, err := deleteTeam(c, team); err != nil {
 			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + err.Error())
-			result = multierror.Append(result, fmt.Errorf("unable to delete team %s error: %s", team.Name, args[i]))
+			result = multierror.Append(result, fmt.Errorf("unable to delete team %s error: %w", team.Name, err))
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
