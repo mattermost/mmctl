@@ -9,8 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
