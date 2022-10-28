@@ -223,14 +223,14 @@ func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError(fmt.Sprintf("can't find user '%v'", args[i]))
-			result = multierror.Append(result, fmt.Errorf("can't find user '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("can't find user %q", args[i]))
 			continue
 		}
 
 		bot, _, err := c.EnableBot(user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not enable bot '%v'", args[i]))
-			result = multierror.Append(result, fmt.Errorf("could not enable bot '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("could not enable bot %q: %w", args[i], err))
 			continue
 		}
 
