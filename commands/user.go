@@ -9,13 +9,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/hashicorp/go-multierror"
-
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -973,19 +972,24 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 }
 
 func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	var errs *multierror.Error
 	for i, user := range getUsersFromUserArgs(c, userArgs) {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], err))
+			err = fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		printer.PrintT("User {{.Username}} demoted.", user)
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
