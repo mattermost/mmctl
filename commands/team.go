@@ -6,6 +6,8 @@ package commands
 import (
 	"errors"
 	"sort"
+	"fmt"
+	"github.com/hashicorp/go-multierror"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -353,10 +355,13 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var errs *multierror.Error
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
+			teamErr := fmt.Errorf("Unable to find team '" + args[i] + "'")
+			errs = multierror.Append(errs, teamErr)
+			printer.PrintError(teamErr.Error())
 			continue
 		}
 		if rteam, _, err := c.RestoreTeam(team.Id); err != nil {
@@ -365,5 +370,5 @@ func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			printer.PrintT("Restored team '{{.Name}}'", rteam)
 		}
 	}
-	return nil
+	return errs.ErrorOrNil()
 }

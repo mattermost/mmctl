@@ -848,7 +848,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 			Times(1)
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "Unable to find team '"+teamName+"'")
 		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
 	})
 

@@ -451,7 +451,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		teamName := "non-existent-team"
 
 		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{teamName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "Unable to find team '"+teamName+"'")
 
 		errMessage := "Unable to find team '" + teamName + "'"
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -466,8 +466,8 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		s.Require().Nil(appErr)
 
 		err := restoreTeamsCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
-		s.Require().Nil(err)
-
+		s.Require().ErrorContains(err, "Unable to find team '"+teamName+"'")
+	
 		errMessage := "Unable to find team '" + team.Name + "'"
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
