@@ -331,10 +331,15 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		}()
 
 		err := resetUserMfaCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().Nil(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf(`unable to reset user %q MFA. Error: : You do not have the appropriate permissions., `, user.Id),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Id))
 	})
 }
 
