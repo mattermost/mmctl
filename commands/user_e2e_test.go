@@ -42,7 +42,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Nil(appErr)
 
 		err := userActivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
@@ -56,7 +56,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		printer.Clean()
 
 		err := userActivateCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
@@ -92,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(appErr)
 
 		err := userDeactivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
@@ -106,7 +106,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		printer.Clean()
 
 		err := userDeactivateCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
@@ -559,7 +559,6 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		printer.Clean()
 		newUsername := "basicusernamechange"
 		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)

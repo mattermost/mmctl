@@ -360,11 +360,7 @@ Global Flags:
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	if err := changeUsersActiveStatus(c, args, true); err != nil {
-		return err
-	}
-
-	return nil
+	return changeUsersActiveStatus(c, args, true)
 }
 
 func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
@@ -395,11 +391,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if err := changeUsersActiveStatus(c, args, false); err != nil {
-		return err
-	}
-
-	return nil
+	return changeUsersActiveStatus(c, args, false)
 }
 
 func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
