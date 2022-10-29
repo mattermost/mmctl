@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
+	"github.com/hashicorp/go-multierror"
 )
 
 var TeamUsersCmd = &cobra.Command{
@@ -69,6 +70,7 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 }
 
 func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var errs *multierror.Error
 	team := getTeamFromTeamArg(c, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
@@ -76,18 +78,19 @@ func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 	users := getUsersFromUserArgs(c, args[1:])
 	for i, user := range users {
+		if user == nil {
+			userErr := errors.Errorf("can't find user '%s'", args[i+1])
+			printer.PrintError(userErr.Error())
+			errs = multierror.Append(errs, userErr)
+			continue
+		}
 		addUserToTeam(c, team, user, args[i+1])
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func addUserToTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
-	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
-	}
-
 	if _, _, err := c.AddTeamMember(team.Id, user.Id); err != nil {
 		printer.PrintError("Unable to add '" + userArg + "' to " + team.Name + ". Error: " + err.Error())
 	}
