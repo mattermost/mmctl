@@ -267,7 +267,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 		err := archiveChannelsCmdF(c, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", s.th.BasicTeam.Id, s.th.BasicDeletedChannel.Name)})
 		s.Require().Error(err)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to archive channel '%s'", s.th.BasicDeletedChannel.Name))
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("The channel has been archived or deleted."))
+		s.Require().Contains(printer.GetErrorLines()[0], "The channel has been archived or deleted.")
 	})
 }
 
