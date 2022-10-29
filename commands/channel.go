@@ -598,7 +598,7 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	var result error
+	var result *multierror.Error
 
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
@@ -612,5 +612,5 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 			printer.PrintT("Deleted channel '{{.Name}}'", channel)
 		}
 	}
-	return result
+	return result.ErrorOrNil()
 }
