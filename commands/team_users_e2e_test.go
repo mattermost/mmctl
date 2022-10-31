@@ -132,10 +132,10 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 
 		nonexistentUserEmail := "nonexistent@email"
 		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().ErrorContainsf(err, "can't find user '%s'",nonexistentUserEmail)
+		s.Require().ErrorContainsf(err, "can't find user '%s'", nonexistentUserEmail)
 	})
 
 	s.Run("Add nonexistent user to team", func() {
@@ -153,10 +153,10 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 
 		nonexistentUserEmail := "nonexistent@email"
 		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().ErrorContainsf(err, "can't find user '%s'",nonexistentUserEmail)
+		s.Require().ErrorContainsf(err, "can't find user '%s'", nonexistentUserEmail)
 	})
 }
 
