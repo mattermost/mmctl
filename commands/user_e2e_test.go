@@ -238,7 +238,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		}()
 
 		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(
@@ -266,7 +266,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 
 		user := s.th.CreateUser()
 		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0],
