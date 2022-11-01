@@ -58,7 +58,7 @@ var ExportListCmd = &cobra.Command{
 
 var ExportJobCmd = &cobra.Command{
 	Use:   "job",
-	Short: "List and show export jobs",
+	Short: "List, show and cancel export jobs",
 }
 
 var ExportJobListCmd = &cobra.Command{
@@ -72,10 +72,18 @@ var ExportJobListCmd = &cobra.Command{
 
 var ExportJobShowCmd = &cobra.Command{
 	Use:     "show [exportJobID]",
-	Example: "  export job show",
+	Example: "  export job show o98rj3ur83dp5dppfyk5yk6osy",
 	Short:   "Show export job",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(exportJobShowCmdF),
+}
+
+var ExportJobCancelCmd = &cobra.Command{
+	Use:     "cancel [exportJobID]",
+	Example: "  export job cancel o98rj3ur83dp5dppfyk5yk6osy",
+	Short:   "Cancel export job",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(exportJobCancelCmdF),
 }
 
 func init() {
@@ -99,6 +107,7 @@ func init() {
 	ExportJobCmd.AddCommand(
 		ExportJobListCmd,
 		ExportJobShowCmd,
+		ExportJobCancelCmd,
 	)
 	ExportCmd.AddCommand(
 		ExportCreateCmd,
@@ -228,6 +237,19 @@ func exportJobShowCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 
 	printJob(job)
+
+	return nil
+}
+
+func exportJobCancelCmdF(c client.Client, _ *cobra.Command, args []string) error {
+	job, _, err := c.GetJob(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to get export job: %w", err)
+	}
+
+	if _, err := c.CancelJob(job.Id); err != nil {
+		return fmt.Errorf("failed to cancel export job: %w", err)
+	}
 
 	return nil
 }
