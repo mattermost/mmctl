@@ -132,8 +132,9 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Short:   "Set a channel's type to private",
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel make-private myteam:mychannel",
-	RunE:    withClient(makeChannelPrivateCmdF),
+	Example:    "  channel make-private myteam:mychannel",
+	Deprecated: "please use \"channel modify --private\" instead",
+	RunE:       withClient(makeChannelPrivateCmdF),
 }
 
 var SearchChannelCmd = &cobra.Command{
