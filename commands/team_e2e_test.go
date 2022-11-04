@@ -454,7 +454,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 		err := restoreTeamsCmdF(c, &cobra.Command{}, []string{teamName})
 		var expected error
-		errMessage := "Unable to find team '" + teamName + "'"
+		errMessage := "unable to find team '" + teamName + "'"
 		expected = multierror.Append(expected, errors.New(errMessage))
 
 		s.Require().NotNil(err)
@@ -472,7 +472,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 		err := restoreTeamsCmdF(s.th.Client, &cobra.Command{}, []string{team.Name})
 		var expected error
-		errMessage := "Unable to find team '" + team.Name + "'"
+		errMessage := "unable to find team '" + team.Name + "'"
 		expected = multierror.Append(expected, errors.New(errMessage))
 
 		s.Require().NotNil(err)
