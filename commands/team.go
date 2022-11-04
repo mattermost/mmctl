@@ -358,7 +358,7 @@ func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	var result *multierror.Error
 	for i, team := range teams {
 		if team == nil {
-			result = multierror.Append(result, errors.New("Unable to find team '"+args[i]+"'"))
+			result = multierror.Append(result, fmt.Errorf("unable to find team %s", args[i]))
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
