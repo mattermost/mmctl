@@ -270,7 +270,7 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		}
 		if _, err := c.DeleteChannel(channel.Id); err != nil {
 			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
-			errors = multierror.Append(errors, fmt.Errorf("unable to archive channel %q, error: %w", channel.Name, err.Error()))
+			errors = multierror.Append(errors, fmt.Errorf("unable to archive channel %q, error: %w", channel.Name, err))
 		}
 	}
 
