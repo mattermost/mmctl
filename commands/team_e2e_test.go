@@ -457,7 +457,6 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		errMessage := "unable to find team '" + teamName + "'"
 		expected = multierror.Append(expected, errors.New(errMessage))
 
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
@@ -475,7 +474,6 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		errMessage := "unable to find team '" + team.Name + "'"
 		expected = multierror.Append(expected, errors.New(errMessage))
 
-		s.Require().NotNil(err)
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
