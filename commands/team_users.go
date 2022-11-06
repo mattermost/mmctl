@@ -4,11 +4,11 @@
 package commands
 
 import (
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 )
