@@ -5,6 +5,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/api4"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
@@ -131,11 +132,13 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		s.Require().Nil(appErr)
 
 		nonexistentUserEmail := "nonexistent@email"
+		var expectedError error
+		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
 		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
 		s.Require().Error(err)
-		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().ErrorContainsf(err, "can't find user '%s'", nonexistentUserEmail)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().EqualError(err, expectedError.Error())
 	})
 
 	s.Run("Add nonexistent user to team", func() {
@@ -152,11 +155,13 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		}()
 
 		nonexistentUserEmail := "nonexistent@email"
+		var expectedError error
+		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
 		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().ErrorContainsf(err, "can't find user '%s'", nonexistentUserEmail)
+		s.Require().EqualError(err, expectedError.Error())
 	})
 }
 
