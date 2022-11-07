@@ -360,21 +360,23 @@ Global Flags:
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	changeUsersActiveStatus(c, args, true)
-
-	return nil
+	return changeUsersActiveStatus(c, args, true)
 }
 
-func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
+func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
+	var multiErr *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
 		printer.PrintError(err.Error())
+		multiErr = multierror.Append(multiErr, err)
 	}
 	for _, user := range users {
 		if err := changeUserActiveStatus(c, user, active); err != nil {
 			printer.PrintError(err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
+	return multiErr.ErrorOrNil()
 }
 
 func changeUserActiveStatus(c client.Client, user *model.User, activate bool) error {
@@ -389,9 +391,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	changeUsersActiveStatus(c, args, false)
-
-	return nil
+	return changeUsersActiveStatus(c, args, false)
 }
 
 func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -458,25 +458,26 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var errs *multierror.Error
 	if len(args) < 2 {
 		return errors.New("expected at least two arguments. See help text for details")
 	}
 
 	email := args[0]
 	if !model.IsValidEmail(email) {
-		return errors.New("invalid email")
+		errs = multierror.Append(errs, fmt.Errorf("invalid email %q", email))
 	}
 
 	teams := getTeamsFromTeamArgs(c, args[1:])
 	for i, team := range teams {
 		err := inviteUser(c, email, team, args[i+1])
-
 		if err != nil {
+			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
 		}
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func inviteUser(c client.Client, email string, team *model.Team, teamArg string) error {

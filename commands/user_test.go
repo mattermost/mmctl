@@ -68,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 			Times(1)
 
 		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
@@ -92,7 +92,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 			Times(1)
 
 		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser.Id).Error(), printer.GetErrorLines()[0])
@@ -173,7 +173,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 			Times(1)
 
 		err := userActivateCmdF(s.client, &cobra.Command{}, emailArgs)
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
@@ -228,7 +228,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %v not found\n\n", emailArg), printer.GetErrorLines()[0])
@@ -252,7 +252,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser.Id).Error(), printer.GetErrorLines()[0])
@@ -357,7 +357,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, emailArgs)
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+mockUser2.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -1078,7 +1078,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
@@ -1104,7 +1104,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultName+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -1212,7 +1212,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 4)
 		for i := 0; i < 4; i++ {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
@@ -2075,7 +2075,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", arg), printer.GetErrorLines()[0])
@@ -2211,7 +2211,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser1.Email, nonexistentEmail})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", nonexistentEmail), printer.GetErrorLines()[0])

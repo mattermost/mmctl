@@ -1,34 +1,33 @@
-.. _mmctl_channel_make-private:
+.. _mmctl_export_job_cancel:
 
-mmctl channel make-private
---------------------------
+mmctl export job cancel
+-----------------------
 
-Set a channel's type to private
+Cancel export job
 
 Synopsis
 ~~~~~~~~
 
 
-Set the type of a channel from Public to Private.
-Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
+Cancel export job
 
 ::
 
-  mmctl channel make-private [channel] [flags]
+  mmctl export job cancel [exportJobID] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel make-private myteam:mychannel
+    export job cancel o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for make-private
+  -h, --help   help for cancel
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
 

@@ -134,7 +134,7 @@ func (s *MmctlE2ETestSuite) TestDeleteTeamsCmdF() {
 
 		// Delete should fail for SystemAdmin client
 		err := deleteTeamsCmdF(s.th.SystemAdminClient, cmd, args)
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to delete team '"+s.th.BasicTeam.Name+"' error: : Permanent team deletion feature is not enabled. Please contact your System Administrator., ", printer.GetErrorLines()[0])

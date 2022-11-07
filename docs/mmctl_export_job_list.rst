@@ -50,5 +50,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl export job <mmctl_export_job.rst>`_ 	 - List and show export jobs
+* `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
 
