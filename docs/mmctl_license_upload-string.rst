@@ -1,34 +1,33 @@
-.. _mmctl_channel_make-private:
+.. _mmctl_license_upload-string:
 
-mmctl channel make-private
---------------------------
+mmctl license upload-string
+---------------------------
 
-Set a channel's type to private
+Upload a license from a string.
 
 Synopsis
 ~~~~~~~~
 
 
-Set the type of a channel from Public to Private.
-Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.
+Upload a license from a string. Replaces current license.
 
 ::
 
-  mmctl channel make-private [channel] [flags]
+  mmctl license upload-string [license] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    channel make-private myteam:mychannel
+   license upload-string "mylicensestring"
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for make-private
+  -h, --help   help for upload-string
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl channel <mmctl_channel.rst>`_ 	 - Management of channels
+* `mmctl license <mmctl_license.rst>`_ 	 - Licensing commands
 

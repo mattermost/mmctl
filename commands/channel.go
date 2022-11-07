@@ -132,8 +132,9 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Short:   "Set a channel's type to private",
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel make-private myteam:mychannel",
-	RunE:    withClient(makeChannelPrivateCmdF),
+	Example:    "  channel make-private myteam:mychannel",
+	Deprecated: "please use \"channel modify --private\" instead",
+	RunE:       withClient(makeChannelPrivateCmdF),
 }
 
 var SearchChannelCmd = &cobra.Command{
@@ -603,17 +604,19 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
+	var result error
+
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
 		if channel == nil {
-			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			result = multierror.Append(result, fmt.Errorf("unable to find channel '%s'", args[i]))
 			continue
 		}
 		if _, err := c.PermanentDeleteChannel(channel.Id); err != nil {
-			printer.PrintError("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
+			result = multierror.Append(result, fmt.Errorf("unable to delete channel '%q' error: %w", channel.Name, err))
 		} else {
 			printer.PrintT("Deleted channel '{{.Name}}'", channel)
 		}
 	}
-	return nil
+	return result
 }
