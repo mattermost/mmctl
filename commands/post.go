@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -186,6 +187,7 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		printPost(c, post, usernames, showIds, showTimestamp)
 	}
 
+	var multiErr *multierror.Error
 	if follow {
 		ws, err := InitWebSocketClient()
 		if err != nil {
@@ -203,7 +205,8 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			if event.EventType() == model.WebsocketEventPosted {
 				post, err := eventDataToPost(event.GetData())
 				if err != nil {
-					fmt.Println("Error parsing incoming post: " + err.Error())
+					printer.PrintError("Error parsing incoming post: " + err.Error())
+					multiErr = multierror.Append(multiErr, err)
 				}
 				if post.ChannelId == channel.Id {
 					printPost(c, post, usernames, showIds, showTimestamp)
@@ -211,5 +214,5 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			}
 		}
 	}
-	return nil
+	return multiErr.ErrorOrNil()
 }
