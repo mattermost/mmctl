@@ -459,7 +459,6 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
 	})
 
 	s.Run("Restore team without permissions", func() {
@@ -476,6 +475,5 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 
 		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(errMessage, printer.GetErrorLines()[0])
 	})
 }
