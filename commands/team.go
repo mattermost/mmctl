@@ -364,7 +364,7 @@ func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 			continue
 		}
 		if rteam, _, err := c.RestoreTeam(team.Id); err != nil {
-			result = multierror.Append(result, fmt.Errorf("unable to restore team '%s' error: %s", team.Name, err.Error()))
+			result = multierror.Append(result, fmt.Errorf("unable to restore team '%s' error: %w", team.Name, err))
 			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Restored team '{{.Name}}'", rteam)
