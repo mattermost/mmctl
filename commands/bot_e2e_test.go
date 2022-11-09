@@ -284,7 +284,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		s.Require().Nil(appErr)
 
 		err := botDisableCmdF(s.th.Client, &cobra.Command{}, []string{newBot.UserId})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
@@ -295,7 +295,7 @@ func (s *MmctlE2ETestSuite) TestBotDisableCmd() {
 		printer.Clean()
 
 		err := botDisableCmdF(c, &cobra.Command{}, []string{"nonexistent-bot-userid"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 
