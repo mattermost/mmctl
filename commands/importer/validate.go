@@ -25,6 +25,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/model"
 	_ "golang.org/x/image/webp" // image decoder
 
@@ -300,7 +301,7 @@ func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
 		}
 
 		// decode the line
-		var line LineImportData
+		var line imports.LineImportData
 		err = json.Unmarshal(rawLine, &line)
 		if err != nil {
 			if err = v.onError(&ImportValidationError{
@@ -334,7 +335,7 @@ func (v *Validator) validateLines(info ImportFileInfo, zf *zip.File) error {
 	return nil
 }
 
-func (v *Validator) validateLine(info ImportFileInfo, line LineImportData) error {
+func (v *Validator) validateLine(info ImportFileInfo, line imports.LineImportData) error {
 	var err error
 
 	// make sure the file starts with a version
@@ -377,7 +378,7 @@ func (v *Validator) validateLine(info ImportFileInfo, line LineImportData) error
 	return err
 }
 
-func (v *Validator) validateVersion(info ImportFileInfo, line LineImportData) (err error) {
+func (v *Validator) validateVersion(info ImportFileInfo, line imports.LineImportData) (err error) {
 	if info.CurrentLine != 1 {
 		if err = v.onError(&ImportValidationError{
 			ImportFileInfo: info,
@@ -406,9 +407,9 @@ func (v *Validator) validateVersion(info ImportFileInfo, line LineImportData) (e
 	return nil
 }
 
-func (v *Validator) validateScheme(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "scheme", line.Scheme, func(data SchemeImportData) *ImportValidationError {
-		appErr := validateSchemeImportData(&data)
+func (v *Validator) validateScheme(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "scheme", line.Scheme, func(data imports.SchemeImportData) *ImportValidationError {
+		appErr := imports.ValidateSchemeImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -437,9 +438,9 @@ func (v *Validator) validateScheme(info ImportFileInfo, line LineImportData) (er
 	return nil
 }
 
-func (v *Validator) validateTeam(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "team", line.Team, func(data TeamImportData) *ImportValidationError {
-		appErr := validateTeamImportData(&data)
+func (v *Validator) validateTeam(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "team", line.Team, func(data imports.TeamImportData) *ImportValidationError {
+		appErr := imports.ValidateTeamImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -477,9 +478,9 @@ func (v *Validator) validateTeam(info ImportFileInfo, line LineImportData) (err 
 	return nil
 }
 
-func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "channel", line.Channel, func(data ChannelImportData) *ImportValidationError {
-		appErr := validateChannelImportData(&data)
+func (v *Validator) validateChannel(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "channel", line.Channel, func(data imports.ChannelImportData) *ImportValidationError {
+		appErr := imports.ValidateChannelImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -530,9 +531,9 @@ func (v *Validator) validateChannel(info ImportFileInfo, line LineImportData) (e
 	return nil
 }
 
-func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "user", line.User, func(data UserImportData) *ImportValidationError {
-		appErr := validateUserImportData(&data)
+func (v *Validator) validateUser(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "user", line.User, func(data imports.UserImportData) *ImportValidationError {
+		appErr := imports.ValidateUserImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -576,9 +577,9 @@ func (v *Validator) validateUser(info ImportFileInfo, line LineImportData) (err 
 	return nil
 }
 
-func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "post", line.Post, func(data PostImportData) *ImportValidationError {
-		appErr := validatePostImportData(&data, model.PostMessageMaxRunesV1)
+func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "post", line.Post, func(data imports.PostImportData) *ImportValidationError {
+		appErr := imports.ValidatePostImportData(&data, model.PostMessageMaxRunesV1)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -660,9 +661,9 @@ func (v *Validator) validatePost(info ImportFileInfo, line LineImportData) (err 
 	return nil
 }
 
-func (v *Validator) validateDirectChannel(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "direct_channel", line.DirectChannel, func(data DirectChannelImportData) *ImportValidationError {
-		appErr := validateDirectChannelImportData(&data)
+func (v *Validator) validateDirectChannel(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "direct_channel", line.DirectChannel, func(data imports.DirectChannelImportData) *ImportValidationError {
+		appErr := imports.ValidateDirectChannelImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -708,9 +709,9 @@ func (v *Validator) validateDirectChannel(info ImportFileInfo, line LineImportDa
 	return nil
 }
 
-func (v *Validator) validateDirectPost(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "direct_post", line.DirectPost, func(data DirectPostImportData) *ImportValidationError {
-		appErr := validateDirectPostImportData(&data, model.PostMessageMaxRunesV1)
+func (v *Validator) validateDirectPost(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "direct_post", line.DirectPost, func(data imports.DirectPostImportData) *ImportValidationError {
+		appErr := imports.ValidateDirectPostImportData(&data, model.PostMessageMaxRunesV1)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
@@ -784,9 +785,9 @@ func (v *Validator) validateDirectPost(info ImportFileInfo, line LineImportData)
 	return nil
 }
 
-func (v *Validator) validateEmoji(info ImportFileInfo, line LineImportData) (err error) {
-	ivErr := validateNotNil(info, "emoji", line.Emoji, func(data EmojiImportData) *ImportValidationError {
-		appErr := validateEmojiImportData(&data)
+func (v *Validator) validateEmoji(info ImportFileInfo, line imports.LineImportData) (err error) {
+	ivErr := validateNotNil(info, "emoji", line.Emoji, func(data imports.EmojiImportData) *ImportValidationError {
+		appErr := imports.ValidateEmojiImportData(&data)
 		if appErr != nil {
 			return &ImportValidationError{
 				ImportFileInfo: info,
