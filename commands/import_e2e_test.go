@@ -204,7 +204,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 			cmd.Flags().Bool("local", true, "")
 		}
 
-		us1, appErr := s.th.App.CreateUploadSession(&model.UploadSession{
+		us1, appErr := s.th.App.CreateUploadSession(s.th.Context, &model.UploadSession{
 			Id:       model.NewId(),
 			UserId:   userID,
 			Type:     model.UploadTypeImport,
@@ -216,7 +216,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		_, appErr = s.th.App.CreateUploadSession(&model.UploadSession{
+		_, appErr = s.th.App.CreateUploadSession(s.th.Context, &model.UploadSession{
 			Id:        model.NewId(),
 			UserId:    userID,
 			ChannelId: s.th.BasicChannel.Id,
@@ -228,7 +228,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		us3, appErr := s.th.App.CreateUploadSession(&model.UploadSession{
+		us3, appErr := s.th.App.CreateUploadSession(s.th.Context, &model.UploadSession{
 			Id:       model.NewId(),
 			UserId:   userID,
 			Type:     model.UploadTypeImport,

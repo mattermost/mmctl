@@ -530,7 +530,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		s.Require().Equal(newEmail, u.Email)
 
 		u.Email = oldEmail
-		_, err = s.th.App.UpdateUser(u, false)
+		_, err = s.th.App.UpdateUser(s.th.Context, u, false)
 		s.Require().Nil(err)
 	})
 
@@ -569,7 +569,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		s.Require().Equal(newName, u.Username)
 
 		u.Username = oldName
-		_, err = s.th.App.UpdateUser(u, false)
+		_, err = s.th.App.UpdateUser(s.th.Context, u, false)
 		s.Require().Nil(err)
 	})
 
@@ -918,14 +918,14 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
 	defer s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = false })
 
-	s.Require().Nil(s.th.App.DemoteUserToGuest(user))
+	s.Require().Nil(s.th.App.DemoteUserToGuest(s.th.Context, user))
 
 	s.RunForSystemAdminAndLocal("MM-T3936 Promote a guest to a user", func(c client.Client) {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(c, nil, []string{user.Email})
 		s.Require().Nil(err)
-		defer s.Require().Nil(s.th.App.DemoteUserToGuest(user))
+		defer s.Require().Nil(s.th.App.DemoteUserToGuest(s.th.Context, user))
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -1022,7 +1022,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 			})
 			s.Require().Nil(appErr)
 
-			newUser, appErr := s.th.App.UpdateUser(ldapUser, false)
+			newUser, appErr := s.th.App.UpdateUser(s.th.Context, ldapUser, false)
 			s.Require().Nil(appErr)
 			s.Require().Equal(model.UserAuthServiceLdap, newUser.AuthService)
 		}()
@@ -1051,7 +1051,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 			})
 			s.Require().Nil(appErr)
 
-			newUser, appErr := s.th.App.UpdateUser(samlUser, false)
+			newUser, appErr := s.th.App.UpdateUser(s.th.Context, samlUser, false)
 			s.Require().Nil(appErr)
 			s.Require().Equal(model.UserAuthServiceSaml, newUser.AuthService)
 		}()
