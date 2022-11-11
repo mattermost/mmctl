@@ -64,6 +64,25 @@ type NotificationParserImpl struct {
 	onAblyError       func(*AblyError) *int64
 }
 
+func NewNotificationParserImpl(
+	loggerInterface logging.LoggerInterface,
+	onSplitUpdate func(update *SplitChangeUpdate) error,
+	onSplitKill func(*SplitKillUpdate) error,
+	onSegmentUpdate func(*SegmentChangeUpdate) error,
+	onControlUpdate func(*ControlUpdate) *int64,
+	onOccupancyMessage func(*OccupancyMessage) *int64,
+	onAblyError func(*AblyError) *int64) *NotificationParserImpl {
+	return &NotificationParserImpl{
+		logger:            loggerInterface,
+		onSplitUpdate:     onSplitUpdate,
+		onSplitKill:       onSplitKill,
+		onSegmentUpdate:   onSegmentUpdate,
+		onControlUpdate:   onControlUpdate,
+		onOccupancyMesage: onOccupancyMessage,
+		onAblyError:       onAblyError,
+	}
+}
+
 // ParseAndForward accepts an incoming RAW event and returns a properly parsed & typed event
 func (p *NotificationParserImpl) ParseAndForward(raw sse.IncomingMessage) (*int64, error) {
 

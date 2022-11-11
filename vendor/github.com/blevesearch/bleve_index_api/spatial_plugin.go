@@ -41,4 +41,7 @@ type GeoJSON interface {
 
 	// Checks whether the given shape resides within the current shape.
 	Contains(GeoJSON) (bool, error)
+
+	// Value returns the byte value for the shape.
+	Value() ([]byte, error)
 }

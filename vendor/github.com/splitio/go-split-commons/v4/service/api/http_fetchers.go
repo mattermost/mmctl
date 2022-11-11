@@ -3,7 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"strconv"
+	"net/url"
 
 	"github.com/splitio/go-split-commons/v4/conf"
 	"github.com/splitio/go-split-commons/v4/dtos"
@@ -16,20 +16,17 @@ type httpFetcherBase struct {
 	logger logging.LoggerInterface
 }
 
-func (h *httpFetcherBase) fetchRaw(url string, since int64, requestNoCache bool) ([]byte, error) {
-	var bufferQuery bytes.Buffer
-	bufferQuery.WriteString(url)
-
-	if since >= -1 {
-		bufferQuery.WriteString("?since=")
-		bufferQuery.WriteString(strconv.FormatInt(since, 10))
+func (h *httpFetcherBase) fetchRaw(endpoint string, since int64, fetchOptions *service.FetchOptions) ([]byte, error) {
+	queryParams, headers := service.BuildFetch(since, fetchOptions)
+	if len(queryParams) > 0 {
+		params := url.Values{}
+		for key, value := range queryParams {
+			params.Add(key, value)
+		}
+		endpoint = endpoint + "?" + params.Encode()
 	}
 
-	var extraHeaders map[string]string
-	if requestNoCache {
-		extraHeaders = map[string]string{CacheControlHeader: CacheControlNoCache}
-	}
-	data, err := h.client.Get(bufferQuery.String(), extraHeaders)
+	data, err := h.client.Get(endpoint, headers)
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +49,8 @@ func NewHTTPSplitFetcher(apikey string, cfg conf.AdvancedConfig, logger logging.
 }
 
 // Fetch makes an http call to the split backend and returns the list of updated splits
-func (f *HTTPSplitFetcher) Fetch(since int64, requestNoCache bool) (*dtos.SplitChangesDTO, error) {
-	data, err := f.fetchRaw("/splitChanges", since, requestNoCache)
+func (f *HTTPSplitFetcher) Fetch(since int64, fetchOptions *service.FetchOptions) (*dtos.SplitChangesDTO, error) {
+	data, err := f.fetchRaw("/splitChanges", since, fetchOptions)
 	if err != nil {
 		f.logger.Error("Error fetching split changes ", err)
 		return nil, err
@@ -85,12 +82,12 @@ func NewHTTPSegmentFetcher(apikey string, cfg conf.AdvancedConfig, logger loggin
 }
 
 // Fetch issues a GET request to the split backend and returns the contents of a particular segment
-func (f *HTTPSegmentFetcher) Fetch(segmentName string, since int64, requestNoCache bool) (*dtos.SegmentChangesDTO, error) {
+func (f *HTTPSegmentFetcher) Fetch(segmentName string, since int64, fetchOptions *service.FetchOptions) (*dtos.SegmentChangesDTO, error) {
 	var bufferQuery bytes.Buffer
 	bufferQuery.WriteString("/segmentChanges/")
 	bufferQuery.WriteString(segmentName)
 
-	data, err := f.fetchRaw(bufferQuery.String(), since, requestNoCache)
+	data, err := f.fetchRaw(bufferQuery.String(), since, fetchOptions)
 	if err != nil {
 		f.logger.Error(err.Error())
 		return nil, err

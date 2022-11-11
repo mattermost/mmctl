@@ -24,7 +24,7 @@ func NewAuthAPIClient(apikey string, cfg conf.AdvancedConfig, logger logging.Log
 
 // Authenticate performs authentication for push services
 func (a *AuthAPIClient) Authenticate() (*dtos.Token, error) {
-	raw, err := a.client.Get("/api/auth", map[string]string{CacheControlHeader: CacheControlNoCache})
+	raw, err := a.client.Get("/api/v2/auth", map[string]string{CacheControlHeader: CacheControlNoCache})
 	if err != nil {
 		a.logger.Error("Error while authenticating for streaming", err)
 		return nil, err
