@@ -23,7 +23,7 @@ func NewMMSplitStorage() *MMSplitStorage {
 	return &MMSplitStorage{
 		data:         make(map[string]dtos.SplitDTO),
 		trafficTypes: make(map[string]int64),
-		till:         0,
+		till:         -1,
 		mutex:        &sync.RWMutex{},
 		ttMutex:      &sync.RWMutex{},
 		tillMutex:    &sync.RWMutex{},

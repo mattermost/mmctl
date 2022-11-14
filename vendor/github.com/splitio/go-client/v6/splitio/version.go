@@ -1,4 +1,4 @@
 package splitio
 
 // Version contains a string with the split sdk version
-const Version = "6.1.3"
+const Version = "6.1.7"

@@ -13,7 +13,7 @@ func NewFetchSplitsTask(
 	logger logging.LoggerInterface,
 ) *asynctask.AsyncTask {
 	update := func(logger logging.LoggerInterface) error {
-		_, err := fetcher.SynchronizeSplits(nil, false)
+		_, err := fetcher.SynchronizeSplits(nil)
 		return err
 	}
 

@@ -54,7 +54,7 @@ func (s *SplitUpdateWorker) Start() {
 			case splitUpdate := <-s.splitQueue:
 				s.logger.Debug("Received Split update and proceding to perform fetch")
 				s.logger.Debug(fmt.Sprintf("ChangeNumber: %d", splitUpdate.ChangeNumber()))
-				err := s.sync.SynchronizeSplits(common.Int64Ref(splitUpdate.ChangeNumber()), true)
+				err := s.sync.SynchronizeSplits(common.Int64Ref(splitUpdate.ChangeNumber()))
 				if err != nil {
 					s.logger.Error(err)
 				}

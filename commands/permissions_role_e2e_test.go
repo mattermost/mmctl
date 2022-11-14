@@ -7,7 +7,6 @@ import (
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
 
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/spf13/cobra"
@@ -60,7 +59,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 		s.Require().Nil(err2)
 		s.Require().True(u.IsInRole(model.SystemManagerRoleId))
 
-		_, err2 = s.th.App.UpdateUserRoles(user.Id, roles, false)
+		_, err2 = s.th.App.UpdateUserRoles(s.th.Context, user.Id, roles, false)
 		s.Require().Nil(err2)
 	})
 }
@@ -68,7 +67,7 @@ func (s *MmctlE2ETestSuite) TestAssignUsersCmd() {
 func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(request.EmptyContext(), &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
 	s.Run("MM-T3965 Should not allow normal user to unassign a user from a role", func() {
@@ -84,11 +83,11 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 		printer.Clean()
 
 		user.Roles = user.Roles + "," + model.SystemManagerRoleId
-		_, appErr = s.th.App.UpdateUser(user, false)
+		_, appErr = s.th.App.UpdateUser(s.th.Context, user, false)
 		s.Require().Nil(appErr)
 		defer func() {
 			user.Roles = model.SystemUserRoleId
-			_, appErr := s.th.App.UpdateUser(user, false)
+			_, appErr := s.th.App.UpdateUser(s.th.Context, user, false)
 			s.Require().Nil(appErr)
 		}()
 
