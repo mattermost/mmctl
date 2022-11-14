@@ -69,7 +69,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(
-			fmt.Sprintf(`could not create token for %q: : You do not have the appropriate permissions., `, user.Email),
+			fmt.Sprintf(`could not create token for %q: : You do not have the appropriate permission. `, user.Email),
 			err.Error())
 
 		userTokens, appErr := s.th.App.GetUserAccessTokensForUser(user.Id, 0, 1)
