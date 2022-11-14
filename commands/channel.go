@@ -319,15 +319,20 @@ func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Chan
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
+
+	var multierr *multierror.Error
 	for i, team := range teams {
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
+			err := fmt.Errorf("unable to find team %q", args[i])
+			printer.PrintError(err.Error())
+			multierr = multierror.Append(multierr, err)
 			continue
 		}
 
 		publicChannels, err := getAllPublicChannelsForTeam(c, team.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("unable to list public channels for %q: %s", args[i], err))
+			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range publicChannels {
 			printer.PrintT("{{.Name}}", channel)
@@ -336,6 +341,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		deletedChannels, err := getAllDeletedChannelsForTeam(c, team.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("unable to list archived channels for %q: %s", args[i], err))
+			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range deletedChannels {
 			printer.PrintT("{{.Name}} (archived)", channel)
@@ -344,13 +350,14 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		privateChannels, appErr := getPrivateChannels(c, team.Id)
 		if appErr != nil {
 			printer.PrintError(fmt.Sprintf("unable to list private channels for %q: %s", args[i], appErr.Error()))
+			multierr = multierror.Append(multierr, appErr)
 		}
 		for _, channel := range privateChannels {
 			printer.PrintT("{{.Name}} (private)", channel)
 		}
 	}
 
-	return nil
+	return multierr.ErrorOrNil()
 }
 
 func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
