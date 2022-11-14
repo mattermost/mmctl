@@ -299,7 +299,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		printer.Clean()
 
 		err := exportJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
-		s.Require().EqualError(err, "failed to get export job: : Unable to get the job. ")
+		s.Require().ErrorContains(err, "failed to get export job: : Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -411,7 +411,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		cmd := &cobra.Command{}
 
 		err := exportJobCancelCmdF(c, cmd, []string{model.NewId()})
-		s.Require().EqualError(err, "failed to get export job: : Unable to get the job. ")
+		s.Require().ErrorContains(err, "failed to get export job: : Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})

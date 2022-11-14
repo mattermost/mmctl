@@ -144,7 +144,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 
 		err := searchChannelCmdF(c, cmd, []string{s.th.BasicChannel.Name})
 		s.Require().NotNil(err)
-		s.Require().Equal(`: Channel does not exist. `, err.Error())
+		s.Require().ErrorContains(err, `: Channel does not exist.`)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

@@ -108,7 +108,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetErrorLines()))
-		s.Require().Contains(printer.GetErrorLines()[0], "Plugins and/or plugin uploads have been disabled.,")
+		s.Require().Contains(printer.GetErrorLines()[0], "Plugins and/or plugin uploads have been disabled.")
 	})
 
 	s.RunForSystemAdminAndLocal("admin and local can add a plugin if the config allows it", func(c client.Client) {

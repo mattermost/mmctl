@@ -97,7 +97,7 @@ func (s *MmctlE2ETestSuite) TestExtractJobShowCmdF() {
 
 		err := extractJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get content extraction job: : Unable to get the job. ", err.Error())
+		s.Require().ErrorContains(err, "failed to get content extraction job: : Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})

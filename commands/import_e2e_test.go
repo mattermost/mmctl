@@ -137,7 +137,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 
 		err := importListAvailableCmdF(s.th.Client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to list imports: : You do not have the appropriate permission. ", err.Error())
+		s.Require().ErrorContains(err, "failed to list imports: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -267,7 +267,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import job: : You do not have the appropriate permission. ", err.Error())
+		s.Require().ErrorContains(err, "failed to get import job: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -277,7 +277,7 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 		err := importJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import job: : Unable to get the job. ", err.Error())
+		s.Require().ErrorContains(err, "failed to get import job: : Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -306,7 +306,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		err := importJobListCmdF(s.th.Client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get jobs: : You do not have the appropriate permission. ", err.Error())
+		s.Require().ErrorContains(err, "failed to get jobs: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
