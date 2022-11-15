@@ -519,10 +519,12 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find destination team %q", args[0])
 	}
 
+	var result *multierror.Error
+
 	channels := getChannelsFromChannelArgs(c, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
-			printer.PrintError(fmt.Sprintf("Unable to find channel %q", args[i+1]))
+			result = multierror.Append(result, fmt.Errorf("unable to find channel %q", args[i+1]))
 			continue
 		}
 
@@ -532,12 +534,12 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		newChannel, _, err := c.MoveChannel(channel.Id, team.Id, force)
 		if err != nil {
-			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, err))
+			result = multierror.Append(result, fmt.Errorf("unable to move channel %q: %w", channel.Name, err))
 			continue
 		}
 		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error) {
