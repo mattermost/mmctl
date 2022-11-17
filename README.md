@@ -14,6 +14,8 @@ To install the project in your `$GOPATH`, simply run:
 go install github.com/mattermost/mmctl/v6@master
 ```
 
+or you can find built executable single binary at [GitHub Release page](https://github.com/mattermost/mmctl/releases)
+
 ### Install shell completions
 
 To install the shell completions for bash, add the following line to your `~/.bashrc` or `~/.profile` file:
