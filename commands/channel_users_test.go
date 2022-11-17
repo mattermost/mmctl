@@ -449,8 +449,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 
 		err := channelUsersRemoveCmdF(s.client, cmd, args)
 
-		s.Require().ErrorContains(err, "Unable to remove '"+mockUser3.Id+"' from "+channelName)
+		s.Require().ErrorContains(err, "unable to remove '"+mockUser3.Id+"' from "+channelName)
 		s.Require().Len(printer.GetLines(), 0)
 	})
-
 }
