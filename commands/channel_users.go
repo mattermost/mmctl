@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/printer"
@@ -118,12 +120,12 @@ func removeAllUsersFromChannel(c client.Client, channel *model.Channel) error {
 	members, _, err := c.GetChannelMembers(channel.Id, 0, 10000, "")
 	if err != nil {
 		printer.PrintError("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
-		return errors.Errorf("Unable to remove all users from " + channel.Name + ". Error: " + err.Error())
+		return fmt.Errorf("unable to remove all users from %q: %w", channel.Name, err)
 	}
 
 	for _, member := range members {
 		if _, err := c.RemoveUserFromChannel(channel.Id, member.UserId); err != nil {
-			result = multierror.Append(result, errors.Errorf("Unable to remove '"+member.UserId+"' from "+channel.Name+". Error: "+err.Error()))
+			result = multierror.Append(result, fmt.Errorf("unable to remove %q from %q Error: %w", member.UserId, channel.Name, err))
 			printer.PrintError("Unable to remove '" + member.UserId + "' from " + channel.Name + ". Error: " + err.Error())
 		}
 	}
