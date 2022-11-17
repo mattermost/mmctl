@@ -407,9 +407,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		}
 
 		mockMember1 := model.ChannelMember{ChannelId: channelID, UserId: mockUser.Id}
-		mockMember2 := model.ChannelMember{ChannelId: channelID, UserId: mockUser2.Id}
-		mockMember3 := model.ChannelMember{ChannelId: channelID, UserId: mockUser3.Id}
-		mockChannelMembers := model.ChannelMembers{mockMember1, mockMember2, mockMember3}
+		mockChannelMembers := model.ChannelMembers{mockMember1}
 
 		s.client.
 			EXPECT().
@@ -432,24 +430,13 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		s.client.
 			EXPECT().
 			RemoveUserFromChannel(foundChannel.Id, mockUser.Id).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveUserFromChannel(foundChannel.Id, mockUser2.Id).
-			Return(&model.Response{StatusCode: http.StatusOK}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			RemoveUserFromChannel(foundChannel.Id, mockUser3.Id).
-			Return(&model.Response{StatusCode: http.StatusNotFound}, nil).
+			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
 			Times(1)
 
 		err := channelUsersRemoveCmdF(s.client, cmd, args)
-
-		s.Require().ErrorContains(err, "unable to remove '"+mockUser3.Id+"' from "+channelName)
+		s.Require().NotNil(err)
+		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 }
