@@ -434,7 +434,6 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 			Times(1)
 
 		err := channelUsersRemoveCmdF(s.client, cmd, args)
-		s.Require().NotNil(err)
 		s.Require().ErrorContains(err, "unable to remove")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
