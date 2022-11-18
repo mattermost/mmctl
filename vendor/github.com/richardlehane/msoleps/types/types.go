@@ -34,7 +34,8 @@ type Type interface {
 }
 
 const (
-	vector uint16 = iota + 1
+	scalar uint16 = iota
+	vector
 	array
 )
 
@@ -52,8 +53,13 @@ func Evaluate(b []byte) (Type, error) {
 		return MakeVector(f, b[4:])
 	case array:
 		return MakeArray(f, b[4:])
+	case scalar:
+		if id != VT_VARIANT { // a VT_VARIANT can only be in a vector or array
+			return f(b[4:])
+		}
 	}
-	return f(b[4:])
+	return I1(0), ErrUnknownType
+
 }
 
 type TypeID uint16

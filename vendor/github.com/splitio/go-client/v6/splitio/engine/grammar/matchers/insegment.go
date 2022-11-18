@@ -3,7 +3,7 @@ package matchers
 import (
 	"fmt"
 
-	"github.com/splitio/go-split-commons/v3/storage"
+	"github.com/splitio/go-split-commons/v4/storage"
 )
 
 // InSegmentMatcher matches if the key passed is in the segment which the matcher was constructed with

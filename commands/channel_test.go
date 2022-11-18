@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/web"
 
@@ -668,10 +669,10 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find team \""+teamID+"\"")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to find team '"+teamID+"'")
+		s.Require().Equal("unable to find team \""+teamID+"\"", printer.GetErrorLines()[0])
 	})
 
 	s.Run("Team has no channels", func() {
@@ -1044,7 +1045,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list public channels for %q: %s", args[0], mockError.Error()))
@@ -1092,7 +1093,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list archived channels for %q: %s", args[0], mockError.Error()))
@@ -1141,7 +1142,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list private channels for %q: %s", args[0], mockError.Error()))
@@ -1192,7 +1193,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list private channels for %q: %s", args[0], mockError.Error()))
@@ -1244,7 +1245,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 3)
 		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("unable to list public channels for %q: %s", args[0], mockError.Error()))
@@ -1333,9 +1334,9 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find team \""+teamID2+"\"")
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to find team '"+teamID2+"'")
+		s.Require().Equal("unable to find team \""+teamID2+"\"", printer.GetErrorLines()[0])
 		s.Len(printer.GetLines(), 4)
 		s.Require().Equal(printer.GetLines()[0], publicChannel1)
 		s.Require().Equal(printer.GetLines()[1], publicChannel2)
@@ -1445,7 +1446,7 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, mockError.Error())
 		s.Len(printer.GetErrorLines(), 3)
 		s.Len(printer.GetLines(), 4)
 		s.Require().Equal(printer.GetLines()[0], publicChannel1)
@@ -1486,11 +1487,12 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 
 		err := listChannelsCmdF(s.client, cmd, args)
 
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find team \""+team1ID+"\"")
+		s.Require().ErrorContains(err, "unable to find team \""+team2ID+"\"")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to find team '"+team1ID+"'")
-		s.Require().Equal(printer.GetErrorLines()[1], "Unable to find team '"+team2ID+"'")
+		s.Require().Equal("unable to find team \""+team1ID+"\"", printer.GetErrorLines()[0])
+		s.Require().Equal("unable to find team \""+team2ID+"\"", printer.GetErrorLines()[1])
 	})
 
 	s.Run("Two teams, both have channels", func() {
@@ -1631,8 +1633,8 @@ func (s *MmctlUnitTestSuite) TestListChannelsCmd() {
 		arg := "\"test/../hello?\"channel-test"
 
 		err := listChannelsCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to find team '\"test/../hello?\"channel-test'", printer.GetErrorLines()[0])
+		s.Require().ErrorContains(err, "unable to find team \"\\\"test/../hello?\\\"channel-test\"")
+		s.Require().Equal("unable to find team \"\\\"test/../hello?\\\"channel-test\"", printer.GetErrorLines()[0])
 	})
 }
 
@@ -2479,7 +2481,7 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamName, "team:channel"})
-		s.Require().NotNil(err)
+
 		s.Require().EqualError(err, fmt.Sprintf("unable to find destination team %q", dstTeamName))
 	})
 
@@ -2510,9 +2512,10 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
-		s.Require().Nil(err)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", channelID), printer.GetErrorLines()[0])
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to find channel %q", channelID))
+
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Fail on client.MoveChannel to another team by using Ids", func() {
@@ -2546,9 +2549,10 @@ func (s *MmctlUnitTestSuite) TestMoveChannelCmdF() {
 			Times(1)
 
 		err := moveChannelCmdF(s.client, cmd, []string{dstTeamID, channelID})
-		s.Require().Nil(err)
-		s.Len(printer.GetErrorLines(), 1)
-		s.Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to move channel %q: ", "some-name"))
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to move channel %q: some-error", "some-name"))
+
+		s.Require().EqualError(err, expected.Error())
 	})
 }
 
@@ -2838,8 +2842,9 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		arg := teamID + ":" + channelName
 		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
-		s.Require().Nil(err)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg), printer.GetErrorLines()[0])
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Delete channel from team that does not exist in db returns an error", func() {
@@ -2862,8 +2867,10 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 
 		arg := teamName + ":" + channelName
 		err := deleteChannelsCmdF(s.client, cmd, []string{arg})
-		s.Require().Nil(err)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg), printer.GetErrorLines()[0])
+
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to find channel '"+arg+"'"))
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Delete channel should delete channel", func() {
@@ -2937,10 +2944,10 @@ func (s *MmctlUnitTestSuite) TestDeleteChannelsCmd() {
 		arg1 := teamID + ":" + channelNameDoesNotExist
 		arg2 := teamID + ":" + channelName
 		err := deleteChannelsCmdF(s.client, cmd, []string{arg1, arg2})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel '%s'", arg1), printer.GetErrorLines()[0])
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to find channel '%s'", arg1))
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Equal(&mockChannel, printer.GetLines()[0])
 	})
 }

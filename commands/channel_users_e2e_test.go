@@ -98,7 +98,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to add '%s' to %s. Error: : You do not have the appropriate permissions., ", user.Id, channelName), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("Unable to add '%s' to %s. Error: : You do not have the appropriate permissions.", user.Id, channelName), printer.GetErrorLines()[0])
 	})
 
 	s.Run("Add user to channel/Client", func() {
@@ -120,7 +120,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr := s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
@@ -138,7 +138,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersAddCmdF() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr := s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
@@ -227,7 +227,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		var members model.ChannelMembers
 		_, appErr = s.th.App.AddChannelMember(s.th.Context, user.Id, channel, app.ChannelMemberOpts{})
 		s.Require().Nil(appErr)
-		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr = s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
@@ -253,7 +253,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		var members model.ChannelMembers
 		_, appErr = s.th.App.AddChannelMember(s.th.Context, user.Id, channel, app.ChannelMemberOpts{})
 		s.Require().Nil(appErr)
-		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr = s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
@@ -263,7 +263,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr = s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 0)
 	})
@@ -273,7 +273,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		_, appErr = s.th.App.AddChannelMember(s.th.Context, user.Id, channel, app.ChannelMemberOpts{})
 		s.Require().Nil(appErr)
-		members, appErr := s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr := s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 1)
 		s.Require().Equal(user.Id, (members)[0].UserId)
@@ -283,7 +283,7 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		members, appErr = s.th.App.GetChannelMembersByIds(channel.Id, []string{user.Id})
+		members, appErr = s.th.App.GetChannelMembersByIds(s.th.Context, channel.Id, []string{user.Id})
 		s.Require().Nil(appErr)
 		s.Require().Len(members, 0)
 	})

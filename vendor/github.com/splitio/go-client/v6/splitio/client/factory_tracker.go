@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/splitio/go-client/v6/splitio/conf"
-	"github.com/splitio/go-toolkit/v4/logging"
+	"github.com/splitio/go-toolkit/v5/logging"
 )
 
 // factoryInstances factory tracker instantiations
@@ -66,7 +66,7 @@ func NewSplitFactory(apikey string, cfg *conf.SplitSdkConfig) (*SplitFactory, er
 		return nil, err
 	}
 
-	splitFactory, err := newFactory(apikey, cfg, logger)
+	splitFactory, err := newFactory(apikey, *cfg, logger)
 	return splitFactory, err
 }
 

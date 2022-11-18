@@ -304,9 +304,9 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 			Times(1)
 
 		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user 'user1'")
+		s.Require().ErrorContains(err, "can't find user 'user1'")
 	})
 
 	s.Run("Add users should print error when cannot add team member", func() {

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
 	"path/filepath"
 
@@ -108,7 +110,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
 		s.Require().Nil(err)
 		s.Require().Equal(1, len(printer.GetErrorLines()))
-		s.Require().Contains(printer.GetErrorLines()[0], "Plugins and/or plugin uploads have been disabled.,")
+		s.Require().Contains(printer.GetErrorLines()[0], "Plugins and/or plugin uploads have been disabled.")
 	})
 
 	s.RunForSystemAdminAndLocal("admin and local can add a plugin if the config allows it", func(c client.Client) {
@@ -196,8 +198,10 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		printer.Clean()
 		defer removePluginIfInstalled(s.th.Client, s, jiraPluginID)
 
+		var expected error
+		expected = multierror.Append(expected, errors.New(": You do not have the appropriate permissions., "))
 		err := pluginInstallURLCmdF(s.th.Client, &cobra.Command{}, []string{jiraURL})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", jiraURL))
@@ -213,9 +217,11 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		printer.Clean()
 
 		const pluginURL = "https://plugins-store.test.mattermost.com/release/mattermost-nonexistent-plugin-v2.0.0.tar.gz"
+		var expected error
+		expected = multierror.Append(expected, errors.New(": An error occurred while downloading the plugin., "))
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{pluginURL})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", pluginURL))
@@ -237,8 +243,10 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(jiraPluginID, printer.GetLines()[0].(*model.Manifest).Id)
 
+		var expected error
+		expected = multierror.Append(expected, errors.New(": Unable to install plugin. A plugin with the same ID is already installed., "))
 		err = pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", jiraURL))
