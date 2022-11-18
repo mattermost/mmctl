@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -103,6 +105,20 @@ var TeamGroupListCmd = &cobra.Command{
 	RunE:    withClient(teamGroupListCmdF),
 }
 
+var UserGroupCmd = &cobra.Command{
+	Use:   "user",
+	Short: "Management of custom user groups",
+}
+
+var UserGroupRestoreCmd = &cobra.Command{
+	Use:     "restore [groupname]",
+	Short:   "Restore user group",
+	Long:    "Restore deleted custom user group",
+	Example: " group user restore examplegroup",
+	Args:    cobra.ExactArgs(1),
+	RunE:    withClient(userGroupRestoreCmdF),
+}
+
 func init() {
 	ChannelGroupCmd.AddCommand(
 		ChannelGroupEnableCmd,
@@ -118,10 +134,15 @@ func init() {
 		TeamGroupListCmd,
 	)
 
+	UserGroupCmd.AddCommand(
+		UserGroupRestoreCmd,
+	)
+
 	GroupCmd.AddCommand(
 		ListLdapGroupsCmd,
 		ChannelGroupCmd,
 		TeamGroupCmd,
+		UserGroupCmd,
 	)
 
 	RootCmd.AddCommand(GroupCmd)
@@ -306,5 +327,10 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 		printer.PrintT("{{.DisplayName}}", group)
 	}
 
+	return nil
+}
+
+func userGroupRestoreCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	fmt.Println(args[0])
 	return nil
 }
