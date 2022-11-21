@@ -18,7 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 var AuthCmd = &cobra.Command{
@@ -209,9 +209,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			c, _, err = InitClientWithUsernameAndPassword(username, password, url, allowInsecureSHA1, allowInsecureTLS)
 		}
 		if err != nil {
-			printer.PrintError(err.Error())
-			// We don't want usage to be printed as the command was correctly built
-			return nil
+			return fmt.Errorf("could not initiate client: %w", err)
 		}
 		accessToken = c.AuthToken
 	} else {
@@ -222,9 +220,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			AuthToken:   accessToken,
 		}
 		if _, _, err := InitClientWithCredentials(&credentials, allowInsecureSHA1, allowInsecureTLS); err != nil {
-			printer.PrintError(err.Error())
-			// We don't want usage to be printed as the command was correctly built
-			return nil
+			return fmt.Errorf("could not initiate client: %w", err)
 		}
 	}
 
@@ -247,7 +243,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Printf("\n  credentials for %q: \"%s@%s\" stored\n\n", name, username, url)
+	printer.Print(fmt.Sprintf("\n  credentials for %q: \"%s@%s\" stored\n", name, username, url))
 	return nil
 }
 
@@ -269,7 +265,7 @@ func currentCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\n  found credentials for %q: \"%s@%s\"\n\n", credentials.Name, credentials.Username, credentials.InstanceURL)
+	printer.Print(fmt.Sprintf("\n  found credentials for %q: \"%s@%s\"\n", credentials.Name, credentials.Username, credentials.InstanceURL))
 	return nil
 }
 
@@ -278,7 +274,7 @@ func setCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Credentials for server %q set as active\n", args[0])
+	printer.Print(fmt.Sprintf("Credentials for server %q set as active", args[0]))
 
 	return nil
 }
@@ -311,17 +307,17 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 		return serverNames[i] < serverNames[j]
 	})
 
-	fmt.Printf("\n    | Active | %*s | %*s | %*s |\n", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceURLLen, "InstanceURL")
-	fmt.Printf("    |%s|%s|%s|%s|\n", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2))
+	printer.Print(fmt.Sprintf("\n    | Active | %*s | %*s | %*s |", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceURLLen, "InstanceURL"))
+	printer.Print(fmt.Sprintf("    |%s|%s|%s|%s|", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2)))
 	for _, name := range serverNames {
 		c := (*credentialsList)[name]
 		if c.Active {
-			fmt.Printf("    |      * | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL)
+			printer.Print(fmt.Sprintf("    |      * | %*s | %*s | %*s |", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL))
 		} else {
-			fmt.Printf("    |        | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL)
+			printer.Print(fmt.Sprintf("    |        | %*s | %*s | %*s |", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL))
 		}
 	}
-	fmt.Println("")
+	printer.Print("")
 	return nil
 }
 

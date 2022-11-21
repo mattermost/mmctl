@@ -44,12 +44,12 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(statusMap[0]); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJson(r.Body)
+	userIds := model.ArrayFromJSON(r.Body)
 
 	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
@@ -64,14 +64,19 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// No permission check required
-
-	statusMap, err := c.App.GetUserStatusesByIds(userIds)
-	if err != nil {
-		c.Err = err
+	statuses, appErr := c.App.GetUserStatusesByIds(userIds)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.StatusListToJson(statusMap)))
+	js, err := json.Marshal(statuses)
+	if err != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -80,9 +85,9 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status := model.StatusFromJson(r.Body)
-	if status == nil {
-		c.SetInvalidParam("status")
+	var status model.Status
+	if jsonErr := json.NewDecoder(r.Body).Decode(&status); jsonErr != nil {
+		c.SetInvalidParamWithErr("status", jsonErr)
 		return
 	}
 
@@ -99,7 +104,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	currentStatus, err := c.App.GetStatus(c.Params.UserId)
 	if err == nil && currentStatus.Status == model.StatusOutOfOffice && status.Status != model.StatusOutOfOffice {
-		c.App.DisableAutoResponder(c.Params.UserId, c.IsSystemAdmin())
+		c.App.DisableAutoResponder(c.AppContext, c.Params.UserId, c.IsSystemAdmin())
 	}
 
 	switch status.Status {
@@ -110,11 +115,7 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	case "dnd":
-		if c.App.Config().FeatureFlags.TimedDND {
-			c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
-		} else {
-			c.App.SetStatusDoNotDisturb(c.Params.UserId)
-		}
+		c.App.SetStatusDoNotDisturbTimed(c.Params.UserId, status.DNDEndTime)
 	default:
 		c.SetInvalidParam("status")
 		return
@@ -134,9 +135,10 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	customStatus := model.CustomStatusFromJson(r.Body)
-	if customStatus == nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
-		c.SetInvalidParam("custom_status")
+	var customStatus model.CustomStatus
+	jsonErr := json.NewDecoder(r.Body).Decode(&customStatus)
+	if jsonErr != nil || (customStatus.Emoji == "" && customStatus.Text == "") || !customStatus.AreDurationAndExpirationTimeValid() {
+		c.SetInvalidParamWithErr("custom_status", jsonErr)
 		return
 	}
 
@@ -146,7 +148,7 @@ func updateUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	customStatus.PreSave()
-	err := c.App.SetCustomStatus(c.Params.UserId, customStatus)
+	err := c.App.SetCustomStatus(c.AppContext, c.Params.UserId, &customStatus)
 	if err != nil {
 		c.Err = err
 		return
@@ -171,7 +173,7 @@ func removeUserCustomStatus(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := c.App.RemoveCustomStatus(c.Params.UserId); err != nil {
+	if err := c.App.RemoveCustomStatus(c.AppContext, c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -190,9 +192,9 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	recentCustomStatus := model.CustomStatusFromJson(r.Body)
-	if recentCustomStatus == nil {
-		c.SetInvalidParam("recent_custom_status")
+	var recentCustomStatus model.CustomStatus
+	if jsonErr := json.NewDecoder(r.Body).Decode(&recentCustomStatus); jsonErr != nil {
+		c.SetInvalidParamWithErr("recent_custom_status", jsonErr)
 		return
 	}
 
@@ -201,7 +203,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}

@@ -9,7 +9,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -464,7 +464,7 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 			Times(1)
 
 		err := botDisableCmdF(s.client, &cobra.Command{}, []string{botArg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "can't find user 'a-bot'")
 	})
@@ -499,7 +499,7 @@ func (s *MmctlUnitTestSuite) TestBotDisableCmd() {
 			Times(1)
 
 		err := botDisableCmdF(s.client, cmd, []string{botArg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "could not disable bot 'a-bot'")
 	})
@@ -562,7 +562,7 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 			Times(1)
 
 		err := botEnableCmdF(s.client, &cobra.Command{}, []string{botArg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "can't find user 'a-bot'")
 	})
@@ -597,7 +597,7 @@ func (s *MmctlUnitTestSuite) TestBotEnableCmd() {
 			Times(1)
 
 		err := botEnableCmdF(s.client, cmd, []string{botArg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], "could not enable bot 'a-bot'")
 	})

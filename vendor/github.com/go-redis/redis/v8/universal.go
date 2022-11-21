@@ -25,6 +25,7 @@ type UniversalOptions struct {
 
 	Username         string
 	Password         string
+	SentinelUsername string
 	SentinelPassword string
 
 	MaxRetries      int
@@ -34,6 +35,9 @@ type UniversalOptions struct {
 	DialTimeout  time.Duration
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
+
+	// PoolFIFO uses FIFO mode for each node connection pool GET/PUT (default LIFO).
+	PoolFIFO bool
 
 	PoolSize           int
 	MinIdleConns       int
@@ -83,6 +87,7 @@ func (o *UniversalOptions) Cluster() *ClusterOptions {
 		DialTimeout:        o.DialTimeout,
 		ReadTimeout:        o.ReadTimeout,
 		WriteTimeout:       o.WriteTimeout,
+		PoolFIFO:           o.PoolFIFO,
 		PoolSize:           o.PoolSize,
 		MinIdleConns:       o.MinIdleConns,
 		MaxConnAge:         o.MaxConnAge,
@@ -110,6 +115,7 @@ func (o *UniversalOptions) Failover() *FailoverOptions {
 		DB:               o.DB,
 		Username:         o.Username,
 		Password:         o.Password,
+		SentinelUsername: o.SentinelUsername,
 		SentinelPassword: o.SentinelPassword,
 
 		MaxRetries:      o.MaxRetries,
@@ -120,6 +126,7 @@ func (o *UniversalOptions) Failover() *FailoverOptions {
 		ReadTimeout:  o.ReadTimeout,
 		WriteTimeout: o.WriteTimeout,
 
+		PoolFIFO:           o.PoolFIFO,
 		PoolSize:           o.PoolSize,
 		MinIdleConns:       o.MinIdleConns,
 		MaxConnAge:         o.MaxConnAge,
@@ -155,6 +162,7 @@ func (o *UniversalOptions) Simple() *Options {
 		ReadTimeout:  o.ReadTimeout,
 		WriteTimeout: o.WriteTimeout,
 
+		PoolFIFO:           o.PoolFIFO,
 		PoolSize:           o.PoolSize,
 		MinIdleConns:       o.MinIdleConns,
 		MaxConnAge:         o.MaxConnAge,

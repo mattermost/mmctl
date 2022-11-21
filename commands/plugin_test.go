@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	"github.com/golang/mock/gomock"
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,29 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 			Times(1)
 
 		err = pluginAddCmdF(s.client, &cobra.Command{}, []string{pluginName})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
+	})
+
+	s.Run("Add 1 plugin, with force active", func() {
+		printer.Clean()
+		tmpFile, err := ioutil.TempFile("", "tmpPlugin")
+		s.Require().Nil(err)
+		defer os.Remove(tmpFile.Name())
+
+		pluginName := tmpFile.Name()
+
+		s.client.
+			EXPECT().
+			UploadPluginForced(gomock.AssignableToTypeOf(tmpFile)).
+			Return(&model.Manifest{}, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("force", true, "")
+
+		err = pluginAddCmdF(s.client, cmd, []string{pluginName})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+pluginName)
@@ -174,8 +198,11 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
+		var expected error
+		expected = multierror.Append(expected, errors.New("mock error"))
+
 		err := pluginInstallURLCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to install plugin from URL \"https://example.com/plugin2.tar.gz\". Error: mock error", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 1)

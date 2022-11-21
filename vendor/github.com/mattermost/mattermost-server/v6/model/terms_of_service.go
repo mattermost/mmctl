@@ -4,9 +4,7 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"unicode/utf8"
 )
@@ -38,24 +36,13 @@ func (t *TermsOfService) IsValid() *AppError {
 	return nil
 }
 
-func (t *TermsOfService) ToJson() string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func TermsOfServiceFromJson(data io.Reader) *TermsOfService {
-	var termsOfService *TermsOfService
-	json.NewDecoder(data).Decode(&termsOfService)
-	return termsOfService
-}
-
 func InvalidTermsOfServiceError(fieldName string, termsOfServiceId string) *AppError {
 	id := fmt.Sprintf("model.terms_of_service.is_valid.%s.app_error", fieldName)
 	details := ""
 	if termsOfServiceId != "" {
 		details = "terms_of_service_id=" + termsOfServiceId
 	}
-	return NewAppError("TermsOfService.IsValid", id, map[string]interface{}{"MaxLength": PostMessageMaxRunesV2}, details, http.StatusBadRequest)
+	return NewAppError("TermsOfService.IsValid", id, map[string]any{"MaxLength": PostMessageMaxRunesV2}, details, http.StatusBadRequest)
 }
 
 func (t *TermsOfService) PreSave() {

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
@@ -18,6 +18,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 		mockJob := &model.Job{
 			Type: model.JobTypeExportProcess,
+			Data: map[string]string{"include_attachments": "true"},
 		}
 
 		s.client.
@@ -33,11 +34,11 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
 
-	s.Run("create export with attachments", func() {
+	s.Run("create export without attachments", func() {
 		printer.Clean()
 		mockJob := &model.Job{
 			Type: model.JobTypeExportProcess,
-			Data: map[string]string{"include_attachments": "true"},
+			Data: make(map[string]string),
 		}
 
 		s.client.
@@ -47,7 +48,7 @@ func (s *MmctlUnitTestSuite) TestExportCreateCmdF() {
 			Times(1)
 
 		cmd := &cobra.Command{}
-		cmd.Flags().Bool("attachments", true, "")
+		cmd.Flags().Bool("no-attachments", true, "")
 
 		err := exportCreateCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)

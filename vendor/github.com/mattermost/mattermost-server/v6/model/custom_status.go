@@ -4,10 +4,12 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"time"
+
+	"github.com/graph-gophers/graphql-go"
 )
 
 const (
@@ -49,12 +51,6 @@ func (cs *CustomStatus) PreSave() {
 	}
 }
 
-func (cs *CustomStatus) ToJson() string {
-	csCopy := *cs
-	b, _ := json.Marshal(csCopy)
-	return string(b)
-}
-
 func (cs *CustomStatus) AreDurationAndExpirationTimeValid() bool {
 	if cs.Duration == "" && (cs.ExpiresAt.IsZero() || !cs.ExpiresAt.Before(time.Now())) {
 		return true
@@ -67,10 +63,10 @@ func (cs *CustomStatus) AreDurationAndExpirationTimeValid() bool {
 	return false
 }
 
-func CustomStatusFromJson(data io.Reader) *CustomStatus {
-	var cs *CustomStatus
-	_ = json.NewDecoder(data).Decode(&cs)
-	return cs
+// ExpiresAt_ returns the time in a type that has the marshal/unmarshal methods
+// attached to it.
+func (cs *CustomStatus) ExpiresAt_() graphql.Time {
+	return graphql.Time{Time: cs.ExpiresAt}
 }
 
 func RuneToHexadecimalString(r rune) string {
@@ -79,21 +75,32 @@ func RuneToHexadecimalString(r rune) string {
 
 type RecentCustomStatuses []CustomStatus
 
-func (rcs RecentCustomStatuses) Contains(cs *CustomStatus) bool {
-	var csJSON = cs.ToJson()
+func (rcs RecentCustomStatuses) Contains(cs *CustomStatus) (bool, error) {
+	if cs == nil {
+		return false, nil
+	}
+
+	csJSON, jsonErr := json.Marshal(cs)
+	if jsonErr != nil {
+		return false, jsonErr
+	}
 
 	// status is empty
-	if cs == nil || csJSON == "" || (cs.Emoji == "" && cs.Text == "") {
-		return false
+	if len(csJSON) == 0 || (cs.Emoji == "" && cs.Text == "") {
+		return false, nil
 	}
 
 	for _, status := range rcs {
-		if status.ToJson() == csJSON {
-			return true
+		js, jsonErr := json.Marshal(status)
+		if jsonErr != nil {
+			return false, jsonErr
+		}
+		if bytes.Equal(js, csJSON) {
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 func (rcs RecentCustomStatuses) Add(cs *CustomStatus) RecentCustomStatuses {
@@ -112,29 +119,30 @@ func (rcs RecentCustomStatuses) Add(cs *CustomStatus) RecentCustomStatuses {
 	return newRCS
 }
 
-func (rcs RecentCustomStatuses) Remove(cs *CustomStatus) RecentCustomStatuses {
-	var csJSON = cs.ToJson()
-	if csJSON == "" || (cs.Emoji == "" && cs.Text == "") {
-		return rcs
+func (rcs RecentCustomStatuses) Remove(cs *CustomStatus) (RecentCustomStatuses, error) {
+	if cs == nil {
+		return rcs, nil
+	}
+
+	csJSON, jsonErr := json.Marshal(cs)
+	if jsonErr != nil {
+		return rcs, jsonErr
+	}
+
+	if len(csJSON) == 0 || (cs.Emoji == "" && cs.Text == "") {
+		return rcs, nil
 	}
 
 	newRCS := rcs[:0]
 	for _, status := range rcs {
-		if status.ToJson() != csJSON {
+		js, jsonErr := json.Marshal(status)
+		if jsonErr != nil {
+			return rcs, jsonErr
+		}
+		if !bytes.Equal(js, csJSON) {
 			newRCS = append(newRCS, status)
 		}
 	}
 
-	return newRCS
-}
-
-func (rcs RecentCustomStatuses) ToJson() string {
-	b, _ := json.Marshal(rcs)
-	return string(b)
-}
-
-func RecentCustomStatusesFromJson(data io.Reader) RecentCustomStatuses {
-	var rcs RecentCustomStatuses
-	_ = json.NewDecoder(data).Decode(&rcs)
-	return rcs
+	return newRCS, nil
 }

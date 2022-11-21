@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"time"
 )
@@ -29,6 +27,9 @@ const (
 	JobTypeCloud                        = "cloud"
 	JobTypeResendInvitationEmail        = "resend_invitation_email"
 	JobTypeExtractContent               = "extract_content"
+	JobTypeLastAccessiblePost           = "last_accessible_post"
+	JobTypeUpgradeNotifyAdmin           = "upgrade_notify_admin"
+	JobTypeTrialNotifyAdmin             = "trial_notify_admin"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -57,18 +58,33 @@ var AllJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
+	JobTypeLastAccessiblePost,
 }
 
 type Job struct {
-	Id             string            `json:"id"`
-	Type           string            `json:"type"`
-	Priority       int64             `json:"priority"`
-	CreateAt       int64             `json:"create_at"`
-	StartAt        int64             `json:"start_at"`
-	LastActivityAt int64             `json:"last_activity_at"`
-	Status         string            `json:"status"`
-	Progress       int64             `json:"progress"`
-	Data           map[string]string `json:"data"`
+	Id             string    `json:"id"`
+	Type           string    `json:"type"`
+	Priority       int64     `json:"priority"`
+	CreateAt       int64     `json:"create_at"`
+	StartAt        int64     `json:"start_at"`
+	LastActivityAt int64     `json:"last_activity_at"`
+	Status         string    `json:"status"`
+	Progress       int64     `json:"progress"`
+	Data           StringMap `json:"data"`
+}
+
+func (j *Job) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               j.Id,
+		"type":             j.Type,
+		"priority":         j.Priority,
+		"create_at":        j.CreateAt,
+		"start_at":         j.StartAt,
+		"last_activity_at": j.LastActivityAt,
+		"status":           j.Status,
+		"progress":         j.Progress,
+		"data":             j.Data, // TODO do we want this here
+	}
 }
 
 func (j *Job) IsValid() *AppError {
@@ -78,29 +94,6 @@ func (j *Job) IsValid() *AppError {
 
 	if j.CreateAt == 0 {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
-	}
-
-	switch j.Type {
-	case JobTypeDataRetention:
-	case JobTypeElasticsearchPostIndexing:
-	case JobTypeElasticsearchPostAggregation:
-	case JobTypeBlevePostIndexing:
-	case JobTypeLdapSync:
-	case JobTypeMessageExport:
-	case JobTypeMigrations:
-	case JobTypePlugins:
-	case JobTypeProductNotices:
-	case JobTypeExpiryNotify:
-	case JobTypeActiveUsers:
-	case JobTypeImportProcess:
-	case JobTypeImportDelete:
-	case JobTypeExportProcess:
-	case JobTypeExportDelete:
-	case JobTypeCloud:
-	case JobTypeResendInvitationEmail:
-	case JobTypeExtractContent:
-	default:
-		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
 	switch j.Status {
@@ -117,46 +110,14 @@ func (j *Job) IsValid() *AppError {
 	return nil
 }
 
-func (j *Job) ToJson() string {
-	b, _ := json.Marshal(j)
-	return string(b)
-}
-
-func JobFromJson(data io.Reader) *Job {
-	var job Job
-	if err := json.NewDecoder(data).Decode(&job); err == nil {
-		return &job
-	}
-	return nil
-}
-
-func JobsToJson(jobs []*Job) string {
-	b, _ := json.Marshal(jobs)
-	return string(b)
-}
-
-func JobsFromJson(data io.Reader) []*Job {
-	var jobs []*Job
-	if err := json.NewDecoder(data).Decode(&jobs); err == nil {
-		return jobs
-	}
-	return nil
-}
-
-func (j *Job) DataToJson() string {
-	b, _ := json.Marshal(j.Data)
-	return string(b)
-}
-
 type Worker interface {
 	Run()
 	Stop()
 	JobChannel() chan<- Job
+	IsEnabled(cfg *Config) bool
 }
 
 type Scheduler interface {
-	Name() string
-	JobType() string
 	Enabled(cfg *Config) bool
 	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
 	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)

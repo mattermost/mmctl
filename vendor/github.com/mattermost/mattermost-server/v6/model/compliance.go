@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"strings"
 )
@@ -33,6 +31,22 @@ type Compliance struct {
 	EndAt    int64  `json:"end_at"`
 	Keywords string `json:"keywords"`
 	Emails   string `json:"emails"`
+}
+
+func (c *Compliance) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":        c.Id,
+		"create_at": c.CreateAt,
+		"user_id":   c.UserId,
+		"status":    c.Status,
+		"count":     c.Count,
+		"desc":      c.Desc,
+		"type":      c.Type,
+		"start_at":  c.StartAt,
+		"end_at":    c.EndAt,
+		"keywords":  c.Keywords,
+		"emails":    c.Emails,
+	}
 }
 
 type Compliances []Compliance
@@ -83,7 +97,6 @@ func (c *Compliance) JobName() string {
 }
 
 func (c *Compliance) IsValid() *AppError {
-
 	if !IsValidId(c.Id) {
 		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -109,16 +122,4 @@ func (c *Compliance) IsValid() *AppError {
 	}
 
 	return nil
-}
-
-func ComplianceFromJson(data io.Reader) *Compliance {
-	var c *Compliance
-	json.NewDecoder(data).Decode(&c)
-	return c
-}
-
-func CompliancesFromJson(data io.Reader) Compliances {
-	var o Compliances
-	json.NewDecoder(data).Decode(&o)
-	return o
 }

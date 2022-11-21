@@ -8,9 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"path"
+	"reflect"
 	"runtime"
 	"strconv"
 	"time"
@@ -50,6 +50,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
 
 	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
@@ -66,23 +67,29 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/warn_metrics/trial-license-ack/{warn_metric_id:[A-Za-z0-9-_]+}", api.APIHandler(requestTrialLicenseAndAckWarnMetric)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
-
 	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
+	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
+	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
 }
 
 func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	const FileMime = "application/zip"
 	const OutputDirectory = "support_packet"
 
-	// Checking to see if the user is a admin of any sort or not
-	// If they are a admin, they should theoritcally have access to one or more of the system console read permissions
-	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-		c.SetPermissionError(model.SysconsoleReadPermissions...)
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("generateSupportPacket", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Support packet generation is limited to system admins (MM-42271).
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
 		return
 	}
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)
-	if c.App.Srv().License() == nil {
+	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.generateSupportPacket", "api.no_license", nil, "", http.StatusForbidden)
 		return
 	}
@@ -93,11 +100,7 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	outputZipFilename := fmt.Sprintf("mattermost_support_packet_%s.zip", now.Format("2006-01-02-03-04"))
 
-	fileStorageBackend, fileBackendErr := c.App.FileBackend()
-	if fileBackendErr != nil {
-		c.Err = fileBackendErr
-		return
-	}
+	fileStorageBackend := c.App.FileBackend()
 
 	// We do this incase we get concurrent requests, we will always have a unique directory.
 	// This is to avoid the situation where we try to write to the same directory while we are trying to delete it (further down)
@@ -129,8 +132,6 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s[model.STATUS] = model.StatusOk
 	s["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 	s["AndroidMinVersion"] = reqs.AndroidMinVersion
-	s["DesktopLatestVersion"] = reqs.DesktopLatestVersion
-	s["DesktopMinVersion"] = reqs.DesktopMinVersion
 	s["IosLatestVersion"] = reqs.IosLatestVersion
 	s["IosMinVersion"] = reqs.IosMinVersion
 
@@ -183,16 +184,29 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey])
 	}
 
+	if deviceID := r.FormValue("device_id"); deviceID != "" {
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
+	}
+
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
-	w.Write([]byte(model.MapToJson(s)))
+	w.Write([]byte(model.MapToJSON(s)))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding the config", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
+	}
+
+	if checkHasNilFields(&cfg.EmailSettings) {
+		c.Err = model.NewAppError("testEmail", "api.file.test_connection_email_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestEmail) {
@@ -205,9 +219,9 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.TestEmail(c.AppContext.Session().UserId, cfg)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -225,16 +239,16 @@ func testSiteURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
+	props := model.MapFromJSON(r.Body)
 	siteURL := props["site_url"]
 	if siteURL == "" {
 		c.SetInvalidParam("site_url")
 		return
 	}
 
-	err := c.App.TestSiteURL(siteURL)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.TestSiteURL(siteURL)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -250,18 +264,18 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	audits, appErr := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("page", c.Params.Page)
-	auditRec.AddMeta("audits_per_page", c.Params.LogsPerPage)
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("audits_per_page", c.Params.LogsPerPage)
 
 	if err := json.NewEncoder(w).Encode(audits); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -299,9 +313,9 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.Srv().InvalidateAllCaches()
-	if err != nil {
-		c.Err = err
+	appErr := c.App.Srv().InvalidateAllCaches()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -325,16 +339,16 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
-	if err != nil {
-		c.Err = err
+	lines, appErr := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	auditRec.AddMeta("page", c.Params.Page)
-	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.AddEventParameter("page", c.Params.Page)
+	auditRec.AddEventParameter("logs_per_page", c.Params.LogsPerPage)
 
-	w.Write([]byte(model.ArrayToJson(lines)))
+	w.Write([]byte(model.ArrayToJSON(lines)))
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -351,7 +365,15 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	m := model.MapFromJson(r.Body)
+	var m map[string]string
+	err := json.NewDecoder(r.Body).Decode(&m)
+	if err != nil {
+		c.Logger.Warn("Error decoding request.", mlog.Err(err))
+	}
+	if m == nil {
+		m = map[string]string{}
+	}
+
 	lvl := m["level"]
 	msg := m["message"]
 
@@ -372,7 +394,10 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m["message"] = msg
-	w.Write([]byte(model.MapToJson(m)))
+	err = json.NewEncoder(w).Encode(m)
+	if err != nil {
+		c.Logger.Warn("Error while writing response.", mlog.Err(err))
+	}
 }
 
 func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -388,9 +413,9 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := c.App.GetAnalytics(name, teamId)
-	if err != nil {
-		c.Err = err
+	rows, appErr := c.App.GetAnalytics(name, teamId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -400,8 +425,29 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(rows); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("latestVersion", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	resp, appErr := c.App.GetLatestVersion("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	b, err := json.Marshal(resp)
+	if err != nil {
+		c.Logger.Warn("Unable to marshal JSON for latest version.", mlog.Err(err))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Write(b)
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -420,9 +466,18 @@ func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := model.ConfigFromJson(r.Body)
+	var cfg *model.Config
+	err := json.NewDecoder(r.Body).Decode(&cfg)
+	if err != nil {
+		c.Logger.Warn("Error decoding the config", mlog.Err(err))
+	}
 	if cfg == nil {
 		cfg = c.App.Config()
+	}
+
+	if checkHasNilFields(&cfg.FileSettings) {
+		c.Err = model.NewAppError("testS3", "api.file.test_connection_s3_settings_nil.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
@@ -435,9 +490,9 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -445,7 +500,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
-	appErr := c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
+	appErr = c.App.TestFileStoreConnectionWithConfig(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -459,7 +514,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = ""
 
 	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
-		w.Write([]byte(model.MapToJson(m)))
+		w.Write([]byte(model.MapToJSON(m)))
 		return
 	}
 
@@ -472,7 +527,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	var location string
 	if err := redirectLocationDataCache.Get(url, &location); err == nil {
 		m["location"] = location
-		w.Write([]byte(model.MapToJson(m)))
+		w.Write([]byte(model.MapToJSON(m)))
 		return
 	}
 
@@ -486,11 +541,11 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Cache failures to prevent retries.
 		redirectLocationDataCache.SetWithExpiry(url, "", 1*time.Hour)
 		// Always return a success status and a JSON string to limit information returned to client.
-		w.Write([]byte(model.MapToJson(m)))
+		w.Write([]byte(model.MapToJSON(m)))
 		return
 	}
 	defer func() {
-		io.Copy(ioutil.Discard, res.Body)
+		io.Copy(io.Discard, res.Body)
 		res.Body.Close()
 	}()
 
@@ -498,23 +553,18 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectLocationDataCache.SetWithExpiry(url, location, 1*time.Hour)
 	m["location"] = location
 
-	w.Write([]byte(model.MapToJson(m)))
+	w.Write([]byte(model.MapToJSON(m)))
 }
 
 func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
-	ack, err := model.PushNotificationAckFromJson(r.Body)
-	if err != nil {
+	var ack model.PushNotificationAck
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
 		c.Err = model.NewAppError("pushNotificationAck",
 			"api.push_notifications_ack.message.parse.app_error",
 			nil,
-			err.Error(),
+			"",
 			http.StatusBadRequest,
-		)
-		return
-	}
-
-	if _, appErr := c.App.GetPostIfAuthorized(ack.PostId, c.AppContext.Session()); appErr != nil {
-		c.Err = appErr
+		).Wrap(jsonErr)
 		return
 	}
 
@@ -523,7 +573,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SendAckToPushProxy(ack)
+	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
 		if err != nil {
 			// Log the error only, then continue to fetch notification message
@@ -535,21 +585,28 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 		}
 
-		notificationInterface := c.App.Notification()
+		// Return post data only when PostId is passed.
+		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
+			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
+				c.Err = appErr
+				return
+			}
 
-		if notificationInterface == nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
-			return
-		}
+			notificationInterface := c.App.Notification()
 
-		msg, appError := notificationInterface.GetNotificationMessage(ack, c.AppContext.Session().UserId)
-		if appError != nil {
-			c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
-			return
-		}
+			if notificationInterface == nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.system.id_loaded.not_available.app_error", nil, "", http.StatusFound)
+				return
+			}
 
-		if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err2))
+			msg, appError := notificationInterface.GetNotificationMessage(&ack, c.AppContext.Session().UserId)
+			if appError != nil {
+				c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.id_loaded.fetch.app_error", nil, appError.Error(), http.StatusInternalServerError)
+				return
+			}
+			if err2 := json.NewEncoder(w).Encode(msg); err2 != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err2))
+			}
 		}
 
 		return
@@ -581,7 +638,7 @@ func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("setServerBusy", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("seconds", i)
+	auditRec.AddEventParameter("seconds", i)
 
 	c.App.Srv().Busy.Set(time.Second * time.Duration(i))
 	mlog.Warn("server busy state activated - non-critical services disabled", mlog.Int64("seconds", i))
@@ -612,9 +669,14 @@ func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// We call to ToJson because it actually returns a different struct
+	// We call to ToJSON because it actually returns a different struct
 	// along with doing some computations.
-	if _, err := w.Write([]byte(c.App.Srv().Busy.ToJson())); err != nil {
+	sbsJSON, jsonErr := c.App.Srv().Busy.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn(jsonErr.Error())
+	}
+
+	if _, err := w.Write(sbsJSON); err != nil {
 		mlog.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -649,7 +711,7 @@ func upgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
 		var iaErr *upgrader.InvalidArch
 		switch {
 		case errors.As(err, &ipErr):
-			params := map[string]interface{}{
+			params := map[string]any{
 				"MattermostUsername": ipErr.MattermostUsername,
 				"FileUsername":       ipErr.FileUsername,
 				"Path":               ipErr.Path,
@@ -685,22 +747,22 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	percentage, err := c.App.Srv().UpgradeToE0Status()
-	var s map[string]interface{}
+	var s map[string]any
 	if err != nil {
 		var isErr *upgrader.InvalidSignature
 		switch {
 		case errors.As(err, &isErr):
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		default:
 			appErr := model.NewAppError("upgradeToEnterpriseStatus", "api.upgrade_to_enterprise_status.signature.app_error", nil, err.Error(), http.StatusBadRequest)
-			s = map[string]interface{}{"percentage": 0, "error": appErr.Message}
+			s = map[string]any{"percentage": 0, "error": appErr.Message}
 		}
 	} else {
-		s = map[string]interface{}{"percentage": percentage, "error": nil}
+		s = map[string]any{"percentage": percentage, "error": nil}
 	}
 
-	w.Write([]byte(model.StringInterfaceToJson(s)))
+	w.Write([]byte(model.StringInterfaceToJSON(s)))
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -727,19 +789,25 @@ func getWarnMetricsStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
 	}
 
-	status, err := c.App.GetWarnMetricsStatus()
-	if err != nil {
-		c.Err = err
+	status, appErr := c.App.GetWarnMetricsStatus()
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.MapWarnMetricStatusToJson(status)))
+	js, err := json.Marshal(status)
+	if err != nil {
+		c.Err = model.NewAppError("getWarnMetricsStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -752,7 +820,7 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -764,9 +832,9 @@ func sendWarnMetricAckEmail(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	ack := model.SendWarnMetricAckFromJson(r.Body)
-	if ack == nil {
-		c.SetInvalidParam("ack")
+	var ack model.SendWarnMetricAck
+	if jsonErr := json.NewDecoder(r.Body).Decode(&ack); jsonErr != nil {
+		c.SetInvalidParamWithErr("ack", jsonErr)
 		return
 	}
 
@@ -794,7 +862,7 @@ func requestTrialLicenseAndAckWarnMetric(c *Context, w http.ResponseWriter, r *h
 		return
 	}
 
-	license := c.App.Srv().License()
+	license := c.App.Channels().License()
 	if license != nil {
 		mlog.Debug("License is present, skip.")
 		return
@@ -823,10 +891,9 @@ func getProductNotices(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientVersion := r.URL.Query().Get("clientVersion")
 	locale := r.URL.Query().Get("locale")
 
-	notices, err := c.App.GetProductNotices(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
-
-	if err != nil {
-		c.Err = err
+	notices, appErr := c.App.GetProductNotices(c.AppContext, c.AppContext.Session().UserId, c.Params.TeamId, client, clientVersion, locale)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 	result, _ := notices.Marshal()
@@ -838,13 +905,106 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids := model.ArrayFromJson(r.Body)
-	err := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
-	if err != nil {
-		c.Err = err
+	ids := model.ArrayFromJSON(r.Body)
+	appErr := c.App.UpdateViewedProductNotices(c.AppContext.Session().UserId, ids)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+func getOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("getOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	firstAdminCompleteSetupObj, err := c.App.GetOnboarding()
+
+	if err != nil {
+		c.Err = model.NewAppError("getOnboarding", "app.system.get_onboarding_request.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(firstAdminCompleteSetupObj); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func completeOnboarding(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.no_first_user", nil, "", http.StatusForbidden)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("completeOnboarding", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	onboardingRequest, err := model.CompleteOnboardingRequestFromReader(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("completeOnboarding", "app.system.complete_onboarding_request.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+	auditRec.AddEventParameter("install_plugin", onboardingRequest.InstallPlugins)
+	auditRec.AddEventParameter("onboarding_request", onboardingRequest)
+
+	appErr := c.App.CompleteOnboarding(c.AppContext, onboardingRequest)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func getAppliedSchemaMigrations(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+		c.SetPermissionError(model.SysconsoleReadPermissions...)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("getAppliedSchemaMigrations", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	migrations, appErr := c.App.GetAppliedSchemaMigrations()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(migrations)
+	if err != nil {
+		c.Err = model.NewAppError("getAppliedMigrations", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
+	auditRec.Success()
+}
+
+// returns true if the data has nil fields
+// this is being used for testS3 and testEmail methods
+func checkHasNilFields(value any) bool {
+	v := reflect.Indirect(reflect.ValueOf(value))
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if field.Kind() == reflect.Ptr && field.IsNil() {
+			return true
+		}
+	}
+
+	return false
 }

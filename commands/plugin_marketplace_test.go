@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -25,9 +25,8 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		id := "myplugin"
-		version := "2.0.0"
-		args := []string{id, version}
-		pluginRequest := &model.InstallMarketplacePluginRequest{Id: id, Version: version}
+		args := []string{id}
+		pluginRequest := &model.InstallMarketplacePluginRequest{Id: id}
 		manifest := &model.Manifest{Name: "My Plugin", Id: id}
 
 		s.client.
@@ -37,39 +36,6 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(manifest, printer.GetLines()[0])
-	})
-
-	s.Run("Install a valid plugin omitting the version", func() {
-		printer.Clean()
-
-		id := "myplugin"
-		version := "2.0.0"
-
-		plugin := createMarketplacePlugin(id)
-		plugin.BaseMarketplacePlugin.Manifest.Id = id
-		plugin.BaseMarketplacePlugin.Manifest.Version = version
-		plugins := []*model.MarketplacePlugin{plugin}
-
-		pluginRequest := &model.InstallMarketplacePluginRequest{Id: id, Version: version}
-		manifest := &model.Manifest{Name: "My Plugin", Id: id}
-
-		s.client.
-			EXPECT().
-			GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: id, PerPage: 200}).
-			Return(plugins, &model.Response{}, nil).
-			Times(1)
-
-		s.client.
-			EXPECT().
-			InstallMarketplacePlugin(pluginRequest).
-			Return(manifest, &model.Response{}, nil).
-			Times(1)
-
-		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, []string{id})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -80,9 +46,8 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 		printer.Clean()
 
 		id := "myplugin"
-		version := "2.0.0"
-		args := []string{id, version}
-		pluginRequest := &model.InstallMarketplacePluginRequest{Id: id, Version: version}
+		args := []string{id}
+		pluginRequest := &model.InstallMarketplacePluginRequest{Id: id}
 
 		s.client.
 			EXPECT().
@@ -91,40 +56,6 @@ func (s *MmctlUnitTestSuite) TestPluginMarketplaceInstallCmd() {
 			Times(1)
 
 		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Error(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
-	s.Run("Install an invalid plugin omitting the version", func() {
-		printer.Clean()
-
-		id := "myplugin"
-
-		s.client.
-			EXPECT().
-			GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: id, PerPage: 200}).
-			Return(nil, &model.Response{}, errors.New("mock error")).
-			Times(1)
-
-		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, []string{id})
-		s.Require().Error(err)
-		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Len(printer.GetLines(), 0)
-	})
-
-	s.Run("Install a nonexisting plugin omitting the version", func() {
-		printer.Clean()
-
-		id := "myplugin"
-
-		s.client.
-			EXPECT().
-			GetMarketplacePlugins(&model.MarketplacePluginFilter{Filter: id, PerPage: 200}).
-			Return([]*model.MarketplacePlugin{}, &model.Response{}, nil).
-			Times(1)
-
-		err := pluginMarketplaceInstallCmdF(s.client, &cobra.Command{}, []string{id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)

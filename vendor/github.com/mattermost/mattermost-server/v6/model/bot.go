@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -34,6 +33,20 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
+func (b *Bot) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id":          b.UserId,
+		"username":         b.Username,
+		"display_name":     b.DisplayName,
+		"description":      b.Description,
+		"owner_id":         b.OwnerId,
+		"last_icon_update": b.LastIconUpdate,
+		"create_at":        b.CreateAt,
+		"update_at":        b.UpdateAt,
+		"delete_at":        b.DeleteAt,
+	}
+}
+
 // BotPatch is a description of what fields to update on an existing bot.
 type BotPatch struct {
 	Username    *string `json:"username"`
@@ -54,8 +67,8 @@ type BotGetOptions struct {
 type BotList []*Bot
 
 // Trace describes the minimum information required to identify a bot for the purpose of logging.
-func (b *Bot) Trace() map[string]interface{} {
-	return map[string]interface{}{"user_id": b.UserId}
+func (b *Bot) Trace() map[string]any {
+	return map[string]any{"user_id": b.UserId}
 }
 
 // Clone returns a shallow copy of the bot.
@@ -64,12 +77,8 @@ func (b *Bot) Clone() *Bot {
 	return &copy
 }
 
-// IsValid validates the bot and returns an error if it isn't configured correctly.
-func (b *Bot) IsValid() *AppError {
-	if !IsValidId(b.UserId) {
-		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
-	}
-
+// IsValidCreate validates bot for Create call. This skips validations of fields that are auto-filled on Create
+func (b *Bot) IsValidCreate() *AppError {
 	if !IsValidUsername(b.Username) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.username.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -86,6 +95,15 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
+	return nil
+}
+
+// IsValid validates the bot and returns an error if it isn't configured correctly.
+func (b *Bot) IsValid() *AppError {
+	if !IsValidId(b.UserId) {
+		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
+	}
+
 	if b.CreateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.create_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
@@ -93,8 +111,7 @@ func (b *Bot) IsValid() *AppError {
 	if b.UpdateAt == 0 {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.update_at.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
-
-	return nil
+	return b.IsValidCreate()
 }
 
 // PreSave should be run before saving a new bot to the database.
@@ -112,12 +129,6 @@ func (b *Bot) PreUpdate() {
 // Etag generates an etag for caching.
 func (b *Bot) Etag() string {
 	return Etag(b.UserId, b.UpdateAt)
-}
-
-// ToJson serializes the bot to json.
-func (b *Bot) ToJson() []byte {
-	data, _ := json.Marshal(b)
-	return data
 }
 
 // Patch modifies an existing bot with optional fields from the given patch.
@@ -154,16 +165,6 @@ func (b *Bot) WouldPatch(patch *BotPatch) bool {
 	return false
 }
 
-// ToJson serializes the bot patch to json.
-func (b *BotPatch) ToJson() []byte {
-	data, err := json.Marshal(b)
-	if err != nil {
-		return nil
-	}
-
-	return data
-}
-
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
@@ -183,12 +184,6 @@ func BotFromUser(u *User) *Bot {
 		Username:    u.Username,
 		DisplayName: u.GetDisplayName(ShowUsername),
 	}
-}
-
-// ToJson serializes a list of bots to json.
-func (l *BotList) ToJson() []byte {
-	b, _ := json.Marshal(l)
-	return b
 }
 
 // Etag computes the etag for a list of bots.
@@ -211,7 +206,7 @@ func (l *BotList) Etag() string {
 // MakeBotNotFoundError creates the error returned when a bot does not exist, or when the user isn't allowed to query the bot.
 // The errors must the same in both cases to avoid leaking that a user is a bot.
 func MakeBotNotFoundError(userId string) *AppError {
-	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+	return NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]any{"user_id": userId}, "", http.StatusNotFound)
 }
 
 func IsBotDMChannel(channel *Channel, botUserID string) bool {

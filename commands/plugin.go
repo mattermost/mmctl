@@ -6,9 +6,10 @@ package commands
 import (
 	"os"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -76,6 +77,7 @@ var PluginListCmd = &cobra.Command{
 }
 
 func init() {
+	PluginAddCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 	PluginInstallURLCmd.Flags().BoolP("force", "f", false, "overwrite a previously installed plugin with the same ID, if any")
 
 	PluginCmd.AddCommand(
@@ -90,13 +92,21 @@ func init() {
 }
 
 func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	force, _ := cmd.Flags().GetBool("force")
+
 	for i, plugin := range args {
 		fileReader, err := os.Open(plugin)
 		if err != nil {
 			return err
 		}
 
-		if _, _, err := c.UploadPlugin(fileReader); err != nil {
+		if force {
+			_, _, err = c.UploadPluginForced(fileReader)
+		} else {
+			_, _, err = c.UploadPlugin(fileReader)
+		}
+
+		if err != nil {
 			printer.PrintError("Unable to add plugin: " + args[i] + ". Error: " + err.Error())
 		} else {
 			printer.Print("Added plugin: " + plugin)
@@ -109,17 +119,19 @@ func pluginAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func pluginInstallURLCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
+	var multiErr *multierror.Error
 
 	for _, plugin := range args {
 		manifest, _, err := c.InstallPluginFromURL(plugin, force)
 		if err != nil {
 			printer.PrintError("Unable to install plugin from URL \"" + plugin + "\". Error: " + err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		} else {
 			printer.PrintT("Plugin {{.Name}} successfully installed", manifest)
 		}
 	}
 
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {

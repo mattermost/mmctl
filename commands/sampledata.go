@@ -14,10 +14,10 @@ import (
 	"sort"
 	"time"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
-	"github.com/mattermost/mattermost-server/v6/app"
+	"github.com/mattermost/mattermost-server/v6/app/imports"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
 
@@ -258,7 +258,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 	encoder := json.NewEncoder(bulkFile)
 	version := 1
-	if err := encoder.Encode(app.LineImportData{Type: "version", Version: &version}); err != nil {
+	if err := encoder.Encode(imports.LineImportData{Type: "version", Version: &version}); err != nil {
 		return fmt.Errorf("could not encode version line: %w", err)
 	}
 

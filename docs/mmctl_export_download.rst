@@ -31,8 +31,8 @@ Options
 
 ::
 
-  -h, --help     help for download
-      --resume   Set to true to resume an export download.
+  -h, --help              help for download
+      --num-retries int   Number of retries to do to resume a download. (default 5)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,6 +40,7 @@ Options inherited from parent commands
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+      --disable-pager                disables paged output
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
       --json                         the output format will be in json format

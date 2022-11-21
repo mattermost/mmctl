@@ -8,9 +8,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -216,42 +217,51 @@ func botListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func botEnableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args)
+
+	var result *multierror.Error
+
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError(fmt.Sprintf("can't find user '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("can't find user %q", args[i]))
 			continue
 		}
 
 		bot, _, err := c.EnableBot(user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not enable bot '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("could not enable bot %q: %w", args[i], err))
 			continue
 		}
 
 		printer.PrintT("Enabled bot {{.UserId}} ({{.Username}})", bot)
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func botDisableCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	users := getUsersFromUserArgs(c, args)
+
+	var result *multierror.Error
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError(fmt.Sprintf("can't find user '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("can't find user %q", args[i]))
 			continue
 		}
 
 		bot, _, err := c.DisableBot(user.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("could not disable bot '%v'", args[i]))
+			result = multierror.Append(result, fmt.Errorf("could not disable bot %q: %w", args[i], err))
 			continue
 		}
 
 		printer.PrintT("Disabled bot {{.UserId}} ({{.Username}})", bot)
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func botAssignCmdF(c client.Client, cmd *cobra.Command, args []string) error {

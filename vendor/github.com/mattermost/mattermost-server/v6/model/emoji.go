@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -25,6 +23,17 @@ type Emoji struct {
 	DeleteAt  int64  `json:"delete_at"`
 	CreatorId string `json:"creator_id"`
 	Name      string `json:"name"`
+}
+
+func (emoji *Emoji) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         emoji.Id,
+		"create_at":  emoji.CreateAt,
+		"update_at":  emoji.UpdateAt,
+		"delete_at":  emoji.CreateAt,
+		"creator_id": emoji.CreatorId,
+		"name":       emoji.Name,
+	}
 }
 
 func inSystemEmoji(emojiName string) bool {
@@ -80,8 +89,11 @@ func (emoji *Emoji) IsValid() *AppError {
 }
 
 func IsValidEmojiName(name string) *AppError {
-	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) || inSystemEmoji(name) {
+	if name == "" || len(name) > EmojiNameMaxLength || !IsValidAlphaNumHyphenUnderscorePlus(name) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if inSystemEmoji(name) {
+		return NewAppError("Emoji.IsValid", "model.emoji.system_emoji_name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -94,21 +106,4 @@ func (emoji *Emoji) PreSave() {
 
 	emoji.CreateAt = GetMillis()
 	emoji.UpdateAt = emoji.CreateAt
-}
-
-func (emoji *Emoji) ToJson() string {
-	b, _ := json.Marshal(emoji)
-	return string(b)
-}
-
-func EmojiFromJson(data io.Reader) *Emoji {
-	var emoji *Emoji
-	json.NewDecoder(data).Decode(&emoji)
-	return emoji
-}
-
-func EmojiListFromJson(data io.Reader) []*Emoji {
-	var emojiList []*Emoji
-	json.NewDecoder(data).Decode(&emojiList)
-	return emojiList
 }

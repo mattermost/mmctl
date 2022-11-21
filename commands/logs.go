@@ -13,9 +13,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
-	"github.com/mattermost/mmctl/printer/human"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
+	"github.com/mattermost/mmctl/v6/printer/human"
 )
 
 var LogsCmd = &cobra.Command{

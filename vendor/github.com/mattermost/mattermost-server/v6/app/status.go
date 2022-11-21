@@ -4,10 +4,11 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 
+	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/shared/mlog"
 	"github.com/mattermost/mattermost-server/v6/store"
@@ -21,10 +22,14 @@ func (a *App) AddStatusCache(status *model.Status) {
 	a.AddStatusCacheSkipClusterSend(status)
 
 	if a.Cluster() != nil {
+		statusJSON, err := json.Marshal(status)
+		if err != nil {
+			a.Log().Warn("Failed to encode status to JSON", mlog.Err(err))
+		}
 		msg := &model.ClusterMessage{
 			Event:    model.ClusterEventUpdateStatus,
 			SendType: model.ClusterSendBestEffort,
-			Data:     []byte(status.ToClusterJson()),
+			Data:     statusJSON,
 		}
 		a.Cluster().SendClusterMessage(msg)
 	}
@@ -47,12 +52,12 @@ func (a *App) GetAllStatuses() map[string]*model.Status {
 	return statusMap
 }
 
-func (a *App) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model.AppError) {
+func (a *App) GetStatusesByIds(userIDs []string) (map[string]any, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
-		return map[string]interface{}{}, nil
+		return map[string]any{}, nil
 	}
 
-	statusMap := map[string]interface{}{}
+	statusMap := map[string]any{}
 	metrics := a.Metrics()
 
 	missingUserIds := []string{}
@@ -74,7 +79,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
-			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		for _, s := range statuses {
@@ -94,7 +99,7 @@ func (a *App) GetStatusesByIds(userIDs []string) (map[string]interface{}, *model
 	return statusMap, nil
 }
 
-//GetUserStatusesByIds used by apiV4
+// GetUserStatusesByIds used by apiV4
 func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return []*model.Status{}, nil
@@ -122,7 +127,7 @@ func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.Ap
 	if len(missingUserIds) > 0 {
 		statuses, err := a.Srv().Store.Status().GetByIds(missingUserIds)
 		if err != nil {
-			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetUserStatusesByIds", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		for _, s := range statuses {
@@ -229,7 +234,7 @@ func (a *App) BroadcastStatus(status *model.Status) {
 		// this is considered a non-critical service and will be disabled when server busy.
 		return
 	}
-	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", status.UserId, nil)
+	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", status.UserId, nil, "")
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
 	a.Publish(event)
@@ -374,9 +379,9 @@ func (a *App) GetStatus(userID string) (*model.Status, *model.AppError) {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetStatus", "app.status.get.missing.app_error", nil, nfErr.Error(), http.StatusNotFound)
+			return nil, model.NewAppError("GetStatus", "app.status.get.missing.app_error", nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("GetStatus", "app.status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("GetStatus", "app.status.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -390,7 +395,6 @@ func (a *App) IsUserAway(lastActivityAt int64) bool {
 // UpdateDNDStatusOfUsers is a recurring task which is started when server starts
 // which unsets dnd status of users if needed and saves and broadcasts it
 func (a *App) UpdateDNDStatusOfUsers() {
-	mlog.Debug("UpdateDNDStatusOfUsers: scheduled run started")
 	statuses, err := a.UpdateExpiredDNDStatuses()
 	if err != nil {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
@@ -402,84 +406,115 @@ func (a *App) UpdateDNDStatusOfUsers() {
 	}
 }
 
-func (a *App) SetCustomStatus(userID string, cs *model.CustomStatus) *model.AppError {
+func (a *App) SetCustomStatus(c request.CTX, userID string, cs *model.CustomStatus) *model.AppError {
+	if cs == nil || (cs.Emoji == "" && cs.Text == "") {
+		return model.NewAppError("SetCustomStatus", "api.custom_status.set_custom_statuses.update.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
 	user.SetCustomStatus(cs)
-	_, updateErr := a.UpdateUser(user, true)
+	_, updateErr := a.UpdateUser(c, user, true)
 	if updateErr != nil {
-		return err
+		return updateErr
 	}
 
 	if err := a.addRecentCustomStatus(userID, cs); err != nil {
-		a.Log().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
+		c.Logger().Error("Can't add recent custom status for", mlog.String("userID", userID), mlog.Err(err))
 	}
 
 	return nil
 }
 
-func (a *App) RemoveCustomStatus(userID string) *model.AppError {
+func (a *App) RemoveCustomStatus(c request.CTX, userID string) *model.AppError {
 	user, err := a.GetUser(userID)
 	if err != nil {
 		return err
 	}
 
 	user.ClearCustomStatus()
-	_, updateErr := a.UpdateUser(user, true)
+	_, updateErr := a.UpdateUser(c, user, true)
 	if updateErr != nil {
-		return err
+		return updateErr
 	}
 
 	return nil
 }
 
+func (a *App) GetCustomStatus(userID string) (*model.CustomStatus, *model.AppError) {
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return &model.CustomStatus{}, err
+	}
+
+	return user.GetCustomStatus(), nil
+}
+
 func (a *App) addRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
 	var newRCS model.RecentCustomStatuses
 
-	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
-	if err != nil || pref.Value == "" {
+	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+	if appErr != nil || pref.Value == "" {
 		newRCS = model.RecentCustomStatuses{*status}
 	} else {
-		existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
+		var existingRCS model.RecentCustomStatuses
+		if err := json.Unmarshal([]byte(pref.Value), &existingRCS); err != nil {
+			return model.NewAppError("addRecentCustomStatus", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 		newRCS = existingRCS.Add(status)
 	}
 
+	newRCSJSON, err := json.Marshal(newRCS)
+	if err != nil {
+		return model.NewAppError("addRecentCustomStatus", "api.marshal_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
 	pref = &model.Preference{
 		UserId:   userID,
 		Category: model.PreferenceCategoryCustomStatus,
 		Name:     model.PreferenceNameRecentCustomStatuses,
-		Value:    newRCS.ToJson(),
+		Value:    string(newRCSJSON),
 	}
-	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
-		return err
+	if appErr := a.UpdatePreferences(userID, model.Preferences{*pref}); appErr != nil {
+		return appErr
 	}
 
 	return nil
 }
 
 func (a *App) RemoveRecentCustomStatus(userID string, status *model.CustomStatus) *model.AppError {
-	pref, err := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
-	if err != nil {
-		return err
+	pref, appErr := a.GetPreferenceByCategoryAndNameForUser(userID, model.PreferenceCategoryCustomStatus, model.PreferenceNameRecentCustomStatuses)
+	if appErr != nil {
+		return appErr
 	}
 
 	if pref.Value == "" {
 		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	existingRCS := model.RecentCustomStatusesFromJson(strings.NewReader(pref.Value))
-	if !existingRCS.Contains(status) {
+	var existingRCS model.RecentCustomStatuses
+	if err := json.Unmarshal([]byte(pref.Value), &existingRCS); err != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if ok, err := existingRCS.Contains(status); !ok || err != nil {
 		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	newRCS := existingRCS.Remove(status)
-	pref.Value = newRCS.ToJson()
+	newRCS, err := existingRCS.Remove(status)
+	if err != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.custom_status.recent_custom_statuses.delete.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
 
-	if err := a.UpdatePreferences(userID, model.Preferences{*pref}); err != nil {
-		return err
+	newRCSJSON, err := json.Marshal(newRCS)
+	if err != nil {
+		return model.NewAppError("RemoveRecentCustomStatus", "api.marshal_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	pref.Value = string(newRCSJSON)
+	if appErr := a.UpdatePreferences(userID, model.Preferences{*pref}); appErr != nil {
+		return appErr
 	}
 
 	return nil

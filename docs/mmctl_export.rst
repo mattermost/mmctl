@@ -24,6 +24,7 @@ Options inherited from parent commands
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+      --disable-pager                disables paged output
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
       --json                         the output format will be in json format
@@ -39,6 +40,6 @@ SEE ALSO
 * `mmctl export create <mmctl_export_create.rst>`_ 	 - Create export file
 * `mmctl export delete <mmctl_export_delete.rst>`_ 	 - Delete export file
 * `mmctl export download <mmctl_export_download.rst>`_ 	 - Download export files
-* `mmctl export job <mmctl_export_job.rst>`_ 	 - List and show export jobs
+* `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
 * `mmctl export list <mmctl_export_list.rst>`_ 	 - List export files
 

@@ -6,9 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/app"
 	"github.com/mattermost/mattermost-server/v6/audit"
@@ -33,7 +31,7 @@ func (api *API) InitEmoji() {
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
-	defer io.Copy(ioutil.Discard, r.Body)
+	defer io.Copy(io.Discard, r.Body)
 
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -54,7 +52,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// Allow any user with CREATE_EMOJIS permission at Team level to create emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)
 
 	if err != nil {
 		c.Err = err
@@ -83,15 +81,16 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji := model.EmojiFromJson(strings.NewReader(props["emoji"][0]))
-	if emoji == nil {
+	var emoji model.Emoji
+	if jsonErr := json.Unmarshal([]byte(props["emoji"][0]), &emoji); jsonErr != nil {
 		c.SetInvalidParam("emoji")
 		return
 	}
 
-	auditRec.AddMeta("emoji", emoji)
+	auditRec.AddEventResultState(&emoji)
+	auditRec.AddEventObjectType("emoji")
 
-	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.AppContext.Session().UserId, &emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -99,7 +98,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	if err := json.NewEncoder(w).Encode(newEmoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -122,7 +121,7 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(listEmoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -137,14 +136,15 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
 	if err != nil {
-		auditRec.AddMeta("emoji_id", c.Params.EmojiId)
+		auditRec.AddEventParameter("emoji_id", c.Params.EmojiId)
 		c.Err = err
 		return
 	}
-	auditRec.AddMeta("emoji", emoji)
+	auditRec.AddEventPriorState(emoji)
+	auditRec.AddEventObjectType("emoji")
 
 	// Allow any user with DELETE_EMOJIS permission at Team level to delete emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.AppContext.Session().UserId, "", true)
 
 	if err != nil {
 		c.Err = err
@@ -211,7 +211,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -228,7 +228,7 @@ func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emoji); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -255,9 +255,9 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
-	emojiSearch := model.EmojiSearchFromJson(r.Body)
-	if emojiSearch == nil {
-		c.SetInvalidParam("term")
+	var emojiSearch model.EmojiSearch
+	if jsonErr := json.NewDecoder(r.Body).Decode(&emojiSearch); jsonErr != nil {
+		c.SetInvalidParamWithErr("term", jsonErr)
 		return
 	}
 
@@ -273,7 +273,7 @@ func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emojis); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -292,6 +292,6 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(emojis); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

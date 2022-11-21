@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 const (
@@ -96,6 +96,31 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	s.Run("Fail to upload license if no path is given", func() {
 		printer.Clean()
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "enter one license file to upload")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
+	// create temporary file
+	licenseString := string(fakeLicensePayload)
+
+	mockLicenseFile := []byte(fakeLicensePayload)
+
+	s.Run("Upload license successfully", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			UploadLicenseFile(mockLicenseFile).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{licenseString})
+		s.Require().Nil(err)
+	})
+
+	s.Run("Fail to upload license if no license string is given", func() {
+		printer.Clean()
+		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }

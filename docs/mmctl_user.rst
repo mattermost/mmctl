@@ -24,6 +24,7 @@ Options inherited from parent commands
 ::
 
       --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+      --disable-pager                disables paged output
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
       --json                         the output format will be in json format
@@ -53,5 +54,5 @@ SEE ALSO
 * `mmctl user resetmfa <mmctl_user_resetmfa.rst>`_ 	 - Turn off MFA
 * `mmctl user search <mmctl_user_search.rst>`_ 	 - Search for users
 * `mmctl user username <mmctl_user_username.rst>`_ 	 - Change username of the user
-* `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Verify email of users
+* `mmctl user verify <mmctl_user_verify.rst>`_ 	 - Mark user's email as verified
 

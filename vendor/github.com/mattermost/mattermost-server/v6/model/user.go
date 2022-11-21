@@ -7,12 +7,11 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
@@ -40,6 +39,7 @@ const (
 	CommentsNotifyNever            = "never"
 	CommentsNotifyRoot             = "root"
 	CommentsNotifyAny              = "any"
+	CommentsNotifyCRT              = "crt"
 	FirstNameNotifyProp            = "first_name"
 	AutoResponderActiveNotifyProp  = "auto_responder_active"
 	AutoResponderMessageNotifyProp = "auto_responder_message"
@@ -61,6 +61,7 @@ const (
 	UserPasswordMaxLength = 72
 	UserLocaleMaxLength   = 5
 	UserTimezoneMaxRunes  = 256
+	UserRolesMaxLength    = 256
 )
 
 //msgp:tuple User
@@ -95,13 +96,45 @@ type User struct {
 	MfaActive              bool      `json:"mfa_active,omitempty"`
 	MfaSecret              string    `json:"mfa_secret,omitempty"`
 	RemoteId               *string   `json:"remote_id,omitempty"`
-	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
-	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
-	BotDescription         string    `db:"-" json:"bot_description,omitempty"`
-	BotLastIconUpdate      int64     `db:"-" json:"bot_last_icon_update,omitempty"`
-	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
-	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
-	DisableWelcomeEmail    bool      `db:"-" json:"disable_welcome_email"`
+	LastActivityAt         int64     `json:"last_activity_at,omitempty"`
+	IsBot                  bool      `json:"is_bot,omitempty"`
+	BotDescription         string    `json:"bot_description,omitempty"`
+	BotLastIconUpdate      int64     `json:"bot_last_icon_update,omitempty"`
+	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
+	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
+	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+}
+
+func (u *User) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                         u.Id,
+		"create_at":                  u.CreateAt,
+		"update_at":                  u.UpdateAt,
+		"delete_at":                  u.DeleteAt,
+		"username":                   u.Username,
+		"auth_service":               u.AuthService,
+		"email":                      u.Email,
+		"email_verified":             u.EmailVerified,
+		"position":                   u.Position,
+		"roles":                      u.Roles,
+		"allow_marketing":            u.AllowMarketing,
+		"props":                      u.Props,
+		"notify_props":               u.NotifyProps,
+		"last_password_update":       u.LastPasswordUpdate,
+		"last_picture_update":        u.LastPictureUpdate,
+		"failed_attempts":            u.FailedAttempts,
+		"locale":                     u.Locale,
+		"timezone":                   u.Timezone,
+		"mfa_active":                 u.MfaActive,
+		"remote_id":                  u.RemoteId,
+		"last_activity_at":           u.LastActivityAt,
+		"is_bot":                     u.IsBot,
+		"bot_description":            u.BotDescription,
+		"bot_last_icon_update":       u.BotLastIconUpdate,
+		"terms_of_service_id":        u.TermsOfServiceId,
+		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
+		"disable_welcome_email":      u.DisableWelcomeEmail,
+	}
 }
 
 //msgp UserMap
@@ -132,11 +165,33 @@ type UserPatch struct {
 	RemoteId    *string   `json:"remote_id"`
 }
 
+func (u *UserPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"username":     u.Username,
+		"nickname":     u.Nickname,
+		"first_name":   u.FirstName,
+		"last_name":    u.LastName,
+		"position":     u.Position,
+		"email":        u.Email,
+		"props":        u.Props,
+		"notify_props": u.NotifyProps,
+		"locale":       u.Locale,
+		"timezone":     u.Timezone,
+		"remote_id":    u.RemoteId,
+	}
+}
+
 //msgp:ignore UserAuth
 type UserAuth struct {
 	Password    string  `json:"password,omitempty"` // DEPRECATED: It is not used.
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+func (u *UserAuth) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"auth_service": u.AuthService,
+	}
 }
 
 //msgp:ignore UserForIndexing
@@ -262,7 +317,6 @@ func (u *User) DeepCopy() *User {
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
-
 	if !IsValidId(u.Id) {
 		return InvalidUserError("id", "")
 	}
@@ -327,10 +381,15 @@ func (u *User) IsValid() *AppError {
 
 	if len(u.Timezone) > 0 {
 		if tzJSON, err := json.Marshal(u.Timezone); err != nil {
-			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return NewAppError("User.IsValid", "model.user.is_valid.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		} else if utf8.RuneCount(tzJSON) > UserTimezoneMaxRunes {
 			return InvalidUserError("timezone_limit", u.Id)
 		}
+	}
+
+	if len(u.Roles) > UserRolesMaxLength {
+		return NewAppError("User.IsValid", "model.user.is_valid.roles_limit.app_error",
+			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil
@@ -403,6 +462,47 @@ func (u *User) PreSave() {
 	if u.Password != "" {
 		u.Password = HashPassword(u.Password)
 	}
+}
+
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (u *User) CreateAt_() float64 {
+	return float64(u.CreateAt)
+}
+
+func (u *User) DeleteAt_() float64 {
+	return float64(u.DeleteAt)
+}
+
+func (u *User) UpdateAt_() float64 {
+	return float64(u.UpdateAt)
+}
+
+func (u *User) LastPictureUpdate_() float64 {
+	return float64(u.LastPictureUpdate)
+}
+
+func (u *User) LastPasswordUpdate_() float64 {
+	return float64(u.LastPasswordUpdate)
+}
+
+func (u *User) FailedAttempts_() float64 {
+	return float64(u.FailedAttempts)
+}
+
+func (u *User) LastActivityAt_() float64 {
+	return float64(u.LastActivityAt)
+}
+
+func (u *User) BotLastIconUpdate_() float64 {
+	return float64(u.BotLastIconUpdate)
+}
+
+func (u *User) TermsOfServiceCreateAt_() float64 {
+	return float64(u.TermsOfServiceCreateAt)
 }
 
 // PreUpdate should be run before updating the user in the db.
@@ -533,22 +633,6 @@ func (u *User) Patch(patch *UserPatch) {
 	}
 }
 
-// ToJson convert a User to a json string
-func (u *User) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func (u *UserPatch) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func (u *UserAuth) ToJson() string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
 	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail, u.BotLastIconUpdate)
@@ -623,9 +707,32 @@ func (u *User) AddNotifyProp(key string, value string) {
 	u.NotifyProps[key] = value
 }
 
-func (u *User) SetCustomStatus(cs *CustomStatus) {
+func (u *User) SetCustomStatus(cs *CustomStatus) error {
 	u.MakeNonNil()
-	u.Props[UserPropsKeyCustomStatus] = cs.ToJson()
+	statusJSON, jsonErr := json.Marshal(cs)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	u.Props[UserPropsKeyCustomStatus] = string(statusJSON)
+	return nil
+}
+
+func (u *User) GetCustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
+}
+
+func (u *User) CustomStatus() *CustomStatus {
+	var o *CustomStatus
+
+	data := u.Props[UserPropsKeyCustomStatus]
+	_ = json.Unmarshal([]byte(data), &o)
+
+	return o
 }
 
 func (u *User) ClearCustomStatus() {
@@ -701,7 +808,7 @@ func IsValidUserRoles(userRoles string) bool {
 	return true
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SystemGuestRoleId)
@@ -711,13 +818,13 @@ func (u *User) IsSystemAdmin() bool {
 	return IsInRole(u.Roles, SystemAdminRoleId)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func (u *User) IsInRole(inRole string) bool {
 	return IsInRole(u.Roles, inRole)
 }
 
-// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// Make sure you actually want to use this function. In context.go there are functions to check permissions
 // This function should not be used to check permissions.
 func IsInRole(userRoles string, inRole string) bool {
 	roles := strings.Split(userRoles, " ")
@@ -752,6 +859,14 @@ func (u *User) IsSAMLUser() bool {
 
 func (u *User) GetPreferredTimezone() string {
 	return GetPreferredTimezone(u.Timezone)
+}
+
+func (u *User) GetTimezoneLocation() *time.Location {
+	loc, _ := time.LoadLocation(u.GetPreferredTimezone())
+	if loc == nil {
+		loc = time.Now().UTC().Location()
+	}
+	return loc
 }
 
 // IsRemote returns true if the user belongs to a remote cluster (has RemoteId).
@@ -807,47 +922,6 @@ func (u *UserPatch) SetField(fieldName string, fieldValue string) {
 	case "Username":
 		u.Username = &fieldValue
 	}
-}
-
-// UserFromJson will decode the input and return a User
-func UserFromJson(data io.Reader) *User {
-	var user *User
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserPatchFromJson(data io.Reader) *UserPatch {
-	var user *UserPatch
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserAuthFromJson(data io.Reader) *UserAuth {
-	var user *UserAuth
-	json.NewDecoder(data).Decode(&user)
-	return user
-}
-
-func UserMapToJson(u map[string]*User) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func UserMapFromJson(data io.Reader) map[string]*User {
-	var users map[string]*User
-	json.NewDecoder(data).Decode(&users)
-	return users
-}
-
-func UserListToJson(u []*User) string {
-	b, _ := json.Marshal(u)
-	return string(b)
-}
-
-func UserListFromJson(data io.Reader) []*User {
-	var users []*User
-	json.NewDecoder(data).Decode(&users)
-	return users
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword
@@ -962,11 +1036,4 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
-}
-
-func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
-	uwg := &UsersWithGroupsAndCount{}
-	bodyBytes, _ := ioutil.ReadAll(data)
-	json.Unmarshal(bodyBytes, uwg)
-	return uwg
 }

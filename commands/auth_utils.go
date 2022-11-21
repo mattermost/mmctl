@@ -12,11 +12,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fatih/color"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 const (
@@ -84,11 +83,9 @@ func resolveConfigFilePath() string {
 	if viper.IsSet("config-path") {
 		if !suppressWarnings {
 			once.Do(func() {
-				printer.PrintError(color.YellowString("WARNING: Since mmctl v6 we have been deprecated the --config-path and started to use --config flag instead."))
-				printer.PrintError(color.YellowString("Please use --config flag to set config file. (note that --config-path was pointing to a directory)\n"))
-				printer.PrintError(color.YellowString("After moving your config file to new directory, please unset the --config-path flag or MMCTL_CONFIG_PATH environment variable.\n"))
-
-				printer.Flush()
+				printer.PrintWarning("Since mmctl v6 we have been deprecated the --config-path and started to use --config flag instead.\n" +
+					"Please use --config flag to set config file. (note that --config-path was pointing to a directory)\n\n" +
+					"After moving your config file to new directory, please unset the --config-path flag or MMCTL_CONFIG_PATH environment variable.\n")
 			})
 		}
 
@@ -152,7 +149,9 @@ func GetCredentials(name string) (*Credentials, error) {
 func SaveCredentials(credentials Credentials) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
-		if err := os.MkdirAll(strings.TrimSuffix(resolveConfigFilePath(), configFileName), 0700); err != nil {
+		// we get the parent of the file so that we can create the path if it doesn't exist.
+		configParent := filepath.Dir(resolveConfigFilePath())
+		if err := os.MkdirAll(configParent, 0700); err != nil {
 			return err
 		}
 		credentialsList = &CredentialsList{}

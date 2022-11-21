@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 )
 
 const (
@@ -29,45 +28,36 @@ type Status struct {
 	PrevStatus     string `json:"-"`
 }
 
-func (o *Status) ToJson() string {
-	oCopy := *o
-	oCopy.ActiveChannel = ""
-	b, _ := json.Marshal(oCopy)
-	return string(b)
+func (s *Status) ToJSON() ([]byte, error) {
+	sCopy := *s
+	sCopy.ActiveChannel = ""
+	return json.Marshal(sCopy)
 }
 
-func (o *Status) ToClusterJson() string {
-	oCopy := *o
-	b, _ := json.Marshal(oCopy)
-	return string(b)
+// The following are some GraphQL methods necessary to return the
+// data in float64 type. The spec doesn't support 64 bit integers,
+// so we have to pass the data in float64. The _ at the end is
+// a hack to keep the attribute name same in GraphQL schema.
+
+func (s *Status) LastActivityAt_() float64 {
+	return float64(s.LastActivityAt)
 }
 
-func StatusFromJson(data io.Reader) *Status {
-	var o *Status
-	json.NewDecoder(data).Decode(&o)
-	return o
+func (s *Status) DNDEndTime_() float64 {
+	return float64(s.DNDEndTime)
 }
 
-func StatusListToJson(u []*Status) string {
-	uCopy := make([]Status, len(u))
+func StatusListToJSON(u []*Status) ([]byte, error) {
+	list := make([]Status, len(u))
 	for i, s := range u {
-		sCopy := *s
-		sCopy.ActiveChannel = ""
-		uCopy[i] = sCopy
+		list[i] = *s
+		list[i].ActiveChannel = ""
 	}
-
-	b, _ := json.Marshal(uCopy)
-	return string(b)
+	return json.Marshal(list)
 }
 
-func StatusListFromJson(data io.Reader) []*Status {
-	var statuses []*Status
-	json.NewDecoder(data).Decode(&statuses)
-	return statuses
-}
-
-func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]interface{} {
-	interfaceMap := map[string]interface{}{}
+func StatusMapToInterfaceMap(statusMap map[string]*Status) map[string]any {
+	interfaceMap := map[string]any{}
 	for _, s := range statusMap {
 		// Omitted statues mean offline
 		if s.Status != StatusOffline {

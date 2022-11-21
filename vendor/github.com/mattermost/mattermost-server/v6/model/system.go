@@ -4,8 +4,6 @@
 package model
 
 import (
-	"encoding/json"
-	"io"
 	"math/big"
 )
 
@@ -14,7 +12,6 @@ const (
 	SystemRanUnitTests                     = "RanUnitTests"
 	SystemLastSecurityTime                 = "LastSecurityTime"
 	SystemActiveLicenseId                  = "ActiveLicenseId"
-	SystemLicenseRenewalToken              = "LicenseRenewalToken"
 	SystemLastComplianceTime               = "LastComplianceTime"
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
@@ -32,13 +29,11 @@ const (
 	SystemWarnMetricNumberOfActiveUsers500 = "warn_metric_number_of_active_users_500"
 	SystemWarnMetricNumberOfPosts2m        = "warn_metric_number_of_posts_2M"
 	SystemWarnMetricLastRunTimestampKey    = "LastWarnMetricRunTimestamp"
-	SystemMetricSupportEmailNotConfigured  = "warn_metric_support_email_not_configured"
 	SystemFirstAdminVisitMarketplace       = "FirstAdminVisitMarketplace"
+	SystemFirstAdminSetupComplete          = "FirstAdminSetupComplete"
+	SystemLastAccessiblePostTime           = "LastAccessiblePostTime"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
-	UserLimitOverageCycleEndDate           = "UserLimitOverageCycleEndDate"
-	OverUserLimitForgivenCount             = "OverUserLimitForgivenCount"
-	OverUserLimitLastEmailSent             = "OverUserLimitLastEmailSent"
 )
 
 const (
@@ -54,17 +49,6 @@ const (
 type System struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
-}
-
-func (o *System) ToJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
-func SystemFromJson(data io.Reader) *System {
-	var o *System
-	json.NewDecoder(data).Decode(&o)
-	return o
 }
 
 type SystemPostActionCookieSecret struct {
@@ -90,30 +74,23 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
-	ServerOS             string   `yaml:"server_os"`
-	ServerArchitecture   string   `yaml:"server_architecture"`
-	DatabaseType         string   `yaml:"database_type"`
-	DatabaseVersion      string   `yaml:"database_version"`
-	LdapVendorName       string   `yaml:"ldap_vendor_name,omitempty"`
-	LdapVendorVersion    string   `yaml:"ldap_vendor_version,omitempty"`
-	ElasticServerVersion string   `yaml:"elastic_server_version,omitempty"`
-	ElasticServerPlugins []string `yaml:"elastic_server_plugins,omitempty"`
+	ServerOS              string   `yaml:"server_os"`
+	ServerArchitecture    string   `yaml:"server_architecture"`
+	ServerVersion         string   `yaml:"server_version"`
+	BuildHash             string   `yaml:"build_hash,omitempty"`
+	DatabaseType          string   `yaml:"database_type"`
+	DatabaseVersion       string   `yaml:"database_version"`
+	LdapVendorName        string   `yaml:"ldap_vendor_name,omitempty"`
+	LdapVendorVersion     string   `yaml:"ldap_vendor_version,omitempty"`
+	ElasticServerVersion  string   `yaml:"elastic_server_version,omitempty"`
+	ElasticServerPlugins  []string `yaml:"elastic_server_plugins,omitempty"`
+	ActiveUsers           int      `yaml:"active_users"`
+	LicenseSupportedUsers int      `yaml:"license_supported_users,omitempty"`
 }
 
 type FileData struct {
 	Filename string
 	Body     []byte
-}
-
-func (sbs *ServerBusyState) ToJson() string {
-	b, _ := json.Marshal(sbs)
-	return string(b)
-}
-
-func ServerBusyStateFromJson(r io.Reader) *ServerBusyState {
-	var sbs *ServerBusyState
-	json.NewDecoder(r).Decode(&sbs)
-	return sbs
 }
 
 var WarnMetricsTable = map[string]WarnMetric{
@@ -171,13 +148,6 @@ var WarnMetricsTable = map[string]WarnMetric{
 		IsBotOnly: false,
 		IsRunOnce: true,
 	},
-	SystemMetricSupportEmailNotConfigured: {
-		Id:         SystemMetricSupportEmailNotConfigured,
-		Limit:      -1,
-		IsBotOnly:  true,
-		IsRunOnce:  false,
-		SkipAction: true,
-	},
 }
 
 type WarnMetric struct {
@@ -201,35 +171,11 @@ type WarnMetricStatus struct {
 	StoreStatus string `json:"store_status,omitempty"`
 }
 
-func (wms *WarnMetricStatus) ToJson() string {
-	b, _ := json.Marshal(wms)
-	return string(b)
-}
-
-func WarnMetricStatusFromJson(data io.Reader) *WarnMetricStatus {
-	var o WarnMetricStatus
-	if err := json.NewDecoder(data).Decode(&o); err != nil {
-		return nil
-	}
-	return &o
-}
-
-func MapWarnMetricStatusToJson(o map[string]*WarnMetricStatus) string {
-	b, _ := json.Marshal(o)
-	return string(b)
-}
-
 type SendWarnMetricAck struct {
 	ForceAck bool `json:"forceAck"`
 }
 
-func (swma *SendWarnMetricAck) ToJson() string {
-	b, _ := json.Marshal(swma)
-	return string(b)
-}
-
-func SendWarnMetricAckFromJson(r io.Reader) *SendWarnMetricAck {
-	var swma *SendWarnMetricAck
-	json.NewDecoder(r).Decode(&swma)
-	return swma
+type AppliedMigration struct {
+	Version int    `json:"version"`
+	Name    string `json:"name"`
 }

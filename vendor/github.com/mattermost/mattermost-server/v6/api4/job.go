@@ -47,7 +47,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(job); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -104,17 +104,17 @@ func downloadJob(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
-	job := model.JobFromJson(r.Body)
-	if job == nil {
-		c.SetInvalidParam("job")
+	var job model.Job
+	if jsonErr := json.NewDecoder(r.Body).Decode(&job); jsonErr != nil {
+		c.SetInvalidParamWithErr("job", jsonErr)
 		return
 	}
 
 	auditRec := c.MakeAuditRecord("createJob", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("job", job)
+	auditRec.AddEventParameter("job", job)
 
-	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)
+	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), &job)
 	if permissionRequired == nil {
 		c.Err = model.NewAppError("unableToCreateJob", "api.job.unable_to_create_job.incorrect_job_type", nil, "", http.StatusBadRequest)
 		return
@@ -125,18 +125,19 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := c.App.CreateJob(job)
+	rjob, err := c.App.CreateJob(&job)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddMeta("job", job) // overwrite meta
+	auditRec.AddEventResultState(rjob)
+	auditRec.AddEventObjectType("job")
 
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(job); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+	if err := json.NewEncoder(w).Encode(rjob); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -161,13 +162,18 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, err := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	jobs, appErr := c.App.GetJobsByTypesPage(validJobTypes, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.JobsToJson(jobs)))
+	js, err := json.Marshal(jobs)
+	if err != nil {
+		c.Err = model.NewAppError("getJobs", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	w.Write(js)
 }
 
 func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -186,13 +192,19 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jobs, err := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage)
-	if err != nil {
-		c.Err = err
+	jobs, appErr := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	w.Write([]byte(model.JobsToJson(jobs)))
+	js, err := json.Marshal(jobs)
+	if err != nil {
+		c.Err = model.NewAppError("getJobsByType", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	w.Write(js)
 }
 
 func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -203,13 +215,16 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord("cancelJob", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("job_id", c.Params.JobId)
+	auditRec.AddEventParameter("job_id", c.Params.JobId)
 
 	job, err := c.App.GetJob(c.Params.JobId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddEventPriorState(job)
+	auditRec.AddEventObjectType("job")
 
 	// if permission to create, permission to cancel, same permission
 	hasPermission, permissionRequired := c.App.SessionHasPermissionToCreateJob(*c.AppContext.Session(), job)

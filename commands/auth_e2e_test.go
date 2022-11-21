@@ -6,7 +6,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {

@@ -1,3 +1,4 @@
+//go:build mint
 // +build mint
 
 /*
@@ -20,6 +21,7 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"errors"
@@ -32,12 +34,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -57,6 +61,7 @@ const (
 	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
+
 const (
 	serverEndpoint = "SERVER_ENDPOINT"
 	accessKey      = "ACCESS_KEY"
@@ -65,8 +70,7 @@ const (
 	enableKMS      = "ENABLE_KMS"
 )
 
-type mintJSONFormatter struct {
-}
+type mintJSONFormatter struct{}
 
 func (f *mintJSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 	data := make(log.Fields, len(entry.Data))
@@ -80,7 +84,7 @@ func (f *mintJSONFormatter) Format(entry *log.Entry) ([]byte, error) {
 			data[k] = v
 		}
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 	serialized, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to marshal fields to JSON, %v", err)
@@ -150,6 +154,8 @@ func logError(testName string, function string, args map[string]interface{}, sta
 	// addition to NotImplemented error returned from server
 	if isErrNotImplemented(err) {
 		ignoredLog(testName, function, args, startTime, message).Info()
+	} else if isRunOnFail() {
+		failureLog(testName, function, args, startTime, alert, message, err).Error()
 	} else {
 		failureLog(testName, function, args, startTime, alert, message, err).Fatal()
 	}
@@ -162,11 +168,15 @@ func failureLog(testName string, function string, args map[string]interface{}, s
 	var fields log.Fields
 	// log with the fields as per mint
 	if err != nil {
-		fields = log.Fields{"name": "minio-go: " + testName, "function": function, "args": args,
-			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message, "error": err}
+		fields = log.Fields{
+			"name": "minio-go: " + testName, "function": function, "args": args,
+			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message, "error": err,
+		}
 	} else {
-		fields = log.Fields{"name": "minio-go: " + testName, "function": function, "args": args,
-			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message}
+		fields = log.Fields{
+			"name": "minio-go: " + testName, "function": function, "args": args,
+			"duration": duration.Nanoseconds() / 1000000, "status": "FAIL", "alert": alert, "message": message,
+		}
 	}
 	return log.WithFields(cleanEmptyEntries(fields))
 }
@@ -176,8 +186,10 @@ func ignoredLog(testName string, function string, args map[string]interface{}, s
 	// calculate the test case duration
 	duration := time.Since(startTime)
 	// log with the fields as per mint
-	fields := log.Fields{"name": "minio-go: " + testName, "function": function, "args": args,
-		"duration": duration.Nanoseconds() / 1000000, "status": "NA", "alert": strings.Split(alert, " ")[0] + " is NotImplemented"}
+	fields := log.Fields{
+		"name": "minio-go: " + testName, "function": function, "args": args,
+		"duration": duration.Nanoseconds() / 1000000, "status": "NA", "alert": strings.Split(alert, " ")[0] + " is NotImplemented",
+	}
 	return log.WithFields(cleanEmptyEntries(fields))
 }
 
@@ -257,6 +269,10 @@ func cleanupVersionedBucket(bucketName string, c *minio.Client) error {
 
 func isErrNotImplemented(err error) bool {
 	return minio.ToErrorResponse(err).Code == "NotImplemented"
+}
+
+func isRunOnFail() bool {
+	return os.Getenv("RUN_ON_FAIL") == "1"
 }
 
 func init() {
@@ -622,7 +638,7 @@ func testPutObjectReadAt() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	// Save the data
@@ -728,7 +744,7 @@ func testListObjectVersions() {
 	args["objectName"] = objectName
 
 	bufSize := dataFileMap["datafile-10-kB"]
-	var reader = getDataReader("datafile-10-kB")
+	reader := getDataReader("datafile-10-kB")
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
@@ -847,7 +863,7 @@ func testStatObjectWithVersioning() {
 	args["objectName"] = objectName
 
 	bufSize := dataFileMap["datafile-10-kB"]
-	var reader = getDataReader("datafile-10-kB")
+	reader := getDataReader("datafile-10-kB")
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
@@ -965,7 +981,7 @@ func testGetObjectWithVersioning() {
 
 	// Save the contents of datafiles to check with GetObject() reader output later
 	var buffers [][]byte
-	var testFiles = []string{"datafile-1-b", "datafile-10-kB"}
+	testFiles := []string{"datafile-1-b", "datafile-10-kB"}
 
 	for _, testFile := range testFiles {
 		r := getDataReader(testFile)
@@ -1004,6 +1020,153 @@ func testGetObjectWithVersioning() {
 	})
 
 	sort.SliceStable(buffers, func(i, j int) bool {
+		return len(buffers[i]) < len(buffers[j])
+	})
+
+	for i := 0; i < len(results); i++ {
+		opts := minio.GetObjectOptions{VersionID: results[i].VersionID}
+		reader, err := c.GetObject(context.Background(), bucketName, objectName, opts)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "error during  GET object", err)
+			return
+		}
+		statInfo, err := reader.Stat()
+		if err != nil {
+			logError(testName, function, args, startTime, "", "error during calling reader.Stat()", err)
+			return
+		}
+		if statInfo.ETag != results[i].ETag {
+			logError(testName, function, args, startTime, "", "error during HEAD object, unexpected ETag", err)
+			return
+		}
+		if statInfo.LastModified.Unix() != results[i].LastModified.Unix() {
+			logError(testName, function, args, startTime, "", "error during HEAD object, unexpected Last-Modified", err)
+			return
+		}
+		if statInfo.Size != results[i].Size {
+			logError(testName, function, args, startTime, "", "error during HEAD object, unexpected Content-Length", err)
+			return
+		}
+
+		tmpBuffer := bytes.NewBuffer([]byte{})
+		_, err = io.Copy(tmpBuffer, reader)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "unexpected io.Copy()", err)
+			return
+		}
+
+		if !bytes.Equal(tmpBuffer.Bytes(), buffers[i]) {
+			logError(testName, function, args, startTime, "", "unexpected content of GetObject()", err)
+			return
+		}
+	}
+
+	// Delete all objects and their versions as long as the bucket itself
+	if err = cleanupVersionedBucket(bucketName, c); err != nil {
+		logError(testName, function, args, startTime, "", "CleanupBucket failed", err)
+		return
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
+func testPutObjectWithVersioning() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "GetObject()"
+	args := map[string]interface{}{}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(os.Getenv(serverEndpoint),
+		&minio.Options{
+			Creds:  credentials.NewStaticV4(os.Getenv(accessKey), os.Getenv(secretKey), ""),
+			Secure: mustParseBool(os.Getenv(enableHTTPS)),
+		})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1", ObjectLocking: true})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Make bucket failed", err)
+		return
+	}
+
+	err = c.EnableVersioning(context.Background(), bucketName)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Enable versioning failed", err)
+		return
+	}
+
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	args["objectName"] = objectName
+
+	const n = 10
+	// Read input...
+
+	// Save the data concurrently.
+	var wg sync.WaitGroup
+	wg.Add(n)
+	buffers := make([][]byte, n)
+	var errs [n]error
+	for i := 0; i < n; i++ {
+		r := newRandomReader(int64((1<<20)*i+i), int64(i))
+		buf, err := ioutil.ReadAll(r)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "unexpected failure", err)
+			return
+		}
+		buffers[i] = buf
+
+		go func(i int) {
+			defer wg.Done()
+			_, errs[i] = c.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{PartSize: 5 << 20})
+		}(i)
+	}
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			logError(testName, function, args, startTime, "", "PutObject failed", err)
+			return
+		}
+	}
+
+	objectsInfo := c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{WithVersions: true, Recursive: true})
+	var results []minio.ObjectInfo
+	for info := range objectsInfo {
+		if info.Err != nil {
+			logError(testName, function, args, startTime, "", "Unexpected error during listing objects", err)
+			return
+		}
+		results = append(results, info)
+	}
+
+	if len(results) != n {
+		logError(testName, function, args, startTime, "", "Unexpected number of Version elements in listing objects", nil)
+		return
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Size < results[j].Size
+	})
+
+	sort.Slice(buffers, func(i, j int) bool {
 		return len(buffers[i]) < len(buffers[j])
 	})
 
@@ -1101,7 +1264,7 @@ func testCopyObjectWithVersioning() {
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
 	args["objectName"] = objectName
 
-	var testFiles = []string{"datafile-1-b", "datafile-10-kB"}
+	testFiles := []string{"datafile-1-b", "datafile-10-kB"}
 	for _, testFile := range testFiles {
 		r := getDataReader(testFile)
 		buf, err := ioutil.ReadAll(r)
@@ -1191,6 +1354,166 @@ func testCopyObjectWithVersioning() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
+func testConcurrentCopyObjectWithVersioning() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject()"
+	args := map[string]interface{}{}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(os.Getenv(serverEndpoint),
+		&minio.Options{
+			Creds:  credentials.NewStaticV4(os.Getenv(accessKey), os.Getenv(secretKey), ""),
+			Secure: mustParseBool(os.Getenv(enableHTTPS)),
+		})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1", ObjectLocking: true})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Make bucket failed", err)
+		return
+	}
+
+	err = c.EnableVersioning(context.Background(), bucketName)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Enable versioning failed", err)
+		return
+	}
+
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	args["objectName"] = objectName
+
+	testFiles := []string{"datafile-10-kB"}
+	for _, testFile := range testFiles {
+		r := getDataReader(testFile)
+		buf, err := ioutil.ReadAll(r)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "unexpected failure", err)
+			return
+		}
+		r.Close()
+		_, err = c.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{})
+		if err != nil {
+			logError(testName, function, args, startTime, "", "PutObject failed", err)
+			return
+		}
+	}
+
+	objectsInfo := c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{WithVersions: true, Recursive: true})
+	var infos []minio.ObjectInfo
+	for info := range objectsInfo {
+		if info.Err != nil {
+			logError(testName, function, args, startTime, "", "Unexpected error during listing objects", err)
+			return
+		}
+		infos = append(infos, info)
+	}
+
+	sort.Slice(infos, func(i, j int) bool {
+		return infos[i].Size < infos[j].Size
+	})
+
+	reader, err := c.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{VersionID: infos[0].VersionID})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject of the oldest version content failed", err)
+		return
+	}
+
+	oldestContent, err := ioutil.ReadAll(reader)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Reading the oldest object version failed", err)
+		return
+	}
+
+	// Copy Source
+	srcOpts := minio.CopySrcOptions{
+		Bucket:    bucketName,
+		Object:    objectName,
+		VersionID: infos[0].VersionID,
+	}
+	args["src"] = srcOpts
+
+	dstOpts := minio.CopyDestOptions{
+		Bucket: bucketName,
+		Object: objectName + "-copy",
+	}
+	args["dst"] = dstOpts
+
+	// Perform the Copy concurrently
+	const n = 10
+	var wg sync.WaitGroup
+	wg.Add(n)
+	var errs [n]error
+	for i := 0; i < n; i++ {
+		go func(i int) {
+			defer wg.Done()
+			_, errs[i] = c.CopyObject(context.Background(), dstOpts, srcOpts)
+		}(i)
+	}
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			logError(testName, function, args, startTime, "", "CopyObject failed", err)
+			return
+		}
+	}
+
+	objectsInfo = c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{WithVersions: true, Recursive: false, Prefix: dstOpts.Object})
+	infos = []minio.ObjectInfo{}
+	for info := range objectsInfo {
+		// Destination object
+		readerCopy, err := c.GetObject(context.Background(), bucketName, objectName+"-copy", minio.GetObjectOptions{VersionID: info.VersionID})
+		if err != nil {
+			logError(testName, function, args, startTime, "", "GetObject failed", err)
+			return
+		}
+		defer readerCopy.Close()
+
+		newestContent, err := ioutil.ReadAll(readerCopy)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "Reading from GetObject reader failed", err)
+			return
+		}
+
+		if len(newestContent) == 0 || !bytes.Equal(oldestContent, newestContent) {
+			logError(testName, function, args, startTime, "", "Unexpected destination object content", err)
+			return
+		}
+		infos = append(infos, info)
+	}
+
+	if len(infos) != n {
+		logError(testName, function, args, startTime, "", "Unexpected number of Version elements in listing objects", nil)
+		return
+	}
+
+	// Delete all objects and their versions as long as the bucket itself
+	if err = cleanupVersionedBucket(bucketName, c); err != nil {
+		logError(testName, function, args, startTime, "", "CleanupBucket failed", err)
+		return
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
 func testComposeObjectWithVersioning() {
 	// initialize logging params
 	startTime := time.Now()
@@ -1239,7 +1562,7 @@ func testComposeObjectWithVersioning() {
 	args["objectName"] = objectName
 
 	// var testFiles = []string{"datafile-5-MB", "datafile-10-kB"}
-	var testFiles = []string{"datafile-5-MB", "datafile-10-kB"}
+	testFiles := []string{"datafile-5-MB", "datafile-10-kB"}
 	var testFilesBytes [][]byte
 
 	for _, testFile := range testFiles {
@@ -1719,7 +2042,7 @@ func testPutObjectWithMetadata() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	// Save the data
@@ -1735,7 +2058,8 @@ func testPutObjectWithMetadata() {
 	}
 
 	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{
-		ContentType: customContentType})
+		ContentType: customContentType,
+	})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PutObject failed", err)
 		return
@@ -1965,7 +2289,7 @@ func testGetObjectSeekEnd() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -2087,7 +2411,7 @@ func testGetObjectClosedTwice() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -2311,6 +2635,138 @@ func testRemoveMultipleObjects() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
+// Test removing multiple objects and check for results
+func testRemoveMultipleObjectsWithResult() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "RemoveObjects(bucketName, objectsCh)"
+	args := map[string]interface{}{
+		"bucketName": "",
+	}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(os.Getenv(serverEndpoint),
+		&minio.Options{
+			Creds:  credentials.NewStaticV4(os.Getenv(accessKey), os.Getenv(secretKey), ""),
+			Secure: mustParseBool(os.Getenv(enableHTTPS)),
+		})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Enable tracing, write to stdout.
+	// c.TraceOn(os.Stderr)
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1", ObjectLocking: true})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	defer cleanupVersionedBucket(bucketName, c)
+
+	r := bytes.NewReader(bytes.Repeat([]byte("a"), 8))
+
+	nrObjects := 10
+	nrLockedObjects := 5
+
+	objectsCh := make(chan minio.ObjectInfo)
+
+	go func() {
+		defer close(objectsCh)
+		// Upload objects and send them to objectsCh
+		for i := 0; i < nrObjects; i++ {
+			objectName := "sample" + strconv.Itoa(i) + ".txt"
+			info, err := c.PutObject(context.Background(), bucketName, objectName, r, 8,
+				minio.PutObjectOptions{ContentType: "application/octet-stream"})
+			if err != nil {
+				logError(testName, function, args, startTime, "", "PutObject failed", err)
+				return
+			}
+			if i < nrLockedObjects {
+				// t := time.Date(2130, time.April, 25, 14, 0, 0, 0, time.UTC)
+				t := time.Now().Add(5 * time.Minute)
+				m := minio.RetentionMode(minio.Governance)
+				opts := minio.PutObjectRetentionOptions{
+					GovernanceBypass: false,
+					RetainUntilDate:  &t,
+					Mode:             &m,
+					VersionID:        info.VersionID,
+				}
+				err = c.PutObjectRetention(context.Background(), bucketName, objectName, opts)
+				if err != nil {
+					logError(testName, function, args, startTime, "", "Error setting retention", err)
+					return
+				}
+			}
+
+			objectsCh <- minio.ObjectInfo{
+				Key:       info.Key,
+				VersionID: info.VersionID,
+			}
+		}
+	}()
+
+	// Call RemoveObjects API
+	resultCh := c.RemoveObjectsWithResult(context.Background(), bucketName, objectsCh, minio.RemoveObjectsOptions{})
+
+	var foundNil, foundErr int
+
+	for {
+		// Check if errorCh doesn't receive any error
+		select {
+		case deleteRes, ok := <-resultCh:
+			if !ok {
+				goto out
+			}
+			if deleteRes.ObjectName == "" {
+				logError(testName, function, args, startTime, "", "Unexpected object name", nil)
+				return
+			}
+			if deleteRes.ObjectVersionID == "" {
+				logError(testName, function, args, startTime, "", "Unexpected object version ID", nil)
+				return
+			}
+
+			if deleteRes.Err == nil {
+				foundNil++
+			} else {
+				foundErr++
+			}
+		}
+	}
+out:
+	if foundNil+foundErr != nrObjects {
+		logError(testName, function, args, startTime, "", "Unexpected number of results", nil)
+		return
+	}
+
+	if foundNil != nrObjects-nrLockedObjects {
+		logError(testName, function, args, startTime, "", "Unexpected number of nil errors", nil)
+		return
+	}
+
+	if foundErr != nrLockedObjects {
+		logError(testName, function, args, startTime, "", "Unexpected number of errors", nil)
+		return
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
 // Tests FPutObject of a big file to trigger multipart
 func testFPutObjectMultipart() {
 	// initialize logging params
@@ -2358,7 +2814,7 @@ func testFPutObjectMultipart() {
 	defer cleanupBucket(bucketName, c)
 
 	// Upload 4 parts to utilize all 3 'workers' in multipart and still have a part to upload.
-	var fileName = getMintDataDirFilePath("datafile-129-MB")
+	fileName := getMintDataDirFilePath("datafile-129-MB")
 	if fileName == "" {
 		// Make a temp file with minPartSize bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectTest")
@@ -2467,7 +2923,7 @@ func testFPutObject() {
 
 	// Upload 3 parts worth of data to use all 3 of multiparts 'workers' and have an extra part.
 	// Use different data in part for multipart tests to check parts are uploaded in correct order.
-	var fName = getMintDataDirFilePath("datafile-129-MB")
+	fName := getMintDataDirFilePath("datafile-129-MB")
 	if fName == "" {
 		// Make a temp file with minPartSize bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectTest")
@@ -2577,8 +3033,8 @@ func testFPutObject() {
 		logError(testName, function, args, startTime, "", "StatObject failed", err)
 		return
 	}
-	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" {
-		logError(testName, function, args, startTime, "", "ContentType does not match, expected application/x-gtar or application/octet-stream, got "+rGTar.ContentType, err)
+	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" && rGTar.ContentType != "application/x-tar" {
+		logError(testName, function, args, startTime, "", "ContentType does not match, expected application/x-tar or application/octet-stream, got "+rGTar.ContentType, err)
 		return
 	}
 
@@ -2633,7 +3089,7 @@ func testFPutObjectContext() {
 
 	// Upload 1 parts worth of data to use multipart upload.
 	// Use different data in part for multipart tests to check parts are uploaded in correct order.
-	var fName = getMintDataDirFilePath("datafile-1-MB")
+	fName := getMintDataDirFilePath("datafile-1-MB")
 	if fName == "" {
 		// Make a temp file with 1 MiB bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectContextTest")
@@ -2685,7 +3141,6 @@ func testFPutObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Tests FPutObject request when context cancels after timeout
@@ -2734,7 +3189,7 @@ func testFPutObjectContextV2() {
 
 	// Upload 1 parts worth of data to use multipart upload.
 	// Use different data in part for multipart tests to check parts are uploaded in correct order.
-	var fName = getMintDataDirFilePath("datafile-1-MB")
+	fName := getMintDataDirFilePath("datafile-1-MB")
 	if fName == "" {
 		// Make a temp file with 1 MiB bytes of data.
 		file, err := ioutil.TempFile(os.TempDir(), "FPutObjectContextTest")
@@ -2788,7 +3243,6 @@ func testFPutObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test validates putObject with context to see if request cancellation is honored.
@@ -2834,7 +3288,7 @@ func testPutObjectContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 	objectName := fmt.Sprintf("test-file-%v", rand.Uint32())
 	args["objectName"] = objectName
@@ -2863,7 +3317,189 @@ func testPutObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
+}
 
+// Tests get object with s3zip extensions.
+func testGetObjectS3Zip() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "GetObject(bucketName, objectName)"
+	args := map[string]interface{}{"x-minio-extract": true}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(os.Getenv(serverEndpoint),
+		&minio.Options{
+			Creds:  credentials.NewStaticV4(os.Getenv(accessKey), os.Getenv(secretKey), ""),
+			Secure: mustParseBool(os.Getenv(enableHTTPS)),
+		})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	defer func() {
+		// Delete all objects and buckets
+		if err = cleanupBucket(bucketName, c); err != nil {
+			logError(testName, function, args, startTime, "", "CleanupBucket failed", err)
+			return
+		}
+	}()
+
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "") + ".zip"
+	args["objectName"] = objectName
+
+	var zipFile bytes.Buffer
+	zw := zip.NewWriter(&zipFile)
+	rng := rand.New(rand.NewSource(0xc0cac01a))
+	const nFiles = 500
+	for i := 0; i <= nFiles; i++ {
+		if i == nFiles {
+			// Make one large, compressible file.
+			i = 1000000
+		}
+		b := make([]byte, i)
+		if i < nFiles {
+			rng.Read(b)
+		}
+		wc, err := zw.Create(fmt.Sprintf("test/small/file-%d.bin", i))
+		if err != nil {
+			logError(testName, function, args, startTime, "", "zw.Create failed", err)
+			return
+		}
+		wc.Write(b)
+	}
+	err = zw.Close()
+	if err != nil {
+		logError(testName, function, args, startTime, "", "zw.Close failed", err)
+		return
+	}
+	buf := zipFile.Bytes()
+
+	// Save the data
+	_, err = c.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{ContentType: "binary/octet-stream"})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+
+	// Read the data back
+	r, err := c.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject failed", err)
+		return
+	}
+
+	st, err := r.Stat()
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Stat object failed", err)
+		return
+	}
+
+	if st.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", "Number of bytes does not match, expected "+string(len(buf))+", got "+string(st.Size), err)
+		return
+	}
+	r.Close()
+
+	zr, err := zip.NewReader(bytes.NewReader(buf), int64(len(buf)))
+	if err != nil {
+		logError(testName, function, args, startTime, "", "zip.NewReader failed", err)
+		return
+	}
+	lOpts := minio.ListObjectsOptions{}
+	lOpts.Set("x-minio-extract", "true")
+	lOpts.Prefix = objectName + "/"
+	lOpts.Recursive = true
+	list := c.ListObjects(context.Background(), bucketName, lOpts)
+	listed := map[string]minio.ObjectInfo{}
+	for item := range list {
+		if item.Err != nil {
+			break
+		}
+		listed[item.Key] = item
+	}
+	if len(listed) == 0 {
+		// Assume we are running against non-minio.
+		args["SKIPPED"] = true
+		ignoredLog(testName, function, args, startTime, "s3zip does not appear to be present").Info()
+		return
+	}
+
+	for _, file := range zr.File {
+		if file.FileInfo().IsDir() {
+			continue
+		}
+		args["zipfile"] = file.Name
+		zfr, err := file.Open()
+		if err != nil {
+			logError(testName, function, args, startTime, "", "file.Open failed", err)
+			return
+		}
+		want, err := ioutil.ReadAll(zfr)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "fzip file read failed", err)
+			return
+		}
+
+		opts := minio.GetObjectOptions{}
+		opts.Set("x-minio-extract", "true")
+		key := path.Join(objectName, file.Name)
+		r, err = c.GetObject(context.Background(), bucketName, key, opts)
+		if err != nil {
+			terr := minio.ToErrorResponse(err)
+			if terr.StatusCode != http.StatusNotFound {
+				logError(testName, function, args, startTime, "", "GetObject failed", err)
+			}
+			return
+		}
+		got, err := ioutil.ReadAll(r)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "ReadAll failed", err)
+			return
+		}
+		r.Close()
+		if !bytes.Equal(want, got) {
+			logError(testName, function, args, startTime, "", "Content mismatch", err)
+			return
+		}
+		oi, ok := listed[key]
+		if !ok {
+			logError(testName, function, args, startTime, "", "Object Missing", fmt.Errorf("%s not present in listing", key))
+			return
+		}
+		if int(oi.Size) != len(got) {
+			logError(testName, function, args, startTime, "", "Object Size Incorrect", fmt.Errorf("listing %d, read %d", oi.Size, len(got)))
+			return
+		}
+		delete(listed, key)
+	}
+	delete(args, "zipfile")
+	if len(listed) > 0 {
+		logError(testName, function, args, startTime, "", "Extra listed objects", fmt.Errorf("left over: %v", listed))
+		return
+	}
+	successLogger(testName, function, args, startTime).Info()
 }
 
 // Tests get object ReaderSeeker interface methods.
@@ -2915,7 +3551,7 @@ func testGetObjectReadSeekFunctional() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3078,7 +3714,7 @@ func testGetObjectReadAtFunctional() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3255,7 +3891,7 @@ func testGetObjectReadAtWhenEOFWasReached() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3372,7 +4008,7 @@ func testPresignedPostPolicy() {
 	defer cleanupBucket(bucketName, c)
 
 	// Generate 33K of data.
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3449,7 +4085,7 @@ func testPresignedPostPolicy() {
 	}
 
 	// Get a 33KB file to upload and test if set post policy works
-	var filePath = getMintDataDirFilePath("datafile-33-kB")
+	filePath := getMintDataDirFilePath("datafile-33-kB")
 	if filePath == "" {
 		// Make a temp file with 33 KB data.
 		file, err := ioutil.TempFile(os.TempDir(), "PresignedPostPolicyTest")
@@ -3596,7 +4232,7 @@ func testCopyObject() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3789,7 +4425,7 @@ func testSSECEncryptedGetObjectReadSeekFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -3971,7 +4607,7 @@ func testSSES3EncryptedGetObjectReadSeekFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4145,7 +4781,7 @@ func testSSECEncryptedGetObjectReadAtFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -4328,7 +4964,7 @@ func testSSES3EncryptedGetObjectReadAtFunctional() {
 
 	// Generate 129MiB of data.
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -5340,7 +5976,6 @@ func testFunctional() {
 		"objectName": objectName,
 	}
 	newReader, err := c.GetObject(context.Background(), bucketName, objectName, minio.GetObjectOptions{})
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "GetObject failed", err)
 		return
@@ -5393,7 +6028,6 @@ func testFunctional() {
 		"expires":    3600 * time.Second,
 	}
 	presignedHeadURL, err := c.PresignedHeadObject(context.Background(), bucketName, objectName, 3600*time.Second, nil)
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PresignedHeadObject failed", err)
 		return
@@ -5457,7 +6091,6 @@ func testFunctional() {
 		"expires":    3600 * time.Second,
 	}
 	presignedGetURL, err := c.PresignedGetObject(context.Background(), bucketName, objectName, 3600*time.Second, nil)
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PresignedGetObject failed", err)
 		return
@@ -5557,7 +6190,6 @@ func testFunctional() {
 		"expires":    3600 * time.Second,
 	}
 	presignedPutURL, err := c.PresignedPutObject(context.Background(), bucketName, objectName+"-presigned", 3600*time.Second)
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "PresignedPutObject failed", err)
 		return
@@ -5594,6 +6226,63 @@ func testFunctional() {
 		return
 	}
 
+	function = "PresignHeader(method, bucketName, objectName, expires, reqParams, extraHeaders)"
+	functionAll += ", " + function
+	presignExtraHeaders := map[string][]string{
+		"mysecret": {"abcxxx"},
+	}
+	args = map[string]interface{}{
+		"method":       "PUT",
+		"bucketName":   bucketName,
+		"objectName":   objectName + "-presign-custom",
+		"expires":      3600 * time.Second,
+		"extraHeaders": presignExtraHeaders,
+	}
+	presignedURL, err := c.PresignHeader(context.Background(), "PUT", bucketName, objectName+"-presign-custom", 3600*time.Second, nil, presignExtraHeaders)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Presigned failed", err)
+		return
+	}
+
+	// Generate data more than 32K
+	buf = bytes.Repeat([]byte("1"), rand.Intn(1<<10)+32*1024)
+
+	req, err = http.NewRequest(http.MethodPut, presignedURL.String(), bytes.NewReader(buf))
+	if err != nil {
+		logError(testName, function, args, startTime, "", "HTTP request to Presigned URL failed", err)
+		return
+	}
+
+	req.Header.Add("mysecret", "abcxxx")
+	resp, err = httpClient.Do(req)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "HTTP request to Presigned URL failed", err)
+		return
+	}
+
+	// Download the uploaded object to verify
+	args = map[string]interface{}{
+		"bucketName": bucketName,
+		"objectName": objectName + "-presign-custom",
+	}
+	newReader, err = c.GetObject(context.Background(), bucketName, objectName+"-presign-custom", minio.GetObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject of uploaded custom-presigned object failed", err)
+		return
+	}
+
+	newReadBytes, err = ioutil.ReadAll(newReader)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAll failed during get on custom-presigned put object", err)
+		return
+	}
+	newReader.Close()
+
+	if !bytes.Equal(newReadBytes, buf) {
+		logError(testName, function, args, startTime, "", "Bytes mismatch on custom-presigned object upload verification", err)
+		return
+	}
+
 	function = "RemoveObject(bucketName, objectName)"
 	functionAll += ", " + function
 	args = map[string]interface{}{
@@ -5624,6 +6313,14 @@ func testFunctional() {
 
 	args["objectName"] = objectName + "-presigned"
 	err = c.RemoveObject(context.Background(), bucketName, objectName+"-presigned", minio.RemoveObjectOptions{})
+
+	if err != nil {
+		logError(testName, function, args, startTime, "", "RemoveObject failed", err)
+		return
+	}
+
+	args["objectName"] = objectName + "-presign-custom"
+	err = c.RemoveObject(context.Background(), bucketName, objectName+"-presign-custom", minio.RemoveObjectOptions{})
 
 	if err != nil {
 		logError(testName, function, args, startTime, "", "RemoveObject failed", err)
@@ -5816,7 +6513,7 @@ func testPutObjectUploadSeekedObject() {
 		// Seek back to the beginning of the file.
 		tempfile.Seek(0, 0)
 	}
-	var length = 100 * humanize.KiByte
+	length := 100 * humanize.KiByte
 	objectName := fmt.Sprintf("test-file-%v", rand.Uint32())
 	args["objectName"] = objectName
 
@@ -5973,7 +6670,7 @@ func testGetObjectClosedTwiceV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -6168,8 +6865,8 @@ func testFPutObjectV2() {
 		logError(testName, function, args, startTime, "", "Unexpected size", nil)
 		return
 	}
-	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" {
-		logError(testName, function, args, startTime, "", "Content-Type headers mismatched, expected: application/x-gtar , got "+rGTar.ContentType, err)
+	if rGTar.ContentType != "application/x-gtar" && rGTar.ContentType != "application/octet-stream" && rGTar.ContentType != "application/x-tar" {
+		logError(testName, function, args, startTime, "", "Content-Type headers mismatched, expected: application/x-tar , got "+rGTar.ContentType, err)
 		return
 	}
 
@@ -6285,7 +6982,7 @@ func testGetObjectReadSeekFunctionalV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -6439,7 +7136,7 @@ func testGetObjectReadAtFunctionalV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -6606,7 +7303,7 @@ func testCopyObjectV2() {
 
 	// Generate 33K of data.
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	// Save the data
@@ -6715,7 +7412,6 @@ func testComposeObjectErrorCasesWrapper(c *minio.Client) {
 
 	// Make a new bucket in 'us-east-1' (source bucket).
 	err := c.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1"})
-
 	if err != nil {
 		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
 		return
@@ -7446,6 +8142,8 @@ func testDecryptedCopyObject() {
 		return
 	}
 
+	defer cleanupBucket(bucketName, c)
+
 	encryption := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+objectName))
 	_, err = c.PutObject(context.Background(), bucketName, objectName, bytes.NewReader(bytes.Repeat([]byte("a"), 1024*1024)), 1024*1024, minio.PutObjectOptions{
 		ServerSideEncryption: encryption,
@@ -7548,7 +8246,7 @@ func testSSECMultipartEncryptedToSSECCopyObjectPart() {
 	completeParts = append(completeParts, minio.CompletePart{PartNumber: part.PartNumber, ETag: part.ETag})
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), bucketName, objectName, uploadID, completeParts)
+	_, err = c.CompleteMultipartUpload(context.Background(), bucketName, objectName, uploadID, completeParts, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -7606,7 +8304,7 @@ func testSSECMultipartEncryptedToSSECCopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -7783,7 +8481,7 @@ func testSSECEncryptedToSSECCopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -7959,7 +8657,7 @@ func testSSECEncryptedToUnencryptedCopyPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -8138,7 +8836,7 @@ func testSSECEncryptedToSSES3CopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -8312,7 +9010,7 @@ func testUnencryptedToSSECCopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -8482,7 +9180,7 @@ func testUnencryptedToUnencryptedCopyPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -8654,7 +9352,7 @@ func testUnencryptedToSSES3CopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -8829,7 +9527,7 @@ func testSSES3EncryptedToSSECCopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -9000,7 +9698,7 @@ func testSSES3EncryptedToUnencryptedCopyPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -9174,7 +9872,7 @@ func testSSES3EncryptedToSSES3CopyObjectPart() {
 	}
 
 	// Complete the multipart upload
-	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	_, err = c.CompleteMultipartUpload(context.Background(), destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart}, minio.PutObjectOptions{})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
 		return
@@ -9236,6 +9934,7 @@ func testSSES3EncryptedToSSES3CopyObjectPart() {
 
 	// Do not need to remove destBucketName its same as bucketName.
 }
+
 func testUserMetadataCopying() {
 	// initialize logging params
 	startTime := time.Now()
@@ -9733,7 +10432,7 @@ func testPutObjectNoLengthV2() {
 	args["objectName"] = objectName
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 	args["size"] = bufSize
 
@@ -10372,27 +11071,44 @@ func testFunctionalV2() {
 		return
 	}
 
-	function = "GetObject(bucketName, objectName)"
-	functionAll += ", " + function
+	// Download the uploaded object to verify
 	args = map[string]interface{}{
 		"bucketName": bucketName,
 		"objectName": objectName + "-presigned",
 	}
 	newReader, err = c.GetObject(context.Background(), bucketName, objectName+"-presigned", minio.GetObjectOptions{})
 	if err != nil {
-		logError(testName, function, args, startTime, "", "GetObject failed", err)
+		logError(testName, function, args, startTime, "", "GetObject of uploaded presigned object failed", err)
 		return
 	}
 
 	newReadBytes, err = ioutil.ReadAll(newReader)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "ReadAll failed", err)
+		logError(testName, function, args, startTime, "", "ReadAll failed during get on presigned put object", err)
 		return
 	}
 	newReader.Close()
 
 	if !bytes.Equal(newReadBytes, buf) {
-		logError(testName, function, args, startTime, "", "Bytes mismatch", err)
+		logError(testName, function, args, startTime, "", "Bytes mismatch on presigned object upload verification", err)
+		return
+	}
+
+	function = "PresignHeader(method, bucketName, objectName, expires, reqParams, extraHeaders)"
+	functionAll += ", " + function
+	presignExtraHeaders := map[string][]string{
+		"mysecret": {"abcxxx"},
+	}
+	args = map[string]interface{}{
+		"method":       "PUT",
+		"bucketName":   bucketName,
+		"objectName":   objectName + "-presign-custom",
+		"expires":      3600 * time.Second,
+		"extraHeaders": presignExtraHeaders,
+	}
+	_, err = c.PresignHeader(context.Background(), "PUT", bucketName, objectName+"-presign-custom", 3600*time.Second, nil, presignExtraHeaders)
+	if err == nil {
+		logError(testName, function, args, startTime, "", "Presigned with extra headers succeeded", err)
 		return
 	}
 
@@ -10446,7 +11162,7 @@ func testGetObjectContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -10500,7 +11216,6 @@ func testGetObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with FGetObject with a user provided context
@@ -10549,7 +11264,7 @@ func testFGetObjectContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-1-MB"]
-	var reader = getDataReader("datafile-1-MB")
+	reader := getDataReader("datafile-1-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -10588,7 +11303,6 @@ func testFGetObjectContext() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with GetObject with a user provided context
@@ -10638,7 +11352,7 @@ func testGetObjectRanges() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rng, "")
@@ -10716,12 +11430,6 @@ func testGetObjectACLContext() {
 	// Seed random based on current time.
 	rand.Seed(time.Now().Unix())
 
-	// skipping region functional tests for non s3 runs
-	if os.Getenv(serverEndpoint) != "s3.amazonaws.com" {
-		ignoredLog(testName, function, args, startTime, "Skipped region functional tests for non s3 runs").Info()
-		return
-	}
-
 	// Instantiate new minio client object.
 	c, err := minio.New(os.Getenv(serverEndpoint),
 		&minio.Options{
@@ -10753,7 +11461,7 @@ func testGetObjectACLContext() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-1-MB"]
-	var reader = getDataReader("datafile-1-MB")
+	reader := getDataReader("datafile-1-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -10798,13 +11506,24 @@ func testGetObjectACLContext() {
 		return
 	}
 
+	// Do a very limited testing if this is not AWS S3
+	if os.Getenv(serverEndpoint) != "s3.amazonaws.com" {
+		if s[0] != "private" {
+			logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Acl\" expected \"private\" but got"+fmt.Sprintf("%q", s[0]), nil)
+			return
+		}
+
+		successLogger(testName, function, args, startTime).Info()
+		return
+	}
+
 	if s[0] != "public-read-write" {
 		logError(testName, function, args, startTime, "", "GetObjectACL fail \"X-Amz-Acl\" expected \"public-read-write\" but got"+fmt.Sprintf("%q", s[0]), nil)
 		return
 	}
 
 	bufSize = dataFileMap["datafile-1-MB"]
-	var reader2 = getDataReader("datafile-1-MB")
+	reader2 := getDataReader("datafile-1-MB")
 	defer reader2.Close()
 	// Save the data
 	objectName = randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -10914,7 +11633,7 @@ func testPutObjectContextV2() {
 	}
 	defer cleanupBucket(bucketName, c)
 	bufSize := dataFileMap["datatfile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 
 	objectName := fmt.Sprintf("test-file-%v", rand.Uint32())
@@ -10944,7 +11663,6 @@ func testPutObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with GetObject with custom context
@@ -10992,7 +11710,7 @@ func testGetObjectContextV2() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datafile-33-kB"]
-	var reader = getDataReader("datafile-33-kB")
+	reader := getDataReader("datafile-33-kB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11044,7 +11762,6 @@ func testGetObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test get object with FGetObject with custom context
@@ -11093,7 +11810,7 @@ func testFGetObjectContextV2() {
 	defer cleanupBucket(bucketName, c)
 
 	bufSize := dataFileMap["datatfile-1-MB"]
-	var reader = getDataReader("datafile-1-MB")
+	reader := getDataReader("datafile-1-MB")
 	defer reader.Close()
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
@@ -11134,7 +11851,6 @@ func testFGetObjectContextV2() {
 	}
 
 	successLogger(testName, function, args, startTime).Info()
-
 }
 
 // Test list object v1 and V2
@@ -11194,7 +11910,7 @@ func testListObjects() {
 
 	for i, object := range testObjects {
 		bufSize := dataFileMap["datafile-33-kB"]
-		var reader = getDataReader("datafile-33-kB")
+		reader := getDataReader("datafile-33-kB")
 		defer reader.Close()
 		_, err = c.PutObject(context.Background(), bucketName, object.name, reader, int64(bufSize),
 			minio.PutObjectOptions{ContentType: "binary/octet-stream", StorageClass: object.storageClass})
@@ -11282,25 +11998,24 @@ func testRemoveObjects() {
 	}
 
 	bufSize := dataFileMap["datafile-129-MB"]
-	var reader = getDataReader("datafile-129-MB")
+	reader := getDataReader("datafile-129-MB")
 	defer reader.Close()
 
-	n, err := c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
+	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
-		log.Fatalln(err)
+		logError(testName, function, args, startTime, "", "Error uploading object", err)
+		return
 	}
-	log.Println("Uploaded", objectName, " of size: ", n, "to bucket: ", bucketName, "Successfully.")
 
 	// Replace with smaller...
 	bufSize = dataFileMap["datafile-10-kB"]
 	reader = getDataReader("datafile-10-kB")
 	defer reader.Close()
 
-	n, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
+	_, err = c.PutObject(context.Background(), bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{})
 	if err != nil {
-		log.Fatalln(err)
+		logError(testName, function, args, startTime, "", "Error uploading object", err)
 	}
-	log.Println("Uploaded", objectName, " of size: ", n, "to bucket: ", bucketName, "Successfully.")
 
 	t := time.Date(2030, time.April, 25, 14, 0, 0, 0, time.UTC)
 	m := minio.RetentionMode(minio.Governance)
@@ -11311,7 +12026,8 @@ func testRemoveObjects() {
 	}
 	err = c.PutObjectRetention(context.Background(), bucketName, objectName, opts)
 	if err != nil {
-		log.Fatalln(err)
+		logError(testName, function, args, startTime, "", "Error setting retention", err)
+		return
 	}
 
 	objectsCh := make(chan minio.ObjectInfo)
@@ -11321,7 +12037,8 @@ func testRemoveObjects() {
 		// List all objects from a bucket-name with a matching prefix.
 		for object := range c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{UseV1: true, Recursive: true}) {
 			if object.Err != nil {
-				log.Fatalln(object.Err)
+				logError(testName, function, args, startTime, "", "Error listing objects", object.Err)
+				return
 			}
 			objectsCh <- object
 		}
@@ -11344,7 +12061,8 @@ func testRemoveObjects() {
 		// List all objects from a bucket-name with a matching prefix.
 		for object := range c.ListObjects(context.Background(), bucketName, minio.ListObjectsOptions{UseV1: true, Recursive: true}) {
 			if object.Err != nil {
-				log.Fatalln(object.Err)
+				logError(testName, function, args, startTime, "", "Error listing objects", object.Err)
+				return
 			}
 			objectsCh1 <- object
 		}
@@ -11395,6 +12113,7 @@ func main() {
 		// Default to KMS tests.
 		kms = true
 	}
+
 	// execute tests
 	if isFullMode() {
 		testMakeBucketErrorV2()
@@ -11416,6 +12135,7 @@ func main() {
 		testFPutObjectContextV2()
 		testFGetObjectContextV2()
 		testPutObjectContextV2()
+		testPutObjectWithVersioning()
 		testMakeBucketError()
 		testMakeBucketRegions()
 		testPutObjectWithMetadata()
@@ -11423,7 +12143,9 @@ func main() {
 		testPutObjectStreaming()
 		testGetObjectSeekEnd()
 		testGetObjectClosedTwice()
+		testGetObjectS3Zip()
 		testRemoveMultipleObjects()
+		testRemoveMultipleObjectsWithResult()
 		testFPutObjectMultipart()
 		testFPutObject()
 		testGetObjectReadSeekFunctional()
@@ -11453,6 +12175,7 @@ func main() {
 		testStatObjectWithVersioning()
 		testGetObjectWithVersioning()
 		testCopyObjectWithVersioning()
+		testConcurrentCopyObjectWithVersioning()
 		testComposeObjectWithVersioning()
 		testRemoveObjectWithVersioning()
 		testRemoveObjectsWithVersioning()
