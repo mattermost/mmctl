@@ -220,15 +220,7 @@ func (pg *postgres) Close() error {
 }
 
 func (pg *postgres) Apply(migration *models.Migration, saveVersion bool) (err error) {
-	query, readErr := migration.Query()
-	if readErr != nil {
-		return &drivers.AppError{
-			OrigErr: readErr,
-			Driver:  driverName,
-			Message: fmt.Sprintf("failed to read migration query: %s", migration.Name),
-		}
-	}
-	defer migration.Close()
+	query := migration.Query()
 
 	ctx, cancel := drivers.GetContext(pg.config.StatementTimeoutInSecs)
 	defer cancel()

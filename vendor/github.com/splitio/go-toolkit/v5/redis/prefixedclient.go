@@ -223,6 +223,16 @@ func (p *PrefixedPipeline) LLen(key string) {
 	p.wrapped.LLen(withPrefix(p.prefix, key))
 }
 
+// HIncrBy schedules an hincrby operation on this pipeline
+func (p *PrefixedPipeline) HIncrBy(key string, field string, value int64) {
+	p.wrapped.HIncrBy(withPrefix(p.prefix, key), field, value)
+}
+
+// HLen schedules an HLen operation on this pipeline
+func (p *PrefixedPipeline) HLen(key string) {
+	p.wrapped.HLen(withPrefix(p.prefix, key))
+}
+
 // Exec executes the pipeline
 func (p *PrefixedPipeline) Exec() ([]Result, error) {
 	return p.wrapped.Exec()

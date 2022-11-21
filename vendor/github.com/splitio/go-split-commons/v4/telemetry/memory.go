@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/splitio/go-split-commons/v4/conf"
 	"github.com/splitio/go-split-commons/v4/dtos"
 	"github.com/splitio/go-split-commons/v4/service"
 	"github.com/splitio/go-split-commons/v4/storage"
@@ -92,11 +91,7 @@ func (e *RecorderSingle) SynchronizeStats() error {
 // SynchronizeConfig syncs telemetry config
 func (e *RecorderSingle) SynchronizeConfig(cfg InitConfig, timedUntilReady int64, factoryInstances map[string]int64, tags []string) {
 	urlOverrides := getURLOverrides(cfg.AdvancedConfig)
-
-	impressionsMode := ImpressionsModeOptimized
-	if cfg.ManagerConfig.ImpressionsMode == conf.ImpressionsModeDebug {
-		impressionsMode = ImpressionsModeDebug
-	}
+	impressionsMode := getImpressionMode(cfg)
 
 	before := time.Now()
 	err := e.telemetryRecorder.RecordConfig(dtos.Config{
@@ -117,7 +112,7 @@ func (e *RecorderSingle) SynchronizeConfig(cfg InitConfig, timedUntilReady int64
 		ImpressionsQueueSize:       int64(cfg.AdvancedConfig.ImpressionsQueueSize),
 		EventsQueueSize:            int64(cfg.AdvancedConfig.EventsQueueSize),
 		ImpressionsMode:            impressionsMode,
-		ImpressionsListenerEnabled: cfg.ManagerConfig.ListenerEnabled,
+		ImpressionsListenerEnabled: cfg.ListenerEnabled,
 		HTTPProxyDetected:          len(strings.TrimSpace(os.Getenv("HTTP_PROXY"))) > 0,
 		TimeUntilReady:             timedUntilReady,
 		BurTimeouts:                e.telemetryStorage.GetBURTimeouts(),
@@ -132,4 +127,21 @@ func (e *RecorderSingle) SynchronizeConfig(cfg InitConfig, timedUntilReady int64
 	}
 	e.runtimeTelemetry.RecordSyncLatency(TelemetrySync, time.Since(before))
 	e.runtimeTelemetry.RecordSuccessfulSync(TelemetrySync, time.Now().UTC())
+}
+
+// SynchronizeUniqueKeys syncs unique keys
+func (e *RecorderSingle) SynchronizeUniqueKeys(uniques dtos.Uniques) error {
+	if len(uniques.Keys) < 1 {
+		e.logger.Debug("Unique keys list is empty, nothing to synchronize.")
+		return nil
+	}
+
+	err := e.telemetryRecorder.RecordUniqueKeys(uniques, e.metadata)
+	if err != nil {
+		e.logger.Error("Could not log unique keys", err.Error())
+
+		return err
+	}
+
+	return nil
 }

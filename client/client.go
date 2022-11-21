@@ -41,7 +41,7 @@ type Client interface {
 	SearchTeams(search *model.TeamSearch) ([]*model.Team, *model.Response, error)
 	GetPost(postID string, etag string) (*model.Post, *model.Response, error)
 	CreatePost(post *model.Post) (*model.Post, *model.Response, error)
-	GetPostsForChannel(channelID string, page, perPage int, etag string, collapsedThreads bool) (*model.PostList, *model.Response, error)
+	GetPostsForChannel(channelID string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*model.PostList, *model.Response, error)
 	GetPostsSince(channelID string, since int64, collapsedThreads bool) (*model.PostList, *model.Response, error)
 	DoAPIPost(url string, data string) (*http.Response, error)
 	GetLdapGroups() ([]*model.Group, *model.Response, error)

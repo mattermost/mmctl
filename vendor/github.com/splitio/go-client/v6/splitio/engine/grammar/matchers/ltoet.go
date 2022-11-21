@@ -1,6 +1,8 @@
 package matchers
 
 import (
+	"fmt"
+
 	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes"
 )
 
@@ -16,7 +18,7 @@ func (m *LessThanOrEqualToMatcher) Match(key string, attributes map[string]inter
 
 	matchingRaw, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("LessThanOrEqualToMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("LessThanOrEqualToMatcher: %s", err.Error()))
 		return false
 	}
 

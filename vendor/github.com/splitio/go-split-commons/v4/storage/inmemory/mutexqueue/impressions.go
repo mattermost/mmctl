@@ -11,7 +11,7 @@ import (
 )
 
 // NewMQImpressionsStorage returns an instance of MQEventsStorage
-func NewMQImpressionsStorage(queueSize int, isFull chan<- string, logger logging.LoggerInterface, runtimeTelemetry storage.TelemetryRuntimeProducer) *MQImpressionsStorage {
+func NewMQImpressionsStorage(queueSize int, isFull chan<- string, logger logging.LoggerInterface, runtimeTelemetry storage.TelemetryRuntimeProducer) storage.ImpressionStorage {
 	return &MQImpressionsStorage{
 		queue:            list.New(),
 		size:             queueSize,
@@ -112,7 +112,7 @@ func (s *MQImpressionsStorage) PopNWithMetadata(n int64) ([]dtos.ImpressionQueue
 }
 
 // PopNRaw pop N elements from queue
-func (s *MQImpressionsStorage) PopNRaw(n int64) ([]string, error) {
+func (s *MQImpressionsStorage) PopNRaw(n int64) ([]string, int64, error) {
 	panic("Not implemented for inmemory")
 }
 

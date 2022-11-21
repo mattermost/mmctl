@@ -1,6 +1,8 @@
 package matchers
 
 import (
+	"fmt"
+
 	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes"
 )
 
@@ -15,7 +17,7 @@ type GreaterThanOrEqualToMatcher struct {
 func (m *GreaterThanOrEqualToMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingRaw, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("GreaterThanOrEqualToMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("GreaterThanOrEqualToMatcher: %s", err.Error()))
 		return false
 	}
 

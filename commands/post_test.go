@@ -191,7 +191,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPostsForChannel(channelID, 0, 1, "", false).
+			GetPostsForChannel(channelID, 0, 1, "", false, false).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 

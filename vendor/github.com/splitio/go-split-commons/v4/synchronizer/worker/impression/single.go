@@ -4,12 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/splitio/go-split-commons/v4/conf"
 	"github.com/splitio/go-split-commons/v4/dtos"
 	"github.com/splitio/go-split-commons/v4/service"
 	"github.com/splitio/go-split-commons/v4/storage"
 	"github.com/splitio/go-split-commons/v4/telemetry"
-	"github.com/splitio/go-split-commons/v4/util"
 	"github.com/splitio/go-toolkit/v5/logging"
 )
 
@@ -40,19 +38,15 @@ func NewRecorderSingle(
 	impressionRecorder service.ImpressionsRecorder,
 	logger logging.LoggerInterface,
 	metadata dtos.Metadata,
-	managerConfig conf.ManagerConfig,
+	impressionsMode string,
 	runtimeTelemetry storage.TelemetryRuntimeProducer,
 ) ImpressionRecorder {
-	mode := conf.ImpressionsModeOptimized
-	if !util.ShouldBeOptimized(managerConfig) {
-		mode = conf.ImpressionsModeDebug
-	}
 	return &RecorderSingle{
 		impressionStorage:  impressionStorage,
 		impressionRecorder: impressionRecorder,
 		logger:             logger,
 		metadata:           metadata,
-		mode:               mode,
+		mode:               impressionsMode,
 		runtimeTelemetry:   runtimeTelemetry,
 	}
 }

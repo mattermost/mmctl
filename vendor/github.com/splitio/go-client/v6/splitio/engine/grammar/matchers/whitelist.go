@@ -1,6 +1,8 @@
 package matchers
 
 import (
+	"fmt"
+
 	"github.com/splitio/go-toolkit/v5/datastructures/set"
 )
 
@@ -14,7 +16,7 @@ type WhitelistMatcher struct {
 func (m *WhitelistMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("WhitelistMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("WhitelistMatcher: %s", err.Error()))
 		return false
 	}
 

@@ -149,7 +149,7 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 
 func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
 	if since == "" {
-		return client.GetPostsForChannel(channelID, 0, perPage, "", false)
+		return client.GetPostsForChannel(channelID, 0, perPage, "", false, false)
 	}
 
 	sinceTime, err := time.Parse(ISO8601Layout, since)

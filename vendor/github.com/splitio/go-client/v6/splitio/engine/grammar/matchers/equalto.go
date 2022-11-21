@@ -2,8 +2,9 @@ package matchers
 
 import (
 	"fmt"
-	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes"
 	"reflect"
+
+	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes"
 )
 
 // EqualToMatcher will match if two numbers or two datetimes are equal
@@ -18,7 +19,7 @@ func (m *EqualToMatcher) Match(key string, attributes map[string]interface{}, bu
 
 	matchingRaw, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("EqualToMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("EqualToMatcher: %s", err.Error()))
 		return false
 	}
 

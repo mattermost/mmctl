@@ -46,7 +46,7 @@ Features
   renderers.
 - **Performance.**  goldmark's performance is on par with that of cmark,
   the CommonMark reference implementation written in C.
-- **Robust.**  goldmark is tested with [go-fuzz](https://github.com/dvyukov/go-fuzz), a fuzz testing tool.
+- **Robust.**  goldmark is tested with `go test --fuzz`.
 - **Built-in extensions.**  goldmark ships with common extensions like tables, strikethrough,
   task lists, and definition lists.
 - **Depends only on standard libraries.**
@@ -180,6 +180,8 @@ Parser and Renderer options
     - [PHP Markdown Extra: Footnotes](https://michelf.ca/projects/php-markdown/extra/#footnotes)
 - `extension.Typographer`
     - This extension substitutes punctuations with typographic entities like [smartypants](https://daringfireball.net/projects/smartypants/).
+- `extension.CJK`
+    - This extension is a shortcut for CJK related functionalities.
 
 ### Attributes
 The `parser.WithAttribute` option allows you to define attributes on some elements.
@@ -369,6 +371,17 @@ footnote-prefix: article1
 # My article
 
 ```
+
+### CJK extension
+CommonMark gives compatibilities a high priority and original markdown was designed by westerners. So CommonMark lacks considerations for languages like CJK.
+
+This extension provides additional options for CJK users.
+
+| Functional option | Type | Description |
+| ----------------- | ---- | ----------- |
+| `extension.WithEastAsianLineBreaks` | `-` | Soft line breaks are rendered as a newline. Some asian users will see it as an unnecessary space. With this option, soft line breaks between east asian wide characters will be ignored. |
+| `extension.WithEscapedSpace` | `-` | Without spaces around an emphasis started with east asian punctuations, it is not interpreted as an emphasis(as defined in CommonMark spec). With this option, you can avoid this inconvenient behavior by putting 'not rendered' spaces around an emphasis like `太郎は\ **「こんにちわ」**\ といった`. |
+
  
 Security
 --------------------
@@ -431,6 +444,8 @@ Extensions
 - [goldmark-mermaid](https://github.com/abhinav/goldmark-mermaid): Adds support for rendering [Mermaid](https://mermaid-js.github.io/mermaid/) diagrams in goldmark documents.
 - [goldmark-pikchr](https://github.com/jchenry/goldmark-pikchr): Adds support for rendering [Pikchr](https://pikchr.org/home/doc/trunk/homepage.md) diagrams in goldmark documents.
 - [goldmark-embed](https://github.com/13rac1/goldmark-embed): Adds support for rendering embeds from YouTube links.
+- [goldmark-latex](https://github.com/soypat/goldmark-latex): A $\LaTeX$ renderer that can be passed to `goldmark.WithRenderer()`.
+- [goldmark-fences](https://github.com/stefanfritsch/goldmark-fences): Support for pandoc-style [fenced divs](https://pandoc.org/MANUAL.html#divs-and-spans) in goldmark.
 
 
 goldmark internal(for extension developers)

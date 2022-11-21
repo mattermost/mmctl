@@ -21,7 +21,6 @@ import (
 	"math"
 	"reflect"
 	"sort"
-	"sync/atomic"
 
 	index "github.com/blevesearch/bleve_index_api"
 	segment "github.com/blevesearch/scorch_segment_api/v2"
@@ -40,6 +39,31 @@ type docNumTermsVisitor func(docNum uint64, terms []byte) error
 type docVisitState struct {
 	dvrs    map[uint16]*docValueReader
 	segment *SegmentBase
+
+	bytesRead uint64
+}
+
+// Implements the segment.DiskStatsReporter interface
+// The purpose of this implementation is to get
+// the bytes read from the disk (pertaining to the
+// docvalues) while querying.
+// the loadDvChunk retrieves the next chunk of docvalues
+// and the bytes retrieved off the disk pertaining to that
+// is accounted as well.
+func (d *docVisitState) incrementBytesRead(val uint64) {
+	d.bytesRead += val
+}
+
+func (d *docVisitState) BytesRead() uint64 {
+	return d.bytesRead
+}
+
+func (d *docVisitState) BytesWritten() uint64 {
+	return 0
+}
+
+func (d *docVisitState) ResetBytesRead(val uint64) {
+	d.bytesRead = val
 }
 
 type docValueReader struct {
@@ -131,27 +155,12 @@ func (s *SegmentBase) loadFieldDocValueReader(field string,
 	return fdvIter, nil
 }
 
-// Implements the segment.DiskStatsReporter interface
-// The purpose of this implementation is to get
-// the bytes read from the disk (pertaining to the
-// docvalues) while querying.
-// the loadDvChunk retrieves the next chunk of docvalues
-// and the bytes retrieved off the disk pertaining to that
-// is accounted as well.
-func (di *docValueReader) BytesRead() uint64 {
-	return atomic.LoadUint64(&di.bytesRead)
+func (d *docValueReader) getBytesRead() uint64 {
+	return d.bytesRead
 }
 
-func (di *docValueReader) ResetBytesRead(val uint64) {
-	atomic.StoreUint64(&di.bytesRead, val)
-}
-
-func (di *docValueReader) incrementBytesRead(val uint64) {
-	atomic.AddUint64(&di.bytesRead, val)
-}
-
-func (di *docValueReader) BytesWritten() uint64 {
-	return 0
+func (d *docValueReader) incrementBytesRead(val uint64) {
+	d.bytesRead += val
 }
 
 func (di *docValueReader) loadDvChunk(chunkNumber uint64, s *SegmentBase) error {
@@ -289,6 +298,7 @@ func (s *SegmentBase) VisitDocValues(localDocNum uint64, fields []string,
 		if dvs.segment != s {
 			dvs.segment = s
 			dvs.dvrs = nil
+			dvs.bytesRead = 0
 		}
 	}
 
@@ -327,7 +337,9 @@ func (s *SegmentBase) VisitDocValues(localDocNum uint64, fields []string,
 				if err != nil {
 					return dvs, err
 				}
-				s.incrementBytesRead(dvr.BytesRead())
+				dvs.ResetBytesRead(dvr.getBytesRead())
+			} else {
+				dvs.ResetBytesRead(0)
 			}
 
 			_ = dvr.visitDocValues(localDocNum, visitor)

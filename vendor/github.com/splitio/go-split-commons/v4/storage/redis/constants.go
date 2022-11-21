@@ -13,10 +13,13 @@ const (
 	KeyConfig           = "SPLITIO.telemetry.config"                                 // config Key
 	KeyLatency          = "SPLITIO.telemetry.latencies"                              // latency Key
 	KeyException        = "SPLITIO.telemetry.exceptions"                             // exception Key
+	KeyUniquekeys       = "SPLITIO.uniquekeys"                                       // Unique keys
+	KeyImpressionsCount = "SPLITIO.impressions.count"                                // impressions count
 	FieldLatency        = "{sdkVersion}/{machineName}/{machineIP}/{method}/{bucket}" // latency field template
 	FieldException      = "{sdkVersion}/{machineName}/{machineIP}/{method}"          // exception field template
 	TTLImpressions      = 3600                                                       // impressions default TTL
 	TTLConfig           = 3600                                                       // config TTL
+	TTLUniquekeys       = 3600                                                       // Uniquekeys TTL
 
 	// TODO(mredolatti): when doing a breking change, name this `KeyConfig`, and rename `KeyConfig` to `KeyConfigLegacy`,
 	// or even better, remove the old one, so that it only exists in the split-sync

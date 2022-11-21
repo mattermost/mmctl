@@ -2,8 +2,9 @@ package matchers
 
 import (
 	"fmt"
-	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes"
 	"reflect"
+
+	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers/datatypes"
 )
 
 // BetweenMatcher will match if two numbers or two datetimes are equal
@@ -18,7 +19,7 @@ type BetweenMatcher struct {
 func (m *BetweenMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingRaw, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("BetweenMatcher: Could not retrieve matching key. ", err)
+		m.logger.Warning(fmt.Sprintf("BetweenMatcher: %s", err.Error()))
 		return false
 	}
 

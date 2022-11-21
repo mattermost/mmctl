@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type StartsWithMatcher struct {
 func (m *StartsWithMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("StartsWithMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("StartsWithMatcher: %s", err.Error()))
 		return false
 	}
 

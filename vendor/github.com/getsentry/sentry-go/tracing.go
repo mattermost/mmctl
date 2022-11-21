@@ -148,7 +148,7 @@ func StartSpan(ctx context.Context, operation string, options ...SpanOption) *Sp
 
 	// Update scope so that all events include a trace context, allowing
 	// Sentry to correlate errors to transactions/spans.
-	hubFromContext(ctx).Scope().SetContext("trace", span.traceContext())
+	hubFromContext(ctx).Scope().SetContext("trace", span.traceContext().Map())
 
 	return &span
 }
@@ -228,13 +228,13 @@ func (s *Span) ToSentryTrace() string {
 
 // sentryTracePattern matches either
 //
-// 	TRACE_ID - SPAN_ID
-// 	[[:xdigit:]]{32}-[[:xdigit:]]{16}
+//	TRACE_ID - SPAN_ID
+//	[[:xdigit:]]{32}-[[:xdigit:]]{16}
 //
 // or
 //
-// 	TRACE_ID - SPAN_ID - SAMPLED
-// 	[[:xdigit:]]{32}-[[:xdigit:]]{16}-[01]
+//	TRACE_ID - SPAN_ID - SAMPLED
+//	[[:xdigit:]]{32}-[[:xdigit:]]{16}-[01]
 var sentryTracePattern = regexp.MustCompile(`^([[:xdigit:]]{32})-([[:xdigit:]]{16})(?:-([01]))?$`)
 
 // updateFromSentryTrace parses a sentry-trace HTTP header (as returned by
@@ -329,8 +329,8 @@ func (s *Span) toEvent() *Event {
 	return &Event{
 		Type:        transactionType,
 		Transaction: hub.Scope().Transaction(),
-		Contexts: map[string]interface{}{
-			"trace": s.traceContext(),
+		Contexts: map[string]Context{
+			"trace": s.traceContext().Map(),
 		},
 		Tags:      s.Tags,
 		Extra:     s.Data,
@@ -499,6 +499,31 @@ func (tc *TraceContext) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (tc TraceContext) Map() map[string]interface{} {
+	m := map[string]interface{}{
+		"trace_id": tc.TraceID,
+		"span_id":  tc.SpanID,
+	}
+
+	if tc.ParentSpanID != [8]byte{} {
+		m["parent_span_id"] = tc.ParentSpanID
+	}
+
+	if tc.Op != "" {
+		m["op"] = tc.Op
+	}
+
+	if tc.Description != "" {
+		m["description"] = tc.Description
+	}
+
+	if tc.Status > 0 && tc.Status < maxSpanStatus {
+		m["status"] = tc.Status
+	}
+
+	return m
+}
+
 // Sampled signifies a sampling decision.
 type Sampled int8
 
@@ -542,12 +567,28 @@ func TransactionName(name string) SpanOption {
 	}
 }
 
+// OpName sets the operation name for a given span.
+func OpName(name string) SpanOption {
+	return func(s *Span) {
+		s.Op = name
+	}
+}
+
 // ContinueFromRequest returns a span option that updates the span to continue
 // an existing trace. If it cannot detect an existing trace in the request, the
 // span will be left unchanged.
+//
+// ContinueFromRequest is an alias for:
+//
+//	ContinueFromTrace(r.Header.Get("sentry-trace"))
 func ContinueFromRequest(r *http.Request) SpanOption {
+	return ContinueFromTrace(r.Header.Get("sentry-trace"))
+}
+
+// ContinueFromTrace returns a span option that updates the span to continue
+// an existing TraceID.
+func ContinueFromTrace(trace string) SpanOption {
 	return func(s *Span) {
-		trace := r.Header.Get("sentry-trace")
 		if trace == "" {
 			return
 		}
@@ -579,7 +620,7 @@ func TransactionFromContext(ctx context.Context) *Span {
 //
 // Note the equivalence:
 //
-// 	SpanFromContext(ctx).StartChild(...) === StartSpan(ctx, ...)
+//	SpanFromContext(ctx).StartChild(...) === StartSpan(ctx, ...)
 //
 // So we don't aim spanFromContext at creating spans, but mutating existing
 // spans that you'd have no access otherwise (because it was created in code you
@@ -592,4 +633,24 @@ func spanFromContext(ctx context.Context) *Span {
 		return span
 	}
 	return nil
+}
+
+// StartTransaction will create a transaction (root span) if there's no existing
+// transaction in the context otherwise, it will return the existing transaction.
+func StartTransaction(ctx context.Context, name string, options ...SpanOption) *Span {
+	currentTransaction, exists := ctx.Value(spanContextKey{}).(*Span)
+	if exists {
+		return currentTransaction
+	}
+	hub := GetHubFromContext(ctx)
+	if hub == nil {
+		hub = CurrentHub().Clone()
+		ctx = SetHubOnContext(ctx, hub)
+	}
+	options = append(options, TransactionName(name))
+	return StartSpan(
+		ctx,
+		"",
+		options...,
+	)
 }

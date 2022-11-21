@@ -124,3 +124,14 @@ type Stats struct {
 	StreamingEvents      []StreamingEvent     `json:"sE,omitempty"`
 	Tags                 []string             `json:"t,omitempty"`
 }
+
+// Key struct
+type Key struct {
+	Feature string   `json:"f,omitempty"`
+	Keys    []string `json:"ks,omitempty"`
+}
+
+// Uniques struct
+type Uniques struct {
+	Keys []Key `json:"keys,omitempty"`
+}

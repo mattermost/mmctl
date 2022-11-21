@@ -7,6 +7,7 @@ import (
 	"github.com/splitio/go-split-commons/v4/dtos"
 )
 
+// GetStreamingEvent get streaming event
 func GetStreamingEvent(eventType int, data int64) *dtos.StreamingEvent {
 	switch eventType {
 	case EventTypeSSEConnectionEstablished, EventTypeOccupancyPri,
@@ -20,6 +21,17 @@ func GetStreamingEvent(eventType int, data int64) *dtos.StreamingEvent {
 		}
 	}
 	return nil
+}
+
+func getImpressionMode(cfg InitConfig) int {
+	switch cfg.ImpressionsMode {
+	case conf.ImpressionsModeDebug:
+		return ImpressionsModeDebug
+	case conf.ImpressionsModeNone:
+		return ImpressionsModeNone
+	default:
+		return ImpressionsModeOptimized
+	}
 }
 
 func getURLOverrides(cfg conf.AdvancedConfig) dtos.URLOverrides {
