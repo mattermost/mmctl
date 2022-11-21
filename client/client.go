@@ -47,6 +47,7 @@ type Client interface {
 	GetLdapGroups() ([]*model.Group, *model.Response, error)
 	GetGroupsByChannel(channelID string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error)
 	GetGroupsByTeam(teamID string, groupOpts model.GroupSearchOpts) ([]*model.GroupWithSchemeAdmin, int, *model.Response, error)
+	RestoreGroup(groupID string, etag string) (*model.Group, *model.Response, error)
 	UploadLicenseFile(data []byte) (*model.Response, error)
 	RemoveLicenseFile() (*model.Response, error)
 	GetLogs(page, perPage int) ([]string, *model.Response, error)

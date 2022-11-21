@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
@@ -331,6 +331,14 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 }
 
 func userGroupRestoreCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	fmt.Println(args[0])
+	groupID := args[0]
+	_, resp, err := c.RestoreGroup(groupID, "")
+
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode == http.StatusOK {
+		printer.Print("Group successfully restored with ID: " + groupID)
+	}
 	return nil
 }
