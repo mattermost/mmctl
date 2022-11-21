@@ -132,6 +132,8 @@ $ mmctl auth login https://community.mattermost.com --name community --access-to
 
 # Development
 
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/silverbulletmd/silverbullet)
+
 ## Compile
 
 First we have to install the dependencies of the project. `mmctl` depends on go version 1.13.3 or greater.
