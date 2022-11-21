@@ -753,12 +753,20 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		var users []*model.User
 		var err error
 		if team != nil {
-			users, _, err = c.GetUsersInTeam(team.Id, page, perPage, "")
+			if len(strings.TrimSpace(roles)) > 0 {
+				users, _, err = c.GetUsersInTeamByRoles(team.Id, roles, page, perPage, "")
+			} else {
+				users, _, err = c.GetUsersInTeam(team.Id, page, perPage, "")
+			}
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
 			}
 		} else {
-			users, _, err = c.GetUsers(page, perPage, "")
+			if len(strings.TrimSpace(roles)) > 0 {
+				users, _, err = c.GetUsersByRoles(roles, page, perPage, "")
+			} else {
+				users, _, err = c.GetUsers(page, perPage, "")
+			}
 			if err != nil {
 				return errors.Wrap(err, "Failed to fetch users")
 			}
