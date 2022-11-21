@@ -164,7 +164,7 @@ func removePlugin(s *MmctlE2ETestSuite, pluginID string) {
 	s.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 	})
-	appErr := s.th.App.RemovePlugin(pluginID)
+	appErr := s.th.App.Channels().RemovePlugin(pluginID)
 	if appErr != nil {
 		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
 	}
