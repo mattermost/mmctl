@@ -170,6 +170,24 @@ func (p *PostPolicy) SetContentType(contentType string) error {
 	return nil
 }
 
+// SetContentTypeStartsWith - Sets what content-type of the object for this policy
+// based upload can start with.
+func (p *PostPolicy) SetContentTypeStartsWith(contentTypeStartsWith string) error {
+	if strings.TrimSpace(contentTypeStartsWith) == "" || contentTypeStartsWith == "" {
+		return errInvalidArgument("No content type specified.")
+	}
+	policyCond := policyCondition{
+		matchType: "starts-with",
+		condition: "$Content-Type",
+		value:     contentTypeStartsWith,
+	}
+	if err := p.addNewPolicy(policyCond); err != nil {
+		return err
+	}
+	p.formData["Content-Type"] = contentTypeStartsWith
+	return nil
+}
+
 // SetContentLengthRange - Set new min and max content length
 // condition for all incoming uploads.
 func (p *PostPolicy) SetContentLengthRange(min, max int64) error {
@@ -179,8 +197,8 @@ func (p *PostPolicy) SetContentLengthRange(min, max int64) error {
 	if min < 0 {
 		return errInvalidArgument("Minimum limit cannot be negative.")
 	}
-	if max < 0 {
-		return errInvalidArgument("Maximum limit cannot be negative.")
+	if max <= 0 {
+		return errInvalidArgument("Maximum limit cannot be non-positive.")
 	}
 	p.contentLengthRange.min = min
 	p.contentLengthRange.max = max
@@ -298,8 +316,8 @@ func (p PostPolicy) marshalJSON() []byte {
 	}
 	retStr := "{"
 	retStr = retStr + expirationStr + ","
-	retStr = retStr + conditionsStr
-	retStr = retStr + "}"
+	retStr += conditionsStr
+	retStr += "}"
 	return []byte(retStr)
 }
 

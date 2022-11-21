@@ -4,11 +4,13 @@
 package commands
 
 import (
+	"net/http"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -38,19 +40,19 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetAllTeams("", 0, 100000000).
-			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
+			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhooksForTeam(teamID, 0, 100000000, "").
-			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{Error: nil}).
+			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhooksForTeam(teamID, 0, 100000000, "").
-			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{Error: nil}).
+			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{}, nil).
 			Times(1)
 
 		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
@@ -78,19 +80,19 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhooksForTeam(teamID, 0, 100000000, "").
-			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{Error: nil}).
+			Return([]*model.IncomingWebhook{&mockIncomingWebhook}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhooksForTeam(teamID, 0, 100000000, "").
-			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{Error: nil}).
+			Return([]*model.OutgoingWebhook{&mockOutgoingWebhook}, &model.Response{}, nil).
 			Times(1)
 
 		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{teamID})
@@ -107,24 +109,24 @@ func (s *MmctlUnitTestSuite) TestListWebhookCmd() {
 		mockTeam := model.Team{
 			Id: teamID,
 		}
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			GetAllTeams("", 0, 100000000).
-			Return([]*model.Team{&mockTeam}, &model.Response{Error: nil}).
+			Return([]*model.Team{&mockTeam}, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhooksForTeam(teamID, 0, 100000000, "").
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhooksForTeam(teamID, 0, 100000000, "").
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := listWebhookCmdF(s.client, &cobra.Command{}, []string{})
@@ -164,6 +166,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 			ChannelId:   channelID,
 			Username:    userName,
 			DisplayName: displayName,
+			UserId:      userID,
 		}
 		returnedIncomingWebhook := mockIncomingWebhook
 		returnedIncomingWebhook.Id = incomingWebhookID
@@ -171,19 +174,19 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetChannel(channelID, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailID, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			CreateIncomingWebhook(&mockIncomingWebhook).
-			Return(&returnedIncomingWebhook, &model.Response{Error: nil}).
+			Return(&returnedIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		err := createIncomingWebhookCmdF(s.client, cmd, []string{})
@@ -208,25 +211,26 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 			ChannelId:   channelID,
 			Username:    userName,
 			DisplayName: displayName,
+			UserId:      userID,
 		}
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			GetChannel(channelID, "").
-			Return(&mockChannel, &model.Response{Error: nil}).
+			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailID, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			CreateIncomingWebhook(&mockIncomingWebhook).
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := createIncomingWebhookCmdF(s.client, cmd, []string{})
@@ -265,13 +269,13 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(incomingWebhookID, "").
-			Return(&mockIncomingWebhook, &model.Response{Error: nil}).
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateIncomingWebhook(&mockIncomingWebhook).
-			Return(&updatedIncomingWebhook, &model.Response{Error: nil}).
+			Return(&updatedIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		err := modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
@@ -293,10 +297,8 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		}
 
 		lockToChannel := true
-		updatedIncomingWebhook := mockIncomingWebhook
-		updatedIncomingWebhook.ChannelLocked = lockToChannel
 
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		cmd := &cobra.Command{}
 
@@ -305,13 +307,13 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(incomingWebhookID, "").
-			Return(&mockIncomingWebhook, &model.Response{Error: nil}).
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateIncomingWebhook(&mockIncomingWebhook).
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
@@ -361,19 +363,19 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailID, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			CreateOutgoingWebhook(&mockOutgoingWebhook).
-			Return(&createdOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&createdOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		err := createOutgoingWebhookCmdF(s.client, cmd, []string{})
@@ -402,24 +404,24 @@ func (s *MmctlUnitTestSuite) TestCreateOutgoingWebhookCmd() {
 			TriggerWhen:  0,
 			CallbackURLs: []string{},
 		}
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			GetTeam(teamID, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailID, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			CreateOutgoingWebhook(&mockOutgoingWebhook).
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := createOutgoingWebhookCmdF(s.client, cmd, []string{})
@@ -454,13 +456,13 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetOutgoingWebhook(outgoingWebhookID).
-			Return(&mockOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateOutgoingWebhook(&mockOutgoingWebhook).
-			Return(&updatedOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&updatedOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		err := modifyOutgoingWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
@@ -479,7 +481,7 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 			CallbackURLs: []string{},
 			TriggerWhen:  0,
 		}
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		cmd := &cobra.Command{}
 		cmd.Flags().StringArray("url", []string{}, "")
@@ -489,13 +491,13 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetOutgoingWebhook(outgoingWebhookID).
-			Return(&mockOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateOutgoingWebhook(&mockOutgoingWebhook).
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := modifyOutgoingWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
@@ -518,13 +520,13 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(incomingWebhookID, "").
-			Return(&mockIncomingWebhook, &model.Response{Error: nil}).
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			DeleteIncomingWebhook(incomingWebhookID).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
@@ -537,25 +539,25 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 	s.Run("Successfully delete outgoing webhook", func() {
 		printer.Clean()
 
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 		mockOutgoingWebhook := model.OutgoingWebhook{Id: outgoingWebhookID}
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(outgoingWebhookID, "").
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhook(outgoingWebhookID).
-			Return(&mockOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			DeleteOutgoingWebhook(outgoingWebhookID).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
@@ -569,18 +571,18 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 		printer.Clean()
 
 		mockIncomingWebhook := model.IncomingWebhook{Id: incomingWebhookID}
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(incomingWebhookID, "").
-			Return(&mockIncomingWebhook, &model.Response{Error: nil}).
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			DeleteIncomingWebhook(incomingWebhookID).
-			Return(false, &model.Response{Error: &mockError}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
@@ -593,25 +595,25 @@ func (s *MmctlUnitTestSuite) TestDeleteWebhookCmd() {
 	s.Run("delete outgoing webhook error", func() {
 		printer.Clean()
 
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 		mockOutgoingWebhook := model.OutgoingWebhook{Id: outgoingWebhookID}
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(outgoingWebhookID, "").
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhook(outgoingWebhookID).
-			Return(&mockOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			DeleteOutgoingWebhook(outgoingWebhookID).
-			Return(false, &model.Response{Error: &mockError}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := deleteWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
@@ -635,7 +637,7 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(incomingWebhookID, "").
-			Return(&mockIncomingWebhook, &model.Response{Error: nil}).
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{incomingWebhookID})
@@ -648,19 +650,19 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 	s.Run("Successfully show outgoing webhook", func() {
 		printer.Clean()
 
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 		mockOutgoingWebhook := model.OutgoingWebhook{Id: outgoingWebhookID}
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(outgoingWebhookID, "").
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhook(outgoingWebhookID).
-			Return(&mockOutgoingWebhook, &model.Response{Error: nil}).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
 			Times(1)
 
 		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{outgoingWebhookID})
@@ -673,18 +675,18 @@ func (s *MmctlUnitTestSuite) TestShowWebhookCmd() {
 	s.Run("Error in show webhook", func() {
 		printer.Clean()
 
-		mockError := model.AppError{Id: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			GetIncomingWebhook(nonExistentID, "").
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetOutgoingWebhook(nonExistentID).
-			Return(nil, &model.Response{Error: &mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := showWebhookCmdF(s.client, &cobra.Command{}, []string{nonExistentID})

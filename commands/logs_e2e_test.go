@@ -4,7 +4,7 @@
 package commands
 
 import (
-	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/v6/client"
 
 	"github.com/spf13/cobra"
 )

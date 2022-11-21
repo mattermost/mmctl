@@ -81,11 +81,24 @@ const (
 	// when calling RegisterUsage.
 	ErrCodeInvalidRegionException = "InvalidRegionException"
 
+	// ErrCodeInvalidTagException for service response error code
+	// "InvalidTagException".
+	//
+	// The tag is invalid, or the number of tags is greater than 5.
+	ErrCodeInvalidTagException = "InvalidTagException"
+
 	// ErrCodeInvalidTokenException for service response error code
 	// "InvalidTokenException".
 	//
 	// Registration token is invalid.
 	ErrCodeInvalidTokenException = "InvalidTokenException"
+
+	// ErrCodeInvalidUsageAllocationsException for service response error code
+	// "InvalidUsageAllocationsException".
+	//
+	// The usage allocation objects are invalid, or the number of allocations is
+	// greater than 500 for a single usage record.
+	ErrCodeInvalidUsageAllocationsException = "InvalidUsageAllocationsException"
 
 	// ErrCodeInvalidUsageDimensionException for service response error code
 	// "InvalidUsageDimensionException".
@@ -110,7 +123,11 @@ const (
 	// ErrCodeTimestampOutOfBoundsException for service response error code
 	// "TimestampOutOfBoundsException".
 	//
-	// The timestamp value passed in the meterUsage() is out of allowed range.
+	// The timestamp value passed in the UsageRecord is out of allowed range.
+	//
+	// For BatchMeterUsage, if any of the records are outside of the allowed range,
+	// the entire batch is not processed. You must remove invalid records and try
+	// again.
 	ErrCodeTimestampOutOfBoundsException = "TimestampOutOfBoundsException"
 )
 
@@ -125,7 +142,9 @@ var exceptionFromCode = map[string]func(protocol.ResponseMetadata) error{
 	"InvalidProductCodeException":        newErrorInvalidProductCodeException,
 	"InvalidPublicKeyVersionException":   newErrorInvalidPublicKeyVersionException,
 	"InvalidRegionException":             newErrorInvalidRegionException,
+	"InvalidTagException":                newErrorInvalidTagException,
 	"InvalidTokenException":              newErrorInvalidTokenException,
+	"InvalidUsageAllocationsException":   newErrorInvalidUsageAllocationsException,
 	"InvalidUsageDimensionException":     newErrorInvalidUsageDimensionException,
 	"PlatformNotSupportedException":      newErrorPlatformNotSupportedException,
 	"ThrottlingException":                newErrorThrottlingException,

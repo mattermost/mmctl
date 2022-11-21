@@ -6,12 +6,13 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -68,17 +69,17 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(creatorIDArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			CreateCommand(&mockCommand).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
@@ -116,17 +117,17 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(creatorIDArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			CreateCommand(&mockCommand).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
@@ -145,12 +146,12 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetTeamByName(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
@@ -196,12 +197,12 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(creatorIDArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
@@ -247,12 +248,12 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(creatorIDArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
@@ -312,18 +313,18 @@ func (s *MmctlUnitTestSuite) TestCommandCreateCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(creatorIDArg, "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
-		mockError := &model.AppError{Message: "Mock Error, simulated error for CreateCommand"}
+		mockError := errors.New("mock error, simulated error for CreateCommand")
 		s.client.
 			EXPECT().
 			CreateCommand(&mockCommand).
-			Return(nil, &model.Response{Error: mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := createCommandCmdF(s.client, cmd, []string{teamArg})
@@ -343,7 +344,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 		s.client.
 			EXPECT().
 			DeleteCommand(arg).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
@@ -361,7 +362,7 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 		s.client.
 			EXPECT().
 			DeleteCommand(arg).
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
@@ -374,12 +375,12 @@ func (s *MmctlUnitTestSuite) TestArchiveCommandCmd() {
 	s.Run("Delete with response error", func() {
 		printer.Clean()
 		arg := "cmd1"
-		mockError := &model.AppError{Message: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			DeleteCommand(arg).
-			Return(false, &model.Response{Error: mockError}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := archiveCommandCmdF(s.client, &cobra.Command{}, []string{arg})
@@ -415,9 +416,9 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
-		s.client.EXPECT().GetAllTeams("", 0, 10000).Return(teams, &model.Response{Error: nil}).Times(1)
-		s.client.EXPECT().ListCommands(team1ID, true).Return(team1Commands, &model.Response{Error: nil}).Times(1)
-		s.client.EXPECT().ListCommands(team2Id, true).Return(team2Commands, &model.Response{Error: nil}).Times(1)
+		s.client.EXPECT().GetAllTeams("", 0, 10000).Return(teams, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(team1ID, true).Return(team1Commands, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(team2Id, true).Return(team2Commands, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 2)
@@ -438,8 +439,8 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
-		s.client.EXPECT().GetTeam(teamID, "").Return(team, &model.Response{Error: nil}).Times(1)
-		s.client.EXPECT().ListCommands(teamID, true).Return(teamCommand, &model.Response{Error: nil}).Times(1)
+		s.client.EXPECT().GetTeam(teamID, "").Return(team, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(teamID, true).Return(teamCommand, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
@@ -452,9 +453,9 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		// first try to get team by id
-		s.client.EXPECT().GetTeam(teamID, "").Return(nil, &model.Response{Error: nil}).Times(1)
+		s.client.EXPECT().GetTeam(teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		// second try to search the team by name
-		s.client.EXPECT().GetTeamByName(teamID, "").Return(nil, &model.Response{Error: nil}).Times(1)
+		s.client.EXPECT().GetTeamByName(teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
@@ -467,8 +468,8 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		team := &model.Team{Id: teamID}
-		s.client.EXPECT().GetTeam(teamID, "").Return(team, &model.Response{Error: nil}).Times(1)
-		s.client.EXPECT().ListCommands(teamID, true).Return(nil, &model.Response{Error: &model.AppError{}}).Times(1)
+		s.client.EXPECT().GetTeam(teamID, "").Return(team, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().ListCommands(teamID, true).Return(nil, &model.Response{}, errors.New("")).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
@@ -541,17 +542,17 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(arg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockCommandModified.CreatorId, "").
-			Return(&model.User{Id: mockCommandModified.CreatorId}, &model.Response{Error: nil}).
+			Return(&model.User{Id: mockCommandModified.CreatorId}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			UpdateCommand(&mockCommand).
-			Return(mockCommandModified, &model.Response{Error: nil}).
+			Return(mockCommandModified, &model.Response{}, nil).
 			Times(1)
 
 		// Reset the cmd and parse to force Flag.Changed to be true.
@@ -582,7 +583,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(arg).
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
@@ -615,22 +616,22 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(arg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByEmail(bogusUsername, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUserByUsername(bogusUsername, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetUser(bogusUsername, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
@@ -661,7 +662,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(arg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
@@ -692,7 +693,7 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(arg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
@@ -723,13 +724,13 @@ func (s *MmctlUnitTestSuite) TestCommandModifyCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(arg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
-		mockError := &model.AppError{Message: "Mock Error, simulated error for CreateCommand"}
+		mockError := errors.New("mock error, simulated error for CreateCommand")
 		s.client.
 			EXPECT().
 			UpdateCommand(&mockCommand).
-			Return(nil, &model.Response{Error: mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		// Reset the cmd and parse to force Flag.Changed to be true for all flags on the CLI.
@@ -761,9 +762,8 @@ func method2Bool(method string) bool {
 
 //nolint:golint,unused
 func copyCommand(cmd *model.Command) *model.Command {
-	json := cmd.ToJson()
-	r := strings.NewReader(json)
-	return model.CommandFromJson(r)
+	c := *cmd
+	return &c
 }
 
 func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
@@ -781,7 +781,7 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		Trigger:     "example-trigger",
 	}
 
-	mockError := &model.AppError{Message: "Mock Error"}
+	mockError := errors.New("mock error")
 	outputMessageOK := map[string]interface{}{"status": "ok"}
 	outputMessageError := map[string]interface{}{"status": "error"}
 
@@ -793,22 +793,22 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetTeamByName(teamArg, "").
-			Return(&mockTeamDest, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetCommandById(commandArg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			MoveCommand(teamArg, mockCommand.Id).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, mockCommand.Id})
@@ -823,12 +823,12 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArgBogus, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetTeamByName(teamArgBogus, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArgBogus, commandArg})
@@ -843,12 +843,12 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeamDest, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetCommandById(commandArgBogus).
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArgBogus})
@@ -863,17 +863,17 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeamDest, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetCommandById(commandArg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			MoveCommand(teamArg, commandArg).
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
@@ -888,17 +888,17 @@ func (s *MmctlUnitTestSuite) TestCommandMoveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(&mockTeamDest, &model.Response{Error: nil}).
+			Return(&mockTeamDest, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			GetCommandById(commandArg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
 			MoveCommand(teamArg, commandArg).
-			Return(false, &model.Response{Error: mockError}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := moveCommandCmdF(s.client, &cobra.Command{}, []string{teamArg, commandArg})
@@ -937,7 +937,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(commandArg).
-			Return(&mockCommand, &model.Response{Error: nil}).
+			Return(&mockCommand, &model.Response{}, nil).
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{commandArg})
@@ -953,7 +953,7 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.client.
 			EXPECT().
 			GetCommandById(commandArgBogus).
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})
@@ -973,13 +973,13 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.client.
 			EXPECT().
 			GetTeamByName(mockTeam.Name, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			ListCommands(mockTeam.Id, false).
-			Return(list, &model.Response{Error: nil}).
+			Return(list, &model.Response{}, nil).
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{fmt.Sprintf("%s:%s", mockTeam.Name, mockCommand.Trigger)})
@@ -1002,13 +1002,13 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.client.
 			EXPECT().
 			GetTeamByName(teamName, "").
-			Return(nil, &model.Response{Error: &model.AppError{Message: "team not found"}}).
+			Return(nil, &model.Response{}, errors.New("team not found")).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetCommandById(teamTrigger).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "command not found"}}).
+			Return(nil, &model.Response{}, errors.New("command not found")).
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})
@@ -1030,19 +1030,19 @@ func (s *MmctlUnitTestSuite) TestCommandShowCmd() {
 		s.client.
 			EXPECT().
 			GetTeamByName(mockTeam.Name, "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			ListCommands(mockTeam.Id, false).
-			Return(list, &model.Response{Error: nil}).
+			Return(list, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetCommandById(teamTrigger).
-			Return(nil, &model.Response{Error: &model.AppError{Message: "bogus"}}).
+			Return(nil, &model.Response{}, errors.New("bogus")).
 			Times(1)
 
 		err := showCommandCmdF(s.client, &cobra.Command{}, []string{teamTrigger})

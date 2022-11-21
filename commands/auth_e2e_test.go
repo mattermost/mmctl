@@ -6,7 +6,7 @@ package commands
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
@@ -28,7 +28,7 @@ func (s *MmctlE2ETestSuite) TestAuthLoginWithTrailingSlashInInstanceURL() {
 		cmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
 		cmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
-		_ = loginCmdF(cmd, []string{s.th.Client.Url + "/"}) // add a trailing slash
+		_ = loginCmdF(cmd, []string{s.th.Client.URL + "/"}) // add a trailing slash
 		errLines := printer.GetErrorLines()
 		s.Require().Lenf(errLines, 0, "expected no error, got %q", errLines)
 	})

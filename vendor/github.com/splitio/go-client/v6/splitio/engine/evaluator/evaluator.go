@@ -7,11 +7,11 @@ import (
 	"github.com/splitio/go-client/v6/splitio/engine"
 	"github.com/splitio/go-client/v6/splitio/engine/evaluator/impressionlabels"
 	"github.com/splitio/go-client/v6/splitio/engine/grammar"
-	"github.com/splitio/go-split-commons/v2/dtos"
-	"github.com/splitio/go-split-commons/v2/storage"
+	"github.com/splitio/go-split-commons/v4/dtos"
+	"github.com/splitio/go-split-commons/v4/storage"
 
-	"github.com/splitio/go-toolkit/v3/injection"
-	"github.com/splitio/go-toolkit/v3/logging"
+	"github.com/splitio/go-toolkit/v5/injection"
+	"github.com/splitio/go-toolkit/v5/logging"
 )
 
 const (
@@ -24,15 +24,15 @@ const (
 type Result struct {
 	Treatment         string
 	Label             string
-	EvaluationTimeNs  int64
+	EvaluationTime    time.Duration
 	SplitChangeNumber int64
 	Config            *string
 }
 
 // Results represents the result of multiple evaluations at once
 type Results struct {
-	Evaluations      map[string]Result
-	EvaluationTimeNs int64
+	Evaluations    map[string]Result
+	EvaluationTime time.Duration
 }
 
 // Evaluator struct is the main evaluator
@@ -127,15 +127,15 @@ func (e *Evaluator) EvaluateFeature(key string, bucketingKey *string, feature st
 	result := e.evaluateTreatment(key, *bucketingKey, feature, splitDto, attributes)
 	after := time.Now()
 
-	result.EvaluationTimeNs = after.Sub(before).Nanoseconds()
+	result.EvaluationTime = after.Sub(before)
 	return result
 }
 
 // EvaluateFeatures returns a struct with the resulting treatment and extra information for the impression
 func (e *Evaluator) EvaluateFeatures(key string, bucketingKey *string, features []string, attributes map[string]interface{}) Results {
 	var results = Results{
-		Evaluations:      make(map[string]Result),
-		EvaluationTimeNs: 0,
+		Evaluations:    make(map[string]Result),
+		EvaluationTime: 0,
 	}
 	before := time.Now()
 	splits := e.splitStorage.FetchMany(features)
@@ -148,7 +148,7 @@ func (e *Evaluator) EvaluateFeatures(key string, bucketingKey *string, features 
 	}
 
 	after := time.Now()
-	results.EvaluationTimeNs = after.Sub(before).Nanoseconds()
+	results.EvaluationTime = after.Sub(before)
 	return results
 }
 

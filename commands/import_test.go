@@ -6,10 +6,12 @@ package commands
 import (
 	"net/http"
 
-	"github.com/mattermost/mmctl/printer"
-
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/v6/printer"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
@@ -20,7 +22,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 		s.client.
 			EXPECT().
 			ListImports().
-			Return(mockImports, &model.Response{Error: nil}).
+			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
 		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
@@ -41,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestImportListAvailableCmdF() {
 		s.client.
 			EXPECT().
 			ListImports().
-			Return(mockImports, &model.Response{Error: nil}).
+			Return(mockImports, &model.Response{}, nil).
 			Times(1)
 
 		err := importListAvailableCmdF(s.client, &cobra.Command{}, nil)
@@ -62,7 +64,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 		s.client.
 			EXPECT().
 			GetUploadsForUser("me").
-			Return(mockUploads, &model.Response{Error: nil}).
+			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
 		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
@@ -92,7 +94,7 @@ func (s *MmctlUnitTestSuite) TestImportListIncompleteCmdF() {
 		s.client.
 			EXPECT().
 			GetUploadsForUser("me").
-			Return(mockUploads, &model.Response{Error: nil}).
+			Return(mockUploads, &model.Response{}, nil).
 			Times(1)
 
 		err := importListIncompleteCmdF(s.client, &cobra.Command{}, nil)
@@ -113,7 +115,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.client.
 			EXPECT().
 			GetJob(jobID).
-			Return(nil, &model.Response{Error: model.NewAppError("not found", "", nil, "not found", http.StatusNotFound)}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
 			Times(1)
 
 		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{jobID})
@@ -131,7 +133,7 @@ func (s *MmctlUnitTestSuite) TestImportJobShowCmdF() {
 		s.client.
 			EXPECT().
 			GetJob(mockJob.Id).
-			Return(mockJob, &model.Response{Error: nil}).
+			Return(mockJob, &model.Response{}, nil).
 			Times(1)
 
 		err := importJobShowCmdF(s.client, &cobra.Command{}, []string{mockJob.Id})
@@ -155,15 +157,15 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, perPage).
-			Return(mockJobs, &model.Response{Error: nil}).
+			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
+			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
 		err := importJobListCmdF(s.client, cmd, nil)
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
-		s.Equal("No import jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.Run("some import jobs", func() {
@@ -188,8 +190,8 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetJobsByType(model.JOB_TYPE_IMPORT_PROCESS, 0, perPage).
-			Return(mockJobs, &model.Response{Error: nil}).
+			GetJobsByType(model.JobTypeImportProcess, 0, perPage).
+			Return(mockJobs, &model.Response{}, nil).
 			Times(1)
 
 		err := importJobListCmdF(s.client, cmd, nil)
@@ -206,14 +208,14 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 	printer.Clean()
 	importFile := "import.zip"
 	mockJob := &model.Job{
-		Type: model.JOB_TYPE_IMPORT_PROCESS,
+		Type: model.JobTypeImportProcess,
 		Data: map[string]string{"import_file": importFile},
 	}
 
 	s.client.
 		EXPECT().
 		CreateJob(mockJob).
-		Return(mockJob, &model.Response{Error: nil}).
+		Return(mockJob, &model.Response{}, nil).
 		Times(1)
 
 	err := importProcessCmdF(s.client, &cobra.Command{}, []string{importFile})

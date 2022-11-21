@@ -5,15 +5,16 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/v6/client"
 )
 
 const (
@@ -31,7 +32,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.client.
 			EXPECT().
 			GetLogs(0, 1).
-			Return(mockSingleLogLine, &model.Response{Error: nil}).
+			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
 		data, err := testLogsCmdF(s.client, cmd, []string{})
@@ -48,7 +49,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.client.
 			EXPECT().
 			GetLogs(0, 0).
-			Return(mockSingleLogLine, &model.Response{Error: nil}).
+			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
 		data, err := testLogsCmdF(s.client, cmd, []string{})
@@ -67,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.client.
 			EXPECT().
 			GetLogs(0, 1).
-			Return(mockSingleLogLine, &model.Response{Error: nil}).
+			Return(mockSingleLogLine, &model.Response{}, nil).
 			Times(1)
 
 		data, err := testLogsCmdF(s.client, cmd, []string{})
@@ -85,7 +86,16 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		data, err := testLogsCmdF(s.client, cmd, []string{})
 
 		s.Require().Error(err)
-		s.Require().Equal(err.Error(), "the \"--format\" flag cannot be used with this command")
+		s.Require().Equal(err.Error(), fmt.Sprintf("the %q and %q flags cannot be used with this command", "--format", "--json"))
+		s.Require().Len(data, 0)
+
+		cmd.Flags().Lookup("format").Changed = false
+		cmd.Flags().Bool("json", true, "")
+		cmd.Flags().Lookup("json").Changed = true
+		data, err = testLogsCmdF(s.client, cmd, []string{})
+
+		s.Require().Error(err)
+		s.Require().Equal(err.Error(), fmt.Sprintf("the %q and %q flags cannot be used with this command", "--format", "--json"))
 		s.Require().Len(data, 0)
 	})
 

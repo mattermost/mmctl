@@ -10,9 +10,12 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 const (
@@ -21,9 +24,12 @@ const (
 	MethodMFA      = "M"
 
 	userHomeVar      = "$HOME"
-	configFileName   = "mmctl"
+	configFileName   = "config"
+	configParent     = "mmctl"
 	xdgConfigHomeVar = "$XDG_CONFIG_HOME"
 )
+
+var once sync.Once
 
 type Credentials struct {
 	Name        string `json:"name"`
@@ -47,33 +53,49 @@ func init() {
 	SetUser(newUser)
 }
 
-func getDefaultConfigPath() string {
-	configPath := currentUser.HomeDir
-	// We use the existing $HOME/.mmctl file if it exists.
-	// If not, we try to read XDG_CONFIG_HOME and if we fail,
-	// we fallback to $HOME/.config/mmctl.
-	if _, err := os.Stat(filepath.Join(currentUser.HomeDir, "."+configFileName)); os.IsNotExist(err) {
-		if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
-			configPath = p
-		} else {
-			configPath = filepath.Join(currentUser.HomeDir, ".config")
-		}
+func getDefaultConfigHomePath() string {
+	if p, ok := os.LookupEnv(strings.TrimPrefix(xdgConfigHomeVar, "$")); ok {
+		return p
 	}
-	return configPath
+
+	return filepath.Join(currentUser.HomeDir, ".config")
+}
+
+func resolveLegacyConfigFilePath() string {
+	configPath := viper.GetString("config-path")
+	// We use the .mmctl file name (hidden) if the config is in $HOME directory.
+	// If we were using other directory (e.g. XDG_CONFIG_HOME) we go with mmctl file name.
+	switch configPath {
+	case "$HOME":
+		res := strings.Replace(configPath, userHomeVar, currentUser.HomeDir, 1)
+		return filepath.Join(res, ".mmctl")
+	case currentUser.HomeDir:
+		return filepath.Join(configPath, ".mmctl")
+	default:
+		return filepath.Join(configPath, "mmctl")
+	}
 }
 
 func resolveConfigFilePath() string {
-	configPath := getDefaultConfigPath()
-	if p := viper.GetString("config-path"); p != xdgConfigHomeVar {
-		configPath = strings.Replace(viper.GetString("config-path"), userHomeVar, currentUser.HomeDir, 1)
+	// we warn users that config-path is deprecated
+	suppressWarnings := viper.GetBool("suppress-warnings")
+
+	if viper.IsSet("config-path") {
+		if !suppressWarnings {
+			once.Do(func() {
+				printer.PrintWarning("Since mmctl v6 we have been deprecated the --config-path and started to use --config flag instead.\n" +
+					"Please use --config flag to set config file. (note that --config-path was pointing to a directory)\n\n" +
+					"After moving your config file to new directory, please unset the --config-path flag or MMCTL_CONFIG_PATH environment variable.\n")
+			})
+		}
+
+		return resolveLegacyConfigFilePath()
 	}
 
-	f := configFileName
-	if configPath == currentUser.HomeDir {
-		f = "." + configFileName
-	}
+	// resolve env vars if there are any
+	fpath := strings.Replace(viper.GetString("config"), userHomeVar, currentUser.HomeDir, 1)
 
-	return filepath.Join(configPath, f)
+	return strings.Replace(fpath, xdgConfigHomeVar, getDefaultConfigHomePath(), 1)
 }
 
 func ReadCredentialsList() (*CredentialsList, error) {
@@ -127,7 +149,9 @@ func GetCredentials(name string) (*Credentials, error) {
 func SaveCredentials(credentials Credentials) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
-		if err := os.MkdirAll(strings.TrimSuffix(resolveConfigFilePath(), configFileName), 0700); err != nil {
+		// we get the parent of the file so that we can create the path if it doesn't exist.
+		configParent := filepath.Dir(resolveConfigFilePath())
+		if err := os.MkdirAll(configParent, 0700); err != nil {
 			return err
 		}
 		credentialsList = &CredentialsList{}
@@ -191,4 +215,17 @@ func CleanCredentials() error {
 
 func SetUser(newUser *user.User) {
 	currentUser = newUser
+}
+
+// will read the scret from file, if there is one
+func readSecretFromFile(file string, secret *string) error {
+	if file != "" {
+		b, err := ioutil.ReadFile(file)
+		if err != nil {
+			return err
+		}
+		*secret = strings.TrimSpace(string(b))
+	}
+
+	return nil
 }

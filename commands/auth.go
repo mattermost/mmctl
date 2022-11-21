@@ -14,11 +14,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 var AuthCmd = &cobra.Command{
@@ -27,12 +27,12 @@ var AuthCmd = &cobra.Command{
 }
 
 var LoginCmd = &cobra.Command{
-	Use:   "login [instance url] --name [server name] --username [username] --password [password]",
+	Use:   "login [instance url] --name [server name] --username [username] --password-file [password-file]",
 	Short: "Login into an instance",
 	Long:  "Login into an instance and store credentials",
 	Example: `  auth login https://mattermost.example.com
-  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret
-  auth login https://mattermost.example.com --name local-server --username sysadmin --password mysupersecret --mfa-token 123456
+  auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt
+  auth login https://mattermost.example.com --name local-server --username sysadmin --password-file mysupersecret.txt --mfa-token 123456
   auth login https://mattermost.example.com --name local-server --access-token myaccesstoken`,
 	Args: cobra.ExactArgs(1),
 	RunE: loginCmdF,
@@ -93,12 +93,20 @@ func init() {
 	LoginCmd.Flags().StringP("name", "n", "", "Name for the credentials")
 	LoginCmd.Flags().StringP("username", "u", "", "Username for the credentials")
 	LoginCmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+	_ = LoginCmd.Flags().MarkHidden("access-token")
+	LoginCmd.Flags().StringP("access-token-file", "t", "", "Access token file to be read to use instead of username/password")
 	LoginCmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
 	LoginCmd.Flags().StringP("password", "p", "", "Password for the credentials")
+	_ = LoginCmd.Flags().MarkHidden("password")
+	LoginCmd.Flags().StringP("password-file", "f", "", "Password file to be read for the credentials")
 	LoginCmd.Flags().Bool("no-activate", false, "If present, it won't activate the credentials after login")
 
 	RenewCmd.Flags().StringP("password", "p", "", "Password for the credentials")
+	_ = RenewCmd.Flags().MarkHidden("password")
+	RenewCmd.Flags().StringP("password-file", "f", "", "Password file to be read for the credentials")
 	RenewCmd.Flags().StringP("access-token", "a", "", "Access token to use instead of username/password")
+	_ = RenewCmd.Flags().MarkHidden("access-token")
+	RenewCmd.Flags().StringP("access-token-file", "t", "", "Access token file to be read to use instead of username/password")
 	RenewCmd.Flags().StringP("mfa-token", "m", "", "MFA token for the credentials")
 
 	AuthCmd.AddCommand(
@@ -127,10 +135,26 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	passwordFile, _ := cmd.Flags().GetString("password-file")
+	if password != "" && passwordFile != "" {
+		return errors.New("cannot use two passwords at the same time")
+	}
+	if fErr := readSecretFromFile(passwordFile, &password); fErr != nil {
+		return fmt.Errorf("could not read the password: %w", fErr)
+	}
+
 	accessToken, err := cmd.Flags().GetString("access-token")
 	if err != nil {
 		return err
 	}
+	accessTokenFile, _ := cmd.Flags().GetString("access-token-file")
+	if accessToken != "" && accessTokenFile != "" {
+		return errors.New("cannot use two access tokens at the same time")
+	}
+	if fErr := readSecretFromFile(accessTokenFile, &accessToken); fErr != nil {
+		return fmt.Errorf("could not read the access-token: %w", fErr)
+	}
+
 	mfaToken, err := cmd.Flags().GetString("mfa-token")
 	if err != nil {
 		return err
@@ -185,9 +209,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			c, _, err = InitClientWithUsernameAndPassword(username, password, url, allowInsecureSHA1, allowInsecureTLS)
 		}
 		if err != nil {
-			printer.PrintError(err.Error())
-			// We don't want usage to be printed as the command was correctly built
-			return nil
+			return fmt.Errorf("could not initiate client: %w", err)
 		}
 		accessToken = c.AuthToken
 	} else {
@@ -198,9 +220,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 			AuthToken:   accessToken,
 		}
 		if _, _, err := InitClientWithCredentials(&credentials, allowInsecureSHA1, allowInsecureTLS); err != nil {
-			printer.PrintError(err.Error())
-			// We don't want usage to be printed as the command was correctly built
-			return nil
+			return fmt.Errorf("could not initiate client: %w", err)
 		}
 	}
 
@@ -223,7 +243,7 @@ func loginCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Printf("\n  credentials for %q: \"%s@%s\" stored\n\n", name, username, url)
+	printer.Print(fmt.Sprintf("\n  credentials for %q: \"%s@%s\" stored\n", name, username, url))
 	return nil
 }
 
@@ -231,7 +251,7 @@ func getPasswordFromStdin() (string, error) {
 	// syscall.Stdin is of type int in all architectures but in
 	// windows, so we have to cast it to ensure cross compatibility
 	//nolint:unconvert
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	bytePassword, err := term.ReadPassword(int(syscall.Stdin))
 	fmt.Println("")
 	if err != nil {
 		return "", err
@@ -245,7 +265,7 @@ func currentCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\n  found credentials for %q: \"%s@%s\"\n\n", credentials.Name, credentials.Username, credentials.InstanceURL)
+	printer.Print(fmt.Sprintf("\n  found credentials for %q: \"%s@%s\"\n", credentials.Name, credentials.Username, credentials.InstanceURL))
 	return nil
 }
 
@@ -254,7 +274,7 @@ func setCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Credentials for server %q set as active\n", args[0])
+	printer.Print(fmt.Sprintf("Credentials for server %q set as active", args[0]))
 
 	return nil
 }
@@ -287,24 +307,40 @@ func listCmdF(cmd *cobra.Command, args []string) error {
 		return serverNames[i] < serverNames[j]
 	})
 
-	fmt.Printf("\n    | Active | %*s | %*s | %*s |\n", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceURLLen, "InstanceURL")
-	fmt.Printf("    |%s|%s|%s|%s|\n", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2))
+	printer.Print(fmt.Sprintf("\n    | Active | %*s | %*s | %*s |", maxNameLen, "Name", maxUsernameLen, "Username", maxInstanceURLLen, "InstanceURL"))
+	printer.Print(fmt.Sprintf("    |%s|%s|%s|%s|", strings.Repeat("-", 8), strings.Repeat("-", maxNameLen+2), strings.Repeat("-", maxUsernameLen+2), strings.Repeat("-", maxInstanceURLLen+2)))
 	for _, name := range serverNames {
 		c := (*credentialsList)[name]
 		if c.Active {
-			fmt.Printf("    |      * | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL)
+			printer.Print(fmt.Sprintf("    |      * | %*s | %*s | %*s |", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL))
 		} else {
-			fmt.Printf("    |        | %*s | %*s | %*s |\n", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL)
+			printer.Print(fmt.Sprintf("    |        | %*s | %*s | %*s |", maxNameLen, c.Name, maxUsernameLen, c.Username, maxInstanceURLLen, c.InstanceURL))
 		}
 	}
-	fmt.Println("")
+	printer.Print("")
 	return nil
 }
 
 func renewCmdF(cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 	password, _ := cmd.Flags().GetString("password")
+	passwordFile, _ := cmd.Flags().GetString("password-file")
+	if password != "" && passwordFile != "" {
+		return errors.New("cannot use two passwords at the same time")
+	}
+	if fErr := readSecretFromFile(passwordFile, &password); fErr != nil {
+		return fmt.Errorf("could not read the password: %w", fErr)
+	}
+
 	accessToken, _ := cmd.Flags().GetString("access-token")
+	accessTokenFile, _ := cmd.Flags().GetString("access-token-file")
+	if accessToken != "" && accessTokenFile != "" {
+		return errors.New("cannot use two access tokens at the same time")
+	}
+	if fErr := readSecretFromFile(accessTokenFile, &accessToken); fErr != nil {
+		return fmt.Errorf("could not read the access-token: %w", fErr)
+	}
+
 	mfaToken, _ := cmd.Flags().GetString("mfa-token")
 	allowInsecureSHA1 := viper.GetBool("insecure-sha1-intermediate")
 	allowInsecureTLS := viper.GetBool("insecure-tls-version")

@@ -5,25 +5,26 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/mattermost-server/v6/api4"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 	s.Require().Nil(appErr)
 
-	team, appErr := s.th.App.CreateTeam(&model.Team{
+	team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
 		Name:        api4.GenerateTestTeamName(),
 		Email:       s.th.GenerateTestEmail(),
-		Type:        model.TEAM_OPEN,
+		Type:        model.TeamOpen,
 	})
 	s.Require().Nil(appErr)
 
@@ -42,7 +43,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		if teamMember == nil {
 			return nil
 		}
-		return s.th.App.RemoveTeamMemberFromTeam(teamMember, s.th.SystemAdminUser.Id)
+		return s.th.App.RemoveUserFromTeam(s.th.Context, teamId, teamMember.UserId, s.th.SystemAdminUser.Id)
 	}
 
 	s.RunForSystemAdminAndLocal("Add user to team", func(c client.Client) {
@@ -86,7 +87,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		appErr := unlinkUserFromTeam(team.Id, user.Id)
 		s.Require().Nil(appErr)
 
-		_, appErr = s.th.App.AddTeamMember(team.Id, s.th.BasicUser.Id)
+		_, appErr = s.th.App.AddTeamMember(s.th.Context, team.Id, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		defer func() {
 			appErr = unlinkUserFromTeam(team.Id, s.th.BasicUser.Id)
@@ -131,11 +132,13 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		s.Require().Nil(appErr)
 
 		nonexistentUserEmail := "nonexistent@email"
+		var expectedError error
+		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
 		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Can't find user '%s'", nonexistentUserEmail))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().EqualError(err, expectedError.Error())
 	})
 
 	s.Run("Add nonexistent user to team", func() {
@@ -144,7 +147,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		appErr := unlinkUserFromTeam(team.Id, user.Id)
 		s.Require().Nil(appErr)
 
-		_, appErr = s.th.App.AddTeamMember(team.Id, s.th.BasicUser.Id)
+		_, appErr = s.th.App.AddTeamMember(s.th.Context, team.Id, s.th.BasicUser.Id)
 		s.Require().Nil(appErr)
 		defer func() {
 			appErr = unlinkUserFromTeam(team.Id, s.th.BasicUser.Id)
@@ -152,11 +155,13 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		}()
 
 		nonexistentUserEmail := "nonexistent@email"
+		var expectedError error
+		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
 		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Can't find user '%s'", nonexistentUserEmail))
+		s.Require().EqualError(err, expectedError.Error())
 	})
 }
 
@@ -166,16 +171,16 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 	s.RunForSystemAdminAndLocal("Remove user from team", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		team := model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.GenerateTestEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
-		_, appErr = s.th.App.CreateTeamWithUser(&team, user.Id)
+		_, appErr = s.th.App.CreateTeamWithUser(s.th.Context, &team, user.Id)
 		s.Require().Nil(appErr)
 
 		err := teamUsersRemoveCmdF(c, &cobra.Command{}, []string{team.Name, user.Username})
@@ -192,7 +197,7 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 	s.RunForSystemAdminAndLocal("Remove user from non-existent team", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		nonexistentTeamName := model.NewId()
@@ -206,16 +211,16 @@ func (s *MmctlE2ETestSuite) TestTeamUsersRemoveCmdF() {
 	s.Run("Remove user from team without permissions", func() {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		team := model.Team{
 			DisplayName: "dn_" + model.NewId(),
 			Name:        api4.GenerateTestTeamName(),
 			Email:       s.th.GenerateTestEmail(),
-			Type:        model.TEAM_OPEN,
+			Type:        model.TeamOpen,
 		}
-		_, appErr = s.th.App.CreateTeamWithUser(&team, user.Id)
+		_, appErr = s.th.App.CreateTeamWithUser(s.th.Context, &team, user.Id)
 		s.Require().Nil(appErr)
 
 		err := teamUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{team.Name, user.Username})

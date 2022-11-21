@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
@@ -43,8 +43,59 @@ func (s *MmctlE2ETestSuite) TestConfigResetCmdE2E() {
 	})
 }
 
+func (s *MmctlE2ETestSuite) TestConfigPatchCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "config_*.json")
+	s.Require().Nil(err)
+
+	invalidFile, err := ioutil.TempFile(os.TempDir(), "invalid_config_*.json")
+	s.Require().Nil(err)
+
+	_, err = tmpFile.Write([]byte(configFilePayload))
+	s.Require().Nil(err)
+
+	defer func() {
+		os.Remove(tmpFile.Name())
+		os.Remove(invalidFile.Name())
+	}()
+
+	s.RunForSystemAdminAndLocal("MM-T4051 - System admin and local patch", func(c client.Client) {
+		printer.Clean()
+
+		err := configPatchCmdF(c, &cobra.Command{}, []string{tmpFile.Name()})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("MM-T4052 - System admin and local patch with invalid file", func(c client.Client) {
+		printer.Clean()
+
+		err := configPatchCmdF(c, &cobra.Command{}, []string{invalidFile.Name()})
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("MM-T4053 - Patch config for user without permission", func() {
+		printer.Clean()
+
+		err := configPatchCmdF(s.th.Client, &cobra.Command{}, []string{tmpFile.Name()})
+		s.Require().NotNil(err)
+		s.Assert().Errorf(err, "You do not have the appropriate permissions.")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
 func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 	s.SetupTestHelper().InitBasic()
+
+	var driver string
+	if d := s.th.App.Config().SqlSettings.DriverName; d != nil {
+		driver = *d
+	}
 
 	s.RunForSystemAdminAndLocal("Get config value for a given key", func(c client.Client) {
 		printer.Clean()
@@ -53,7 +104,7 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		err := configGetCmdF(c, &cobra.Command{}, args)
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal("postgres", *(printer.GetLines()[0].(*string)))
+		s.Require().Equal(driver, *(printer.GetLines()[0].(*string)))
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 

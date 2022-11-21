@@ -4,14 +4,16 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
 )
 
@@ -32,25 +34,25 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Username, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, fmt.Sprintf("%s %s", mockUser.Roles, mockRole.Name)).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, mockUser.Username}
@@ -78,67 +80,69 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		}
 
 		notFoundUser := &model.User{
-			Id:       model.NewId(),
 			Username: "notfound",
-			Roles:    "system_user system_admin",
 		}
 
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
 				GetUserByEmail(user.Username, "").
-				Return(nil, &model.Response{Error: nil}).
+				Return(nil, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
 				GetUserByUsername(user.Username, "").
-				Return(user, &model.Response{Error: nil}).
+				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
 				UpdateUserRoles(user.Id, fmt.Sprintf("%s %s", user.Roles, mockRole.Name)).
-				Return(true, &model.Response{Error: nil}).
+				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(notFoundUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(notFoundUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(notFoundUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
+
+		expectedError := &multierror.Error{}
+		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user 'notfound'"))
 
 		args := []string{mockRole.Name, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
 		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
 
 	s.Run("Assigning to a non-existent role", func() {
-		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+		expectedError := errors.New("role_not_found")
 
 		s.client.
 			EXPECT().
 			GetRoleByName("non-existent").
-			Return(nil, &model.Response{Error: expectedError}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
 		args := []string{"non-existent", "user1"}
@@ -163,19 +167,19 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Username, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{mockRole.Name, mockUser.Username}
@@ -195,30 +199,34 @@ func (s *MmctlUnitTestSuite) TestAssignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(requestedUser, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(requestedUser, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(requestedUser, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
+
+		expectedError := &multierror.Error{}
+		expectedError = multierror.Append(expectedError, fmt.Errorf("couldn't find user '%s'", requestedUser))
 
 		args := []string{mockRole.Name, requestedUser}
 		err := assignUsersCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
+		s.Require().Equal(expectedError.ErrorOrNil(), err)
 	})
 }
 
@@ -235,19 +243,19 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Username, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, "system_user team_admin").
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
@@ -271,47 +279,45 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		}
 
 		notFoundUser := &model.User{
-			Id:       model.NewId(),
 			Username: "notfound",
-			Roles:    "system_user system_admin",
 		}
 
 		for _, user := range []*model.User{mockUser1, mockUser2} {
 			s.client.
 				EXPECT().
 				GetUserByEmail(user.Username, "").
-				Return(nil, &model.Response{Error: nil}).
+				Return(nil, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
 				GetUserByUsername(user.Username, "").
-				Return(user, &model.Response{Error: nil}).
+				Return(user, &model.Response{}, nil).
 				Times(1)
 
 			s.client.
 				EXPECT().
 				UpdateUserRoles(user.Id, strings.TrimSpace(strings.ReplaceAll(user.Roles, roleName, ""))).
-				Return(true, &model.Response{Error: nil}).
+				Return(&model.Response{StatusCode: http.StatusOK}, nil).
 				Times(1)
 		}
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(notFoundUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(notFoundUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(notFoundUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{roleName, mockUser1.Username, notFoundUser.Username, mockUser2.Username}
@@ -331,13 +337,13 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Username, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Username, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{roleName, mockUser.Username}
@@ -351,19 +357,19 @@ func (s *MmctlUnitTestSuite) TestUnassignUsersCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(requestedUser, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(requestedUser, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(requestedUser, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		args := []string{"mock-role-id", requestedUser}
@@ -387,7 +393,7 @@ func (s *MmctlUnitTestSuite) TestShowRoleCmd() {
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
@@ -419,7 +425,7 @@ SchemeManaged false
 		s.client.
 			EXPECT().
 			GetRoleByName(mockRole.Name).
-			Return(mockRole, &model.Response{Error: nil}).
+			Return(mockRole, &model.Response{}, nil).
 			Times(1)
 
 		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArg})
@@ -433,7 +439,7 @@ Name          example-role-name
 DisplayName                         
 BuiltIn       false                 
 SchemeManaged false                 
-Permissions   edit_brand            sysconsole_write_site
+Permissions   edit_brand            
               sysconsole_write_site 
 `, printer.GetLines()[0])
 	})
@@ -441,7 +447,7 @@ Permissions   edit_brand            sysconsole_write_site
 	s.Run("Show custom role with invalid name", func() {
 		printer.Clean()
 
-		expectedError := model.NewAppError("Role", "role_not_found", nil, "", http.StatusNotFound)
+		expectedError := errors.New("role_not_found")
 
 		commandArgBogus := "bogus-role-name"
 
@@ -449,7 +455,7 @@ Permissions   edit_brand            sysconsole_write_site
 		s.client.
 			EXPECT().
 			GetRoleByName(commandArgBogus).
-			Return(nil, &model.Response{Error: expectedError}).
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, expectedError).
 			Times(1)
 
 		err := showRoleCmdF(s.client, &cobra.Command{}, []string{commandArgBogus})

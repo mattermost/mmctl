@@ -5,10 +5,12 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -23,13 +25,13 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, newRoles).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -37,7 +39,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("System admin role assigned to user %q", mockUser.Email), printer.GetLines()[0])
+		s.Require().Equal(fmt.Sprintf("System admin role assigned to user %q. Current roles are: %s", mockUser.Email, "system_user, system_admin"), printer.GetLines()[0])
 	})
 
 	s.Run("Adding admin privileges to existing admin", func() {
@@ -49,7 +51,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -67,23 +69,23 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -99,17 +101,17 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, newRoles).
-			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -126,13 +128,13 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, "system_user").
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -140,7 +142,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(fmt.Sprintf("System admin role revoked for user %q", mockUser.Email), printer.GetLines()[0])
+		s.Require().Equal(fmt.Sprintf("System admin role revoked for user %q. Current roles are: %s", mockUser.Email, "system_user"), printer.GetLines()[0])
 	})
 
 	s.Run("Remove admin privileges from non admin user", func() {
@@ -151,7 +153,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
@@ -169,17 +171,17 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Email, "").
-			Return(mockUser, &model.Response{Error: nil}).
+			Return(mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			UpdateUserRoles(mockUser.Id, "system_user").
-			Return(false, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -194,23 +196,23 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 		s.client.
 			EXPECT().
 			GetUserByEmail(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(emailArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)

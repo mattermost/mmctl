@@ -149,7 +149,7 @@ func readLayerAndMaskInfo(r io.Reader, cfg *Config, o *DecodeOptions) (psd *PSD,
 				reportReaderPosition("    file offset: 0x%08x", r)
 			}
 			// TODO(oov): implement
-			if l, err = io.ReadFull(r, make([]byte, globalLayerMaskInfoLen)); err != nil {
+			if l, err = discard(r, globalLayerMaskInfoLen); err != nil {
 				return nil, read, err
 			}
 			read += l
@@ -423,20 +423,15 @@ func readLayerInfo(r io.Reader, cfg *Config, o *DecodeOptions) (layer []Layer, r
 			return nil, read, err
 		}
 		read += l
-		if l, err = adjustAlign4(r, read+4-layerInfoLen); err != nil {
-			return nil, read, err
-		}
-		read += l
-	} else {
-		if l, err = discard(r, layerInfoLen+4-read); err != nil {
+	}
+	// Discard any remaining data.
+	if layerInfoLen+intSize > read {
+		if l, err = discard(r, layerInfoLen+intSize-read); err != nil {
 			return nil, read, err
 		}
 		read += l
 	}
 
-	if layerInfoLen+intSize != read {
-		return nil, read, errors.New("psd: layer info read size mismatched. expected " + itoa(layerInfoLen+4) + " actual " + itoa(read))
-	}
 	if Debug != nil {
 		Debug.Println("end - layer info section")
 	}
@@ -556,7 +551,7 @@ func readLayerExtraData(r io.Reader, layer *Layer, cfg *Config, o *DecodeOptions
 			Debug.Println("  layer blending ranges data skipped:", blendingRangesLen)
 		}
 		// TODO(oov): implement
-		if l, err = io.ReadFull(r, make([]byte, blendingRangesLen)); err != nil {
+		if l, err = discard(r, blendingRangesLen); err != nil {
 			return read, err
 		}
 		read += l
@@ -747,11 +742,13 @@ func readLayerMaskAndAdjustmentLayerData(r io.Reader, layer *Layer, cfg *Config,
 
 	if maskLen == 20 {
 		// Padding. Only present if size = 20.
-		if l, err = io.ReadFull(r, b[:2]); err != nil {
-			return read, err
+		if readMask < maskLen && maskLen-readMask <= 2 {
+			if l, err = io.ReadFull(r, b[:maskLen-readMask]); err != nil {
+				return read, err
+			}
+			read += l
+			readMask += l
 		}
-		read += l
-		readMask += l
 		return read, nil
 	}
 

@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"net/http"
+
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 var LdapCmd = &cobra.Command{
@@ -24,15 +26,21 @@ var LdapSyncCmd = &cobra.Command{
 }
 
 var LdapIDMigrate = &cobra.Command{
-	Use:     "idmigrate",
-	Short:   "Migrate LDAP IdAttribute to new value",
-	Long:    "Migrate LDAP IdAttribute to new value. Run this utility then change the IdAttribute to the new value.",
-	Example: " ldap idmigrate objectGUID",
+	Use:   "idmigrate <objectGUID>",
+	Short: "Migrate LDAP IdAttribute to new value",
+	Long: `Migrate LDAP "IdAttribute" to a new value. Run this utility to change the value of your ID Attribute without your users losing their accounts. After running the command you can change the ID Attribute to the new value in the System Console. For example, if your current ID Attribute was "sAMAccountName" and you wanted to change it to "objectGUID", you would:
+
+1. Wait for an off-peak time when your users won’t be impacted by a server restart.
+2. Run the command "mmctl ldap idmigrate objectGUID".
+3. Update the config within the System Console to the new value "objectGUID".
+4. Restart the Mattermost server.`,
+	Example: "  ldap idmigrate objectGUID",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(ldapIDMigrateCmdF),
 }
 
 func init() {
+	LdapSyncCmd.Flags().Bool("include-removed-members", false, "Include members who left or were removed from a group-synced team/channel")
 	LdapCmd.AddCommand(
 		LdapSyncCmd,
 		LdapIDMigrate,
@@ -43,12 +51,14 @@ func init() {
 func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	printer.SetSingle(true)
 
-	ok, response := c.SyncLdap()
-	if response.Error != nil {
-		return response.Error
+	includeRemovedMembers, _ := cmd.Flags().GetBool("include-removed-members")
+
+	resp, err := c.SyncLdap(includeRemovedMembers)
+	if err != nil {
+		return err
 	}
 
-	if ok {
+	if resp.StatusCode == http.StatusOK {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "ok"})
 	} else {
 		printer.PrintT("Status: {{.status}}", map[string]interface{}{"status": "error"})
@@ -59,12 +69,12 @@ func ldapSyncCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func ldapIDMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	toAttribute := args[0]
-	ok, response := c.MigrateIdLdap(toAttribute)
-	if response.Error != nil {
-		return response.Error
+	resp, err := c.MigrateIdLdap(toAttribute)
+	if err != nil {
+		return err
 	}
 
-	if ok {
+	if resp.StatusCode == http.StatusOK {
 		printer.Print("AD/LDAP IdAttribute migration complete. You can now change your IdAttribute to: " + toAttribute)
 	}
 

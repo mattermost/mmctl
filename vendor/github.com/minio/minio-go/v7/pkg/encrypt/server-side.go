@@ -34,7 +34,7 @@ const (
 	// sseKmsKeyID is the AWS SSE-KMS key id.
 	sseKmsKeyID = sseGenericHeader + "-Aws-Kms-Key-Id"
 	// sseEncryptionContext is the AWS SSE-KMS Encryption Context data.
-	sseEncryptionContext = sseGenericHeader + "-Encryption-Context"
+	sseEncryptionContext = sseGenericHeader + "-Context"
 
 	// sseCustomerAlgorithm is the AWS SSE-C algorithm HTTP header key.
 	sseCustomerAlgorithm = sseGenericHeader + "-Customer-Algorithm"
@@ -101,7 +101,7 @@ func NewSSEKMS(keyID string, context interface{}) (ServerSide, error) {
 	if context == nil {
 		return kms{key: keyID, hasContext: false}, nil
 	}
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	json := jsoniter.ConfigCompatibleWithStandardLibrary
 	serializedContext, err := json.Marshal(context)
 	if err != nil {
 		return nil, err

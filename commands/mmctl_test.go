@@ -4,14 +4,14 @@
 package commands
 
 import (
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/mocks"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/mocks"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/mattermost/mattermost-server/v5/api4"
+	"github.com/mattermost/mattermost-server/v6/api4"
 )
 
 var EnableEnterpriseTests string

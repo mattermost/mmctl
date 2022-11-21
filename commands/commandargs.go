@@ -6,9 +6,9 @@ package commands
 import (
 	"strings"
 
-	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/v6/client"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 // getCommandFromCommandArg retrieves a Command by command id or team:trigger.
@@ -19,7 +19,7 @@ func getCommandFromCommandArg(c client.Client, commandArg string) *model.Command
 
 	cmd := getCommandFromTeamTrigger(c, commandArg)
 	if cmd == nil {
-		cmd, _ = c.GetCommandById(commandArg)
+		cmd, _, _ = c.GetCommandById(commandArg)
 	}
 	return cmd
 }
@@ -31,7 +31,7 @@ func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Comma
 		return nil
 	}
 
-	team, _ := c.GetTeamByName(arr[0], "")
+	team, _, _ := c.GetTeamByName(arr[0], "")
 	if team == nil {
 		return nil
 	}
@@ -41,7 +41,7 @@ func getCommandFromTeamTrigger(c client.Client, teamTrigger string) *model.Comma
 		return nil
 	}
 
-	list, _ := c.ListCommands(team.Id, false)
+	list, _, _ := c.ListCommands(team.Id, false)
 	if list == nil {
 		return nil
 	}

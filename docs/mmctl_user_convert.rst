@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Convert users to bots, or a bot to a user
+Convert user accounts to bots or convert bots to user accounts.
 
 ::
 
@@ -42,7 +42,7 @@ Options
       --locale string      The locale (ex: en, fr) for converted new user account. Required when the "bot" flag is set
       --nickname string    The nickname for the converted user account. Required when the "bot" flag is set
       --password string    The password for converted new user account. Required when "user" flag is set
-      --system_admin       If supplied, the converted user will be a system administrator. Defaults to false. Required when the "bot" flag is set
+      --system-admin       If supplied, the converted user will be a system administrator. Defaults to false. Required when the "bot" flag is set
       --user               If supplied, convert a bot to a user
       --username string    Username for the converted user account. Required when the "bot" flag is set
 
@@ -51,12 +51,15 @@ Options inherited from parent commands
 
 ::
 
-      --config-path string           path to the configuration directory. If "$HOME/.mmctl" exists it will take precedence over the default value (default "$XDG_CONFIG_HOME")
-      --format string                the format of the command output [plain, json] (default "plain")
+      --config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+      --disable-pager                disables paged output
       --insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
       --insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+      --json                         the output format will be in json format
       --local                        allows communicating with the server through a unix socket
+      --quiet                        prevent mmctl to generate output for the commands
       --strict                       will only run commands if the mmctl version matches the server one
+      --suppress-warnings            disables printing warning messages
 
 SEE ALSO
 ~~~~~~~~

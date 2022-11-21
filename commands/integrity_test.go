@@ -6,9 +6,11 @@ package commands
 import (
 	"errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/hashicorp/go-multierror"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mmctl/v6/printer"
+
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +41,7 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		s.client.
 			EXPECT().
 			CheckIntegrity().
-			Return(mockResults, &model.Response{Error: nil}).
+			Return(mockResults, &model.Response{}, nil).
 			Times(1)
 
 		err := integrityCmdF(s.client, cmd, []string{})
@@ -57,14 +59,14 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		s.client.
 			EXPECT().
 			CheckIntegrity().
-			Return(nil, &model.Response{Error: &model.AppError{Id: "Mock Error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := integrityCmdF(s.client, cmd, []string{})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal("unable to perform integrity check. Error: : , ", err.Error())
+		s.Require().Equal("unable to perform integrity check. Error: mock error", err.Error())
 	})
 
 	s.Run("Integrity check with errors", func() {
@@ -97,11 +99,13 @@ func (s *MmctlUnitTestSuite) TestIntegrityCmd() {
 		s.client.
 			EXPECT().
 			CheckIntegrity().
-			Return(mockResults, &model.Response{Error: nil}).
+			Return(mockResults, &model.Response{}, nil).
 			Times(1)
+		var expected error
+		expected = multierror.Append(expected, errors.New("test error"))
 
 		err := integrityCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(mockData, printer.GetLines()[0])

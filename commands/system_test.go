@@ -4,12 +4,14 @@
 package commands
 
 import (
+	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +24,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		s.client.
 			EXPECT().
 			GetServerBusy().
-			Return(sbs, &model.Response{Error: nil}).
+			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
 		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
@@ -41,7 +43,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		s.client.
 			EXPECT().
 			GetServerBusy().
-			Return(sbs, &model.Response{Error: nil}).
+			Return(sbs, &model.Response{}, nil).
 			Times(1)
 
 		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
@@ -56,7 +58,7 @@ func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
 		s.client.
 			EXPECT().
 			GetServerBusy().
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := getBusyCmdF(s.client, &cobra.Command{}, []string{})
@@ -77,7 +79,7 @@ func (s *MmctlUnitTestSuite) TestSetBusyCmd() {
 		s.client.
 			EXPECT().
 			SetServerBusy(minutes*60).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := setBusyCmdF(s.client, cmd, []string{strconv.Itoa(minutes * 60)})
@@ -115,7 +117,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		s.client.
 			EXPECT().
 			ClearServerBusy().
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
@@ -130,7 +132,7 @@ func (s *MmctlUnitTestSuite) TestClearBusyCmd() {
 		s.client.
 			EXPECT().
 			ClearServerBusy().
-			Return(false, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("mock error")).
 			Times(1)
 
 		err := clearBusyCmdF(s.client, &cobra.Command{}, []string{})
@@ -148,7 +150,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		s.client.
 			EXPECT().
 			GetPing().
-			Return("", &model.Response{Error: nil, ServerVersion: expectedVersion}).
+			Return("", &model.Response{ServerVersion: expectedVersion}, nil).
 			Times(1)
 
 		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
@@ -164,7 +166,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		s.client.
 			EXPECT().
 			GetPing().
-			Return("", &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			Return("", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := systemVersionCmdF(s.client, &cobra.Command{}, []string{})
@@ -182,7 +184,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.client.
 			EXPECT().
 			GetPingWithFullServerStatus().
-			Return(expectedStatus, &model.Response{Error: nil}).
+			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
 		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
@@ -198,7 +200,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.client.
 			EXPECT().
 			GetPingWithFullServerStatus().
-			Return(nil, &model.Response{Error: &model.AppError{Message: "Mock Error"}}).
+			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})

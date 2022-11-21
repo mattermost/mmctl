@@ -5,12 +5,14 @@ package commands
 
 import (
 	"io/ioutil"
+	"net/http"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 const (
@@ -24,7 +26,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 		s.client.
 			EXPECT().
 			RemoveLicenseFile().
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := removeLicenseCmdF(s.client, &cobra.Command{}, []string{})
@@ -36,12 +38,12 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 	s.Run("Fail to remove license", func() {
 		printer.Clean()
-		mockErr := &model.AppError{Message: "Mock error"}
+		mockErr := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			RemoveLicenseFile().
-			Return(false, &model.Response{Error: mockErr}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockErr).
 			Times(1)
 
 		err := removeLicenseCmdF(s.client, &cobra.Command{}, []string{})
@@ -71,7 +73,7 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 		s.client.
 			EXPECT().
 			UploadLicenseFile(mockLicenseFile).
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{tmpFile.Name()})
@@ -94,6 +96,31 @@ func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	s.Run("Fail to upload license if no path is given", func() {
 		printer.Clean()
 		err := uploadLicenseCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "enter one license file to upload")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUploadLicenseStringCmdF() {
+	// create temporary file
+	licenseString := string(fakeLicensePayload)
+
+	mockLicenseFile := []byte(fakeLicensePayload)
+
+	s.Run("Upload license successfully", func() {
+		printer.Clean()
+		s.client.
+			EXPECT().
+			UploadLicenseFile(mockLicenseFile).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{licenseString})
+		s.Require().Nil(err)
+	})
+
+	s.Run("Fail to upload license if no license string is given", func() {
+		printer.Clean()
+		err := uploadLicenseStringCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().EqualError(err, "enter one license file to upload")
 	})
 }

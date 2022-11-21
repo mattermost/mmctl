@@ -43,6 +43,8 @@ const (
 	ObjectRemovedDelete                            = "s3:ObjectRemoved:Delete"
 	ObjectRemovedDeleteMarkerCreated               = "s3:ObjectRemoved:DeleteMarkerCreated"
 	ObjectReducedRedundancyLostObject              = "s3:ReducedRedundancyLostObject"
+	BucketCreatedAll                               = "s3:BucketCreated:*"
+	BucketRemovedAll                               = "s3:BucketRemoved:*"
 )
 
 // FilterRule - child of S3Key, a tag in the notification xml which
@@ -76,11 +78,13 @@ type Arn struct {
 
 // NewArn creates new ARN based on the given partition, service, region, account id and resource
 func NewArn(partition, service, region, accountID, resource string) Arn {
-	return Arn{Partition: partition,
+	return Arn{
+		Partition: partition,
 		Service:   service,
 		Region:    region,
 		AccountID: accountID,
-		Resource:  resource}
+		Resource:  resource,
+	}
 }
 
 // String returns the string format of the ARN
@@ -178,20 +182,28 @@ func EqualFilterRuleList(a, b []FilterRule) bool {
 
 // Equal returns whether this `Config` is equal to another defined by the passed parameters
 func (t *Config) Equal(events []EventType, prefix, suffix string) bool {
-	//Compare events
+	if t == nil {
+		return false
+	}
+
+	// Compare events
 	passEvents := EqualEventTypeList(t.Events, events)
 
-	//Compare filters
-	var newFilter []FilterRule
+	// Compare filters
+	var newFilterRules []FilterRule
 	if prefix != "" {
-		newFilter = append(newFilter, FilterRule{Name: "prefix", Value: prefix})
+		newFilterRules = append(newFilterRules, FilterRule{Name: "prefix", Value: prefix})
 	}
 	if suffix != "" {
-		newFilter = append(newFilter, FilterRule{Name: "suffix", Value: suffix})
+		newFilterRules = append(newFilterRules, FilterRule{Name: "suffix", Value: suffix})
 	}
 
-	passFilters := EqualFilterRuleList(t.Filter.S3Key.FilterRules, newFilter)
-	// if it matches events and filters, mark the index for deletion
+	var currentFilterRules []FilterRule
+	if t.Filter != nil {
+		currentFilterRules = t.Filter.S3Key.FilterRules
+	}
+
+	passFilters := EqualFilterRuleList(currentFilterRules, newFilterRules)
 	return passEvents && passFilters
 }
 

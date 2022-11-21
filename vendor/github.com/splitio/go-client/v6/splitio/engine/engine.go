@@ -7,7 +7,8 @@ import (
 	"github.com/splitio/go-client/v6/splitio/engine/evaluator/impressionlabels"
 	"github.com/splitio/go-client/v6/splitio/engine/grammar"
 	"github.com/splitio/go-client/v6/splitio/engine/hash"
-	"github.com/splitio/go-toolkit/v3/logging"
+	"github.com/splitio/go-toolkit/v5/hasher"
+	"github.com/splitio/go-toolkit/v5/logging"
 )
 
 // Engine struct is responsible for cheking if any of the conditions of the split matches,
@@ -53,7 +54,7 @@ func (e *Engine) calculateBucket(algo int, bucketingKey string, seed int64) int 
 	var hashedKey uint32
 	switch algo {
 	case grammar.SplitAlgoMurmur:
-		hashedKey = hash.Murmur3_32([]byte(bucketingKey), uint32(seed))
+		hashedKey = hasher.Sum32WithSeed([]byte(bucketingKey), uint32(seed))
 	case grammar.SplitAlgoLegacy:
 		fallthrough
 	default:

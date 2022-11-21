@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 
 		err := importUploadCmdF(s.th.Client, &cobra.Command{}, []string{importFilePath})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to create upload session: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().Equal("failed to create upload session: : You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -67,19 +67,19 @@ func (s *MmctlE2ETestSuite) TestImportUploadCmdF() {
 			userID = "nouser"
 		}
 
-		us, resp := c.CreateUpload(&model.UploadSession{
+		us, _, err := c.CreateUpload(&model.UploadSession{
 			Filename: importName,
 			FileSize: 276051,
 			Type:     model.UploadTypeImport,
 			UserId:   userID,
 		})
-		s.Require().Nil(resp.Error)
+		s.Require().NoError(err)
 
 		cmd.Flags().Bool("resume", true, "")
 		cmd.Flags().String("upload", us.Id, "")
 
-		err := importUploadCmdF(c, cmd, []string{importFilePath})
-		s.Require().Nil(err)
+		err = importUploadCmdF(c, cmd, []string{importFilePath})
+		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Equal(importName, printer.GetLines()[0].(*model.FileInfo).Name)
@@ -97,7 +97,7 @@ func (s *MmctlE2ETestSuite) TestImportProcessCmdF() {
 
 		err := importProcessCmdF(s.th.Client, &cobra.Command{}, []string{"importName"})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to create import process job: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().Equal("failed to create import process job: : You do not have the appropriate permissions.", err.Error())
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -137,7 +137,7 @@ func (s *MmctlE2ETestSuite) TestImportListAvailableCmdF() {
 
 		err := importListAvailableCmdF(s.th.Client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to list imports: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().ErrorContains(err, "failed to list imports: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -197,14 +197,14 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 		cmd := &cobra.Command{}
 		userID := "nouser"
 		if c == s.th.SystemAdminClient {
-			user, resp := s.th.SystemAdminClient.GetMe("")
-			s.Require().Nil(resp.Error)
+			user, _, err := s.th.SystemAdminClient.GetMe("")
+			s.Require().NoError(err)
 			userID = user.Id
 		} else {
 			cmd.Flags().Bool("local", true, "")
 		}
 
-		us1, appErr := s.th.App.CreateUploadSession(&model.UploadSession{
+		us1, appErr := s.th.App.CreateUploadSession(s.th.Context, &model.UploadSession{
 			Id:       model.NewId(),
 			UserId:   userID,
 			Type:     model.UploadTypeImport,
@@ -216,7 +216,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		_, appErr = s.th.App.CreateUploadSession(&model.UploadSession{
+		_, appErr = s.th.App.CreateUploadSession(s.th.Context, &model.UploadSession{
 			Id:        model.NewId(),
 			UserId:    userID,
 			ChannelId: s.th.BasicChannel.Id,
@@ -228,7 +228,7 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 
 		time.Sleep(time.Millisecond)
 
-		us3, appErr := s.th.App.CreateUploadSession(&model.UploadSession{
+		us3, appErr := s.th.App.CreateUploadSession(s.th.Context, &model.UploadSession{
 			Id:       model.NewId(),
 			UserId:   userID,
 			Type:     model.UploadTypeImport,
@@ -250,12 +250,24 @@ func (s *MmctlE2ETestSuite) TestImportListIncompleteCmdF() {
 func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
+	job, appErr := s.th.App.CreateJob(&model.Job{
+		Type: model.JobTypeImportProcess,
+		Data: map[string]string{"import_file": "import1.zip"},
+	})
+	s.Require().Nil(appErr)
+
 	s.Run("no permissions", func() {
 		printer.Clean()
 
-		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{model.NewId()})
+		job1, appErr := s.th.App.CreateJob(&model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{"import_file": "import1.zip"},
+		})
+		s.Require().Nil(appErr)
+
+		err := importJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import job: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().ErrorContains(err, "failed to get import job: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -265,19 +277,13 @@ func (s *MmctlE2ETestSuite) TestImportJobShowCmdF() {
 
 		err := importJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import job: : Unable to get the job., ", err.Error())
+		s.Require().ErrorContains(err, "failed to get import job: : Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
 
 	s.RunForSystemAdminAndLocal("found", func(c client.Client) {
 		printer.Clean()
-
-		job, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
-			Data: map[string]string{"import_file": "import1.zip"},
-		})
-		s.Require().Nil(appErr)
 
 		err := importJobShowCmdF(c, &cobra.Command{}, []string{job.Id})
 		s.Require().Nil(err)
@@ -300,7 +306,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 
 		err := importJobListCmdF(s.th.Client, cmd, nil)
 		s.Require().NotNil(err)
-		s.Require().Equal("failed to get import jobs: : You do not have the appropriate permissions., ", err.Error())
+		s.Require().ErrorContains(err, "failed to get jobs: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -317,7 +323,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Empty(printer.GetErrorLines())
-		s.Equal("No import jobs found", printer.GetLines()[0])
+		s.Equal("No jobs found", printer.GetLines()[0])
 	})
 
 	s.RunForSystemAdminAndLocal("some import jobs", func(c client.Client) {
@@ -330,7 +336,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		_, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import1.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -338,7 +344,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job2, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import2.zip"},
 		})
 		s.Require().Nil(appErr)
@@ -346,7 +352,7 @@ func (s *MmctlE2ETestSuite) TestImportJobListCmdF() {
 		time.Sleep(time.Millisecond)
 
 		job3, appErr := s.th.App.CreateJob(&model.Job{
-			Type: model.JOB_TYPE_IMPORT_PROCESS,
+			Type: model.JobTypeImportProcess,
 			Data: map[string]string{"import_file": "import3.zip"},
 		})
 		s.Require().Nil(appErr)

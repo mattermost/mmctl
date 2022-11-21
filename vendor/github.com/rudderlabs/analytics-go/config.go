@@ -78,6 +78,16 @@ type Config struct {
 	// This field is not exported and only exposed internally to let unit tests
 	// mock the current time.
 	maxConcurrentRequests int
+
+	//This variable will disable checking for the cluster-info end point and
+	//split the payload at node level for multi node setup
+	NoProxySupport bool
+
+	// Maximum bytes in a message
+	MaxMessageBytes int
+
+	// Maximum bytes in a batch
+	MaxBatchBytes int
 }
 
 // This constant sets the default endpoint to which client instances send
@@ -112,6 +122,22 @@ func (c *Config) validate() error {
 		}
 	}
 
+	if c.MaxMessageBytes < 0 {
+		return ConfigError{
+			Reason: "negetive value is not supported for MaxMessageBytes",
+			Field:  "MaxMessageBytes",
+			Value:  c.MaxMessageBytes,
+		}
+	}
+
+	if c.MaxBatchBytes < 0 {
+		return ConfigError{
+			Reason: "negetive value is not supported for MaxBatchBytes",
+			Field:  "MaxBatchBytes",
+			Value:  c.MaxBatchBytes,
+		}
+	}
+
 	return nil
 }
 
@@ -143,7 +169,7 @@ func makeConfig(c Config) Config {
 	}
 
 	if c.RetryAfter == nil {
-		c.RetryAfter = backo.DefaultBacko().Duration
+		c.RetryAfter = backo.NewBacko(time.Millisecond*100, 2, 1, time.Second*30).Duration
 	}
 
 	if c.uid == nil {
@@ -156,6 +182,14 @@ func makeConfig(c Config) Config {
 
 	if c.maxConcurrentRequests == 0 {
 		c.maxConcurrentRequests = 1000
+	}
+
+	if c.MaxMessageBytes == 0 {
+		c.MaxMessageBytes = defMaxMessageBytes
+	}
+
+	if c.MaxBatchBytes == 0 {
+		c.MaxBatchBytes = defMaxBatchBytes
 	}
 
 	// We always overwrite the 'library' field of the default context set on the

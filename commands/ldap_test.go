@@ -4,9 +4,12 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"net/http"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
+
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -18,8 +21,8 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap().
-			Return(true, &model.Response{Error: nil}).
+			SyncLdap(false).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := ldapSyncCmdF(s.client, &cobra.Command{}, []string{})
@@ -35,8 +38,8 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 		s.client.
 			EXPECT().
-			SyncLdap().
-			Return(false, &model.Response{Error: nil}).
+			SyncLdap(false).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := ldapSyncCmdF(s.client, &cobra.Command{}, []string{})
@@ -48,12 +51,12 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 
 	s.Run("Sync with response error", func() {
 		printer.Clean()
-		mockError := &model.AppError{Message: "Mock Error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
-			SyncLdap().
-			Return(false, &model.Response{Error: mockError}).
+			SyncLdap(false).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := ldapSyncCmdF(s.client, &cobra.Command{}, []string{})
@@ -61,6 +64,21 @@ func (s *MmctlUnitTestSuite) TestLdapSyncCmd() {
 		s.Require().Equal(err, mockError)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Sync with includeRemoveMembers", func() {
+		printer.Clean()
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("include-removed-members", true, "")
+
+		s.client.
+			EXPECT().
+			SyncLdap(true).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		err := ldapSyncCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
 	})
 }
 
@@ -71,7 +89,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 		s.client.
 			EXPECT().
 			MigrateIdLdap("test-id").
-			Return(true, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
 		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})
@@ -87,7 +105,7 @@ func (s *MmctlUnitTestSuite) TestLdapMigrateID() {
 		s.client.
 			EXPECT().
 			MigrateIdLdap("test-id").
-			Return(false, &model.Response{Error: &model.AppError{Message: "test-error"}}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("test-error")).
 			Times(1)
 
 		err := ldapIDMigrateCmdF(s.client, &cobra.Command{}, []string{"test-id"})

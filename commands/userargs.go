@@ -4,12 +4,14 @@
 package commands
 
 import (
+	"errors"
 	"net/url"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/hashicorp/go-multierror"
+	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/v6/client"
 )
 
 func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
@@ -24,16 +26,16 @@ func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 func getUserFromUserArg(c client.Client, userArg string) *model.User {
 	var user *model.User
 	if !checkDots(userArg) {
-		user, _ = c.GetUserByEmail(userArg, "")
+		user, _, _ = c.GetUserByEmail(userArg, "")
 	}
 
 	if !checkSlash(userArg) {
 		if user == nil {
-			user, _ = c.GetUserByUsername(userArg, "")
+			user, _, _ = c.GetUserByUsername(userArg, "")
 		}
 
 		if user == nil {
-			user, _ = c.GetUser(userArg, "")
+			user, _, _ = c.GetUser(userArg, "")
 		}
 	}
 
@@ -50,4 +52,69 @@ func checkSlash(arg string) bool {
 func checkDots(arg string) bool {
 	unescapedArg, _ := url.PathUnescape(arg)
 	return strings.Contains(unescapedArg, "..")
+}
+
+// getUsersFromArgs obtains all the users passed by `userArgs` parameter.
+// It can return users and errors at the same time
+func getUsersFromArgs(c client.Client, userArgs []string) ([]*model.User, error) {
+	users := make([]*model.User, 0, len(userArgs))
+	var result *multierror.Error
+	for _, userArg := range userArgs {
+		user, err := getUserFromArg(c, userArg)
+		if err != nil {
+			result = multierror.Append(result, err)
+			continue
+		}
+		users = append(users, user)
+	}
+	return users, result.ErrorOrNil()
+}
+
+func getUserFromArg(c client.Client, userArg string) (*model.User, error) {
+	var user *model.User
+	var response *model.Response
+	var err error
+	if !checkDots(userArg) {
+		user, response, err = c.GetUserByEmail(userArg, "")
+		if err != nil {
+			nErr := ExtractErrorFromResponse(response, err)
+			var nfErr *NotFoundError
+			var badRequestErr *BadRequestError
+			if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+				return nil, nErr
+			}
+		}
+	}
+
+	if !checkSlash(userArg) {
+		if user == nil {
+			user, response, err = c.GetUserByUsername(userArg, "")
+			if err != nil {
+				nErr := ExtractErrorFromResponse(response, err)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
+				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+					return nil, nErr
+				}
+			}
+		}
+
+		if user == nil {
+			user, response, err = c.GetUser(userArg, "")
+			if err != nil {
+				nErr := ExtractErrorFromResponse(response, err)
+				var nfErr *NotFoundError
+				var badRequestErr *BadRequestError
+				if !errors.As(nErr, &nfErr) && !errors.As(nErr, &badRequestErr) {
+					return nil, nErr
+				}
+			}
+		}
+	}
+
+	if user == nil {
+		return nil, ErrEntityNotFound{Type: "user", ID: userArg}
+	}
+
+	return user, nil
 }

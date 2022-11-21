@@ -4,10 +4,10 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -128,9 +128,9 @@ func init() {
 }
 
 func listLdapGroupsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	groups, res := c.GetLdapGroups()
-	if res.Error != nil {
-		return res.Error
+	groups, _, err := c.GetLdapGroups()
+	if err != nil {
+		return err
 	}
 
 	for _, group := range groups {
@@ -153,9 +153,9 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 		},
 	}
 
-	groups, _, res := c.GetGroupsByChannel(channel.Id, *groupOpts)
-	if res.Error != nil {
-		return res.Error
+	groups, _, _, err := c.GetGroupsByChannel(channel.Id, *groupOpts)
+	if err != nil {
+		return err
 	}
 
 	if len(groups) == 0 {
@@ -163,8 +163,8 @@ func channelGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) 
 	}
 
 	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(true)}
-	if _, res = c.PatchChannel(channel.Id, &channelPatch); res.Error != nil {
-		return res.Error
+	if _, _, err = c.PatchChannel(channel.Id, &channelPatch); err != nil {
+		return err
 	}
 
 	return nil
@@ -177,8 +177,8 @@ func channelGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string)
 	}
 
 	channelPatch := model.ChannelPatch{GroupConstrained: model.NewBool(false)}
-	if _, res := c.PatchChannel(channel.Id, &channelPatch); res.Error != nil {
-		return res.Error
+	if _, _, err := c.PatchChannel(channel.Id, &channelPatch); err != nil {
+		return err
 	}
 
 	return nil
@@ -213,9 +213,9 @@ func channelGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) er
 			PerPage: 9999,
 		},
 	}
-	groups, _, res := c.GetGroupsByChannel(channel.Id, groupOpts)
-	if res.Error != nil {
-		return res.Error
+	groups, _, _, err := c.GetGroupsByChannel(channel.Id, groupOpts)
+	if err != nil {
+		return err
 	}
 
 	for _, group := range groups {
@@ -237,9 +237,9 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 			PerPage: 10,
 		},
 	}
-	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
-	if res.Error != nil {
-		return res.Error
+	groups, _, _, err := c.GetGroupsByTeam(team.Id, groupOpts)
+	if err != nil {
+		return err
 	}
 
 	if len(groups) == 0 {
@@ -247,8 +247,8 @@ func teamGroupEnableCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(true)}
-	if _, res = c.PatchTeam(team.Id, &teamPatch); res.Error != nil {
-		return res.Error
+	if _, _, err = c.PatchTeam(team.Id, &teamPatch); err != nil {
+		return err
 	}
 
 	return nil
@@ -261,8 +261,8 @@ func teamGroupDisableCmdF(c client.Client, cmd *cobra.Command, args []string) er
 	}
 
 	teamPatch := model.TeamPatch{GroupConstrained: model.NewBool(false)}
-	if _, res := c.PatchTeam(team.Id, &teamPatch); res.Error != nil {
-		return res.Error
+	if _, _, err := c.PatchTeam(team.Id, &teamPatch); err != nil {
+		return err
 	}
 
 	return nil
@@ -297,9 +297,9 @@ func teamGroupListCmdF(c client.Client, cmd *cobra.Command, args []string) error
 			PerPage: 9999,
 		},
 	}
-	groups, _, res := c.GetGroupsByTeam(team.Id, groupOpts)
-	if res.Error != nil {
-		return res.Error
+	groups, _, _, err := c.GetGroupsByTeam(team.Id, groupOpts)
+	if err != nil {
+		return err
 	}
 
 	for _, group := range groups {

@@ -6,11 +6,11 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
@@ -25,7 +25,7 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 	s.RunForSystemAdminAndLocal("Generate token for user", func(c client.Client) {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		err := generateTokenForAUserCmdF(c, &cobra.Command{}, []string{user.Email, tokenDescription})
@@ -61,17 +61,17 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 	s.Run("Generate token without permission", func() {
 		printer.Clean()
 
-		user, appErr := s.th.App.CreateUser(&model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
 		s.Require().Nil(appErr)
 
 		err := generateTokenForAUserCmdF(s.th.Client, &cobra.Command{}, []string{user.Email, tokenDescription})
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(
-			fmt.Sprintf(`could not create token for %q: : You do not have the appropriate permissions., `, user.Email),
-			err.Error())
-
+		s.Require().ErrorContains(
+			err,
+			fmt.Sprintf(`could not create token for %q: : You do not have the appropriate permissions.`, user.Email),
+		)
 		userTokens, appErr := s.th.App.GetUserAccessTokensForUser(user.Id, 0, 1)
 		s.Require().Nil(appErr)
 		s.Require().Equal(0, len(userTokens))

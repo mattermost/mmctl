@@ -3,10 +3,13 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/v5/model"
+	"net/http"
+
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
@@ -19,13 +22,13 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeamByName(teamArg, "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, userArg})
@@ -41,25 +44,25 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Id, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(mockUser.Id, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
@@ -77,25 +80,25 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeamByName(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(mockUser, nil).
+			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
@@ -112,19 +115,19 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(mockUser, nil).
+			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
@@ -141,25 +144,25 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Id, "").
-			Return(mockUser, nil).
+			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
@@ -175,31 +178,31 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername(mockUser.Id, "").
-			Return(nil, nil).
+			Return(nil, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser(mockUser.Id, "").
-			Return(mockUser, nil).
+			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: nil}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, nil).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
@@ -212,24 +215,24 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 		printer.Clean()
 		mockTeam := &model.Team{Id: teamArg, Name: "example-name"}
 		mockUser := &model.User{Id: userArg}
-		mockError := model.AppError{Message: "Mock error"}
+		mockError := errors.New("mock error")
 
 		s.client.
 			EXPECT().
 			GetTeam(teamArg, "").
-			Return(mockTeam, &model.Response{Error: nil}).
+			Return(mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail(mockUser.Id, "").
-			Return(mockUser, nil).
+			Return(mockUser, nil, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			RemoveTeamMember(mockTeam.Id, mockUser.Id).
-			Return(false, &model.Response{Error: &mockError}).
+			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
@@ -258,13 +261,13 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.client.
 			EXPECT().
 			GetTeam("team1", "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetTeamByName("team1", "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
@@ -279,31 +282,31 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.client.
 			EXPECT().
 			GetTeam("team1", "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail("user1", "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByUsername("user1", "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUser("user1", "").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user 'user1'")
+		s.Require().ErrorContains(err, "can't find user 'user1'")
 	})
 
 	s.Run("Add users should print error when cannot add team member", func() {
@@ -313,32 +316,28 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.client.
 			EXPECT().
 			GetTeam("team1", "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail("user1", "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
-		mockError := &model.AppError{
-			Message:       "Cannot add team member",
-			DetailedError: "This user was banned in this team",
-			Where:         "Team.AddTeamMember",
-		}
+		mockError := errors.New("cannot add team member")
 
 		s.client.
 			EXPECT().
 			AddTeamMember("TeamId", "UserID").
-			Return(nil, &model.Response{Error: mockError}).
+			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
 		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0],
-			"Unable to add 'user1' to team1. Error: Team.AddTeamMember: Cannot add team member, This user was banned in this team")
+			"Unable to add 'user1' to team1. Error: cannot add team member")
 	})
 
 	s.Run("Add users should not print in console anything on success", func() {
@@ -348,19 +347,19 @@ func (s *MmctlUnitTestSuite) TestAddUsersCmd() {
 		s.client.
 			EXPECT().
 			GetTeam("team1", "").
-			Return(&mockTeam, &model.Response{Error: nil}).
+			Return(&mockTeam, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			GetUserByEmail("user1", "").
-			Return(&mockUser, &model.Response{Error: nil}).
+			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
 			AddTeamMember("TeamId", "UserID").
-			Return(nil, &model.Response{Error: nil}).
+			Return(nil, &model.Response{}, nil).
 			Times(1)
 
 		err := teamUsersAddCmdF(s.client, cmd, []string{"team1", "user1"})

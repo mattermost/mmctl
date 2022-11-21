@@ -6,10 +6,10 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -71,9 +71,9 @@ func init() {
 }
 
 func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
+	role, _, err := c.GetRoleByName(args[0])
+	if err != nil {
+		return err
 	}
 
 	newPermissions := role.Permissions
@@ -92,17 +92,17 @@ func addPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		Permissions: &newPermissions,
 	}
 
-	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
-		return response.Error
+	if _, _, err = c.PatchRole(role.Id, &patchRole); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
+	role, _, err := c.GetRoleByName(args[0])
+	if err != nil {
+		return err
 	}
 
 	newPermissionSet := role.Permissions
@@ -131,17 +131,17 @@ func removePermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) e
 		Permissions: &newPermissionSet,
 	}
 
-	if _, response = c.PatchRole(role.Id, &patchRole); response.Error != nil {
-		return response.Error
+	if _, _, err = c.PatchRole(role.Id, &patchRole); err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	role, response := c.GetRoleByName(args[0])
-	if response.Error != nil {
-		return response.Error
+	role, _, err := c.GetRoleByName(args[0])
+	if err != nil {
+		return err
 	}
 
 	defaultRole, ok := model.MakeDefaultRoles()[role.Name]
@@ -153,9 +153,9 @@ func resetPermissionsCmdF(c client.Client, cmd *cobra.Command, args []string) er
 		Permissions: &defaultRole.Permissions,
 	}
 
-	role, response = c.PatchRole(role.Id, &patchRole)
-	if response.Error != nil {
-		return response.Error
+	role, _, err = c.PatchRole(role.Id, &patchRole)
+	if err != nil {
+		return err
 	}
 
 	printer.PrintT(prettyRole(role), nil)
