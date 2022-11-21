@@ -77,9 +77,9 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 		team := "non-existent-team"
 
 		err := listChannelsCmdF(c, &cobra.Command{}, []string{team})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find team \""+team+"\"")
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to find team '"+team+"'", printer.GetErrorLines()[0])
+		s.Equal("unable to find team \""+team+"\"", printer.GetErrorLines()[0])
 	})
 }
 
