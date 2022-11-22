@@ -5,7 +5,6 @@ package commands
 
 import (
 	"github.com/mattermost/mattermost-server/v6/api4"
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
@@ -35,7 +34,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -71,14 +70,14 @@ func (s *MmctlE2ETestSuite) TestChannelGroupEnableCmd() {
 
 		channel.GroupConstrained = model.NewBool(false)
 		defer func() {
-			_, err := s.th.App.UpdateChannel(channel)
+			_, err := s.th.App.UpdateChannel(s.th.Context, channel)
 			s.Require().Nil(err)
 		}()
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ch, appErr := s.th.App.GetChannel(channel.Id)
+		ch, appErr := s.th.App.GetChannel(s.th.Context, channel.Id)
 		s.Require().Nil(appErr)
 		s.Require().True(ch.IsGroupConstrained())
 	})
@@ -106,7 +105,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -127,7 +126,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 
 	channel.GroupConstrained = model.NewBool(true)
 	defer func() {
-		_, err := s.th.App.UpdateChannel(channel)
+		_, err := s.th.App.UpdateChannel(s.th.Context, channel)
 		s.Require().Nil(err)
 	}()
 
@@ -148,14 +147,14 @@ func (s *MmctlE2ETestSuite) TestChannelGroupDisableCmd() {
 
 		channel.GroupConstrained = model.NewBool(true)
 		defer func() {
-			_, err := s.th.App.UpdateChannel(channel)
+			_, err := s.th.App.UpdateChannel(s.th.Context, channel)
 			s.Require().Nil(err)
 		}()
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 
-		ch, appErr := s.th.App.GetChannel(channel.Id)
+		ch, appErr := s.th.App.GetChannel(s.th.Context, channel.Id)
 		s.Require().Nil(appErr)
 		s.Require().False(ch.IsGroupConstrained())
 	})
@@ -190,7 +189,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	channelName := api4.GenerateTestChannelName()
-	channel, appErr := s.th.App.CreateChannel(request.EmptyContext(), &model.Channel{
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:           s.th.BasicTeam.Id,
 		Name:             channelName,
 		DisplayName:      "dn_" + channelName,
@@ -199,12 +198,12 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
-		err := s.th.App.DeleteChannel(request.EmptyContext(), channel, "")
+		err := s.th.App.DeleteChannel(s.th.Context, channel, "")
 		s.Require().Nil(err)
 	}()
 
 	channelName2 := api4.GenerateTestChannelName()
-	channel2, appErr := s.th.App.CreateChannel(request.EmptyContext(), &model.Channel{
+	channel2, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName2,
 		DisplayName: "dn_" + channelName2,
@@ -212,7 +211,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupStatusCmd() {
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
-		err := s.th.App.DeleteChannel(request.EmptyContext(), channel2, "")
+		err := s.th.App.DeleteChannel(s.th.Context, channel2, "")
 		s.Require().Nil(err)
 	}()
 
@@ -243,7 +242,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
 	channelName := api4.GenerateTestChannelName()
-	channel, appErr := s.th.App.CreateChannel(request.EmptyContext(), &model.Channel{
+	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
 		Name:        channelName,
 		DisplayName: "dn_" + channelName,
@@ -251,7 +250,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 	}, false)
 	s.Require().Nil(appErr)
 	defer func() {
-		err := s.th.App.DeleteChannel(request.EmptyContext(), channel, "")
+		err := s.th.App.DeleteChannel(s.th.Context, channel, "")
 		s.Require().Nil(err)
 	}()
 
@@ -261,7 +260,7 @@ func (s *MmctlE2ETestSuite) TestChannelGroupListCmd() {
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 	defer func() {
@@ -388,14 +387,14 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 	}()
 
 	teamName2 := api4.GenerateTestTeamName()
-	team2, appErr := s.th.App.CreateTeam(request.EmptyContext(), &model.Team{
+	team2, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		Name:        teamName2,
 		DisplayName: "dn_" + teamName2,
 		Type:        model.TeamInvite,
 	})
 	s.Require().Nil(appErr)
 	defer func() {
-		err := s.th.App.PermanentDeleteTeam(team2)
+		err := s.th.App.PermanentDeleteTeam(s.th.Context, team2)
 		s.Require().Nil(err)
 	}()
 
@@ -408,10 +407,10 @@ func (s *MmctlE2ETestSuite) TestTeamGroupStatusCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	_, _, appErr = s.th.App.AddUserToTeam(request.EmptyContext(), team.Id, s.th.BasicUser.Id, s.th.SystemAdminUser.Id)
+	_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, team.Id, s.th.BasicUser.Id, s.th.SystemAdminUser.Id)
 	s.Require().Nil(appErr)
 
-	_, _, appErr = s.th.App.AddUserToTeam(request.EmptyContext(), team2.Id, s.th.BasicUser.Id, s.th.SystemAdminUser.Id)
+	_, _, appErr = s.th.App.AddUserToTeam(s.th.Context, team2.Id, s.th.BasicUser.Id, s.th.SystemAdminUser.Id)
 	s.Require().Nil(appErr)
 
 	s.RunForAllClients("MM-T3922 Should allow to get status of a group constrained team", func(c client.Client) {
@@ -470,7 +469,7 @@ func (s *MmctlE2ETestSuite) TestTeamGroupListCmd() {
 
 func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func()) {
 	teamName := api4.GenerateTestTeamName()
-	team, appErr := s.th.App.CreateTeam(request.EmptyContext(), &model.Team{
+	team, appErr := s.th.App.CreateTeam(s.th.Context, &model.Team{
 		Name:             teamName,
 		DisplayName:      "dn_" + teamName,
 		Type:             model.TeamOpen,
@@ -484,7 +483,7 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 		Name:        model.NewString("name" + id),
 		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
-		RemoteId:    model.NewId(),
+		RemoteId:    model.NewString(model.NewId()),
 	})
 	s.Require().Nil(appErr)
 
@@ -502,7 +501,7 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 		_, err = s.th.App.DeleteGroup(group.Id)
 		s.Require().Nil(err)
 
-		err = s.th.App.PermanentDeleteTeamId(team.Id)
+		err = s.th.App.PermanentDeleteTeamId(s.th.Context, team.Id)
 		s.Require().Nil(err)
 	}
 

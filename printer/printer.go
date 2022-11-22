@@ -26,12 +26,14 @@ type Printer struct { //nolint
 	writer  io.Writer
 	eWriter io.Writer
 
-	Format     string
-	Single     bool
-	pager      bool
-	Quiet      bool
-	Lines      []interface{}
-	ErrorLines []interface{}
+	Format        string
+	Single        bool
+	NoNewline     bool
+	templateFuncs template.FuncMap
+	pager         bool
+	Quiet         bool
+	Lines         []interface{}
+	ErrorLines    []interface{}
 
 	cmd        *cobra.Command
 	serverAddr string
@@ -43,6 +45,7 @@ type printOpts struct {
 	single    bool
 	usePager  bool
 	shortStat bool
+	noNewline bool
 }
 
 var printer Printer
@@ -51,6 +54,7 @@ func init() {
 	printer.writer = os.Stdout
 	printer.eWriter = os.Stderr
 	printer.pager = true
+	printer.templateFuncs = make(template.FuncMap)
 }
 
 // SetFormat sets the format for the final output of the printer
@@ -75,6 +79,16 @@ func SetQuiet(q bool) {
 	printer.Quiet = q
 }
 
+// SetNoNewline prevents the addition of a newline at the end of the plain output.
+// This may be useful when you want to handle newlines yourself.
+func SetNoNewline(no bool) {
+	printer.NoNewline = no
+}
+
+func SetTemplateFunc(name string, f interface{}) {
+	printer.templateFuncs[name] = f
+}
+
 // SetSingle sets the single flag on the printer. If this flag is set, the
 // printer will check the size of stored elements before printing, and
 // if there is only one, it will be printed on its own instead of
@@ -92,13 +106,30 @@ func PrintT(templateString string, v interface{}) {
 	}
 	switch printer.Format {
 	case FormatPlain:
-		t := template.Must(template.New("").Parse(templateString))
-		var tpl bytes.Buffer
-		if err := t.Execute(&tpl, v); err != nil {
+		tpl := template.Must(template.New("").Funcs(printer.templateFuncs).Parse(templateString))
+		sb := &strings.Builder{}
+		if err := tpl.Execute(sb, v); err != nil {
 			PrintError("Can't print the message using the provided template: " + templateString)
+			return
 		}
-		tplString := tpl.String()
-		printer.Lines = append(printer.Lines, tplString)
+		printer.Lines = append(printer.Lines, sb.String())
+	case FormatJSON:
+		printer.Lines = append(printer.Lines, v)
+	}
+}
+
+func PrintPreparedT(tpl *template.Template, v interface{}) {
+	if printer.Quiet {
+		return
+	}
+	switch printer.Format {
+	case FormatPlain:
+		sb := &strings.Builder{}
+		if err := tpl.Execute(sb, v); err != nil {
+			PrintError("Can't print the message using the provided template: " + err.Error())
+			return
+		}
+		printer.Lines = append(printer.Lines, sb.String())
 	case FormatJSON:
 		printer.Lines = append(printer.Lines, v)
 	}
@@ -118,8 +149,9 @@ func Flush() error {
 	}
 
 	opts := printOpts{
-		format: printer.Format,
-		single: printer.Single,
+		format:    printer.Format,
+		single:    printer.Single,
+		noNewline: printer.NoNewline,
 	}
 
 	cmd := printer.cmd
@@ -232,11 +264,16 @@ func (p Printer) linesToBytes(opts printOpts) (b []byte, err error) {
 		return
 	}
 
+	newline := "\n"
+	if opts.noNewline {
+		newline = ""
+	}
+
 	switch opts.format {
 	case FormatPlain:
 		var buf bytes.Buffer
 		for i := range p.Lines {
-			buf.WriteString(fmt.Sprintf("%s\n", p.Lines[i]))
+			fmt.Fprintf(&buf, "%s%s", p.Lines[i], newline)
 		}
 		b = buf.Bytes()
 	case FormatJSON:

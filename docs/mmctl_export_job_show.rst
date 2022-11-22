@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    export job show
+    export job show o98rj3ur83dp5dppfyk5yk6osy
 
 Options
 ~~~~~~~
@@ -47,5 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl export job <mmctl_export_job.rst>`_ 	 - List and show export jobs
+* `mmctl export job <mmctl_export_job.rst>`_ 	 - List, show and cancel export jobs
 

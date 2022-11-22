@@ -21,16 +21,20 @@ VENDOR_MM_SERVER_DIR ?= vendor/github.com/mattermost/mattermost-server/v6
 ENTERPRISE_HASH ?= $(shell cat enterprise_hash)
 TESTFLAGS = -mod=vendor -timeout 30m -race -v
 
+-include config.override.mk
+include config.mk
+
+# In case DIST_VER is not assigned, fallback to using the latest semver tag available
+ifeq ($(DIST_VER), )
+    DIST_VER=$(shell git tag | sort -r --version-sort | head -n1)
+endif
 
 PKG=github.com/mattermost/mmctl/v6/commands
-LDFLAGS= -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE)
+LDFLAGS= -X $(PKG).gitCommit=$(GIT_HASH) -X $(PKG).gitTreeState=$(GIT_TREESTATE) -X $(PKG).buildDate=$(BUILD_DATE) -X $(PKG).Version=$(DIST_VER)
 BUILD_TAGS =
 
 .PHONY: all
 all: build
-
--include config.override.mk
-include config.mk
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifneq ($(wildcard ${ENTERPRISE_DIR}/.*),)
@@ -160,7 +164,7 @@ vendor:
 
 .PHONY: mocks
 mocks:
-	mockgen -destination=mocks/client_mock.go -copyright_file=mocks/copyright.txt -package=mocks github.com/mattermost/mmctl/client Client
+	mockgen -destination=mocks/client_mock.go -copyright_file=mocks/copyright.txt -package=mocks github.com/mattermost/mmctl/v6/client Client
 
 .PHONY: docs
 docs:

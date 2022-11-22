@@ -15,26 +15,27 @@ import (
 	"github.com/splitio/go-client/v6/splitio/engine"
 	"github.com/splitio/go-client/v6/splitio/engine/evaluator"
 	impressionlistener "github.com/splitio/go-client/v6/splitio/impressionListener"
-	config "github.com/splitio/go-split-commons/v3/conf"
-	"github.com/splitio/go-split-commons/v3/dtos"
-	"github.com/splitio/go-split-commons/v3/provisional"
-	"github.com/splitio/go-split-commons/v3/service/api"
-	"github.com/splitio/go-split-commons/v3/service/local"
-	"github.com/splitio/go-split-commons/v3/storage"
-	"github.com/splitio/go-split-commons/v3/storage/inmemory"
-	"github.com/splitio/go-split-commons/v3/storage/inmemory/mutexmap"
-	"github.com/splitio/go-split-commons/v3/storage/inmemory/mutexqueue"
-	"github.com/splitio/go-split-commons/v3/storage/mocks"
-	"github.com/splitio/go-split-commons/v3/storage/redis"
-	"github.com/splitio/go-split-commons/v3/synchronizer"
-	"github.com/splitio/go-split-commons/v3/synchronizer/worker/event"
-	"github.com/splitio/go-split-commons/v3/synchronizer/worker/impression"
-	"github.com/splitio/go-split-commons/v3/synchronizer/worker/impressionscount"
-	"github.com/splitio/go-split-commons/v3/synchronizer/worker/segment"
-	"github.com/splitio/go-split-commons/v3/synchronizer/worker/split"
-	"github.com/splitio/go-split-commons/v3/tasks"
-	"github.com/splitio/go-split-commons/v3/telemetry"
-	"github.com/splitio/go-toolkit/v4/logging"
+	config "github.com/splitio/go-split-commons/v4/conf"
+	"github.com/splitio/go-split-commons/v4/dtos"
+	"github.com/splitio/go-split-commons/v4/healthcheck/application"
+	"github.com/splitio/go-split-commons/v4/provisional"
+	"github.com/splitio/go-split-commons/v4/service/api"
+	"github.com/splitio/go-split-commons/v4/service/local"
+	"github.com/splitio/go-split-commons/v4/storage"
+	"github.com/splitio/go-split-commons/v4/storage/inmemory"
+	"github.com/splitio/go-split-commons/v4/storage/inmemory/mutexmap"
+	"github.com/splitio/go-split-commons/v4/storage/inmemory/mutexqueue"
+	"github.com/splitio/go-split-commons/v4/storage/mocks"
+	"github.com/splitio/go-split-commons/v4/storage/redis"
+	"github.com/splitio/go-split-commons/v4/synchronizer"
+	"github.com/splitio/go-split-commons/v4/synchronizer/worker/event"
+	"github.com/splitio/go-split-commons/v4/synchronizer/worker/impression"
+	"github.com/splitio/go-split-commons/v4/synchronizer/worker/impressionscount"
+	"github.com/splitio/go-split-commons/v4/synchronizer/worker/segment"
+	"github.com/splitio/go-split-commons/v4/synchronizer/worker/split"
+	"github.com/splitio/go-split-commons/v4/tasks"
+	"github.com/splitio/go-split-commons/v4/telemetry"
+	"github.com/splitio/go-toolkit/v5/logging"
 )
 
 const (
@@ -104,7 +105,7 @@ func (f *SplitFactory) Manager() *SplitManager {
 	}
 }
 
-// IsDestroyed returns true if tbe client has been destroyed
+// IsDestroyed returns true if the client has been destroyed
 func (f *SplitFactory) IsDestroyed() bool {
 	return f.status.Load() == sdkStatusDestroyed
 }
@@ -116,7 +117,7 @@ func (f *SplitFactory) IsReady() bool {
 
 // initializates task for localhost mode
 func (f *SplitFactory) initializationLocalhost(readyChannel chan int) {
-	f.syncManager.Start()
+	go f.syncManager.Start()
 
 	<-readyChannel
 	f.broadcastReadiness(sdkStatusReady, make([]string, 0))
@@ -136,11 +137,7 @@ func (f *SplitFactory) initializationInMemory(readyChannel chan int) {
 }
 
 // recordInitTelemetry In charge of recording init stats from redis and memory
-func (f *SplitFactory) recordInitTelemetry(tags []string) {
-	if f.telemetrySync == nil {
-		f.logger.Debug("Discarding init telemetry")
-		return
-	}
+func (f *SplitFactory) recordInitTelemetry(tags []string, currentFactories map[string]int64) {
 	f.logger.Debug("Sending init telemetry")
 	f.telemetrySync.SynchronizeConfig(
 		telemetry.InitConfig{
@@ -167,7 +164,7 @@ func (f *SplitFactory) recordInitTelemetry(tags []string) {
 			},
 		},
 		time.Now().UTC().Sub(f.startTime).Milliseconds(),
-		getFactories(),
+		currentFactories,
 		tags,
 	)
 }
@@ -183,7 +180,7 @@ func (f *SplitFactory) broadcastReadiness(status int, tags []string) {
 		subscriptor <- status
 	}
 	// At this point the SDK is ready for sending telemetry
-	f.recordInitTelemetry(tags)
+	go f.recordInitTelemetry(tags, getFactories())
 }
 
 // subscribes listener
@@ -301,10 +298,13 @@ func setupInMemoryFactory(
 		OperationMode:   cfg.OperationMode,
 		ListenerEnabled: cfg.Advanced.ImpressionListener != nil,
 	}
+
+	var dummyHC = &application.Dummy{}
+
 	splitAPI := api.NewSplitAPI(apikey, advanced, logger, metadata)
 	workers := synchronizer.Workers{
-		SplitFetcher:       split.NewSplitFetcher(splitsStorage, splitAPI.SplitFetcher, logger, telemetryStorage),
-		SegmentFetcher:     segment.NewSegmentFetcher(splitsStorage, segmentsStorage, splitAPI.SegmentFetcher, logger, telemetryStorage),
+		SplitFetcher:       split.NewSplitFetcher(splitsStorage, splitAPI.SplitFetcher, logger, telemetryStorage, dummyHC),
+		SegmentFetcher:     segment.NewSegmentFetcher(splitsStorage, segmentsStorage, splitAPI.SegmentFetcher, logger, telemetryStorage, dummyHC),
 		EventRecorder:      event.NewEventRecorderSingle(eventsStorage, splitAPI.EventRecorder, logger, metadata, telemetryStorage),
 		ImpressionRecorder: impression.NewRecorderSingle(impressionsStorage, splitAPI.ImpressionRecorder, logger, metadata, managerConfig, telemetryStorage),
 		TelemetryRecorder:  telemetry.NewTelemetrySynchronizer(telemetryStorage, splitAPI.TelemetryRecorder, splitsStorage, segmentsStorage, logger, metadata, telemetryStorage),
@@ -322,10 +322,7 @@ func setupInMemoryFactory(
 		workers.ImpressionsCountRecorder = impressionscount.NewRecorderSingle(impressionsCounter, splitAPI.ImpressionRecorder, metadata, logger, telemetryStorage)
 		splitTasks.ImpressionsCountSyncTask = tasks.NewRecordImpressionsCountTask(workers.ImpressionsCountRecorder, logger)
 	}
-	impressionManager, err := provisional.NewImpressionManager(managerConfig, impressionsCounter, telemetryStorage)
-	if err != nil {
-		return nil, err
-	}
+	impressionManager, _ := provisional.NewImpressionManager(managerConfig, impressionsCounter, telemetryStorage)
 
 	syncImpl := synchronizer.NewSynchronizer(
 		advanced,
@@ -333,6 +330,7 @@ func setupInMemoryFactory(
 		workers,
 		logger,
 		inMememoryFullQueue,
+		dummyHC,
 	)
 
 	readyChannel := make(chan int, 1)
@@ -347,6 +345,7 @@ func setupInMemoryFactory(
 		telemetryStorage,
 		metadata,
 		&clientKey,
+		dummyHC,
 	)
 	if err != nil {
 		return nil, err
@@ -410,12 +409,12 @@ func setupRedisFactory(apikey string, cfg *conf.SplitSdkConfig, logger logging.L
 		telemetrySync:         telemetry.NewSynchronizerRedis(telemetryStorage, logger),
 	}
 	factory.status.Store(sdkStatusInitializing)
-	impressionManager, err := provisional.NewImpressionManager(config.ManagerConfig{
+	impressionManager, _ := provisional.NewImpressionManager(config.ManagerConfig{
 		OperationMode:   cfg.OperationMode,
 		ImpressionsMode: cfg.ImpressionsMode,
 		ListenerEnabled: cfg.Advanced.ImpressionListener != nil,
 	}, nil, mocks.MockTelemetryStorage{
-		RecordSyncLatencyCall:      func(resource int, latency int64) {},
+		RecordSyncLatencyCall:      func(resource int, latency time.Duration) {},
 		RecordImpressionsStatsCall: func(dataType int, count int64) {},
 	})
 	if err != nil {
@@ -441,8 +440,11 @@ func setupLocalhostFactory(
 	splitPeriod := cfg.TaskPeriods.SplitSync
 	readyChannel := make(chan int, 1)
 	splitAPI := &api.SplitAPI{SplitFetcher: local.NewFileSplitFetcher(cfg.SplitFile, logger)}
+
+	var dummyHC = &application.Dummy{}
+
 	syncManager, err := synchronizer.NewSynchronizerManager(
-		synchronizer.NewLocal(splitPeriod, splitAPI, splitStorage, logger, telemetryStorage),
+		synchronizer.NewLocal(splitPeriod, splitAPI, splitStorage, logger, telemetryStorage, dummyHC),
 		logger,
 		config.AdvancedConfig{StreamingEnabled: false},
 		nil,
@@ -451,6 +453,7 @@ func setupLocalhostFactory(
 		telemetryStorage,
 		metadata,
 		nil,
+		dummyHC,
 	)
 
 	if err != nil {
@@ -474,10 +477,11 @@ func setupLocalhostFactory(
 		},
 		readinessSubscriptors: make(map[int]chan int),
 		syncManager:           syncManager,
+		telemetrySync:         &telemetry.NoOp{},
 	}
 	splitFactory.status.Store(sdkStatusInitializing)
 
-	impressionManager, err := provisional.NewImpressionManager(config.ManagerConfig{
+	impressionManager, _ := provisional.NewImpressionManager(config.ManagerConfig{
 		OperationMode:   cfg.OperationMode,
 		ImpressionsMode: cfg.ImpressionsMode,
 		ListenerEnabled: cfg.Advanced.ImpressionListener != nil,
@@ -496,7 +500,7 @@ func setupLocalhostFactory(
 
 // newFactory instantiates a new SplitFactory object. Accepts a SplitSdkConfig struct as an argument,
 // which will be used to instantiate both the client and the manager
-func newFactory(apikey string, cfg *conf.SplitSdkConfig, logger logging.LoggerInterface) (*SplitFactory, error) {
+func newFactory(apikey string, cfg conf.SplitSdkConfig, logger logging.LoggerInterface) (*SplitFactory, error) {
 	metadata := dtos.Metadata{
 		SDKVersion:  "go-" + splitio.Version,
 		MachineIP:   cfg.IPAddress,
@@ -508,11 +512,11 @@ func newFactory(apikey string, cfg *conf.SplitSdkConfig, logger logging.LoggerIn
 
 	switch cfg.OperationMode {
 	case conf.InMemoryStandAlone:
-		splitFactory, err = setupInMemoryFactory(apikey, cfg, logger, metadata)
+		splitFactory, err = setupInMemoryFactory(apikey, &cfg, logger, metadata)
 	case conf.RedisConsumer:
-		splitFactory, err = setupRedisFactory(apikey, cfg, logger, metadata)
+		splitFactory, err = setupRedisFactory(apikey, &cfg, logger, metadata)
 	case conf.Localhost:
-		splitFactory, err = setupLocalhostFactory(apikey, cfg, logger, metadata)
+		splitFactory, err = setupLocalhostFactory(apikey, &cfg, logger, metadata)
 	default:
 		err = fmt.Errorf("Invalid operation mode \"%s\"", cfg.OperationMode)
 	}

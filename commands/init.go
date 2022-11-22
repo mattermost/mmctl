@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,11 +32,33 @@ var (
 	expectedSocketMode = os.ModeSocket | 0600
 )
 
-func CheckVersionMatch(version, serverVersion string) bool {
-	maj, min, _ := model.SplitVersion(version)
-	srvMaj, srvMin, _ := model.SplitVersion(serverVersion)
+func CheckVersionMatch(version, serverVersion string) (bool, error) {
+	mmctlVersionParsed, err := semver.NewVersion(version)
+	if err != nil {
+		return false, errors.Wrapf(err, "Cannot parse version range %s", version)
+	}
 
-	return maj == srvMaj && min == srvMin
+	// Split and recombine the server version string
+	parts := strings.Split(serverVersion, ".")
+	if len(parts) < 3 {
+		return false, fmt.Errorf("incorrect server version format: %s", serverVersion)
+	}
+	serverVersion = strings.Join(parts[:3], ".")
+
+	serverVersionParsed, err := semver.NewVersion(serverVersion)
+	if err != nil {
+		return false, errors.Wrapf(err, "Cannot parse version range %s", serverVersion)
+	}
+
+	if serverVersionParsed.Major() != mmctlVersionParsed.Major() {
+		return false, nil
+	}
+
+	if mmctlVersionParsed.Minor() > serverVersionParsed.Minor() {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) error) func(cmd *cobra.Command, args []string) error {
@@ -53,14 +76,20 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 		if err != nil {
 			return err
 		}
-		valid := CheckVersionMatch(Version, serverVersion)
-		if !valid {
-			if viper.GetBool("strict") {
-				printer.PrintError("ERROR: server version " + serverVersion + " doesn't match with mmctl version " + Version + ". Strict flag is set, so the command will not be run")
-				os.Exit(1)
+
+		if Version != "unspecified" { // unspecified version indicates that we are on dev mode.
+			valid, err := CheckVersionMatch(Version, serverVersion)
+			if err != nil {
+				return fmt.Errorf("could not check version mismatch: %w", err)
 			}
-			if !viper.GetBool("suppress-warnings") {
-				printer.PrintWarning("server version " + serverVersion + " doesn't match mmctl version " + Version)
+			if !valid {
+				if viper.GetBool("strict") {
+					printer.PrintError("ERROR: server version " + serverVersion + " doesn't match with mmctl version " + Version + ". Strict flag is set, so the command will not be run")
+					os.Exit(1)
+				}
+				if !viper.GetBool("suppress-warnings") {
+					printer.PrintWarning("server version " + serverVersion + " doesn't match mmctl version " + Version)
+				}
 			}
 		}
 
@@ -127,6 +156,7 @@ func NewAPIv4Client(instanceURL string, allowInsecureSHA1, allowInsecureTLS bool
 	client.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConfig,
+			Proxy:           http.ProxyFromEnvironment,
 		},
 	}
 

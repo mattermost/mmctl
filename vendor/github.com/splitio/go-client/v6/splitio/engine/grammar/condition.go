@@ -2,9 +2,9 @@ package grammar
 
 import (
 	"github.com/splitio/go-client/v6/splitio/engine/grammar/matchers"
-	"github.com/splitio/go-split-commons/v3/dtos"
-	"github.com/splitio/go-toolkit/v4/injection"
-	"github.com/splitio/go-toolkit/v4/logging"
+	"github.com/splitio/go-split-commons/v4/dtos"
+	"github.com/splitio/go-toolkit/v5/injection"
+	"github.com/splitio/go-toolkit/v5/logging"
 )
 
 // Condition struct with added logic that wraps around a DTO

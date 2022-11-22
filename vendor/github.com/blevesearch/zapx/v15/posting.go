@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
 	segment "github.com/blevesearch/scorch_segment_api/v2"
@@ -108,6 +109,9 @@ type PostingsList struct {
 	normBits1Hit uint64
 
 	chunkSize uint64
+
+	// atomic access to this variable
+	bytesRead uint64
 }
 
 // represents an immutable, empty postings list
@@ -208,11 +212,13 @@ func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool,
 	// initialize freq chunk reader
 	if rv.includeFreqNorm {
 		rv.freqNormReader = newChunkedIntDecoder(p.sb.mem, p.freqOffset, rv.freqNormReader)
+		rv.incrementBytesRead(rv.freqNormReader.getBytesRead())
 	}
 
 	// initialize the loc chunk reader
 	if rv.includeLocs {
 		rv.locReader = newChunkedIntDecoder(p.sb.mem, p.locOffset, rv.locReader)
+		rv.incrementBytesRead(rv.locReader.getBytesRead())
 	}
 
 	rv.all = p.postings.Iterator()
@@ -244,6 +250,26 @@ func (p *PostingsList) Count() uint64 {
 	return n - e
 }
 
+// Implements the segment.DiskStatsReporter interface
+// The purpose of this implementation is to get
+// the bytes read from the postings lists stored
+// on disk, while querying
+func (p *PostingsList) ResetBytesRead(val uint64) {
+	atomic.StoreUint64(&p.bytesRead, val)
+}
+
+func (p *PostingsList) BytesRead() uint64 {
+	return atomic.LoadUint64(&p.bytesRead)
+}
+
+func (p *PostingsList) incrementBytesRead(val uint64) {
+	atomic.AddUint64(&p.bytesRead, val)
+}
+
+func (p *PostingsList) BytesWritten() uint64 {
+	return 0
+}
+
 func (rv *PostingsList) read(postingsOffset uint64, d *Dictionary) error {
 	rv.postingsOffset = postingsOffset
 
@@ -267,6 +293,8 @@ func (rv *PostingsList) read(postingsOffset uint64, d *Dictionary) error {
 	n += uint64(read)
 
 	roaringBytes := d.sb.mem[postingsOffset+n : postingsOffset+n+postingsLen]
+
+	rv.incrementBytesRead(n + postingsLen)
 
 	if rv.postings == nil {
 		rv.postings = roaring.NewBitmap()
@@ -316,6 +344,9 @@ type PostingsIterator struct {
 
 	includeFreqNorm bool
 	includeLocs     bool
+
+	// atomic access to this variable
+	bytesRead uint64
 }
 
 var emptyPostingsIterator = &PostingsIterator{}
@@ -331,12 +362,39 @@ func (i *PostingsIterator) Size() int {
 	return sizeInBytes
 }
 
+// Implements the segment.DiskStatsReporter interface
+// The purpose of this implementation is to get
+// the bytes read from the disk which includes
+// the freqNorm and location specific information
+// of a hit
+func (i *PostingsIterator) ResetBytesRead(val uint64) {
+	atomic.StoreUint64(&i.bytesRead, val)
+}
+
+func (i *PostingsIterator) BytesRead() uint64 {
+	return atomic.LoadUint64(&i.bytesRead)
+}
+
+func (i *PostingsIterator) incrementBytesRead(val uint64) {
+	atomic.AddUint64(&i.bytesRead, val)
+}
+
+func (i *PostingsIterator) BytesWritten() uint64 {
+	return 0
+}
+
 func (i *PostingsIterator) loadChunk(chunk int) error {
 	if i.includeFreqNorm {
 		err := i.freqNormReader.loadChunk(chunk)
 		if err != nil {
 			return err
 		}
+
+		// assign the bytes read at this point, since
+		// the postingsIterator is tracking only the chunk loaded
+		// and the cumulation is tracked correctly in the downstream
+		// intDecoder
+		i.ResetBytesRead(i.freqNormReader.getBytesRead())
 	}
 
 	if i.includeLocs {
@@ -344,6 +402,7 @@ func (i *PostingsIterator) loadChunk(chunk int) error {
 		if err != nil {
 			return err
 		}
+		i.ResetBytesRead(i.locReader.getBytesRead())
 	}
 
 	i.currChunk = uint32(chunk)

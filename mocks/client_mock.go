@@ -1037,6 +1037,22 @@ func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3, arg4)
 }
 
+// GetPostsSince mocks base method
+func (m *MockClient) GetPostsSince(arg0 string, arg1 int64, arg2 bool) (*model.PostList, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostsSince", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.PostList)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPostsSince indicates an expected call of GetPostsSince
+func (mr *MockClientMockRecorder) GetPostsSince(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsSince", reflect.TypeOf((*MockClient)(nil).GetPostsSince), arg0, arg1, arg2)
+}
+
 // GetPrivateChannelsForTeam mocks base method
 func (m *MockClient) GetPrivateChannelsForTeam(arg0 string, arg1, arg2 int, arg3 string) ([]*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()

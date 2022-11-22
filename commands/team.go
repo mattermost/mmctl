@@ -5,8 +5,10 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -148,15 +150,18 @@ func createTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	useprivate, _ := cmd.Flags().GetBool("private")
 
 	teamType := model.TeamOpen
+	allowOpenInvite := true
 	if useprivate {
 		teamType = model.TeamInvite
+		allowOpenInvite = false
 	}
 
 	team := &model.Team{
-		Name:        name,
-		DisplayName: displayname,
-		Email:       email,
-		Type:        teamType,
+		Name:            name,
+		DisplayName:     displayname,
+		Email:           email,
+		Type:            teamType,
+		AllowOpenInvite: allowOpenInvite,
 	}
 
 	newTeam, _, err := c.CreateTeam(team)
@@ -302,20 +307,24 @@ func deleteTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	var result *multierror.Error
+
 	teams := getTeamsFromTeamArgs(c, args)
 	for i, team := range teams {
 		if team == nil {
 			printer.PrintError("Unable to find team '" + args[i] + "'")
+			result = multierror.Append(result, fmt.Errorf("unable to find team %s", args[i]))
 			continue
 		}
 		if _, err := deleteTeam(c, team); err != nil {
 			printer.PrintError("Unable to delete team '" + team.Name + "' error: " + err.Error())
+			result = multierror.Append(result, fmt.Errorf("unable to delete team %s error: %w", team.Name, err))
 		} else {
 			printer.PrintT("Deleted team '{{.Name}}'", team)
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -351,16 +360,19 @@ func modifyTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 func restoreTeamsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
+	var result *multierror.Error
 	for i, team := range teams {
 		if team == nil {
+			result = multierror.Append(result, fmt.Errorf("unable to find team '%s'", args[i]))
 			printer.PrintError("Unable to find team '" + args[i] + "'")
 			continue
 		}
 		if rteam, _, err := c.RestoreTeam(team.Id); err != nil {
+			result = multierror.Append(result, fmt.Errorf("unable to restore team '%s' error: %w", team.Name, err))
 			printer.PrintError("Unable to restore team '" + team.Name + "' error: " + err.Error())
 		} else {
 			printer.PrintT("Restored team '{{.Name}}'", rteam)
 		}
 	}
-	return nil
+	return result.ErrorOrNil()
 }

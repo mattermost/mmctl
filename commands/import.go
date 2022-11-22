@@ -8,13 +8,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
+	"text/template"
 	"time"
-
-	"github.com/mattermost/mmctl/v6/client"
-	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
+
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/commands/importer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 var ImportCmd = &cobra.Command{
@@ -83,6 +86,14 @@ var ImportProcessCmd = &cobra.Command{
 	RunE:    withClient(importProcessCmdF),
 }
 
+var ImportValidateCmd = &cobra.Command{
+	Use:     "validate [filepath]",
+	Example: "  import validate import_file.zip --team myteam --team myotherteam",
+	Short:   "Validate an import file",
+	Args:    cobra.ExactArgs(1),
+	RunE:    importValidateCmdF,
+}
+
 func init() {
 	ImportUploadCmd.Flags().Bool("resume", false, "Set to true to resume an incomplete import upload.")
 	ImportUploadCmd.Flags().String("upload", "", "The ID of the import upload to resume.")
@@ -90,6 +101,10 @@ func init() {
 	ImportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of import jobs")
 	ImportJobListCmd.Flags().Int("per-page", 200, "Number of import jobs to be fetched")
 	ImportJobListCmd.Flags().Bool("all", false, "Fetch all import jobs. --page flag will be ignore if provided")
+
+	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated")
+	ImportValidateCmd.Flags().Bool("check-missing-teams", false, "Check for teams that are not defined but referenced in the archive")
+	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -104,6 +119,7 @@ func init() {
 		ImportListCmd,
 		ImportProcessCmd,
 		ImportJobCmd,
+		ImportValidateCmd,
 	)
 	RootCmd.AddCommand(ImportCmd)
 }
@@ -239,10 +255,18 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 
 func printJob(job *model.Job) {
 	if job.StartAt > 0 {
-		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n  Started: %s\n",
+		printer.PrintT(fmt.Sprintf(`  ID: {{.Id}}
+  Status: {{.Status}}
+  Created: %s
+  Started: %s
+  Data: {{.Data}}
+`,
 			time.Unix(job.CreateAt/1000, 0), time.Unix(job.StartAt/1000, 0)), job)
 	} else {
-		printer.PrintT(fmt.Sprintf("  ID: {{.Id}}\n  Status: {{.Status}}\n  Created: %s\n\n",
+		printer.PrintT(fmt.Sprintf(`  ID: {{.Id}}
+  Status: {{.Status}}
+  Created: %s
+`,
 			time.Unix(job.CreateAt/1000, 0)), job)
 	}
 }
@@ -305,4 +329,115 @@ func jobListCmdF(c client.Client, command *cobra.Command, jobType string) error 
 
 func importJobListCmdF(c client.Client, command *cobra.Command, args []string) error {
 	return jobListCmdF(c, command, model.JobTypeImportProcess)
+}
+
+type Statistics struct {
+	Schemes        int `json:"schemes"`
+	Teams          int `json:"teams"`
+	Channels       int `json:"channels"`
+	Users          int `json:"users"`
+	Emojis         int `json:"emojis"`
+	Posts          int `json:"posts"`
+	DirectChannels int `json:"direct_channels"`
+	DirectPosts    int `json:"direct_posts"`
+	Attachments    int `json:"attachments"`
+}
+
+func importValidateCmdF(command *cobra.Command, args []string) error {
+	configurePrinter()
+	defer printer.Print("Validation complete\n")
+
+	injectedTeams, err := command.Flags().GetStringArray("team")
+	if err != nil {
+		return err
+	}
+
+	checkMissingTeams, err := command.Flags().GetBool("check-missing-teams")
+	if err != nil {
+		return err
+	}
+
+	ignoreAttachments, err := command.Flags().GetBool("ignore-attachments")
+	if err != nil {
+		return err
+	}
+
+	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
+	validator := importer.NewValidator(args[0], ignoreAttachments, createMissingTeams)
+
+	for _, team := range injectedTeams {
+		validator.InjectTeam(team)
+	}
+
+	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
+	validator.OnError(func(ive *importer.ImportValidationError) error {
+		printer.PrintPreparedT(templateError, ive)
+		return nil
+	})
+
+	err = validator.Validate()
+	if err != nil {
+		return err
+	}
+
+	teams := validator.Teams()
+
+	stat := Statistics{
+		Schemes:        len(validator.Schemes()),
+		Teams:          len(teams),
+		Channels:       len(validator.Channels()),
+		Users:          len(validator.Users()),
+		Posts:          int(validator.PostCount()),
+		DirectChannels: int(validator.DirectChannelCount()),
+		DirectPosts:    int(validator.DirectPostCount()),
+		Emojis:         len(validator.Emojis()),
+		Attachments:    len(validator.Attachments()),
+	}
+
+	printStatistics(stat)
+
+	if createMissingTeams && len(teams) != 0 {
+		printer.PrintT("Automatically created teams: {{ join .CreatedTeams \", \" }}\n", struct {
+			CreatedTeams []string `json:"created_teams"`
+		}{teams})
+	}
+
+	unusedAttachments := validator.UnusedAttachments()
+	if len(unusedAttachments) > 0 {
+		printer.PrintT("Unused Attachments ({{ len .UnusedAttachments }}):\n"+
+			"{{ range .UnusedAttachments }}  {{ . }}\n{{ end }}", struct {
+			UnusedAttachments []string `json:"unused_attachments"`
+		}{unusedAttachments})
+	}
+
+	printer.PrintT("It took {{ .Elapsed }} to validate {{ .TotalLines }} lines in {{ .FileName }}\n", struct {
+		FileName   string        `json:"file_name"`
+		TotalLines uint64        `json:"total_lines"`
+		Elapsed    time.Duration `json:"elapsed_time_ns"`
+	}{args[0], validator.Lines(), validator.Duration()})
+
+	return nil
+}
+
+func configurePrinter() {
+	// we want to manage the newlines ourselves
+	printer.SetNoNewline(true)
+
+	// define a join function
+	printer.SetTemplateFunc("join", strings.Join)
+}
+
+func printStatistics(stat Statistics) {
+	tmpl := "\n" +
+		"Schemes         {{ .Schemes }}\n" +
+		"Teams           {{ .Teams }}\n" +
+		"Channels        {{ .Channels }}\n" +
+		"Users           {{ .Users }}\n" +
+		"Emojis          {{ .Emojis }}\n" +
+		"Posts           {{ .Posts }}\n" +
+		"Direct Channels {{ .DirectChannels }}\n" +
+		"Direct Posts    {{ .DirectPosts }}\n" +
+		"Attachments     {{ .Attachments }}\n"
+
+	printer.PrintT(tmpl, stat)
 }
