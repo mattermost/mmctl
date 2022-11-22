@@ -212,7 +212,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 		rcommand, err := s.th.App.GetCommand(command.Id)
 		s.Require().NotNil(err)
 		s.Require().Nil(rcommand)
-		s.Require().Equal("SqlCommandStore.Get: Command does not exist., ", err.Error())
+		s.Require().Contains(err.Error(), "SqlCommandStore.Get: Command does not exist., ")
 	})
 
 	s.Run("Archive command without permission", func() {
@@ -241,7 +241,7 @@ func (s *MmctlE2ETestSuite) TestArchiveCommandCmdF() {
 
 		err := archiveCommandCmdF(s.th.Client, &cobra.Command{}, []string{command.Id})
 		s.Require().NotNil(err)
-		s.Require().Equal(fmt.Sprintf("Unable to archive command '%s' error: : Unable to get the command., ", command.Id), err.Error())
+		s.Require().Equal(fmt.Sprintf("Unable to archive command '%s' error: : Unable to get the command.", command.Id), err.Error())
 
 		rcommand, err := s.th.App.GetCommand(command.Id)
 		s.Require().Nil(err)

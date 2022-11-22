@@ -56,7 +56,7 @@ func (s *SegmentUpdateWorker) Start() {
 			case segmentUpdate := <-s.segmentQueue:
 				s.logger.Debug("Received Segment update and proceding to perform fetch")
 				s.logger.Debug(fmt.Sprintf("SegmentName: %s\nChangeNumber: %d", segmentUpdate.SegmentName(), segmentUpdate.ChangeNumber()))
-				err := s.sync.SynchronizeSegment(segmentUpdate.SegmentName(), common.Int64Ref(segmentUpdate.ChangeNumber()), true)
+				err := s.sync.SynchronizeSegment(segmentUpdate.SegmentName(), common.Int64Ref(segmentUpdate.ChangeNumber()))
 				if err != nil {
 					s.logger.Error(err)
 				}

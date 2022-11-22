@@ -1,16 +1,15 @@
-![](https://avatars.githubusercontent.com/u/80110794?s=200&v=4)
 
+A database migration tool designed to make schema migrations easy.
 
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/mattermost/morph/CI)](https://github.com/mattermost/morph/actions/workflows/ci.yml?query=branch%3Amaster)
 [![GoDoc](https://pkg.go.dev/badge/github.com/mattermost/migrate)](https://pkg.go.dev/github.com/mattermost/morph)
 
 # Morph
-
-Morph is a database migration tool that helps you to apply your migrations. It is written with Go so you can use it from your Go application as well.
+As an application evolves, the data flowing inside inevitably evolves along with it. If you have an application that persists the data in a relational database, the way you store the data will probably change over time. Morph is a database migration tool that helps you to apply your migrations. It is written with Go so you can use it from your Go application as well. Read our [blog post](https://mattermost.com/blog/morph-database-schema-migrations-made-easy/) to learn more about the motivation behind this project.
 
 ## Usage
 
-It can be used as a library or a CLI tool.
+Morph can be used as a library or a CLI tool.
 
 ### Library
 

@@ -54,7 +54,7 @@ func NewFetchSegmentsTask(
 				fmt.Sprintf("SegmentWorker_%d", i),
 				0,
 				func(n string, t *int64) error {
-					_, err := fetcher.SynchronizeSegment(n, t, false)
+					_, err := fetcher.SynchronizeSegment(n, t)
 					return err
 				},
 			)

@@ -77,6 +77,10 @@ type GeoPointField interface {
 	Lat() (float64, error)
 }
 
+type GeoShapeField interface {
+	GeoShape() (GeoJSON, error)
+}
+
 // TokenizableSpatialField is an optional interface for fields that
 // supports pluggable custom hierarchial spatial token generation.
 type TokenizableSpatialField interface {

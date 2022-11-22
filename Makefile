@@ -164,7 +164,7 @@ vendor:
 
 .PHONY: mocks
 mocks:
-	mockgen -destination=mocks/client_mock.go -copyright_file=mocks/copyright.txt -package=mocks github.com/mattermost/mmctl/client Client
+	mockgen -destination=mocks/client_mock.go -copyright_file=mocks/copyright.txt -package=mocks github.com/mattermost/mmctl/v6/client Client
 
 .PHONY: docs
 docs:

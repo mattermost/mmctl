@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/golang/mock/gomock"
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 
@@ -197,8 +198,11 @@ func (s *MmctlUnitTestSuite) TestPluginInstallUrlCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
+		var expected error
+		expected = multierror.Append(expected, errors.New("mock error"))
+
 		err := pluginInstallURLCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to install plugin from URL \"https://example.com/plugin2.tar.gz\". Error: mock error", printer.GetErrorLines()[0])
 		s.Require().Len(printer.GetLines(), 1)
