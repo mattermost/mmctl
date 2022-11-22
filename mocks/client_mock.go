@@ -1758,6 +1758,22 @@ func (mr *MockClientMockRecorder) RestoreChannel(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreChannel", reflect.TypeOf((*MockClient)(nil).RestoreChannel), arg0)
 }
 
+// RestoreGroup mocks base method.
+func (m *MockClient) RestoreGroup(arg0, arg1 string) (*model.Group, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreGroup", arg0, arg1)
+	ret0, _ := ret[0].(*model.Group)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RestoreGroup indicates an expected call of RestoreGroup.
+func (mr *MockClientMockRecorder) RestoreGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreGroup", reflect.TypeOf((*MockClient)(nil).RestoreGroup), arg0, arg1)
+}
+
 // RestoreTeam mocks base method.
 func (m *MockClient) RestoreTeam(arg0 string) (*model.Team, *model.Response, error) {
 	m.ctrl.T.Helper()

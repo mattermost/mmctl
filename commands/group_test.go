@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -1538,5 +1539,39 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.EqualError(err, mockError.Error())
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
+	s.Run("User group restore command restores deleted user group", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			RestoreGroup("groupId", "").
+			Return(nil, &model.Response{StatusCode: http.StatusOK}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		err := userGroupRestoreCmdF(s.client, cmd, []string{"groupId"})
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("User group restore command restores deleted user group", func() {
+		printer.Clean()
+		mockError := errors.New("no group found.")
+		s.client.
+			EXPECT().
+			RestoreGroup("groupId", "").
+			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, mockError).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		err := userGroupRestoreCmdF(s.client, cmd, []string{"groupId"})
+
+		s.Require().NotNil(err)
+		s.Require().Equal(mockError, err)
 	})
 }
