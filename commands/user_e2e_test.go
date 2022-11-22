@@ -5,7 +5,9 @@ package commands
 
 import (
 	"fmt"
+	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
@@ -42,7 +44,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		s.Require().Nil(appErr)
 
 		err := userActivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
@@ -56,7 +58,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 		printer.Clean()
 
 		err := userActivateCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
@@ -92,7 +94,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		s.Require().Nil(appErr)
 
 		err := userDeactivateCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to change activation status of user: "+user.Id)
@@ -106,7 +108,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 		printer.Clean()
 
 		err := userDeactivateCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
@@ -236,15 +238,15 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		}()
 
 		err := userInviteCmdF(c, &cobra.Command{}, []string{s.th.BasicUser.Email, s.th.BasicTeam.Id})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(
-			printer.GetErrorLines()[0],
-			fmt.Sprintf("Unable to invite user with email %s to team %s. Error: : Email invitations are disabled., ",
+			fmt.Sprintf("Unable to invite user with email %s to team %s. Error: : Email invitations are disabled.",
 				s.th.BasicUser.Email,
 				s.th.BasicTeam.Name,
 			),
+			printer.GetErrorLines()[0],
 		)
 	})
 
@@ -264,15 +266,17 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 
 		user := s.th.CreateUser()
 		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0],
-			fmt.Sprintf(`Unable to invite user with email %s to team %s. Error: : The following email addresses do not belong to an accepted domain: %s. Please contact your System Administrator for details., `,
+		s.Require().Equal(
+			fmt.Sprintf(`Unable to invite user with email %s to team %s. Error: : The following email addresses do not belong to an accepted domain: %s. Please contact your System Administrator for details.`,
 				user.Email,
 				team.Name,
 				user.Email,
-			))
+			),
+			printer.GetErrorLines()[0],
+		)
 	})
 }
 
@@ -329,10 +333,16 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 		}()
 
 		err := resetUserMfaCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().Nil(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf(`unable to reset user %q MFA. Error: : You do not have the appropriate permissions.`, user.Id), //nolint:revive
+
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf(`Unable to reset user '%s' MFA. Error: : You do not have the appropriate permissions., `, user.Id))
 	})
 }
 
@@ -355,20 +365,31 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 		printer.Clean()
 
 		err := verifyUserEmailWithoutTokenCmdF(s.th.Client, &cobra.Command{}, []string{user.Email})
-		s.Require().Nil(err)
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to verify user "+user.Id+" email: : You do not have the appropriate permissions."),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "unable to verify user "+user.Id+" email: : You do not have the appropriate permissions., ")
 	})
 
 	s.RunForAllClients("Verify user email without token for nonexistent user", func(c client.Client) {
 		printer.Clean()
 
 		err := verifyUserEmailWithoutTokenCmdF(c, &cobra.Command{}, []string{"nonexistent@email"})
-		s.Require().Nil(err)
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: "nonexistent@email"},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal("1 error occurred:\n\t* user nonexistent@email not found\n\n", printer.GetErrorLines()[0])
 	})
 }
 
@@ -387,7 +408,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "GetUserByEmail: Unable to find the user., resource: User id: email="+email)
+		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource: User id: email="+email)
 	})
 
 	s.RunForAllClients("Should not create a user w/o email", func(c client.Client) {
@@ -402,7 +423,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByUsername(username)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., resource: User id: username="+username)
+		s.Require().ErrorContains(err, "GetUserByUsername: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join., failed to find User: resource: User id: username="+username)
 	})
 
 	s.RunForAllClients("Should not create a user w/o password", func(c client.Client) {
@@ -417,7 +438,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		s.Require().Empty(printer.GetLines())
 		_, err = s.th.App.GetUserByEmail(email)
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "GetUserByEmail: Unable to find the user., resource: User id: email="+email)
+		s.Require().ErrorContains(err, "GetUserByEmail: Unable to find the user., failed to find User: resource: User id: email="+email)
 	})
 
 	s.Run("Should create a user but w/o system-admin privileges", func() {
@@ -431,7 +452,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 		cmd.Flags().Bool("system-admin", true, "")
 
 		err := userCreateCmdF(s.th.Client, cmd, []string{})
-		s.EqualError(err, "Unable to update user roles. Error: : You do not have the appropriate permissions., ")
+		s.EqualError(err, "Unable to update user roles. Error: : You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		user, err := s.th.App.GetUserByEmail(email)
 		s.Require().Nil(err)
@@ -512,7 +533,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		s.Require().Equal(newEmail, u.Email)
 
 		u.Email = oldEmail
-		_, err = s.th.App.UpdateUser(u, false)
+		_, err = s.th.App.UpdateUser(s.th.Context, u, false)
 		s.Require().Nil(err)
 	})
 
@@ -520,7 +541,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		printer.Clean()
 		newEmail := "basicuser2-change@fakedomain.com"
 		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newEmail})
-		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
+		s.Require().EqualError(err, ": You do not have the appropriate permissions.")
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
 		s.Require().Nil(err)
@@ -532,7 +553,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 
 		newEmail := "basicuser-change@fakedomain.com"
 		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser.Id, newEmail})
-		s.Require().EqualError(err, ": Invalid or missing password in request body., ")
+		s.Require().EqualError(err, ": Invalid or missing password in request body.")
 	})
 }
 
@@ -551,7 +572,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		s.Require().Equal(newName, u.Username)
 
 		u.Username = oldName
-		_, err = s.th.App.UpdateUser(u, false)
+		_, err = s.th.App.UpdateUser(s.th.Context, u, false)
 		s.Require().Nil(err)
 	})
 
@@ -559,7 +580,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUsernameCmd() {
 		printer.Clean()
 		newUsername := "basicusernamechange"
 		err := updateUsernameCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newUsername})
-		s.Require().EqualError(err, ": You do not have the appropriate permissions., ")
+		s.Require().EqualError(err, ": You do not have the appropriate permissions.")
 
 		u, err := s.th.App.GetUser(s.th.BasicUser2.Id)
 		s.Require().Nil(err)
@@ -612,7 +633,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
+		s.Require().Equal("GetUser: Unable to find the user., resource: User id: "+newUser.Id, err.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Delete nonexistent user", func(c client.Client) {
@@ -654,7 +675,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete user '%s' error: : You do not have the appropriate permissions., ", newUser.Username))
+		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: : You do not have the appropriate permissions.", newUser.Username), printer.GetErrorLines()[0])
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
@@ -680,7 +701,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete user '%s' error: : Permanent user deletion feature is not enabled. Please contact your System Administrator., ", newUser.Username))
+		s.Require().Equal(fmt.Sprintf("Unable to delete user '%s' error: : Permanent user deletion feature is not enabled. Please contact your System Administrator.", newUser.Username), printer.GetErrorLines()[0])
 
 		// expect user not deleted
 		user, err := s.th.App.GetUser(newUser.Id)
@@ -713,7 +734,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		// expect user deleted
 		_, err = s.th.App.GetUser(newUser.Id)
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
+		s.Require().EqualError(err, "GetUser: Unable to find the user., resource: User id: "+newUser.Id)
 	})
 }
 
@@ -772,7 +793,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		_ = userConvertCmdF(s.th.Client, cmd, []string{email})
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Equal(": You do not have the appropriate permissions., ", printer.GetErrorLines()[0])
+		s.Equal(": You do not have the appropriate permissions.", printer.GetErrorLines()[0])
 	})
 
 	s.RunForSystemAdminAndLocal("Valid bot to user convert", func(c client.Client) {
@@ -805,7 +826,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 
 		err := userConvertCmdF(s.th.Client, cmd, []string{bot.Username})
 		s.Require().Error(err)
-		s.Equal(": You do not have the appropriate permissions., ", err.Error())
+		s.EqualError(err, ": You do not have the appropriate permissions.")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -900,14 +921,14 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 	s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = true })
 	defer s.th.App.UpdateConfig(func(c *model.Config) { *c.GuestAccountsSettings.Enable = false })
 
-	s.Require().Nil(s.th.App.DemoteUserToGuest(user))
+	s.Require().Nil(s.th.App.DemoteUserToGuest(s.th.Context, user))
 
 	s.RunForSystemAdminAndLocal("MM-T3936 Promote a guest to a user", func(c client.Client) {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(c, nil, []string{user.Email})
 		s.Require().Nil(err)
-		defer s.Require().Nil(s.th.App.DemoteUserToGuest(user))
+		defer s.Require().Nil(s.th.App.DemoteUserToGuest(s.th.Context, user))
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -919,7 +940,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("unable to promote guest %s: %s", user.Email, ": You do not have the appropriate permissions., "), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to promote guest %s: %s", user.Email, ": You do not have the appropriate permission. "), printer.GetErrorLines()[0])
 	})
 }
 
@@ -949,7 +970,7 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", user.Email, ": You do not have the appropriate permissions., "), printer.GetErrorLines()[0])
+		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", user.Email, ": You do not have the appropriate permission. "), printer.GetErrorLines()[0])
 	})
 }
 
@@ -1004,7 +1025,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 			})
 			s.Require().Nil(appErr)
 
-			newUser, appErr := s.th.App.UpdateUser(ldapUser, false)
+			newUser, appErr := s.th.App.UpdateUser(s.th.Context, ldapUser, false)
 			s.Require().Nil(appErr)
 			s.Require().Equal(model.UserAuthServiceLdap, newUser.AuthService)
 		}()
@@ -1033,7 +1054,7 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 			})
 			s.Require().Nil(appErr)
 
-			newUser, appErr := s.th.App.UpdateUser(samlUser, false)
+			newUser, appErr := s.th.App.UpdateUser(s.th.Context, samlUser, false)
 			s.Require().Nil(appErr)
 			s.Require().Equal(model.UserAuthServiceSaml, newUser.AuthService)
 		}()

@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +68,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 			Times(1)
 
 		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArg), printer.GetErrorLines()[0])
@@ -91,7 +92,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 			Times(1)
 
 		err := userActivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser.Id).Error(), printer.GetErrorLines()[0])
@@ -172,7 +173,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 			Times(1)
 
 		err := userActivateCmdF(s.client, &cobra.Command{}, emailArgs)
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
@@ -227,7 +228,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %v not found\n\n", emailArg), printer.GetErrorLines()[0])
@@ -251,7 +252,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Errorf("unable to change activation status of user: %v", mockUser.Id).Error(), printer.GetErrorLines()[0])
@@ -356,7 +357,7 @@ func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, emailArgs)
-		s.Require().NoError(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal("You must also deactivate user "+mockUser2.Id+" in the SSO provider or they will be reactivated on next login or sync.", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -851,12 +852,28 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Times(1)
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Send one reset email and receive error", func() {
+	s.Run("Send one reset email and receive error on email validation", func() {
+		printer.Clean()
+		emailArg := "invalid.Email@example.com"
+
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", emailArg))
+
+		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
+
+		s.Require().EqualError(err, expected.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+		s.Require().Equal("Invalid email '"+emailArg+"'", printer.GetErrorLines()[0])
+	})
+
+	s.Run("Send one reset email and receive error on email sending", func() {
 		printer.Clean()
 		emailArg := "example@example.com"
 		mockError := errors.New("mock error")
@@ -867,8 +884,12 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 			Times(1)
 
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", emailArg, mockError))
+
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable send reset password email to email "+emailArg+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -879,19 +900,25 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 		emailArg := []string{
 			"example1@example.com",
 			"error1@example.com",
-			"error2@example.com",
+			"invalid.Email@example.com",
 			"example2@example.com",
 			"example3@example.com"}
 		mockError := errors.New("mock error")
 
+		var expected error
+
 		for _, email := range emailArg {
-			if strings.HasPrefix(email, "error") {
+			switch {
+			case strings.HasPrefix(email, "error"):
 				s.client.
 					EXPECT().
 					SendPasswordResetEmail(email).
 					Return(&model.Response{StatusCode: http.StatusBadRequest}, mockError).
 					Times(1)
-			} else {
+				expected = multierror.Append(expected, fmt.Errorf("unable send reset password email to email %s: %w", email, mockError))
+			case strings.ToLower(email) != email:
+				expected = multierror.Append(expected, fmt.Errorf("invalid email '%s'", email))
+			default:
 				s.client.
 					EXPECT().
 					SendPasswordResetEmail(email).
@@ -901,11 +928,12 @@ func (s *MmctlUnitTestSuite) TestSendPasswordResetEmailCmd() {
 		}
 
 		err := sendPasswordResetEmailCmdF(s.client, &cobra.Command{}, emailArg)
-		s.Require().NoError(err)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Require().Equal("Unable send reset password email to email "+emailArg[1]+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
-		s.Require().Equal("Unable send reset password email to email "+emailArg[2]+". Error: "+mockError.Error(), printer.GetErrorLines()[1])
+		s.Require().Equal("Invalid email '"+emailArg[2]+"'", printer.GetErrorLines()[1])
 	})
 }
 
@@ -1050,7 +1078,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("can't find team '"+argTeam+"'", printer.GetErrorLines()[0])
@@ -1076,7 +1104,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, []string{argUser, argTeam})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to invite user with email "+argUser+" to team "+resultName+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -1184,7 +1212,7 @@ func (s *MmctlUnitTestSuite) TestUserInviteCmd() {
 			Times(1)
 
 		err := userInviteCmdF(s.client, &cobra.Command{}, append([]string{argUser}, argTeam...))
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 4)
 		for i := 0; i < 4; i++ {
 			s.Require().Equal("Invites may or may not have been sent.", printer.GetLines()[i])
@@ -1626,10 +1654,18 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			Times(1)
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
-		s.Require().Nil(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: "userId"},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "1 error occurred:\n\t* user userId not found\n\n")
 	})
 
 	s.Run("One user, unable to reset", func() {
@@ -1649,10 +1685,15 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 			Times(1)
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, []string{"userId"})
-		s.Require().Nil(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to reset user \"userId\" MFA. Error: "+mockError.Error()),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to reset user 'userId' MFA. Error: "+mockError.Error())
 	})
 
 	s.Run("Several users, with unknown users and users unable to be reset", func() {
@@ -1705,11 +1746,21 @@ func (s *MmctlUnitTestSuite) TestResetUserMfaCmd() {
 		}
 
 		err := resetUserMfaCmdF(s.client, &cobra.Command{}, users)
-		s.Require().Nil(err)
+
+		var expected *multierror.Error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: users[3]},
+			),
+		)
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to reset user \""+users[1]+"\" MFA. Error: "+mockError.Error()),
+		)
+
+		s.Require().EqualError(err, expected.ErrorOrNil().Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 2)
-		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", users[3]), printer.GetErrorLines()[0])
-		s.Require().Equal("Unable to reset user '"+users[1]+"' MFA. Error: "+mockError.Error(), printer.GetErrorLines()[1])
 	})
 }
 
@@ -2024,7 +2075,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", arg), printer.GetErrorLines()[0])
@@ -2160,7 +2211,7 @@ func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
 			Times(1)
 
 		err := userDeactivateCmdF(s.client, &cobra.Command{}, []string{mockUser1.Email, nonexistentEmail})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", nonexistentEmail), printer.GetErrorLines()[0])
@@ -2215,9 +2266,18 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			Times(1)
 
 		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{userArg})
-		s.Require().NoError(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, ExtractErrorFromResponse(
+				&model.Response{StatusCode: http.StatusNotFound},
+				ErrEntityNotFound{Type: "user", ID: userArg},
+			),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 
 	s.Run("Could not verify user", func() {
@@ -2238,10 +2298,15 @@ func (s *MmctlUnitTestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 			Times(1)
 
 		err := verifyUserEmailWithoutTokenCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().NoError(err)
+
+		var expected error
+
+		expected = multierror.Append(
+			expected, fmt.Errorf("unable to verify user %s email: %s", mockUser.Id, errors.New("some-message")),
+		)
+
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("unable to verify user %s email", mockUser.Id))
 	})
 }
 
@@ -2663,7 +2728,7 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 			Times(1)
 
 		err := demoteUserToGuestCmdF(s.client, nil, []string{emailArg})
-		s.Require().NoError(err)
+		s.Require().ErrorContains(err, "unable to demote user")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("unable to demote user %s: %s", emailArg, "some-error"), printer.GetErrorLines()[0])

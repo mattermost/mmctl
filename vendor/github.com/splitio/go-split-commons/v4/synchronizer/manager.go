@@ -77,7 +77,7 @@ func NewSynchronizerManager(
 	}
 
 	manager := &ManagerImpl{
-		backoff:          backoff.New(),
+		backoff:          backoff.New(0, 0),
 		synchronizer:     synchronizer,
 		logger:           logger,
 		config:           config,
@@ -119,7 +119,7 @@ func (s *ManagerImpl) Start() {
 	for len(s.managerStatus) > 0 {
 		<-s.managerStatus
 	}
-	err := s.synchronizer.SyncAll(false)
+	err := s.synchronizer.SyncAll()
 	if err != nil {
 		defer s.lifecycle.ShutdownComplete()
 		s.managerStatus <- Error
@@ -182,24 +182,24 @@ func (s *ManagerImpl) pushStatusWatcher() {
 				s.stopPolling()
 				s.logger.Info("streaming up and running")
 				s.enableStreaming()
-				s.synchronizer.SyncAll(true)
+				s.synchronizer.SyncAll()
 			case push.StatusDown:
 				s.logger.Info("streaming down, switchin to polling")
-				s.synchronizer.SyncAll(false)
+				s.synchronizer.SyncAll()
 				s.pauseStreaming()
 				s.startPolling()
 			case push.StatusRetryableError:
 				howLong := s.backoff.Next()
 				s.logger.Error("retryable error in streaming subsystem. Switching to polling and retrying in ", howLong, " seconds")
 				s.pushManager.Stop()
-				s.synchronizer.SyncAll(false)
+				s.synchronizer.SyncAll()
 				s.startPolling()
 				time.Sleep(howLong)
 				s.pushManager.Start()
 			case push.StatusNonRetryableError:
 				s.logger.Error("non retryable error in streaming subsystem. Switching to polling until next SDK initialization")
 				s.pushManager.Stop()
-				s.synchronizer.SyncAll(false)
+				s.synchronizer.SyncAll()
 				s.startPolling()
 				s.runtimeTelemetry.RecordStreamingEvent(telemetry.GetStreamingEvent(telemetry.EventTypeStreamingStatus, telemetry.StreamingDisabled))
 			}

@@ -29,7 +29,11 @@ func NewMMSegmentStorage() *MMSegmentStorage {
 func (m *MMSegmentStorage) ChangeNumber(segmentName string) (int64, error) {
 	m.tillMutex.RLock()
 	defer m.tillMutex.RUnlock()
-	return m.till[segmentName], nil
+	cn := m.till[segmentName]
+	if cn == 0 {
+		cn = -1
+	}
+	return cn, nil
 }
 
 // Keys retrieves a segment from the in-memory storage

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
 	"github.com/mattermost/mmctl/v6/printer"
@@ -440,7 +441,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
 	})
 
@@ -496,7 +497,7 @@ func (s *MmctlUnitTestSuite) TestDeleteTeamsCmd() {
 		cmd.Flags().Bool("confirm", true, "")
 
 		err := deleteTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Equal("Unable to delete team 'team1' error: an error occurred on deleting a team",
 			printer.GetErrorLines()[0])
 	})
@@ -848,8 +849,10 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 			Times(1)
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to find team 'team1'", printer.GetErrorLines()[0])
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to find team '%s'", teamName))
+
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.Run("Restore team", func() {
@@ -898,8 +901,9 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 			Times(1)
 
 		err := restoreTeamsCmdF(s.client, cmd, []string{"team1"})
-		s.Require().Nil(err)
-		s.Require().Equal("Unable to restore team 'team1' error: an error occurred restoring a team",
-			printer.GetErrorLines()[0])
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to restore team '%s' error: an error occurred restoring a team", teamName))
+
+		s.Require().EqualError(err, expected.Error())
 	})
 }

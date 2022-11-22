@@ -19,6 +19,7 @@ import (
 	"encoding/binary"
 	"io"
 	"reflect"
+	"sync/atomic"
 
 	"github.com/golang/snappy"
 )
@@ -48,6 +49,9 @@ type chunkedContentCoder struct {
 	chunkMeta []MetaData
 
 	compressed []byte // temp buf for snappy compression
+
+	// atomic access to this variable
+	bytesWritten uint64
 }
 
 // MetaData represents the data information inside a
@@ -77,6 +81,7 @@ func newChunkedContentCoder(chunkSize uint64, maxDocNum uint64,
 // and re used. You cannot change the chunk size.
 func (c *chunkedContentCoder) Reset() {
 	c.currChunk = 0
+	c.bytesWritten = 0
 	c.final = c.final[:0]
 	c.chunkBuf.Reset()
 	c.chunkMetaBuf.Reset()
@@ -105,6 +110,14 @@ func (c *chunkedContentCoder) Close() error {
 	return c.flushContents()
 }
 
+func (c *chunkedContentCoder) incrementBytesWritten(val uint64) {
+	atomic.AddUint64(&c.bytesWritten, val)
+}
+
+func (c *chunkedContentCoder) getBytesWritten() uint64 {
+	return atomic.LoadUint64(&c.bytesWritten)
+}
+
 func (c *chunkedContentCoder) flushContents() error {
 	// flush the contents, with meta information at first
 	buf := make([]byte, binary.MaxVarintLen64)
@@ -127,6 +140,7 @@ func (c *chunkedContentCoder) flushContents() error {
 	c.final = append(c.final, c.chunkMetaBuf.Bytes()...)
 	// write the compressed data to the final data
 	c.compressed = snappy.Encode(c.compressed[:cap(c.compressed)], c.chunkBuf.Bytes())
+	c.incrementBytesWritten(uint64(len(c.compressed)))
 	c.final = append(c.final, c.compressed...)
 
 	c.chunkLens[c.currChunk] = uint64(len(c.compressed) + len(metaData))

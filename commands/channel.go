@@ -132,8 +132,9 @@ var MakeChannelPrivateCmd = &cobra.Command{
 	Short:   "Set a channel's type to private",
 	Long: `Set the type of a channel from Public to Private.
 Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel make-private myteam:mychannel",
-	RunE:    withClient(makeChannelPrivateCmdF),
+	Example:    "  channel make-private myteam:mychannel",
+	Deprecated: "please use \"channel modify --private\" instead",
+	RunE:       withClient(makeChannelPrivateCmdF),
 }
 
 var SearchChannelCmd = &cobra.Command{
@@ -321,15 +322,20 @@ func getAllDeletedChannelsForTeam(c client.Client, teamID string) ([]*model.Chan
 
 func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	teams := getTeamsFromTeamArgs(c, args)
+
+	var multierr *multierror.Error
 	for i, team := range teams {
 		if team == nil {
-			printer.PrintError("Unable to find team '" + args[i] + "'")
+			err := fmt.Errorf("unable to find team %q", args[i])
+			printer.PrintError(err.Error())
+			multierr = multierror.Append(multierr, err)
 			continue
 		}
 
 		publicChannels, err := getAllPublicChannelsForTeam(c, team.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("unable to list public channels for %q: %s", args[i], err))
+			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range publicChannels {
 			printer.PrintT("{{.Name}}", channel)
@@ -338,6 +344,7 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		deletedChannels, err := getAllDeletedChannelsForTeam(c, team.Id)
 		if err != nil {
 			printer.PrintError(fmt.Sprintf("unable to list archived channels for %q: %s", args[i], err))
+			multierr = multierror.Append(multierr, err)
 		}
 		for _, channel := range deletedChannels {
 			printer.PrintT("{{.Name}} (archived)", channel)
@@ -346,13 +353,14 @@ func listChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		privateChannels, appErr := getPrivateChannels(c, team.Id)
 		if appErr != nil {
 			printer.PrintError(fmt.Sprintf("unable to list private channels for %q: %s", args[i], appErr.Error()))
+			multierr = multierror.Append(multierr, appErr)
 		}
 		for _, channel := range privateChannels {
 			printer.PrintT("{{.Name}} (private)", channel)
 		}
 	}
 
-	return nil
+	return multierr.ErrorOrNil()
 }
 
 func unarchiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -521,10 +529,12 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find destination team %q", args[0])
 	}
 
+	var result *multierror.Error
+
 	channels := getChannelsFromChannelArgs(c, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
-			printer.PrintError(fmt.Sprintf("Unable to find channel %q", args[i+1]))
+			result = multierror.Append(result, fmt.Errorf("unable to find channel %q", args[i+1]))
 			continue
 		}
 
@@ -534,12 +544,12 @@ func moveChannelCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 		newChannel, _, err := c.MoveChannel(channel.Id, team.Id, force)
 		if err != nil {
-			printer.PrintError(fmt.Sprintf("unable to move channel %q: %s", channel.Name, err))
+			result = multierror.Append(result, fmt.Errorf("unable to move channel %q: %w", channel.Name, err))
 			continue
 		}
 		printer.PrintT(fmt.Sprintf("Moved channel {{.Name}} to %q ({{.TeamId}}) from %s.", team.Name, channel.TeamId), newChannel)
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func getPrivateChannels(c client.Client, teamID string) ([]*model.Channel, error) {
@@ -601,7 +611,7 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
-	var result error
+	var result *multierror.Error
 
 	channels := getChannelsFromChannelArgs(c, args)
 	for i, channel := range channels {
@@ -615,5 +625,5 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 			printer.PrintT("Deleted channel '{{.Name}}'", channel)
 		}
 	}
-	return result
+	return result.ErrorOrNil()
 }

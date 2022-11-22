@@ -129,8 +129,18 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	require.Error(t, err, "should be unique username")
 
 	u2.Username = ""
-	_, err = ss.User().Save(&u1)
-	require.Error(t, err, "should be unique username")
+	_, err = ss.User().Save(&u2)
+	require.Error(t, err, "should be non-empty username")
+
+	u3 := model.User{
+		Email:       MakeEmail(),
+		Username:    model.NewId(),
+		NotifyProps: make(map[string]string, 1),
+	}
+	maxPostSize := ss.Post().GetMaxPostSize()
+	u3.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
+	_, err = ss.User().Save(&u3)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 
 	for i := 0; i < 49; i++ {
 		u := model.User{
@@ -234,6 +244,18 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	uNew, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	assert.Equal(t, props, uNew.NotifyProps)
+
+	u4 := model.User{
+		Email:       MakeEmail(),
+		Username:    model.NewId(),
+		NotifyProps: make(map[string]string, 1),
+	}
+	maxPostSize := ss.Post().GetMaxPostSize()
+	u4.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
+	_, err = ss.User().Update(&u4, false)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
+	err = ss.User().UpdateNotifyProps(u4.Id, u4.NotifyProps)
+	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 }
 
 func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
@@ -2439,13 +2461,22 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false)
 	require.NoError(t, nErr)
 
-	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
+	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(3), badge, "should have 3 unread messages")
 
-	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id)
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, false)
 	require.NoError(t, unreadCountErr)
 	require.Equal(t, int64(1), badge, "should have 1 unread message")
+
+	// Increment root mentions by 1
+	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u3.Id}, true)
+	require.NoError(t, nErr)
+
+	// CRT is enabled, only root mentions are counted
+	badge, unreadCountErr = ss.User().GetUnreadCount(u3.Id, true)
+	require.NoError(t, unreadCountErr)
+	require.Equal(t, int64(1), badge, "should have 1 unread message with CRT")
 
 	badge, unreadCountErr = ss.User().GetUnreadCountForChannel(u2.Id, c1.Id)
 	require.NoError(t, unreadCountErr)

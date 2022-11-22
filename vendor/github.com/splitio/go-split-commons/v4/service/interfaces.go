@@ -11,12 +11,12 @@ type AuthClient interface {
 
 // SplitFetcher interface to be implemented by Split Fetchers
 type SplitFetcher interface {
-	Fetch(changeNumber int64, requstNoCache bool) (*dtos.SplitChangesDTO, error)
+	Fetch(changeNumber int64, fetchOptions *FetchOptions) (*dtos.SplitChangesDTO, error)
 }
 
 // SegmentFetcher interface to be implemented by Split Fetchers
 type SegmentFetcher interface {
-	Fetch(name string, changeNumber int64, requestNoCace bool) (*dtos.SegmentChangesDTO, error)
+	Fetch(name string, changeNumber int64, fetchOptions *FetchOptions) (*dtos.SegmentChangesDTO, error)
 }
 
 // ImpressionsRecorder interface to be implemented by Impressions loggers
