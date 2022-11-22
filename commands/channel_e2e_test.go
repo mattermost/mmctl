@@ -77,9 +77,9 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 		team := "non-existent-team"
 
 		err := listChannelsCmdF(c, &cobra.Command{}, []string{team})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find team \""+team+"\"")
 		s.Len(printer.GetErrorLines(), 1)
-		s.Equal("Unable to find team '"+team+"'", printer.GetErrorLines()[0])
+		s.Equal("unable to find team \""+team+"\"", printer.GetErrorLines()[0])
 	})
 }
 
@@ -528,11 +528,12 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 		args := []string{s.th.BasicTeam.Id, "no-channel"}
 		cmd := &cobra.Command{}
 
+		var expected error
+		expected = multierror.Append(expected, fmt.Errorf("unable to find channel %q", "no-channel"))
+
 		err := moveChannelCmdF(c, cmd, args)
-		s.Require().NoError(err)
-		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(fmt.Sprintf("Unable to find channel %q", "no-channel"), printer.GetErrorLines()[0])
+
+		s.Require().EqualError(err, expected.Error())
 	})
 
 	s.RunForSystemAdminAndLocal("Moving channel which is already moved to particular team", func(c client.Client) {
