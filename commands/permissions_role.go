@@ -9,10 +9,12 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
-
 	"github.com/mattermost/mattermost-server/v6/model"
+
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
+
+	"github.com/hashicorp/go-multierror"
 	"github.com/spf13/cobra"
 )
 
@@ -162,9 +164,11 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	users := getUsersFromUserArgs(c, args[1:])
 
+	var errs *multierror.Error
 	for i, user := range users {
 		if user == nil {
 			printer.PrintError("Couldn't find user '" + args[i+1] + "'.")
+			errs = multierror.Append(errs, fmt.Errorf("couldn't find user '%s'", args[i+1]))
 			continue
 		}
 
@@ -188,7 +192,7 @@ func assignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func unassignUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {

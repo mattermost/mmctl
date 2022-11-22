@@ -100,8 +100,8 @@ func (f fn) Run(ctx context.Context) error {
 
 func checkF(target interface{}, args []interface{}) (hasContext, isNamespace bool, _ error) {
 	t := reflect.TypeOf(target)
-	if t.Kind() != reflect.Func {
-		return false, false, fmt.Errorf("non-function passed to mg.F: %T", target)
+	if t == nil || t.Kind() != reflect.Func {
+		return false, false, fmt.Errorf("non-function passed to mg.F: %T. The mg.F function accepts function names, such as mg.F(TargetA, \"arg1\", \"arg2\")", target)
 	}
 
 	if t.NumOut() > 1 {
@@ -111,8 +111,8 @@ func checkF(target interface{}, args []interface{}) (hasContext, isNamespace boo
 		return false, false, fmt.Errorf("target's return value is not an error")
 	}
 
-	// more inputs than slots is always an error
-	if len(args) > t.NumIn() {
+	// more inputs than slots is an error if not variadic
+	if len(args) > t.NumIn() && !t.IsVariadic() {
 		return false, false, fmt.Errorf("too many arguments for target, got %d for %T", len(args), target)
 	}
 
@@ -142,12 +142,21 @@ func checkF(target interface{}, args []interface{}) (hasContext, isNamespace boo
 		x++
 	}
 
-	if len(args) != inputs {
+	if t.IsVariadic() {
+		if len(args) < inputs-1 {
+			return false, false, fmt.Errorf("too few arguments for target, got %d for %T", len(args), target)
+
+		}
+	} else if len(args) != inputs {
 		return false, false, fmt.Errorf("wrong number of arguments for target, got %d for %T", len(args), target)
 	}
 
 	for _, arg := range args {
 		argT := t.In(x)
+		if t.IsVariadic() && x == t.NumIn()-1 {
+			// For the variadic argument, use the slice element type.
+			argT = argT.Elem()
+		}
 		if !argTypes[argT] {
 			return false, false, fmt.Errorf("argument %d (%s), is not a supported argument type", x, argT)
 		}
@@ -155,7 +164,9 @@ func checkF(target interface{}, args []interface{}) (hasContext, isNamespace boo
 		if argT != passedT {
 			return false, false, fmt.Errorf("argument %d expected to be %s, but is %s", x, argT, passedT)
 		}
-		x++
+		if x < t.NumIn()-1 {
+			x++
+		}
 	}
 	return hasContext, isNamespace, nil
 }

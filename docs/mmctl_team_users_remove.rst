@@ -20,7 +20,7 @@ Examples
 
 ::
 
-    team remove myteam user@example.com username
+    team users remove myteam user@example.com username
 
 Options
 ~~~~~~~

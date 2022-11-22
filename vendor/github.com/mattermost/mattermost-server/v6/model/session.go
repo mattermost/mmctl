@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -11,33 +12,36 @@ import (
 )
 
 const (
-	SessionCookieToken            = "MMAUTHTOKEN"
-	SessionCookieUser             = "MMUSERID"
-	SessionCookieCsrf             = "MMCSRF"
-	SessionCacheSize              = 35000
-	SessionPropPlatform           = "platform"
-	SessionPropOs                 = "os"
-	SessionPropBrowser            = "browser"
-	SessionPropType               = "type"
-	SessionPropUserAccessTokenId  = "user_access_token_id"
-	SessionPropIsBot              = "is_bot"
-	SessionPropIsBotValue         = "true"
-	SessionTypeUserAccessToken    = "UserAccessToken"
-	SessionTypeCloudKey           = "CloudKey"
-	SessionTypeRemoteclusterToken = "RemoteClusterToken"
-	SessionPropIsGuest            = "is_guest"
-	SessionActivityTimeout        = 1000 * 60 * 5 // 5 minutes
-	SessionUserAccessTokenExpiry  = 100 * 365     // 100 years
+	SessionCookieToken                = "MMAUTHTOKEN"
+	SessionCookieUser                 = "MMUSERID"
+	SessionCookieCsrf                 = "MMCSRF"
+	SessionCookieCloudUrl             = "MMCLOUDURL"
+	SessionCacheSize                  = 35000
+	SessionPropPlatform               = "platform"
+	SessionPropOs                     = "os"
+	SessionPropBrowser                = "browser"
+	SessionPropType                   = "type"
+	SessionPropUserAccessTokenId      = "user_access_token_id"
+	SessionPropIsBot                  = "is_bot"
+	SessionPropIsBotValue             = "true"
+	SessionPropOAuthAppID             = "oauth_app_id"
+	SessionPropMattermostAppID        = "mattermost_app_id"
+	SessionTypeUserAccessToken        = "UserAccessToken"
+	SessionTypeCloudKey               = "CloudKey"
+	SessionTypeRemoteclusterToken     = "RemoteClusterToken"
+	SessionPropIsGuest                = "is_guest"
+	SessionActivityTimeout            = 1000 * 60 * 5  // 5 minutes
+	SessionUserAccessTokenExpiryHours = 100 * 365 * 24 // 100 years
 )
 
-//msgp StringMap
+//msgp:tuple StringMap
 type StringMap map[string]string
-
-//msgp:tuple Session
 
 // Session contains the user session details.
 // This struct's serializer methods are auto-generated. If a new field is added/removed,
 // please run make gen-serialized.
+//
+//msgp:tuple Session
 type Session struct {
 	Id             string        `json:"id"`
 	Token          string        `json:"token"`
@@ -52,6 +56,22 @@ type Session struct {
 	Props          StringMap     `json:"props"`
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
 	Local          bool          `json:"local" db:"-"`
+}
+
+func (s *Session) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"id":               s.Id,
+		"create_at":        s.CreateAt,
+		"expires_at":       s.ExpiresAt,
+		"last_activity_at": s.LastActivityAt,
+		"user_id":          s.UserId,
+		"device_id":        s.DeviceId,
+		"roles":            s.Roles,
+		"is_oauth":         s.IsOAuth,
+		"expired_notify":   s.ExpiredNotify,
+		"local":            s.Local,
+		// TODO: props and members?
+	}
 }
 
 // Returns true if the session is unrestricted, which should grant it
@@ -76,6 +96,27 @@ func (s *Session) DeepCopy() *Session {
 	}
 
 	return &copySession
+}
+
+func (s *Session) IsValid() *AppError {
+	if !IsValidId(s.Id) {
+		return NewAppError("Session.IsValid", "model.session.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(s.UserId) {
+		return NewAppError("Session.IsValid", "model.session.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.CreateAt == 0 {
+		return NewAppError("Session.IsValid", "model.session.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(s.Roles) > UserRolesMaxLength {
+		return NewAppError("Session.IsValid", "model.session.is_valid.roles_limit.app_error",
+			map[string]any{"Limit": UserRolesMaxLength}, "session_id="+s.Id, http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (s *Session) PreSave() {
@@ -122,9 +163,9 @@ func (s *Session) AddProp(key string, value string) {
 }
 
 func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
-	for _, team := range s.TeamMembers {
-		if team.TeamId == teamId {
-			return team
+	for _, tm := range s.TeamMembers {
+		if tm.TeamId == teamId {
+			return tm
 		}
 	}
 
@@ -194,4 +235,16 @@ func (s *Session) GetCSRF() string {
 	}
 
 	return s.Props["csrf"]
+}
+
+func (s *Session) CreateAt_() float64 {
+	return float64(s.CreateAt)
+}
+
+func (s *Session) ExpiresAt_() float64 {
+	return float64(s.ExpiresAt)
+}
+
+func (s *Session) LastActivityAt_() float64 {
+	return float64(s.LastActivityAt)
 }

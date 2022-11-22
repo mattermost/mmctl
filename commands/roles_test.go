@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -85,7 +85,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -111,7 +111,7 @@ func (s *MmctlUnitTestSuite) TestMakeAdminCmd() {
 			Times(1)
 
 		err := rolesSystemAdminCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -181,7 +181,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{mockUser.Email})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "can't update roles for user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
@@ -212,7 +212,7 @@ func (s *MmctlUnitTestSuite) TestMakeMemberCmd() {
 			Times(1)
 
 		err := rolesMemberCmdF(s.client, &cobra.Command{}, []string{emailArg})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
 
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)

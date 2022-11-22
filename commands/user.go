@@ -11,9 +11,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -169,8 +170,8 @@ var ListUsersCmd = &cobra.Command{
 
 var VerifyUserEmailWithoutTokenCmd = &cobra.Command{
 	Use:     "verify [users]",
-	Short:   "Verify email of users",
-	Long:    "Verify the user's email address.",
+	Short:   "Mark user's email as verified",
+	Long:    "Mark user's email as verified without requiring user to complete email verification path.",
 	Example: "  user verify user1",
 	RunE:    withClient(verifyUserEmailWithoutTokenCmdF),
 	Args:    cobra.MinimumNArgs(1),
@@ -359,21 +360,23 @@ Global Flags:
 }
 
 func userActivateCmdF(c client.Client, command *cobra.Command, args []string) error {
-	changeUsersActiveStatus(c, args, true)
-
-	return nil
+	return changeUsersActiveStatus(c, args, true)
 }
 
-func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) {
+func changeUsersActiveStatus(c client.Client, userArgs []string, active bool) error {
+	var multiErr *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
 		printer.PrintError(err.Error())
+		multiErr = multierror.Append(multiErr, err)
 	}
 	for _, user := range users {
 		if err := changeUserActiveStatus(c, user, active); err != nil {
 			printer.PrintError(err.Error())
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
+	return multiErr.ErrorOrNil()
 }
 
 func changeUserActiveStatus(c client.Client, user *model.User, activate bool) error {
@@ -388,9 +391,7 @@ func changeUserActiveStatus(c client.Client, user *model.User, activate bool) er
 }
 
 func userDeactivateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	changeUsersActiveStatus(c, args, false)
-
-	return nil
+	return changeUsersActiveStatus(c, args, false)
 }
 
 func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -447,7 +448,7 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		}
 	} else if guest {
 		if _, err := c.DemoteUserToGuest(ruser.Id); err != nil {
-			return errors.Wrapf(err, "Unable to demote use to guest.")
+			return errors.Wrapf(err, "Unable to demote use to guest")
 		}
 	}
 
@@ -457,25 +458,26 @@ func userCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	var errs *multierror.Error
 	if len(args) < 2 {
 		return errors.New("expected at least two arguments. See help text for details")
 	}
 
 	email := args[0]
 	if !model.IsValidEmail(email) {
-		return errors.New("invalid email")
+		errs = multierror.Append(errs, fmt.Errorf("invalid email %q", email))
 	}
 
 	teams := getTeamsFromTeamArgs(c, args[1:])
 	for i, team := range teams {
 		err := inviteUser(c, email, team, args[i+1])
-
 		if err != nil {
+			errs = multierror.Append(errs, err)
 			printer.PrintError(err.Error())
 		}
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
 func inviteUser(c client.Client, email string, team *model.Team, teamArg string) error {
@@ -498,17 +500,21 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
+	var result *multierror.Error
+
 	for _, email := range args {
 		if !model.IsValidEmail(email) {
+			result = multierror.Append(result, fmt.Errorf("invalid email '%s'", email))
 			printer.PrintError("Invalid email '" + email + "'")
 			continue
 		}
 		if _, err := c.SendPasswordResetEmail(email); err != nil {
+			result = multierror.Append(result, fmt.Errorf("unable send reset password email to email %s: %w", email, err))
 			printer.PrintError("Unable send reset password email to email " + email + ". Error: " + err.Error())
 		}
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -614,22 +620,19 @@ func resetUserMfaCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		return errors.New("expected at least one argument. See help text for details")
 	}
 
+	var result *multierror.Error
 	users, err := getUsersFromArgs(c, args)
 	if err != nil {
-		printer.PrintError(err.Error())
+		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
 		if _, err := c.UpdateUserMfa(user.Id, "", false); err != nil {
-			printer.PrintError("Unable to reset user '" + user.Id + "' MFA. Error: " + err.Error())
+			result = multierror.Append(result, fmt.Errorf("unable to reset user %q MFA. Error: %w", user.Id, err))
 		}
 	}
 
-	return nil
-}
-
-func deleteUser(c client.Client, user *model.User) (*model.Response, error) {
-	return c.PermanentDeleteUser(user.Id)
+	return result.ErrorOrNil()
 }
 
 func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -649,9 +652,13 @@ func deleteUsersCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintError("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if _, err := deleteUser(c, user); err != nil {
+		if res, err := c.PermanentDeleteUser(user.Id); err != nil {
 			printer.PrintError("Unable to delete user '" + user.Username + "' error: " + err.Error())
 		} else {
+			// res.StatusCode is checked for 202 to identify issues with file deletion.
+			if res.StatusCode == http.StatusAccepted {
+				printer.PrintError("There were issues with deleting profile image of the user. Please delete it manually. Id: " + user.Id)
+			}
 			printer.PrintT("Deleted user '{{.Username}}'", user)
 		}
 	}
@@ -770,19 +777,20 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 }
 
 func verifyUserEmailWithoutTokenCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
+	var result *multierror.Error
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
-		printer.PrintError(err.Error())
+		result = multierror.Append(result, err)
 	}
 
 	for _, user := range users {
 		if newUser, _, err := c.VerifyUserEmailWithoutToken(user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to verify user %s email: %s", user.Id, err))
+			result = multierror.Append(result, fmt.Errorf("unable to verify user %s email: %w", user.Id, err))
 		} else {
 			printer.PrintT("User {{.Username}} verified", newUser)
 		}
 	}
-	return nil
+	return result.ErrorOrNil()
 }
 
 func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) error {
@@ -969,19 +977,24 @@ func promoteGuestToUserCmdF(c client.Client, _ *cobra.Command, userArgs []string
 }
 
 func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string) error {
+	var errs *multierror.Error
 	for i, user := range getUsersFromUserArgs(c, userArgs) {
 		if user == nil {
-			printer.PrintError(fmt.Sprintf("can't find user '%v'", userArgs[i]))
+			err := fmt.Errorf("can't find user '%s'", userArgs[i])
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		if _, err := c.DemoteUserToGuest(user.Id); err != nil {
-			printer.PrintError(fmt.Sprintf("unable to demote user %s: %s", userArgs[i], err))
+			err = fmt.Errorf("unable to demote user %s: %w", userArgs[i], err)
+			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 			continue
 		}
 
 		printer.PrintT("User {{.Username}} demoted.", user)
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }

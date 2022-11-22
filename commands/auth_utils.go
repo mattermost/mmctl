@@ -15,7 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 const (
@@ -149,7 +149,9 @@ func GetCredentials(name string) (*Credentials, error) {
 func SaveCredentials(credentials Credentials) error {
 	credentialsList, err := ReadCredentialsList()
 	if err != nil {
-		if err := os.MkdirAll(strings.TrimSuffix(resolveConfigFilePath(), configFileName), 0700); err != nil {
+		// we get the parent of the file so that we can create the path if it doesn't exist.
+		configParent := filepath.Dir(resolveConfigFilePath())
+		if err := os.MkdirAll(configParent, 0700); err != nil {
 			return err
 		}
 		credentialsList = &CredentialsList{}

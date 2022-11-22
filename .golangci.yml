@@ -29,7 +29,7 @@ linters:
   enable:
     - deadcode
     - gofmt
-    - golint
+    - revive
     - gosimple
     - govet
     - ineffassign
@@ -44,7 +44,6 @@ linters:
     - gocyclo
     - goimports
     - gosec
-    - interfacer
     - misspell
     - nakedret
     - staticcheck
@@ -76,3 +75,7 @@ issues:
     - linters:
         - goconst
       text: "YES"
+
+    - linters:
+      - staticcheck
+      text: SA1019

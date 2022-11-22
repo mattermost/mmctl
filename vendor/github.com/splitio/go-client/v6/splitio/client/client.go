@@ -9,11 +9,11 @@ import (
 	"github.com/splitio/go-client/v6/splitio/engine/evaluator"
 	"github.com/splitio/go-client/v6/splitio/engine/evaluator/impressionlabels"
 	impressionlistener "github.com/splitio/go-client/v6/splitio/impressionListener"
-	"github.com/splitio/go-split-commons/v3/dtos"
-	"github.com/splitio/go-split-commons/v3/provisional"
-	"github.com/splitio/go-split-commons/v3/storage"
-	"github.com/splitio/go-split-commons/v3/telemetry"
-	"github.com/splitio/go-toolkit/v4/logging"
+	"github.com/splitio/go-split-commons/v4/dtos"
+	"github.com/splitio/go-split-commons/v4/provisional"
+	"github.com/splitio/go-split-commons/v4/storage"
+	"github.com/splitio/go-split-commons/v4/telemetry"
+	"github.com/splitio/go-toolkit/v5/logging"
 )
 
 const (
@@ -66,8 +66,8 @@ func (c *SplitClient) getEvaluationsResult(matchingKey string, bucketingKey *str
 	c.logger.Warning(operation + ": the SDK is not ready, results may be incorrect. Make sure to wait for SDK readiness before using this method")
 	c.initTelemetry.RecordNonReadyUsage()
 	result := evaluator.Results{
-		EvaluationTimeNs: 0,
-		Evaluations:      make(map[string]evaluator.Result),
+		EvaluationTime: 0,
+		Evaluations:    make(map[string]evaluator.Result),
 	}
 	for _, feature := range features {
 		result.Evaluations[feature] = evaluator.Result{
@@ -103,7 +103,7 @@ func (c *SplitClient) createImpression(feature string, bucketingKey *string, eva
 }
 
 // storeData stores impression, runs listener and stores metrics
-func (c *SplitClient) storeData(impressions []dtos.Impression, attributes map[string]interface{}, metricsLabel string, evaluationTimeNs int64) {
+func (c *SplitClient) storeData(impressions []dtos.Impression, attributes map[string]interface{}, metricsLabel string, evaluationTime time.Duration) {
 	// Store impression
 	if c.impressions != nil {
 		forLog, forListener := c.impressionManager.ProcessImpressions(impressions)
@@ -118,7 +118,7 @@ func (c *SplitClient) storeData(impressions []dtos.Impression, attributes map[st
 	}
 
 	// Store latency
-	c.evaluationTelemetry.RecordLatency(metricsLabel, int64(telemetry.Bucket(evaluationTimeNs)))
+	c.evaluationTelemetry.RecordLatency(metricsLabel, evaluationTime)
 }
 
 // doTreatmentCall retrieves treatments of an specific feature with configurations object if it is present for a certain key and set of attributes
@@ -169,7 +169,7 @@ func (c *SplitClient) doTreatmentCall(key interface{}, feature string, attribute
 		[]dtos.Impression{c.createImpression(feature, bucketingKey, evaluationResult.Label, matchingKey, evaluationResult.Treatment, evaluationResult.SplitChangeNumber)},
 		attributes,
 		metricsLabel,
-		evaluationResult.EvaluationTimeNs,
+		evaluationResult.EvaluationTime,
 	)
 
 	return TreatmentResult{
@@ -258,7 +258,7 @@ func (c *SplitClient) doTreatmentsCall(key interface{}, features []string, attri
 		}
 	}
 
-	c.storeData(bulkImpressions, attributes, metricsLabel, evaluationsResult.EvaluationTimeNs)
+	c.storeData(bulkImpressions, attributes, metricsLabel, evaluationsResult.EvaluationTime)
 
 	return treatments
 }

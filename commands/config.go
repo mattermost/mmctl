@@ -16,14 +16,16 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 const defaultEditor = "vi"
+
+var ErrConfigInvalidPath = errors.New("selected path object is not valid")
 
 var ConfigCmd = &cobra.Command{
 	Use:   "config",
@@ -96,7 +98,7 @@ var ConfigReloadCmd = &cobra.Command{
 var ConfigMigrateCmd = &cobra.Command{
 	Use:     "migrate [from_config] [to_config]",
 	Short:   "Migrate existing config between backends",
-	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
+	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it. Note that this command is only available in `--local` mode.",
 	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
 	Args:    cobra.ExactArgs(2),
 	RunE:    withClient(configMigrateCmdF),
@@ -208,6 +210,14 @@ func setValueWithConversion(val reflect.Value, newValue interface{}) error {
 		}
 		val.SetInt(v)
 		return nil
+	case reflect.Float32, reflect.Float64:
+		bits := val.Type().Bits()
+		v, err := strconv.ParseFloat(newValue.(string), bits)
+		if err != nil {
+			return fmt.Errorf("target value is of type %v and provided value is not", val.Kind())
+		}
+		val.SetFloat(v)
+		return nil
 	case reflect.String:
 		val.SetString(newValue.(string))
 		return nil
@@ -238,7 +248,7 @@ func setValue(path []string, obj reflect.Value, newValue interface{}) error {
 	}
 
 	if val.Kind() == reflect.Invalid {
-		return errors.New("selected path object is not valid")
+		return ErrConfigInvalidPath
 	}
 
 	if len(path) == 1 {
@@ -325,6 +335,10 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return errors.New("invalid key")
 	}
 
+	if cloudRestricted(config, path) && reflect.ValueOf(val).IsNil() {
+		return fmt.Errorf("accessing this config path: %s is restricted in a cloud environment", args[0])
+	}
+
 	printer.Print(val)
 	return nil
 }
@@ -337,6 +351,10 @@ func configSetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 
 	path := parseConfigPath(args[0])
 	if cErr := setConfigValue(path, config, args[1:]); cErr != nil {
+		if errors.Is(cErr, ErrConfigInvalidPath) && cloudRestricted(config, path) {
+			return fmt.Errorf("changing this config path: %s is restricted in a cloud environment", args[0])
+		}
+
 		return cErr
 	}
 	newConfig, _, err := c.PatchConfig(config)
@@ -491,7 +509,12 @@ func configReloadCmdF(c client.Client, _ *cobra.Command, _ []string) error {
 	return nil
 }
 
-func configMigrateCmdF(c client.Client, _ *cobra.Command, args []string) error {
+func configMigrateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	isLocal, _ := cmd.Flags().GetBool("local")
+	if !isLocal {
+		return errors.New("this command is only available in local mode. Please set the --local flag")
+	}
+
 	_, err := c.MigrateConfig(args[0], args[1])
 	if err != nil {
 		return err
@@ -511,4 +534,36 @@ func configSubpathCmdF(cmd *cobra.Command, _ []string) error {
 	printer.Print("Config subpath successfully modified")
 
 	return nil
+}
+
+func cloudRestricted(cfg any, path []string) bool {
+	return cloudRestrictedR(reflect.TypeOf(cfg), path)
+}
+
+// cloudRestricted checks if the config path is restricted to the cloud
+func cloudRestrictedR(t reflect.Type, path []string) bool {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		if len(path) == 0 || field.Name != path[0] {
+			continue
+		}
+
+		accessTag := field.Tag.Get(model.ConfigAccessTagType)
+		if strings.Contains(accessTag, model.ConfigAccessTagCloudRestrictable) {
+			return true
+		}
+
+		return cloudRestrictedR(field.Type, path[1:])
+	}
+
+	return false
 }

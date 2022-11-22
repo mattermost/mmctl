@@ -13,7 +13,7 @@
 To install the project in your `$GOPATH`, simply run:
 
 ```
-go get -u github.com/mattermost/mmctl
+go install github.com/mattermost/mmctl/v6@master
 ```
 
 ### Install shell completions

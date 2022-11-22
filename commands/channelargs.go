@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
 
-	"github.com/mattermost/mmctl/client"
+	"github.com/mattermost/mmctl/v6/client"
 )
 
 const channelArgSeparator = ":"
@@ -62,6 +62,7 @@ func getChannelFromChannelArg(c client.Client, channelArg string) *model.Channel
 
 // getChannelsFromArgs obtains channels by the `channelArgs` parameter. It can return channels and errors
 // at the same time
+//
 //nolint:golint,unused
 func getChannelsFromArgs(c client.Client, channelArgs []string) ([]*model.Channel, error) {
 	var channels []*model.Channel

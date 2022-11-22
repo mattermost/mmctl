@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/spf13/cobra"
 )
@@ -166,6 +166,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 			ChannelId:   channelID,
 			Username:    userName,
 			DisplayName: displayName,
+			UserId:      userID,
 		}
 		returnedIncomingWebhook := mockIncomingWebhook
 		returnedIncomingWebhook.Id = incomingWebhookID
@@ -210,6 +211,7 @@ func (s *MmctlUnitTestSuite) TestCreateIncomingWebhookCmd() {
 			ChannelId:   channelID,
 			Username:    userName,
 			DisplayName: displayName,
+			UserId:      userID,
 		}
 		mockError := errors.New("mock error")
 

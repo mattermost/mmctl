@@ -6,8 +6,10 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/hashicorp/go-multierror"
+
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
@@ -86,13 +88,16 @@ func integrityCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return fmt.Errorf("unable to perform integrity check. Error: %w", err)
 	}
+
+	var errs *multierror.Error
 	for _, result := range results {
 		if result.Err != nil {
+			errs = multierror.Append(errs, result.Err)
 			printer.PrintError(result.Err.Error())
 			continue
 		}
 		printIntegrityCheckResult(result, verboseFlag)
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }

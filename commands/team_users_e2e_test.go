@@ -5,12 +5,13 @@ package commands
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/api4"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
@@ -42,7 +43,7 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		if teamMember == nil {
 			return nil
 		}
-		return s.th.App.RemoveTeamMemberFromTeam(s.th.Context, teamMember, s.th.SystemAdminUser.Id)
+		return s.th.App.RemoveUserFromTeam(s.th.Context, teamId, teamMember.UserId, s.th.SystemAdminUser.Id)
 	}
 
 	s.RunForSystemAdminAndLocal("Add user to team", func(c client.Client) {
@@ -131,11 +132,13 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		s.Require().Nil(appErr)
 
 		nonexistentUserEmail := "nonexistent@email"
+		var expectedError error
+		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
 		err := teamUsersAddCmdF(c, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Can't find user '%s'", nonexistentUserEmail))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().EqualError(err, expectedError.Error())
 	})
 
 	s.Run("Add nonexistent user to team", func() {
@@ -152,11 +155,13 @@ func (s *MmctlE2ETestSuite) TestTeamUserAddCmd() {
 		}()
 
 		nonexistentUserEmail := "nonexistent@email"
+		var expectedError error
+		expectedError = multierror.Append(expectedError, fmt.Errorf("can't find user '%s'", nonexistentUserEmail))
 		err := teamUsersAddCmdF(s.th.Client, &cobra.Command{}, []string{team.Id, nonexistentUserEmail})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], fmt.Sprintf("Can't find user '%s'", nonexistentUserEmail))
+		s.Require().EqualError(err, expectedError.Error())
 	})
 }
 

@@ -8,8 +8,8 @@ include:
   file: private.yml
 
 variables:
-  IMAGE_BUILD_MMCTL: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210824_golang-1.17.0
-  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20210810_golang-1.16.7
+  IMAGE_BUILD_MMCTL: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20220415_golang-1.18.1
+  IMAGE_BUILD_SERVER: $CI_REGISTRY/mattermost/ci/images/mattermost-build-server:20220415_golang-1.18.1
 
 docs:
   stage: test
@@ -24,7 +24,7 @@ docs:
 
 lint:
   stage: test
-  image: $CI_REGISTRY/mattermost/ci/images/golangci-lint:v1.31.0-1
+  image: docker.io/golangci/golangci-lint:v1.46.2
   script:
     - echo "Installing mattermost-govet"
     - GO111MODULE=off go get -u github.com/mattermost/mattermost-govet

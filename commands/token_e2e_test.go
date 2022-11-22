@@ -9,8 +9,8 @@ import (
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
@@ -68,10 +68,10 @@ func (s *MmctlE2ETestSuite) TestTokenGenerateForUserCmd() {
 		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Equal(
-			fmt.Sprintf(`could not create token for %q: : You do not have the appropriate permissions., `, user.Email),
-			err.Error())
-
+		s.Require().ErrorContains(
+			err,
+			fmt.Sprintf(`could not create token for %q: : You do not have the appropriate permissions.`, user.Email),
+		)
 		userTokens, appErr := s.th.App.GetUserAccessTokensForUser(user.Id, 0, 1)
 		s.Require().Nil(appErr)
 		s.Require().Equal(0, len(userTokens))

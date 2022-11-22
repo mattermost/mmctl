@@ -8,13 +8,12 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/api4"
-	"github.com/mattermost/mattermost-server/v6/app/request"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/utils/testutils"
 	"github.com/spf13/cobra"
 
-	"github.com/mattermost/mmctl/client"
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/client"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 func configForLdap(th *api4.TestHelper) {
@@ -95,7 +94,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 	// dn: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
 	// cn: Dev1
 	// userPassword: Password1
-	ldapUser, appErr := s.th.App.AuthenticateUserForLogin(request.EmptyContext(), "", "dev.one", "Password1", "", "", true)
+	ldapUser, appErr := s.th.App.AuthenticateUserForLogin(s.th.Context, "", "dev.one", "Password1", "", "", true)
 	s.Require().Nil(appErr)
 	s.Require().NotNil(ldapUser)
 	s.Require().Equal(model.UserAuthServiceLdap, ldapUser.AuthService)

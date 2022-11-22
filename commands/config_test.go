@@ -4,15 +4,19 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/mmctl/printer"
+	"github.com/mattermost/mmctl/v6/printer"
 )
 
 const (
@@ -254,6 +258,23 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 			GetConfig().
 			Return(outputConfig, &model.Response{}, nil).
 			Times(0)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get cloud restricted error value if the path is cloud restricted and value is nil", func() {
+		printer.Clean()
+		args := []string{"ServiceSettings.EnableDeveloper"}
+		outputConfig := &model.Config{}
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
 
 		err := configGetCmdF(s.client, &cobra.Command{}, args)
 		s.Require().NotNil(err)
@@ -543,6 +564,27 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Set a config value for a cloud restricted config path", func() {
+		printer.Clean()
+		args := []string{"ServiceSettings.EnableDeveloper", "true"}
+		defaultConfig := &model.Config{}
+		defaultConfig.SetDefaults()
+		js, err := defaultConfig.ToJSONFiltered(model.ConfigAccessTagType, model.ConfigAccessTagCloudRestrictable)
+		s.Require().NoError(err)
+		defaultConfig = model.ConfigFromJSON(bytes.NewBuffer(js))
+
+		s.client.
+			EXPECT().
+			GetConfig().
+			Return(defaultConfig, &model.Response{}, nil).
+			Times(1)
+
+		err = configSetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().EqualError(err, fmt.Sprintf("changing this config path: %s is restricted in a cloud environment", "ServiceSettings.EnableDeveloper"))
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestConfigPatchCmd() {
@@ -757,6 +799,14 @@ func (s *MmctlUnitTestSuite) TestConfigReloadCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
+	s.Run("Should fail without the --local flag", func() {
+		printer.Clean()
+		args := []string{"from", "to"}
+
+		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Error(err)
+	})
+
 	s.Run("Should be able to migrate config", func() {
 		printer.Clean()
 		args := []string{"from", "to"}
@@ -767,7 +817,10 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 			Return(&model.Response{StatusCode: http.StatusOK}, nil).
 			Times(1)
 
-		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.client, cmd, args)
 		s.Require().Nil(err)
 		s.Len(printer.GetErrorLines(), 0)
 	})
@@ -782,7 +835,43 @@ func (s *MmctlUnitTestSuite) TestConfigMigrateCmd() {
 			Return(&model.Response{StatusCode: http.StatusBadRequest}, errors.New("some-error")).
 			Times(1)
 
-		err := configMigrateCmdF(s.client, &cobra.Command{}, args)
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.client, cmd, args)
 		s.Require().NotNil(err)
+	})
+}
+
+func TestCloudRestricted(t *testing.T) {
+	cfg := &model.Config{
+		ServiceSettings: model.ServiceSettings{
+			GoogleDeveloperKey: model.NewString("test"),
+			SiteURL:            model.NewString("test"),
+		},
+	}
+
+	t.Run("Should return true if the config is cloud restricted", func(t *testing.T) {
+		path := "ServiceSettings.GoogleDeveloperKey"
+
+		require.True(t, cloudRestricted(cfg, parseConfigPath(path)))
+	})
+
+	t.Run("Should return false if the config is not cloud restricted", func(t *testing.T) {
+		path := "ServiceSettings.SiteURL"
+
+		require.False(t, cloudRestricted(cfg, parseConfigPath(path)))
+	})
+
+	t.Run("Should return false if the config is not cloud restricted and the path is not found", func(t *testing.T) {
+		path := "ServiceSettings.Unknown"
+
+		require.False(t, cloudRestricted(cfg, parseConfigPath(path)))
+	})
+
+	t.Run("Should return true if the config is cloud restricted and the value is not found", func(t *testing.T) {
+		path := "ServiceSettings.EnableDeveloper"
+
+		require.True(t, cloudRestricted(cfg, parseConfigPath(path)))
 	})
 }

@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -30,13 +29,18 @@ const (
 
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
+	Trace(string, ...Field)
 	Debug(string, ...Field)
 	Info(string, ...Field)
 	Warn(string, ...Field)
 	Error(string, ...Field)
 	Critical(string, ...Field)
+	Fatal(string, ...Field)
 	Log(Level, string, ...Field)
 	LogM([]Level, string, ...Field)
+	With(fields ...Field) *Logger
+	Flush() error
+	StdLogger(level Level) *log.Logger
 }
 
 // Type and function aliases from Logr to limit the spread of dependencies.
@@ -49,6 +53,9 @@ type LogRec = logr.LogRec
 type LogCloner = logr.LogCloner
 type MetricsCollector = logr.MetricsCollector
 type TargetCfg = logrcfg.TargetCfg
+type TargetFactory = logrcfg.TargetFactory
+type FormatterFactory = logrcfg.FormatterFactory
+type Factories = logrcfg.Factories
 type Sugar = logr.Sugar
 
 // LoggerConfiguration is a map of LogTarget configurations.
@@ -173,13 +180,18 @@ func NewLogger(options ...Option) (*Logger, error) {
 
 // Configure provides a new configuration for this logger.
 // Zero or more sources of config can be provided:
-//   cfgFile    - path to file containing JSON
-//   cfgEscaped - JSON string probably from ENV var
+//
+//	cfgFile    - path to file containing JSON
+//	cfgEscaped - JSON string probably from ENV var
 //
 // For each case JSON containing log targets is provided. Target name collisions are resolved
 // using the following precedence:
-//     cfgFile > cfgEscaped
-func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
+//
+//	cfgFile > cfgEscaped
+//
+// An optional set of factories can be provided which will be called to create any target
+// types or formatters not built-in.
+func (l *Logger) Configure(cfgFile string, cfgEscaped string, factories *Factories) error {
 	if atomic.LoadInt32(l.lockConfig) != 0 {
 		return ErrConfigurationLock
 	}
@@ -188,7 +200,7 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
 
 	// Add config from file
 	if cfgFile != "" {
-		b, err := ioutil.ReadFile(cfgFile)
+		b, err := os.ReadFile(cfgFile)
 		if err != nil {
 			return fmt.Errorf("error reading logger config file %s: %w", cfgFile, err)
 		}
@@ -213,16 +225,18 @@ func (l *Logger) Configure(cfgFile string, cfgEscaped string) error {
 		return nil
 	}
 
-	return logrcfg.ConfigureTargets(l.log.Logr(), cfgMap.toTargetCfg(), nil)
+	return logrcfg.ConfigureTargets(l.log.Logr(), cfgMap.toTargetCfg(), factories)
 }
 
 // ConfigureTargets provides a new configuration for this logger via a `LoggerConfig` map.
 // Typically `mlog.Configure` is used instead which accepts JSON formatted configuration.
-func (l *Logger) ConfigureTargets(cfg LoggerConfiguration) error {
+// An optional set of factories can be provided which will be called to create any target
+// types or formatters not built-in.
+func (l *Logger) ConfigureTargets(cfg LoggerConfiguration, factories *Factories) error {
 	if atomic.LoadInt32(l.lockConfig) != 0 {
 		return ErrConfigurationLock
 	}
-	return logrcfg.ConfigureTargets(l.log.Logr(), cfg.toTargetCfg(), nil)
+	return logrcfg.ConfigureTargets(l.log.Logr(), cfg.toTargetCfg(), factories)
 }
 
 // LockConfiguration disallows further configuration changes until `UnlockConfiguration`
@@ -344,7 +358,7 @@ func (l *Logger) RedirectStdLog(level Level, fields ...Field) func() {
 // RemoveTargets safely removes one or more targets based on the filtering method.
 // `f` should return true to delete the target, false to keep it.
 // When removing a target, best effort is made to write any queued log records before
-// closing, with cxt determining how much time can be spent in total.
+// closing, with ctx determining how much time can be spent in total.
 // Note, keep the timeout short since this method blocks certain logging operations.
 func (l *Logger) RemoveTargets(ctx context.Context, f func(ti TargetInfo) bool) error {
 	return l.log.Logr().RemoveTargets(ctx, f)
@@ -371,7 +385,7 @@ func (l *Logger) Flush() error {
 	return l.log.Logr().FlushWithTimeout(ctx)
 }
 
-// Flush forces all targets to write out any queued log records with the specfified timeout.
+// Flush forces all targets to write out any queued log records with the specified timeout.
 func (l *Logger) FlushWithTimeout(ctx context.Context) error {
 	return l.log.Logr().FlushWithTimeout(ctx)
 }
@@ -403,6 +417,22 @@ func GetPackageName(f string) string {
 		}
 	}
 	return f
+}
+
+// ShouldQuote returns true if val contains any characters that might be unsafe
+// when injecting log output into an aggregator, viewer or report.
+// Returning true means that val should be surrounded by quotation marks before being
+// output into logs.
+func ShouldQuote(val string) bool {
+	for _, c := range val {
+		if !((c >= '0' && c <= '9') ||
+			(c >= 'a' && c <= 'z') ||
+			(c >= 'A' && c <= 'Z') ||
+			c == '-' || c == '.' || c == '_' || c == '/' || c == '@' || c == '^' || c == '+') {
+			return true
+		}
+	}
+	return false
 }
 
 type logWriter struct {

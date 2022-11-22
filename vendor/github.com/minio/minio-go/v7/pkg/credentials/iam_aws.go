@@ -19,6 +19,7 @@ package credentials
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -38,7 +39,10 @@ import (
 // prior to the credentials actually expiring. This is beneficial
 // so race conditions with expiring credentials do not cause
 // request to fail unexpectedly due to ExpiredTokenException exceptions.
-const DefaultExpiryWindow = time.Second * 10 // 10 secs
+// DefaultExpiryWindow can be used as parameter to (*Expiry).SetExpiration.
+// When used the tokens refresh will be triggered when 80% of the elapsed
+// time until the actual expiration time is passed.
+const DefaultExpiryWindow = -1
 
 // A IAM retrieves credentials from the EC2 service, and keeps track if
 // those credentials are expired.
@@ -109,7 +113,7 @@ func (m *IAM) Retrieve() (Value, error) {
 
 				return &WebIdentityToken{Token: string(token)}, nil
 			},
-			roleARN:         os.Getenv("AWS_ROLE_ARN"),
+			RoleARN:         os.Getenv("AWS_ROLE_ARN"),
 			roleSessionName: os.Getenv("AWS_ROLE_SESSION_NAME"),
 		}
 
@@ -181,10 +185,6 @@ type ec2RoleCredRespBody struct {
 // be sent to fetch the rolling access credentials.
 // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 func getIAMRoleURL(endpoint string) (*url.URL, error) {
-	if endpoint == "" {
-		endpoint = defaultIAMRoleEndpoint
-	}
-
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
@@ -255,7 +255,10 @@ func getEcsTaskCredentials(client *http.Client, endpoint string, token string) (
 }
 
 func fetchIMDSToken(client *http.Client, endpoint string) (string, error) {
-	req, err := http.NewRequest(http.MethodPut, endpoint+tokenPath, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, endpoint+tokenPath, nil)
 	if err != nil {
 		return "", err
 	}
@@ -281,6 +284,10 @@ func fetchIMDSToken(client *http.Client, endpoint string) (string, error) {
 // If the credentials cannot be found, or there is an error
 // reading the response an error will be returned.
 func getCredentials(client *http.Client, endpoint string) (ec2RoleCredRespBody, error) {
+	if endpoint == "" {
+		endpoint = defaultIAMRoleEndpoint
+	}
+
 	// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
 	token, _ := fetchIMDSToken(client, endpoint)
 
