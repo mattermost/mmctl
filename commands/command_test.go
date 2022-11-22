@@ -457,7 +457,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		// second try to search the team by name
 		s.client.EXPECT().GetTeamByName(teamID, "").Return(nil, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to find team '"+teamID+"'", printer.GetErrorLines()[0])
@@ -471,7 +471,7 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		s.client.EXPECT().GetTeam(teamID, "").Return(team, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(teamID, true).Return(nil, &model.Response{}, errors.New("")).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{teamID})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to list commands for '"+teamID+"'", printer.GetErrorLines()[0])
