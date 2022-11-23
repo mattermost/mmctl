@@ -211,3 +211,26 @@ rm $1'old'`
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestConfigShowCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.RunForSystemAdminAndLocal("Show server configs", func(c client.Client) {
+		printer.Clean()
+
+		err := configShowCmdF(c, nil, nil)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Show server configs without permissions", func() {
+		printer.Clean()
+
+		err := configShowCmdF(s.th.Client, nil, nil)
+		s.Require().NotNil(err)
+		s.Require().Error(err, "You do not have the appropriate permissions")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
