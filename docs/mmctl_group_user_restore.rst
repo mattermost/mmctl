@@ -1,22 +1,33 @@
-.. _mmctl_group:
+.. _mmctl_group_user_restore:
 
-mmctl group
------------
+mmctl group user restore
+------------------------
 
-Management of groups
+Restore user group
 
 Synopsis
 ~~~~~~~~
 
 
-Management of groups
+Restore deleted custom user group
+
+::
+
+  mmctl group user restore [groupname] [flags]
+
+Examples
+~~~~~~~~
+
+::
+
+   group user restore examplegroup
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for group
+  -h, --help   help for restore
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,9 +47,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl group channel <mmctl_group_channel.rst>`_ 	 - Management of channel groups
-* `mmctl group list-ldap <mmctl_group_list-ldap.rst>`_ 	 - List LDAP groups
-* `mmctl group team <mmctl_group_team.rst>`_ 	 - Management of team groups
 * `mmctl group user <mmctl_group_user.rst>`_ 	 - Management of custom user groups
 
