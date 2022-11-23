@@ -1561,7 +1561,7 @@ func (s *MmctlUnitTestSuite) TestUserGroupRestoreCmd() {
 
 	s.Run("User group restore command restores deleted user group", func() {
 		printer.Clean()
-		mockError := errors.New("no group found.")
+		mockError := errors.New("no group found")
 		s.client.
 			EXPECT().
 			RestoreGroup("groupId", "").
