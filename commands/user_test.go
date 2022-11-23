@@ -613,7 +613,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 			Times(1)
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Equal("1 error occurred:\n\t* user example@example.com not found\n\n", printer.GetErrorLines()[0])
 	})
@@ -623,7 +623,7 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 		arg := "test/../hello?@mattermost.com"
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Equal("1 error occurred:\n\t* user test/../hello?@mattermost.com not found\n\n", printer.GetErrorLines()[0])
 	})
 
@@ -639,8 +639,8 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "Error while getting user by email")
 		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by email\n\n", err.Error())
 		s.Require().Equal("1 error occurred:\n\t* Error while getting user by email\n\n", printer.GetErrorLines()[0])
 	})
 
@@ -662,8 +662,8 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "Error while getting user by username")
 		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user by username\n\n", err.Error())
 		s.Require().Equal("1 error occurred:\n\t* Error while getting user by username\n\n", printer.GetErrorLines()[0])
 	})
 
@@ -691,8 +691,8 @@ func (s *MmctlUnitTestSuite) TestSearchUserCmd() {
 
 		err := searchUserCmdF(s.client, &cobra.Command{}, []string{arg})
 		s.Require().NotNil(err)
-		s.Require().Equal(err.Error(), "Error while getting user")
 		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Equal("1 error occurred:\n\t* Error while getting user\n\n", err.Error())
 		s.Require().Equal("1 error occurred:\n\t* Error while getting user\n\n", printer.GetErrorLines()[0])
 	})
 }
