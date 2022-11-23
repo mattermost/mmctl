@@ -6,6 +6,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-multierror"
 	"io/ioutil"
 	"net/http"
 
@@ -801,20 +802,24 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 }
 
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
+	var result error
+
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
 		printer.PrintError(err.Error())
+		result = multierror.Append(result, fmt.Errorf(err.Error()))
 	}
 	for _, user := range users {
 		bot, _, err := c.ConvertUserToBot(user.Id)
 		if err != nil {
 			printer.PrintError(err.Error())
+			result = multierror.Append(result, fmt.Errorf(err.Error()))
 			continue
 		}
 
 		printer.PrintT("{{.Username}} converted to bot.", bot)
 	}
-	return nil
+	return result
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {
