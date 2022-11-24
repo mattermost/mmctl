@@ -66,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Can't find user '"+userArg+"'")
@@ -236,10 +236,10 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(printer.GetErrorLines()[0], "Unable to remove '"+mockUser.Id+"' from "+mockTeam.Name+". Error: "+mockError.Error())
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Require().Equal(printer.GetErrorLines()[0], "unable to remove '"+mockUser.Id+"' from "+mockTeam.Name+". Error: "+mockError.Error())
 	})
 }
 

@@ -58,6 +58,7 @@ func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	for i, user := range users {
 		if err := removeUserFromTeam(c, team, user, args[i+1]); err != nil {
 			errs = multierror.Append(errs, err)
+			printer.PrintError(err.Error())
 		}
 	}
 
@@ -72,6 +73,7 @@ func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, use
 	var err error
 	if _, err = c.RemoveTeamMember(team.Id, user.Id); err != nil {
 		err = fmt.Errorf("unable to remove '%s' from %s. Error: %w", userArg, team.Name, err)
+		printer.PrintError(err.Error())
 	}
 
 	return err
