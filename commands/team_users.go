@@ -58,7 +58,6 @@ func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	for i, user := range users {
 		if err := removeUserFromTeam(c, team, user, args[i+1]); err != nil {
 			errs = multierror.Append(errs, err)
-			printer.PrintError(err.Error())
 		}
 	}
 
@@ -67,7 +66,9 @@ func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) error {
 	if user == nil {
-		return errors.New("Can't find user '" + userArg + "'")
+		err := errors.Errorf("can't find user '%s'", userArg)
+		printer.PrintError(err.Error())
+		return err
 	}
 
 	var err error
