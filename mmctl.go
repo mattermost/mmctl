@@ -6,6 +6,8 @@ package main
 import (
 	"os"
 
+	_ "github.com/golang/mock/mockgen/model"
+
 	"github.com/mattermost/mmctl/v6/commands"
 )
 
