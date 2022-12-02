@@ -4,11 +4,11 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -66,7 +66,7 @@ func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) error {
 	if user == nil {
-		err := errors.Errorf("can't find user '%s'", userArg)
+		err := fmt.Errorf("can't find user '%s'", userArg)
 		printer.PrintError(err.Error())
 		return err
 	}
@@ -90,7 +90,7 @@ func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	users := getUsersFromUserArgs(c, args[1:])
 	for i, user := range users {
 		if user == nil {
-			userErr := errors.Errorf("can't find user '%s'", args[i+1])
+			userErr := fmt.Errorf("can't find user '%s'", args[i+1])
 			printer.PrintError(userErr.Error())
 			errs = multierror.Append(errs, userErr)
 			continue

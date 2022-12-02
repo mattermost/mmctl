@@ -3,10 +3,10 @@
 package commands
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/v6/printer"
@@ -66,7 +66,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{teamArg, mockUser.Id})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "can't find user '"+userArg+"'")
@@ -236,7 +236,7 @@ func (s *MmctlUnitTestSuite) TestTeamUsersArchiveCmd() {
 			Times(1)
 
 		err := teamUsersRemoveCmdF(s.client, &cobra.Command{}, []string{mockTeam.Id, mockUser.Id})
-		s.Require().NotNil(err)
+		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "unable to remove '"+mockUser.Id+"' from "+mockTeam.Name+". Error: "+mockError.Error())
