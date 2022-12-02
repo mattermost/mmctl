@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
 
@@ -88,4 +89,25 @@ func addToZip(zipWriter *zip.Writer, basedir, path string) error {
 	}
 
 	return nil
+}
+
+func getPages[T any](fn func(page, numPerPage int, etag string) ([]T, *model.Response, error), perPage int) ([]T, error) {
+	var (
+		results []T
+		etag    string
+	)
+
+	for i := 0; ; i++ {
+		result, resp, err := fn(i, perPage, etag)
+		if err != nil {
+			return results, err
+		}
+		if len(result) == 0 {
+			break
+		}
+
+		results = append(results, result...)
+		etag = resp.Etag
+	}
+	return results, nil
 }

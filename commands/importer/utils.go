@@ -10,7 +10,7 @@ import (
 )
 
 type ImportFileInfo struct {
-	ArchiveName string `json:"archive_name"`
+	Source      string `json:"archive_name"`
 	FileName    string `json:"file_name,omitempty"`
 	CurrentLine uint64 `json:"current_line,omitempty"`
 	TotalLines  uint64 `json:"total_lines,omitempty"`
@@ -50,8 +50,8 @@ func (e *ImportValidationError) Error() string {
 	msg := &strings.Builder{}
 	msg.WriteString("import validation error")
 
-	if e.FileName != "" || e.ArchiveName != "" {
-		fmt.Fprintf(msg, " in %s->%s:%d", e.ArchiveName, e.FileName, e.CurrentLine)
+	if e.FileName != "" || e.Source != "" {
+		fmt.Fprintf(msg, " in %s->%s:%d", e.Source, e.FileName, e.CurrentLine)
 	}
 
 	if e.FieldName != "" {
