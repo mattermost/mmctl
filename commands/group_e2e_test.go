@@ -529,9 +529,10 @@ func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
 	}()
 
 	s.Run("Should allow group restore after deletion", func() {
+		printer.Clean()
+
 		_, appErr := s.th.App.DeleteGroup(group.Id)
 		s.Require().Nil(appErr)
-		printer.Clean()
 
 		s.th.RemovePermissionFromRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
 		err := userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
