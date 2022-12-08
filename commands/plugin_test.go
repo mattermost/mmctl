@@ -80,13 +80,13 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		mockError := errors.New("plugin add error")
 
 		s.client.
-			EXPECT().
-			UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
-			Return(&model.Manifest{}, &model.Response{}, mockError).
-			Times(1)
+		 	EXPECT().
+		 	UploadPlugin(gomock.AssignableToTypeOf(tmpFile)).
+		 	Return(&model.Manifest{}, &model.Response{}, mockError).
+		 	Times(1)
 
 		err = pluginAddCmdF(s.client, &cobra.Command{}, []string{pluginName})
-		s.Require().NoError(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to add plugin: "+pluginName+". Error: "+mockError.Error())
 	})
@@ -117,7 +117,7 @@ func (s *MmctlUnitTestSuite) TestPluginAddCmd() {
 		}
 
 		err := pluginAddCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Added plugin: "+args[1])
 		s.Require().Len(printer.GetErrorLines(), 2)
@@ -240,7 +240,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 			Times(1)
 
 		err := pluginDisableCmdF(s.client, &cobra.Command{}, []string{arg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to disable plugin: "+arg+". Error: "+mockError.Error())
@@ -268,7 +268,7 @@ func (s *MmctlUnitTestSuite) TestPluginDisableCmd() {
 		}
 
 		err := pluginDisableCmdF(s.client, &cobra.Command{}, args)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], "Disabled plugin: "+args[1])
 		s.Require().Equal(printer.GetLines()[1], "Disabled plugin: "+args[2])
@@ -329,7 +329,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 			Times(1)
 
 		err := pluginEnableCmdF(s.client, &cobra.Command{}, []string{pluginArg})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(printer.GetErrorLines()[0], "Unable to enable plugin: "+pluginArg+". Error: "+mockErr.Error())
@@ -361,7 +361,7 @@ func (s *MmctlUnitTestSuite) TestPluginEnableCmd() {
 		}
 
 		err := pluginEnableCmdF(s.client, &cobra.Command{}, allPlugins)
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], "Enabled plugin: "+okPlugins[0])
 		s.Require().Equal(printer.GetLines()[1], "Enabled plugin: "+okPlugins[1])
@@ -548,7 +548,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 			Times(1)
 
 		err := pluginDeleteCmdF(s.client, &cobra.Command{}, []string{args})
-		s.Require().NoError(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal("Unable to delete plugin: "+args+". Error: "+mockError.Error(), printer.GetErrorLines()[0])
@@ -609,7 +609,7 @@ func (s *MmctlUnitTestSuite) TestPluginDeleteCmd() {
 			Times(1)
 
 		err := pluginDeleteCmdF(s.client, &cobra.Command{}, args)
-		s.Require().NoError(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal("Deleted plugin: "+args[0], printer.GetLines()[0])
 		s.Require().Equal("Deleted plugin: "+args[3], printer.GetLines()[1])

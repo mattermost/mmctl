@@ -46,7 +46,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		printer.Clean()
 
 		err = pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 
 		s.Require().Equal(0, len(printer.GetLines()))
 		s.Require().Equal(1, len(printer.GetErrorLines()))
@@ -108,7 +108,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		printer.Clean()
 
 		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Equal(1, len(printer.GetErrorLines()))
 		s.Require().Contains(printer.GetErrorLines()[0], "Plugins and/or plugin uploads have been disabled.")
 	})
@@ -156,7 +156,7 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 		})
 
 		err := pluginAddCmdF(s.th.Client, &cobra.Command{}, []string{pluginPath})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Equal(1, len(printer.GetErrorLines()))
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions")
 	})
@@ -329,7 +329,7 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 		printer.Clean()
 
 		err := pluginDeleteCmdF(c, &cobra.Command{}, []string{dummyPluginID})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete plugin: %s.", dummyPluginID))
@@ -367,7 +367,7 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 
 		// Delete Test
 		err := pluginDeleteCmdF(s.th.Client, &cobra.Command{}, []string{jiraPluginID})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete plugin: %s.", jiraPluginID))
