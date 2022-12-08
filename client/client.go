@@ -95,6 +95,7 @@ type Client interface {
 	GetUsers(page, perPage int, etag string) ([]*model.User, *model.Response, error)
 	GetUsersByIds(userIDs []string) ([]*model.User, *model.Response, error)
 	GetUsersInTeam(teamID string, page, perPage int, etag string) ([]*model.User, *model.Response, error)
+	GetUsersWithOptions(etag string)([]*model.User, *model.Response, error)
 	UpdateUserActive(userID string, activate bool) (*model.Response, error)
 	UpdateTeam(team *model.Team) (*model.Team, *model.Response, error)
 	UpdateChannelPrivacy(channelID string, privacy model.ChannelType) (*model.Channel, *model.Response, error)
