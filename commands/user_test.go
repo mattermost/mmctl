@@ -1939,6 +1939,42 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
 	})
+
+		s.Run("Listing All deactivated users", func() {
+		printer.Clean()
+
+		email1 := "example1@example.com"
+		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, DeleteAt: 1}
+		email2 := "example2@example.com"
+		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, DeleteAt: 0}
+
+		page := 0
+		perPage := 1
+		showAll := true
+		showInactive := true
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("inactive", strconv.FormatBool(showInactive))
+
+		s.client.
+			EXPECT().
+			GetUsers(0, perPage, "").
+			Return([]*model.User{&mockUser1}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsers(1, perPage, "").
+			Return([]*model.User{}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser1, printer.GetLines()[0])
+		s.Require().NotEqual(&mockUser2, printer.GetLines()[1])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {

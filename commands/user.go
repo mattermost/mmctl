@@ -731,6 +731,10 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if err != nil {
 		return err
 	}
+	showInactive, err := command.Flags().GetBool("inactive")
+	if err != nil {
+		return err
+	}
 
 	if showAll {
 		page = 0
@@ -754,6 +758,12 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 			if err != nil {
 				return errors.Wrap(err, fmt.Sprintf("Failed to fetch users for team %s", teamName))
 			}
+		} else if showInactive {
+			users, _, err = c.GetUsersWithOptions("")
+			if err != nil {
+				return errors.Wrap(err, "Failed to fetch inactive users")
+			}
+
 		} else {
 			users, _, err = c.GetUsers(page, perPage, "")
 			if err != nil {
