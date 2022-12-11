@@ -175,6 +175,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
 		cmd.Flags().BoolVar(&all, "all", all, "all")
 		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
@@ -199,6 +200,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		cmd.Flags().IntVar(&perpage, "per-page", perpage, "perpage")
 		cmd.Flags().BoolVar(&all, "all", all, "all")
 		cmd.Flags().StringVar(&team, "team", team, "team")
+		cmd.Flags().BoolVar(&inactive, "inactive", inactive, "inactive")
 
 		err := listUsersCmdF(c, cmd, []string{})
 		s.Require().Nil(err)
