@@ -277,7 +277,7 @@ func init() {
 	ListUsersCmd.Flags().Int("per-page", 200, "Number of users to be fetched")
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
-	ListUsersCmd.Flags().String("roles", "", "Filter the results to users with the given role")
+	ListUsersCmd.Flags().StringP("roles", "r", "", "Filter the results to users with the given role")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -727,7 +727,7 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	}
 	roles, err := command.Flags().GetString("roles")
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if showAll {

@@ -1719,6 +1719,7 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	cmd.Flags().Int("per-page", 200, "")
 	cmd.Flags().Bool("all", false, "")
 	cmd.Flags().String("team", "", "")
+	cmd.Flags().StringP("roles", "r", "", "")
 
 	s.Run("Listing users with paging", func() {
 		printer.Clean()
@@ -1887,6 +1888,23 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("List users with their roles", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		roles := "Role1,Role2"
+		mockUser := model.User{Username: "ExampleUser", Email: email, Roles: roles}
+
+		page := 0
+		perPage := 1
+		showAll := false
+		rolesFilter := ""
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("roles", rolesFilter)
 	})
 }
 
