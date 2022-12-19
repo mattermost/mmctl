@@ -1894,17 +1894,132 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		printer.Clean()
 
 		email := "example@example.com"
-		roles := "Role1,Role2"
+		roles := "Role1"
 		mockUser := model.User{Username: "ExampleUser", Email: email, Roles: roles}
 
 		page := 0
 		perPage := 1
-		showAll := false
 		rolesFilter := ""
+		showAll := false
+
 		_ = cmd.Flags().Set("page", strconv.Itoa(page))
 		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
 		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
 		_ = cmd.Flags().Set("roles", rolesFilter)
+
+		s.client.
+			EXPECT().
+			GetUsersByRole(rolesFilter, page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("List users filtered by their roles", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email}
+
+		page := 0
+		perPage := 1
+		showAll := false
+		rolesFilter := "Role1"
+
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("roles", rolesFilter)
+
+		s.client.
+			EXPECT().
+			GetUsersByRole(rolesFilter, page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("List users in team with their roles", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		roles := "Role1"
+		mockUser := model.User{Username: "ExampleUser", Email: email, Roles: roles}
+		teamId := "teamId"
+
+		page := 0
+		perPage := 1
+		rolesFilter := ""
+		showAll := false
+		team := "teamName"
+
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("roles", rolesFilter)
+		_ = cmd.Flags().Set("team", team)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(team, "").
+			Return(&model.Team{Id: teamId}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeamByRoles(team, rolesFilter, page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("List users in team filtered by their roles", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email}
+		teamId := "teamId"
+
+		page := 0
+		perPage := 1
+		rolesFilter := "Role1"
+		showAll := false
+		team := "teamName"
+
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("roles", rolesFilter)
+		_ = cmd.Flags().Set("team", team)
+
+		s.client.
+			EXPECT().
+			GetTeamByName(team, "").
+			Return(&model.Team{Id: teamId}, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUsersInTeamByRoles(team, rolesFilter, page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
 	})
 }
 

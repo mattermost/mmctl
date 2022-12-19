@@ -32,6 +32,7 @@ Options
       --page int       Page number to fetch for the list of users
       --per-page int   Number of users to be fetched (default 200)
       --team string    If supplied, only users belonging to this team will be listed
+  -r, --roles          If supplied only users with the given role will be listed. If no value is supplied, users will be listed with their roles.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

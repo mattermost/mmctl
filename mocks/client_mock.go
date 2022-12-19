@@ -1309,6 +1309,21 @@ func (mr *MockClientMockRecorder) GetUsersInTeam(arg0, arg1, arg2, arg3 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInTeam", reflect.TypeOf((*MockClient)(nil).GetUsersInTeam), arg0, arg1, arg2, arg3)
 }
 
+// GetUsersInTeamByRoles mocks base method
+func (m *MockClient) GetUsersInTeamByRoles(arg0 string, arg1 string, arg2 int, arg3 int, arg4 string) ([]*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersInTeamByRoles", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].([]*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (mr *MockClientMockRecorder) GetUsersInTeamByRoles(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersInTeamByRoles", reflect.TypeOf((*MockClient)(nil).GetUsersInTeamByRoles), arg0, arg1, arg2, arg3, arg4)
+}
+
 // InstallMarketplacePlugin mocks base method
 func (m *MockClient) InstallMarketplacePlugin(arg0 *model.InstallMarketplacePluginRequest) (*model.Manifest, *model.Response, error) {
 	m.ctrl.T.Helper()
