@@ -27,10 +27,11 @@ Options
 
 ::
 
-      --check-missing-teams   Check for teams that are not defined but referenced in the archive
-  -h, --help                  help for validate
-      --ignore-attachments    Don't check if the attached files are present in the archive
-      --team stringArray      Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated
+      --check-missing-teams       Check for teams that are not defined but referenced in the archive
+      --check-server-duplicates   Set to false to ignore teams, channels, and users already present on the server (default true)
+  -h, --help                      help for validate
+      --ignore-attachments        Don't check if the attached files are present in the archive
+      --team stringArray          Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
