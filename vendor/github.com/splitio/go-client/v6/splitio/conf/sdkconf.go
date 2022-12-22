@@ -143,7 +143,7 @@ func Default() *SplitSdkConfig {
 			SdkURL:               "",
 			StreamingServiceURL:  "",
 			TelemetryServiceURL:  "",
-			HTTPTimeout:          0,
+			HTTPTimeout:          defaultHTTPTimeout,
 			ImpressionListener:   nil,
 			SegmentQueueSize:     500,
 			SegmentWorkers:       10,
@@ -195,8 +195,10 @@ func validConfigRates(cfg *SplitSdkConfig) error {
 				return fmt.Errorf("ImpressionSync must be >= %d. Actual is: %d", minImpressionSync, cfg.TaskPeriods.ImpressionSync)
 			}
 		}
+	case conf.ImpressionsModeNone:
+		return nil
 	default:
-		fmt.Println(`You passed an invalid impressionsMode, impressionsMode should be one of the following values: 'debug' or 'optimized'. Defaulting to 'optimized' mode.`)
+		fmt.Println(`You passed an invalid impressionsMode, impressionsMode should be one of the following values: 'debug', 'optimized' or 'none'. Defaulting to 'optimized' mode.`)
 		cfg.ImpressionsMode = conf.ImpressionsModeOptimized
 		err := checkImpressionSync(cfg)
 		if err != nil {
@@ -211,7 +213,7 @@ func validConfigRates(cfg *SplitSdkConfig) error {
 		return fmt.Errorf("TelemetrySync must be >= %d. Actual is: %d", minTelemetrySync, cfg.TaskPeriods.TelemetrySync)
 	}
 	if cfg.Advanced.SegmentWorkers <= 0 {
-		return errors.New("Number of workers for fetching segments MUST be greater than zero")
+		return errors.New("number of workers for fetching segments MUST be greater than zero")
 	}
 	return nil
 }
@@ -221,7 +223,7 @@ func validConfigRates(cfg *SplitSdkConfig) error {
 func Normalize(apikey string, cfg *SplitSdkConfig) error {
 	// Fail if no apikey is provided
 	if apikey == "" && cfg.OperationMode != Localhost {
-		return errors.New("Factory instantiation: you passed an empty apikey, apikey must be a non-empty string")
+		return errors.New("factory instantiation: you passed an empty apikey, apikey must be a non-empty string")
 	}
 
 	// To keep the interface consistent with other sdks we accept "localhost" as an apikey,

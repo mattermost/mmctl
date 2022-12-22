@@ -29,6 +29,7 @@ type ImpressionsRecorder interface {
 type TelemetryRecorder interface {
 	RecordConfig(config dtos.Config, metadata dtos.Metadata) error
 	RecordStats(stats dtos.Stats, metadata dtos.Metadata) error
+	RecordUniqueKeys(uniques dtos.Uniques, metadata dtos.Metadata) error
 }
 
 // EventsRecorder interface to post events

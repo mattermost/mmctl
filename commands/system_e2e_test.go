@@ -16,8 +16,8 @@ import (
 func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	s.th.App.Srv().Busy.Set(time.Minute)
-	defer s.th.App.Srv().Busy.Clear()
+	s.th.App.Srv().Platform().Busy.Set(time.Minute)
+	defer s.th.App.Srv().Platform().Busy.Clear()
 
 	s.Run("MM-T3979 Should fail when regular user attempts to get server busy status", func() {
 		printer.Clean()
@@ -44,7 +44,7 @@ func (s *MmctlE2ETestSuite) TestGetBusyCmd() {
 func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	s.th.App.Srv().Busy.Clear()
+	s.th.App.Srv().Platform().Busy.Clear()
 	cmd := &cobra.Command{}
 	cmd.Flags().Uint("seconds", 60, "")
 
@@ -63,21 +63,21 @@ func (s *MmctlE2ETestSuite) TestSetBusyCmd() {
 		err := setBusyCmdF(c, cmd, nil)
 		s.Require().NoError(err)
 		defer func() {
-			s.th.App.Srv().Busy.Clear()
-			s.Require().False(s.th.App.Srv().Busy.IsBusy())
+			s.th.App.Srv().Platform().Busy.Clear()
+			s.Require().False(s.th.App.Srv().Platform().Busy.IsBusy())
 		}()
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().True(s.th.App.Srv().Busy.IsBusy())
+		s.Require().True(s.th.App.Srv().Platform().Busy.IsBusy())
 	})
 }
 
 func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 	s.SetupEnterpriseTestHelper().InitBasic()
 
-	s.th.App.Srv().Busy.Set(time.Minute)
-	defer s.th.App.Srv().Busy.Clear()
+	s.th.App.Srv().Platform().Busy.Set(time.Minute)
+	defer s.th.App.Srv().Platform().Busy.Clear()
 
 	s.Run("MM-T3981 Should fail when regular user attempts to clear server busy status", func() {
 		printer.Clean()
@@ -94,12 +94,12 @@ func (s *MmctlE2ETestSuite) TestClearBusyCmd() {
 		err := clearBusyCmdF(c, &cobra.Command{}, nil)
 		s.Require().NoError(err)
 		defer func() {
-			s.th.App.Srv().Busy.Set(time.Minute)
-			s.Require().True(s.th.App.Srv().Busy.IsBusy())
+			s.th.App.Srv().Platform().Busy.Set(time.Minute)
+			s.Require().True(s.th.App.Srv().Platform().Busy.IsBusy())
 		}()
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], map[string]string{"status": "ok"})
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().False(s.th.App.Srv().Busy.IsBusy())
+		s.Require().False(s.th.App.Srv().Platform().Busy.IsBusy())
 	})
 }

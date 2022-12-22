@@ -507,3 +507,51 @@ func createTestGroupTeam(s *MmctlE2ETestSuite) (*model.Team, *model.Group, func(
 
 	return team, group, cleanUpFn
 }
+
+func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
+	s.SetupEnterpriseTestHelper().InitBasic()
+
+	// create group
+	id := model.NewId()
+	group, appErr := s.th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        model.NewString("name" + id),
+		Source:      model.GroupSourceCustom,
+		Description: "description_" + id,
+		RemoteId:    model.NewString(model.NewId()),
+	})
+	s.Require().Nil(appErr)
+	s.th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
+
+	defer func() {
+		_, err := s.th.App.DeleteGroup(group.Id)
+		s.Require().Nil(err)
+	}()
+
+	s.Run("Should allow group restore after deletion", func() {
+		printer.Clean()
+
+		_, appErr := s.th.App.DeleteGroup(group.Id)
+		s.Require().Nil(appErr)
+
+		s.th.RemovePermissionFromRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
+		err := userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), ": You do not have the appropriate permissions.")
+
+		s.th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
+		err = userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0].(string), "Group successfully restored with ID: "+group.Id)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// shouldn't allow restoring of active groups
+		printer.Clean()
+		err = userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
+		s.Require().NotNil(err)
+		s.Require().Equal(err.Error(), ": no matching group found")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}

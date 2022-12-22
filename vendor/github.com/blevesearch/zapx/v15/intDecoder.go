@@ -17,7 +17,6 @@ package zap
 import (
 	"encoding/binary"
 	"fmt"
-	"sync/atomic"
 )
 
 type chunkedIntDecoder struct {
@@ -59,7 +58,7 @@ func newChunkedIntDecoder(buf []byte, offset uint64, rv *chunkedIntDecoder) *chu
 		rv.chunkOffsets[i], read = binary.Uvarint(buf[offset+n : offset+n+binary.MaxVarintLen64])
 		n += uint64(read)
 	}
-	atomic.AddUint64(&rv.bytesRead, n)
+	rv.bytesRead += n
 	rv.dataStartOffset = offset + n
 	return rv
 }
@@ -70,7 +69,7 @@ func newChunkedIntDecoder(buf []byte, offset uint64, rv *chunkedIntDecoder) *chu
 // the loadChunk retrieves the next chunk and the
 // number of bytes retrieve in that operation is accounted
 func (d *chunkedIntDecoder) getBytesRead() uint64 {
-	return atomic.LoadUint64(&d.bytesRead)
+	return d.bytesRead
 }
 
 func (d *chunkedIntDecoder) loadChunk(chunk int) error {
@@ -89,7 +88,7 @@ func (d *chunkedIntDecoder) loadChunk(chunk int) error {
 	start += s
 	end += e
 	d.curChunkBytes = d.data[start:end]
-	atomic.AddUint64(&d.bytesRead, uint64(len(d.curChunkBytes)))
+	d.bytesRead += uint64(len(d.curChunkBytes))
 	if d.r == nil {
 		d.r = newMemUvarintReader(d.curChunkBytes)
 	} else {
@@ -104,7 +103,7 @@ func (d *chunkedIntDecoder) reset() {
 	d.dataStartOffset = 0
 	d.chunkOffsets = d.chunkOffsets[:0]
 	d.curChunkBytes = d.curChunkBytes[:0]
-	atomic.StoreUint64(&d.bytesRead, 0)
+	d.bytesRead = 0
 	d.data = d.data[:0]
 	if d.r != nil {
 		d.r.Reset([]byte(nil))

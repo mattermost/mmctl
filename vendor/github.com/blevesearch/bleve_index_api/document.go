@@ -27,6 +27,8 @@ type Document interface {
 	NumPlainTextBytes() uint64
 
 	AddIDField()
+
+	StoredFieldsBytes() uint64
 }
 
 type FieldVisitor func(Field)

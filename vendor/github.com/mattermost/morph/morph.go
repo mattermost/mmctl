@@ -60,7 +60,7 @@ func SetMigrationTableName(name string) EngineOption {
 	}
 }
 
-func SetSatementTimeoutInSeconds(n int) EngineOption {
+func SetStatementTimeoutInSeconds(n int) EngineOption {
 	return func(m *Morph) {
 		_ = m.driver.SetConfig("StatementTimeoutInSecs", n)
 	}
@@ -161,7 +161,7 @@ func (m *Morph) Apply(limit int) (int, error) {
 
 	steps := limit
 	if len(migrations) < steps {
-		return -1, fmt.Errorf("there are only %d migrations avaliable, but you requested %d", len(migrations), steps)
+		return -1, fmt.Errorf("there are only %d migrations available, but you requested %d", len(migrations), steps)
 	}
 
 	if limit < 0 {
@@ -201,7 +201,7 @@ func (m *Morph) ApplyDown(limit int) (int, error) {
 
 	steps := limit
 	if len(sortedMigrations) < steps {
-		return -1, fmt.Errorf("there are only %d migrations avaliable, but you requested %d", len(sortedMigrations), steps)
+		return -1, fmt.Errorf("there are only %d migrations available, but you requested %d", len(sortedMigrations), steps)
 	}
 
 	if limit < 0 {

@@ -66,6 +66,13 @@ type EventMultiSdkConsumer interface {
 	PopNWithMetadata(n int64) ([]dtos.QueueStoredEventDTO, error)
 }
 
+// UniqueKeysMultiSdkConsumer defines the methods required to consume unique keys
+// from a stored shared by many sdks
+type UniqueKeysMultiSdkConsumer interface {
+	Count() int64
+	PopNRaw(int64) ([]string, int64, error)
+}
+
 // ImpressionStorageConsumer interface should be implemented by structs that offer popping impressions
 type ImpressionStorageConsumer interface {
 	Empty() bool
@@ -101,6 +108,7 @@ type TelemetryConfigProducer interface {
 	RecordConfigData(configData dtos.Config) error
 	RecordNonReadyUsage()
 	RecordBURTimeout()
+	RecordUniqueKeys(uniques dtos.Uniques) error
 }
 
 // TelemetryEvaluationProducer for evaluation
@@ -162,6 +170,21 @@ type TelemetryPeeker interface {
 	PeekHTTPErrors(resource int) map[int]int
 }
 
+// ImpressionsCountProducer interface
+type ImpressionsCountProducer interface {
+	RecordImpressionsCount(impressions dtos.ImpressionsCountDTO) error
+}
+
+// ImpressionsCountProducer interface
+type ImpressionsCountConsumer interface {
+	GetImpressionsCount() (*dtos.ImpressionsCountDTO, error)
+}
+
+type ImpressionsCountStorage interface {
+	ImpressionsCountConsumer
+	ImpressionsCountProducer
+}
+
 // --- Wide Interfaces
 
 // SplitStorage wraps consumer & producer interfaces
@@ -192,6 +215,7 @@ type SegmentStorage interface {
 type ImpressionStorage interface {
 	ImpressionStorageConsumer
 	ImpressionStorageProducer
+	ImpressionMultiSdkConsumer
 }
 
 // EventsStorage wraps consumer and producer interfaces
@@ -204,4 +228,11 @@ type EventsStorage interface {
 type TelemetryStorage interface {
 	TelemetryStorageConsumer
 	TelemetryStorageProducer
+}
+
+// Filter interfaces
+type Filter interface {
+	Add(data string)
+	Contains(data string) bool
+	Clear()
 }

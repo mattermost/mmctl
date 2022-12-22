@@ -350,6 +350,11 @@ func (i *TelemetryStorage) RecordBURTimeout() {
 	atomic.AddInt64(&i.counters.burTimeouts, 1)
 }
 
+func (i *TelemetryStorage) RecordUniqueKeys(uniques dtos.Uniques) error {
+	// No-op
+	return nil
+}
+
 // TELEMETRY STORAGE CONSUMER
 
 // PopLatencies gets and clears method latencies

@@ -1,11 +1,6 @@
 package util
 
-import (
-	"strings"
-
-	"github.com/splitio/go-split-commons/v4/conf"
-)
-
+/*
 // ShouldAddPreviousTime returns if previous time should be set up or not depending on operationMode
 func ShouldAddPreviousTime(managerConfig conf.ManagerConfig) bool {
 	switch strings.ToLower(managerConfig.OperationMode) {
@@ -28,3 +23,4 @@ func ShouldBeOptimized(managerConfig conf.ManagerConfig) bool {
 	}
 	return false
 }
+*/

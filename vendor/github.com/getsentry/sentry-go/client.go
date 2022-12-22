@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -28,6 +27,11 @@ import (
 // is not optimized for long chains either. The top-level error together with a
 // stack trace is often the most useful information.
 const maxErrorDepth = 10
+
+// defaultMaxSpans limits the default number of recorded spans per transaction. The limit is
+// meant to bound memory usage and prevent too large transaction events that
+// would be rejected by Sentry.
+const defaultMaxSpans = 1000
 
 // hostname is the host name reported by the kernel. It is precomputed once to
 // avoid syscalls when capturing events.
@@ -60,7 +64,7 @@ func (r *lockedRand) Float64() float64 {
 // other hand, the source returned from rand.NewSource is not safe for
 // concurrent use, so we need to couple its use with a sync.Mutex.
 var rng = &lockedRand{
-	//#nosec G404 -- We are fine using transparent, non-secure value here.
+	// #nosec G404 -- We are fine using transparent, non-secure value here.
 	r: rand.New(rand.NewSource(time.Now().UnixNano())),
 }
 
@@ -74,7 +78,7 @@ type usageError struct {
 
 // Logger is an instance of log.Logger that is use to provide debug information about running Sentry Client
 // can be enabled by either using Logger.SetOutput directly or with Debug client option.
-var Logger = log.New(ioutil.Discard, "[Sentry] ", log.LstdFlags)
+var Logger = log.New(io.Discard, "[Sentry] ", log.LstdFlags)
 
 // EventProcessor is a function that processes an event.
 // Event processors are used to change an event before it is sent to Sentry.
@@ -130,6 +134,9 @@ type ClientOptions struct {
 	// and if applicable, caught errors type and value.
 	// If the match is found, then a whole event will be dropped.
 	IgnoreErrors []string
+	// If this flag is enabled, certain personally identifiable information (PII) is added by active integrations.
+	// By default, no such data is sent.
+	SendDefaultPII bool
 	// BeforeSend is called before error events are sent to Sentry.
 	// Use it to mutate the event or return nil to discard the event.
 	// See EventProcessor if you need to mutate transactions.
@@ -173,8 +180,14 @@ type ClientOptions struct {
 	Dist string
 	// The environment to be sent with events.
 	Environment string
-	// Maximum number of breadcrumbs.
+	// Maximum number of breadcrumbs
+	// when MaxBreadcrumbs is negative then ignore breadcrumbs.
 	MaxBreadcrumbs int
+	// Maximum number of spans.
+	//
+	// See https://develop.sentry.dev/sdk/envelopes/#size-limits for size limits
+	// applied during event ingestion. Events that exceed these limits might get dropped.
+	MaxSpans int
 	// An optional pointer to http.Client that will be used with a default
 	// HTTPTransport. Using your own client will make HTTPTransport, HTTPProxy,
 	// HTTPSProxy and CaCerts options ignored.
@@ -192,6 +205,14 @@ type ClientOptions struct {
 	HTTPSProxy string
 	// An optional set of SSL certificates to use.
 	CaCerts *x509.CertPool
+	// MaxErrorDepth is the maximum number of errors reported in a chain of errors.
+	// This protects the SDK from an arbitrarily long chain of wrapped errors.
+	//
+	// An additional consideration is that arguably reporting a long chain of errors
+	// is of little use when debugging production errors with Sentry. The Sentry UI
+	// is not optimized for long chains either. The top-level error together with a
+	// stack trace is often the most useful information.
+	MaxErrorDepth int
 }
 
 // Client is the underlying processor that is used by the main API and Hub
@@ -236,6 +257,14 @@ func NewClient(options ClientOptions) (*Client, error) {
 
 	if options.Environment == "" {
 		options.Environment = os.Getenv("SENTRY_ENVIRONMENT")
+	}
+
+	if options.MaxErrorDepth == 0 {
+		options.MaxErrorDepth = maxErrorDepth
+	}
+
+	if options.MaxSpans == 0 {
+		options.MaxSpans = defaultMaxSpans
 	}
 
 	// SENTRYGODEBUG is a comma-separated list of key=value pairs (similar
@@ -326,6 +355,10 @@ func (client *Client) setupIntegrations() {
 		integration.SetupOnce(client)
 		Logger.Printf("Integration installed: %s\n", integration.Name())
 	}
+
+	sort.Slice(client.integrations, func(i, j int) bool {
+		return client.integrations[i].Name() < client.integrations[j].Name()
+	})
 }
 
 // AddEventProcessor adds an event processor to the client. It must not be
@@ -376,7 +409,7 @@ func (client *Client) Recover(err interface{}, hint *EventHint, scope EventModif
 	// use the Context for communicating deadline nor cancelation. All it does
 	// is store the Context in the EventHint and there nil means the Context is
 	// not available.
-	//nolint: staticcheck
+	// nolint: staticcheck
 	return client.RecoverWithContext(nil, err, hint, scope)
 }
 
@@ -460,7 +493,7 @@ func (client *Client) eventFromException(exception error, level Level) *Event {
 	event := NewEvent()
 	event.Level = level
 
-	for i := 0; i < maxErrorDepth && err != nil; i++ {
+	for i := 0; i < client.options.MaxErrorDepth && err != nil; i++ {
 		event.Exception = append(event.Exception, Exception{
 			Value:      err.Error(),
 			Type:       reflect.TypeOf(err).String(),
@@ -570,22 +603,22 @@ func (client *Client) prepareEvent(event *Event, hint *EventHint, scope EventMod
 	}
 
 	if event.ServerName == "" {
-		if client.Options().ServerName != "" {
-			event.ServerName = client.Options().ServerName
-		} else {
+		event.ServerName = client.Options().ServerName
+
+		if event.ServerName == "" {
 			event.ServerName = hostname
 		}
 	}
 
-	if event.Release == "" && client.Options().Release != "" {
+	if event.Release == "" {
 		event.Release = client.Options().Release
 	}
 
-	if event.Dist == "" && client.Options().Dist != "" {
+	if event.Dist == "" {
 		event.Dist = client.Options().Dist
 	}
 
-	if event.Environment == "" && client.Options().Environment != "" {
+	if event.Environment == "" {
 		event.Environment = client.Options().Environment
 	}
 
@@ -629,11 +662,10 @@ func (client *Client) prepareEvent(event *Event, hint *EventHint, scope EventMod
 }
 
 func (client Client) listIntegrations() []string {
-	integrations := make([]string, 0, len(client.integrations))
-	for _, integration := range client.integrations {
-		integrations = append(integrations, integration.Name())
+	integrations := make([]string, len(client.integrations))
+	for i, integration := range client.integrations {
+		integrations[i] = integration.Name()
 	}
-	sort.Strings(integrations)
 	return integrations
 }
 

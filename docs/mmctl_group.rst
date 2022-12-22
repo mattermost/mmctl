@@ -40,4 +40,5 @@ SEE ALSO
 * `mmctl group channel <mmctl_group_channel.rst>`_ 	 - Management of channel groups
 * `mmctl group list-ldap <mmctl_group_list-ldap.rst>`_ 	 - List LDAP groups
 * `mmctl group team <mmctl_group_team.rst>`_ 	 - Management of team groups
+* `mmctl group user <mmctl_group_user.rst>`_ 	 - Management of custom user groups
 

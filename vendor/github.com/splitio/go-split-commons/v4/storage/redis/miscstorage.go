@@ -2,6 +2,7 @@ package redis
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/splitio/go-toolkit/v5/logging"
@@ -43,7 +44,12 @@ func (m *MiscStorage) SetApikeyHash(newApikeyHash string) error {
 
 // ClearAll cleans previous used data
 func (m *MiscStorage) ClearAll() error {
-	luaCMD := strings.Replace(clearAllSCriptTemplate, "{KEY_NAMESPACE}", m.client.Prefix(), 1)
+	finalPrefix := "SPLITIO."
+	if userPrefix := m.client.Prefix(); userPrefix != "" {
+		finalPrefix = fmt.Sprintf("%s.%s.", userPrefix, "SPLITIO")
+	}
+
+	luaCMD := strings.Replace(clearAllSCriptTemplate, "{KEY_NAMESPACE}", finalPrefix, 1)
 	return m.client.Eval(luaCMD, []string{}, nil)
 }
 

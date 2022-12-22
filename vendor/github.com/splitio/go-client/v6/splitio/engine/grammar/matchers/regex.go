@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 )
@@ -15,7 +16,7 @@ type RegexMatcher struct {
 func (m *RegexMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("RegexMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("RegexMatcher: %s", err.Error()))
 		return false
 	}
 

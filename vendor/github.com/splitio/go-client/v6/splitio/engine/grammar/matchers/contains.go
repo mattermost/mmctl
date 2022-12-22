@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type ContainsStringMatcher struct {
 func (m *ContainsStringMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("ContainsAllOfSetMatcher: Error retrieving matching key")
+		m.logger.Warning(fmt.Sprintf("ContainsAllOfSetMatcher: %s", err.Error()))
 		return false
 	}
 

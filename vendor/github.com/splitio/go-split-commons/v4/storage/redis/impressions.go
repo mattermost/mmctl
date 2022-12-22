@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/splitio/go-split-commons/v4/dtos"
+	"github.com/splitio/go-split-commons/v4/storage"
 	"github.com/splitio/go-toolkit/v5/logging"
 	"github.com/splitio/go-toolkit/v5/redis"
 )
@@ -22,7 +23,7 @@ type ImpressionStorage struct {
 }
 
 // NewImpressionStorage creates a new RedisSplitStorage and returns a reference to it
-func NewImpressionStorage(client *redis.PrefixedRedisClient, metadata dtos.Metadata, logger logging.LoggerInterface) *ImpressionStorage {
+func NewImpressionStorage(client *redis.PrefixedRedisClient, metadata dtos.Metadata, logger logging.LoggerInterface) storage.ImpressionStorage {
 	return &ImpressionStorage{
 		client:   client,
 		mutex:    &sync.Mutex{},
@@ -32,6 +33,11 @@ func NewImpressionStorage(client *redis.PrefixedRedisClient, metadata dtos.Metad
 	}
 }
 
+// Empty returns true if redis list is zero length
+func (r *ImpressionStorage) Empty() bool {
+	return r.Count() == 0
+}
+
 // Count returns the size of the impressions queue
 func (r *ImpressionStorage) Count() int64 {
 	val, err := r.client.LLen(r.redisKey)
@@ -39,54 +45,6 @@ func (r *ImpressionStorage) Count() int64 {
 		return 0
 	}
 	return val
-}
-
-// Drop drops impressions from queue
-func (r *ImpressionStorage) Drop(size int64) error {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-	if size == -1 {
-		_, err := r.client.Del(r.redisKey)
-		return err
-	}
-	return r.client.LTrim(r.redisKey, size, -1)
-}
-
-// Empty returns true if redis list is zero length
-func (r *ImpressionStorage) Empty() bool {
-	return r.Count() == 0
-}
-
-// push stores impressions in redis
-func (r *ImpressionStorage) push(impressions []dtos.ImpressionQueueObject) error {
-	var impressionsJSON []interface{}
-	for _, impression := range impressions {
-		iJSON, err := json.Marshal(impression)
-		if err != nil {
-			r.logger.Error("Error encoding impression in json")
-			r.logger.Error(err)
-		} else {
-			impressionsJSON = append(impressionsJSON, iJSON)
-		}
-	}
-
-	r.logger.Debug("Pushing impressions to: ", r.redisKey, len(impressionsJSON))
-
-	inserted, errPush := r.client.RPush(r.redisKey, impressionsJSON...)
-	if errPush != nil {
-		r.logger.Error("Something were wrong pushing impressions to redis", errPush)
-		return errPush
-	}
-
-	// Checks if expiration needs to be set
-	if inserted == int64(len(impressionsJSON)) {
-		r.logger.Debug("Proceeding to set expiration for: ", r.redisKey)
-		result := r.client.Expire(r.redisKey, time.Duration(TTLImpressions)*time.Second)
-		if result == false {
-			r.logger.Error("Something were wrong setting expiration", errPush)
-		}
-	}
-	return nil
 }
 
 // LogImpressions stores impressions in redis as Queue
@@ -103,32 +61,10 @@ func (r *ImpressionStorage) LogImpressions(impressions []dtos.Impression) error 
 	return nil
 }
 
-func (r *ImpressionStorage) pop(n int64) ([]string, int64, error) {
-
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
-	lrange, err := r.client.LRange(r.redisKey, 0, n-1)
-	if err != nil {
-		r.logger.Error("Error fetching impressions")
-		return nil, 0, err
-	}
-
-	fetchedCount := int64(len(lrange))
-	if fetchedCount == 0 {
-		return nil, 0, nil
-	}
-
-	pipe := r.client.Pipeline()
-	pipe.LTrim(r.redisKey, fetchedCount, int64(-1))
-	pipe.LLen(r.redisKey)
-	res, err := pipe.Exec()
-	if len(res) < 2 || err != nil {
-		r.logger.Error("Error trimming impressions")
-		return nil, 0, err
-	}
-
-	return lrange, res[1].Int(), err
+// PopN no-op
+func (r *ImpressionStorage) PopN(n int64) ([]dtos.Impression, error) {
+	// NO-op
+	return []dtos.Impression{}, nil
 }
 
 // PopNWithMetadata pop N elements from queue
@@ -159,6 +95,17 @@ func (r *ImpressionStorage) PopNWithMetadata(n int64) ([]dtos.ImpressionQueueObj
 	return toReturn, nil
 }
 
+// Drop drops impressions from queue
+func (r *ImpressionStorage) Drop(size int64) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	if size == -1 {
+		_, err := r.client.Del(r.redisKey)
+		return err
+	}
+	return r.client.LTrim(r.redisKey, size, -1)
+}
+
 // PopNRaw pops N elements and returns them as raw strings, and how many items are left in the queue
 func (r *ImpressionStorage) PopNRaw(n int64) ([]string, int64, error) {
 	lrange, left, err := r.pop(n)
@@ -167,4 +114,64 @@ func (r *ImpressionStorage) PopNRaw(n int64) ([]string, int64, error) {
 	}
 
 	return lrange, left, nil
+}
+
+// push stores impressions in redis
+func (r *ImpressionStorage) push(impressions []dtos.ImpressionQueueObject) error {
+	var impressionsJSON []interface{}
+	for _, impression := range impressions {
+		iJSON, err := json.Marshal(impression)
+		if err != nil {
+			r.logger.Error("Error encoding impression in json")
+			r.logger.Error(err)
+		} else {
+			impressionsJSON = append(impressionsJSON, iJSON)
+		}
+	}
+
+	r.logger.Debug("Pushing impressions to: ", r.redisKey, len(impressionsJSON))
+
+	inserted, errPush := r.client.RPush(r.redisKey, impressionsJSON...)
+	if errPush != nil {
+		r.logger.Error("Something were wrong pushing impressions to redis", errPush)
+		return errPush
+	}
+
+	// Checks if expiration needs to be set
+	if inserted == int64(len(impressionsJSON)) {
+		r.logger.Debug("Proceeding to set expiration for: ", r.redisKey)
+		result := r.client.Expire(r.redisKey, time.Duration(TTLImpressions)*time.Second)
+		if !result {
+			r.logger.Error("Something were wrong setting expiration", errPush)
+		}
+	}
+	return nil
+}
+
+func (r *ImpressionStorage) pop(n int64) ([]string, int64, error) {
+
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	lrange, err := r.client.LRange(r.redisKey, 0, n-1)
+	if err != nil {
+		r.logger.Error("Error fetching impressions")
+		return nil, 0, err
+	}
+
+	fetchedCount := int64(len(lrange))
+	if fetchedCount == 0 {
+		return nil, 0, nil
+	}
+
+	pipe := r.client.Pipeline()
+	pipe.LTrim(r.redisKey, fetchedCount, int64(-1))
+	pipe.LLen(r.redisKey)
+	res, err := pipe.Exec()
+	if len(res) < 2 || err != nil {
+		r.logger.Error("Error trimming impressions")
+		return nil, 0, err
+	}
+
+	return lrange, res[1].Int(), err
 }

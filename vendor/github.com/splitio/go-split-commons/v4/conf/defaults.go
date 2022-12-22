@@ -23,6 +23,8 @@ const (
 	ImpressionsModeOptimized = "optimized"
 	// ImpressionsModeDebug will send all the impressions generated
 	ImpressionsModeDebug = "debug"
+	// ImpressionsModeNone will send only the unique keys tracked
+	ImpressionsModeNone = "none"
 )
 
 const (

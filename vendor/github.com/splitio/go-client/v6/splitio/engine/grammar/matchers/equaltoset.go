@@ -1,6 +1,8 @@
 package matchers
 
 import (
+	"fmt"
+
 	"github.com/splitio/go-toolkit/v5/datastructures/set"
 )
 
@@ -14,7 +16,7 @@ type EqualToSetMatcher struct {
 func (m *EqualToSetMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("EqualToSetMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("EqualToSetMatcher: %s", err.Error()))
 		return false
 	}
 

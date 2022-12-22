@@ -127,6 +127,7 @@ const (
 const (
 	ImpressionsModeOptimized = iota
 	ImpressionsModeDebug
+	ImpressionsModeNone
 )
 
 const (
@@ -136,7 +137,8 @@ const (
 
 // InitConfig involves entire config for init
 type InitConfig struct {
-	AdvancedConfig conf.AdvancedConfig
-	TaskPeriods    conf.TaskPeriods
-	ManagerConfig  conf.ManagerConfig
+	AdvancedConfig  conf.AdvancedConfig
+	TaskPeriods     conf.TaskPeriods
+	ImpressionsMode string
+	ListenerEnabled bool
 }

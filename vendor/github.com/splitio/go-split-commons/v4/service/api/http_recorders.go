@@ -42,7 +42,8 @@ func (i *HTTPImpressionRecorder) Record(impressions []dtos.ImpressionsDTO, metad
 
 // RecordImpressionsCount sens impressionsCount
 func (i *HTTPImpressionRecorder) RecordImpressionsCount(pf dtos.ImpressionsCountDTO, metadata dtos.Metadata) error {
-	if len(pf.PerFeature) == 0 {
+	if len(pf.PerFeature) < 1 {
+		i.logger.Debug("Impression Count list is empty, nothing to record.")
 		return nil
 	}
 	data, err := json.Marshal(pf)
@@ -148,6 +149,28 @@ func (m *HTTPTelemetryRecorder) RecordStats(stats dtos.Stats, metadata dtos.Meta
 	err = m.RecordRaw("/metrics/usage", data, metadata, nil)
 	if err != nil {
 		m.logger.Error("Error posting usage", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+// RecordUniqueKeys method submits unique keys
+func (m *HTTPTelemetryRecorder) RecordUniqueKeys(uniques dtos.Uniques, metadata dtos.Metadata) error {
+	if len(uniques.Keys) < 1 {
+		m.logger.Debug("Unique Keys list is empty, nothing to record.")
+		return nil
+	}
+
+	data, err := json.Marshal(uniques)
+	if err != nil {
+		m.logger.Error("Error marshaling JSON", err.Error())
+		return err
+	}
+
+	err = m.RecordRaw("/keys/ss", data, metadata, nil)
+	if err != nil {
+		m.logger.Error("Error posting unique keys", err.Error())
 		return err
 	}
 

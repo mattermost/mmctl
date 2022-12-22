@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -14,7 +15,7 @@ type EndsWithMatcher struct {
 func (m *EndsWithMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("EndsWithMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("EndsWithMatcher: %s", err.Error()))
 		return false
 	}
 
