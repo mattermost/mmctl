@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/v6/client"
-	"github.com/mattermost/mmctl/v6/commands/importer"
+	"github.com/mattermost/mmctl/v6/pkg/importer"
 	"github.com/mattermost/mmctl/v6/printer"
 )
 
