@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/v6/client"
-	"github.com/mattermost/mmctl/v6/pkg/importer"
+	"github.com/mattermost/mmctl/v6/commands/validator"
 	"github.com/mattermost/mmctl/v6/printer"
 )
 
@@ -350,7 +350,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 
 	var (
 		serverTeams    = make(map[string]*model.Team) // initialize it in case we need to add teams manually
-		serverChannels map[importer.ChannelTeam]*model.Channel
+		serverChannels map[validator.ChannelTeam]*model.Channel
 		serverUsers    map[string]*model.User
 		serverEmails   map[string]*model.User
 	)
@@ -375,7 +375,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 			return err
 		}
 
-		serverChannels = make(map[importer.ChannelTeam]*model.Channel)
+		serverChannels = make(map[validator.ChannelTeam]*model.Channel)
 		for _, team := range teams {
 			serverTeams[team.Name] = team
 
@@ -394,10 +394,10 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 			}
 
 			for _, channel := range publicChannels {
-				serverChannels[importer.ChannelTeam{Channel: channel.Name, Team: team.Name}] = channel
+				serverChannels[validator.ChannelTeam{Channel: channel.Name, Team: team.Name}] = channel
 			}
 			for _, channel := range privateChannels {
-				serverChannels[importer.ChannelTeam{Channel: channel.Name, Team: team.Name}] = channel
+				serverChannels[validator.ChannelTeam{Channel: channel.Name, Team: team.Name}] = channel
 			}
 		}
 
@@ -437,7 +437,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
-	validator := importer.NewValidator(
+	archiveValidator := validator.NewValidator(
 		args[0],               // input file
 		ignoreAttachments,     // ignore attachments flag
 		createMissingTeams,    // create missing teams flag
@@ -449,38 +449,38 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	)
 
 	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
-	validator.OnError(func(ive *importer.ImportValidationError) error {
+	archiveValidator.OnError(func(ive *validator.ImportValidationError) error {
 		printer.PrintPreparedT(templateError, ive)
 		return nil
 	})
 
-	err = validator.Validate()
+	err = archiveValidator.Validate()
 	if err != nil {
 		return err
 	}
 
 	stat := Statistics{
-		Schemes:        validator.Schemes(),
-		Teams:          validator.TeamCount(),
-		Channels:       validator.ChannelCount(),
-		Users:          validator.UserCount(),
-		Posts:          (validator.PostCount()),
-		DirectChannels: (validator.DirectChannelCount()),
-		DirectPosts:    (validator.DirectPostCount()),
-		Emojis:         (validator.Emojis()),
-		Attachments:    uint64(len(validator.Attachments())),
+		Schemes:        archiveValidator.Schemes(),
+		Teams:          archiveValidator.TeamCount(),
+		Channels:       archiveValidator.ChannelCount(),
+		Users:          archiveValidator.UserCount(),
+		Posts:          (archiveValidator.PostCount()),
+		DirectChannels: (archiveValidator.DirectChannelCount()),
+		DirectPosts:    (archiveValidator.DirectPostCount()),
+		Emojis:         (archiveValidator.Emojis()),
+		Attachments:    uint64(len(archiveValidator.Attachments())),
 	}
 
 	printStatistics(stat)
 
-	createdTeams := validator.CreatedTeams()
+	createdTeams := archiveValidator.CreatedTeams()
 	if createMissingTeams && len(createdTeams) != 0 {
 		printer.PrintT("Automatically created teams: {{ join .CreatedTeams \", \" }}\n", struct {
 			CreatedTeams []string `json:"created_teams"`
 		}{createdTeams})
 	}
 
-	unusedAttachments := validator.UnusedAttachments()
+	unusedAttachments := archiveValidator.UnusedAttachments()
 	if len(unusedAttachments) > 0 {
 		printer.PrintT("Unused Attachments ({{ len .UnusedAttachments }}):\n"+
 			"{{ range .UnusedAttachments }}  {{ . }}\n{{ end }}", struct {
@@ -492,7 +492,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		FileName   string        `json:"file_name"`
 		TotalLines uint64        `json:"total_lines"`
 		Elapsed    time.Duration `json:"elapsed_time_ns"`
-	}{args[0], validator.Lines(), validator.Duration()})
+	}{args[0], archiveValidator.Lines(), archiveValidator.Duration()})
 
 	return nil
 }
