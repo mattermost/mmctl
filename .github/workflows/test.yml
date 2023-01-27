@@ -72,7 +72,7 @@ jobs:
     - name: Setup mattermost-server
       working-directory: mattermost-server
       run: |
-        git checkout $GITHUB_HEAD_REF || git checkout master
+        git checkout $GITHUB_HEAD_REF || git checkout release-7.8
 
     - name: Start containers
       working-directory: mattermost-server/build
