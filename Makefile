@@ -123,7 +123,7 @@ endif
 govet:
 ifeq ($(ADVANCED_VET), TRUE)
 	@if ! [ -x "$$(command -v mattermost-govet)" ]; then \
-		echo "mattermost-govet is not installed. Please install it executing \"GO111MODULE=off go get -u github.com/mattermost/mattermost-govet\""; \
+		echo "mattermost-govet is not installed. Please install it executing \"go install github.com/mattermost/mattermost-govet@latest\""; \
 		exit 1; \
 	fi;
 	@echo Running mattermost-govet
