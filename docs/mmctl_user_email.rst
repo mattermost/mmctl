@@ -27,7 +27,8 @@ Options
 
 ::
 
-  -h, --help   help for email
+  -h, --help              help for email
+  -p, --password string   The password to authenticate the current user when changing their email address.
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
