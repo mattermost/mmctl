@@ -524,7 +524,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	s.RunForSystemAdminAndLocal("admin and local user can change user email", func(c client.Client) {
 		printer.Clean()
 
-		logout := s.LoginWithClient(c)
+		logout := s.LoginAs(s.th.SystemAdminUser.Username)
 		defer logout()
 
 		oldEmail := s.th.BasicUser2.Email
@@ -544,7 +544,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	s.Run("normal user doesn't have permission to change another user's email", func() {
 		printer.Clean()
 
-		logout := s.LoginWithClient(s.th.Client)
+		logout := s.LoginAs(s.th.BasicUser.Username)
 		defer logout()
 
 		newEmail := "basicuser2-change@fakedomain.com"
@@ -559,7 +559,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	s.Run("normal users can't update their own email due to security reasons without a password", func() {
 		printer.Clean()
 
-		logout := s.LoginWithClient(s.th.Client)
+		logout := s.LoginAs(s.th.BasicUser.Username)
 		defer logout()
 
 		cmd := &cobra.Command{}
@@ -573,7 +573,7 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 	s.Run("normal users can update their own email", func() {
 		printer.Clean()
 
-		logout := s.LoginWithClient(s.th.Client)
+		logout := s.LoginAs(s.th.BasicUser.Username)
 		defer logout()
 
 		cmd := &cobra.Command{}

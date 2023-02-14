@@ -41,6 +41,7 @@ func (s *MmctlUnitTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
 }
 
+// LoginAs login user using the given username
 func (s *MmctlUnitTestSuite) LoginAs(username string) func() {
 	return loginAs(s.T(), username)
 }
@@ -108,11 +109,9 @@ func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Cli
 	})
 }
 
-func (s *MmctlE2ETestSuite) LoginWithClient(c client.Client) func() {
-	currUser, _, err := c.GetMe("")
-	s.Require().NoError(err)
-
-	return loginAs(s.T(), currUser.Username)
+// LoginAs login user using the given username
+func (s *MmctlE2ETestSuite) LoginAs(username string) func() {
+	return loginAs(s.T(), username)
 }
 
 func loginAs(t *testing.T, username string) func() {
