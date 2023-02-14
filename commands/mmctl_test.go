@@ -4,6 +4,11 @@
 package commands
 
 import (
+	"os"
+	"path/filepath"
+
+	"github.com/spf13/viper"
+
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/mocks"
 	"github.com/mattermost/mmctl/v6/printer"
@@ -32,6 +37,20 @@ func (s *MmctlUnitTestSuite) SetupTest() {
 
 func (s *MmctlUnitTestSuite) TearDownTest() {
 	s.mockCtrl.Finish()
+}
+
+func (s *MmctlUnitTestSuite) LoginAs(username string) func() {
+	err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
+	s.Require().NoError(err)
+
+	tmp, _ := os.MkdirTemp("", "mmctl-")
+	path := filepath.Join(tmp, configFileName)
+	viper.Set("config", path)
+
+	err = SaveCredentials(Credentials{Username: username})
+	s.Require().NoError(err)
+
+	return func() { os.RemoveAll(tmp) }
 }
 
 type MmctlE2ETestSuite struct {

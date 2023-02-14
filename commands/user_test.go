@@ -1425,9 +1425,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		command := cobra.Command{}
 
-		error := updateUserEmailCmdF(s.client, &command, []string{})
+		err := updateUserEmailCmdF(s.client, &command, []string{})
 
-		s.Require().EqualError(error, "expected two arguments. See help text for details")
+		s.Require().EqualError(err, "expected two arguments. See help text for details")
 	})
 
 	s.Run("Invalid email provided", func() {
@@ -1481,6 +1481,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
 
+		logout := s.LoginAs("notTestUser")
+		defer logout()
+
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
@@ -1513,6 +1516,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
 		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
+
+		logout := s.LoginAs("notTestUser")
+		defer logout()
 
 		s.client.
 			EXPECT().
@@ -1549,6 +1555,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
 		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
 
+		logout := s.LoginAs("notTestUser")
+		defer logout()
+
 		s.client.
 			EXPECT().
 			GetUserByEmail(userArg, "").
@@ -1561,9 +1570,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 			Return(&updatedUser, &model.Response{}, nil).
 			Times(1)
 
-		error := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
+		err := updateUserEmailCmdF(s.client, &command, []string{userArg, emailArg})
 
-		s.Require().Nil(error)
+		s.Require().Nil(err)
 		s.Require().Equal(&updatedUser, printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
@@ -1577,6 +1586,9 @@ func (s *MmctlUnitTestSuite) TestUpdateUserEmailCmd() {
 
 		currentUser := model.User{Username: "testUser", Password: "password", Email: "email"}
 		updatedUser := model.User{Username: "testUser", Password: "password", Email: emailArg}
+
+		logout := s.LoginAs("notTestUser")
+		defer logout()
 
 		s.client.
 			EXPECT().

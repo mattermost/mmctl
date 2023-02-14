@@ -537,12 +537,12 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 
 	user.Email = newEmail
 
-	currUser, _, err := c.GetMe("")
+	credentials, err := GetCurrentCredentials()
 	if err != nil {
 		return err
 	}
 
-	if user.Id == currUser.Id {
+	if credentials.Username == user.Username {
 		fmt.Printf("Current Password: ")
 		currentPassword, err1 := getPasswordFromStdin()
 		if err1 != nil {
