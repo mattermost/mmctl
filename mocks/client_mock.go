@@ -894,6 +894,22 @@ func (mr *MockClientMockRecorder) GetMarketplacePlugins(arg0 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarketplacePlugins", reflect.TypeOf((*MockClient)(nil).GetMarketplacePlugins), arg0)
 }
 
+// GetMe mocks base method.
+func (m *MockClient) GetMe(arg0 string) (*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMe", arg0)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetMe indicates an expected call of GetMe.
+func (mr *MockClientMockRecorder) GetMe(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMe", reflect.TypeOf((*MockClient)(nil).GetMe), arg0)
+}
+
 // GetOutgoingWebhook mocks base method.
 func (m *MockClient) GetOutgoingWebhook(arg0 string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()

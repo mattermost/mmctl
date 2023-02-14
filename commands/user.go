@@ -270,6 +270,8 @@ func init() {
 	_ = UserCreateCmd.Flags().MarkDeprecated("email_verified", "please use email-verified instead")
 	UserCreateCmd.Flags().Bool("disable-welcome-email", false, "Optional. If supplied, the new user will not receive a welcome email. Defaults to false")
 
+	UpdateUserEmailCmd.Flags().StringP("password", "p", "", "The password when changing the email address of the current user")
+
 	DeleteUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed")
 
@@ -543,11 +545,19 @@ func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	if credentials.Username == user.Username {
-		fmt.Printf("Current Password: ")
-		currentPassword, err1 := getPasswordFromStdin()
-		if err1 != nil {
-			return errors.WithMessage(err1, "couldn't read password")
+		currentPassword, err := cmd.Flags().GetString("password")
+		if err != nil {
+			return err
 		}
+
+		if currentPassword == "" {
+			fmt.Printf("Current Password: ")
+			currentPassword, err = getPasswordFromStdin()
+			if err != nil {
+				return errors.WithMessage(err, "couldn't read password")
+			}
+		}
+
 		user.Password = currentPassword
 	}
 

@@ -6,8 +6,10 @@ package commands
 import (
 	"os"
 	"path/filepath"
+	"testing"
 
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mmctl/v6/client"
 	"github.com/mattermost/mmctl/v6/mocks"
@@ -40,17 +42,7 @@ func (s *MmctlUnitTestSuite) TearDownTest() {
 }
 
 func (s *MmctlUnitTestSuite) LoginAs(username string) func() {
-	err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
-	s.Require().NoError(err)
-
-	tmp, _ := os.MkdirTemp("", "mmctl-")
-	path := filepath.Join(tmp, configFileName)
-	viper.Set("config", path)
-
-	err = SaveCredentials(Credentials{Username: username})
-	s.Require().NoError(err)
-
-	return func() { os.RemoveAll(tmp) }
+	return loginAs(s.T(), username)
 }
 
 type MmctlE2ETestSuite struct {
@@ -114,4 +106,25 @@ func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Cli
 	s.Run(testName+"/LocalClient", func() {
 		fn(s.th.LocalClient)
 	})
+}
+
+func (s *MmctlE2ETestSuite) LoginWithClient(c client.Client) func() {
+	currUser, _, err := c.GetMe("")
+	s.Require().NoError(err)
+
+	return loginAs(s.T(), currUser.Username)
+}
+
+func loginAs(t *testing.T, username string) func() {
+	err := os.Setenv("XDG_CONFIG_HOME", "path/should/be/ignored")
+	require.NoError(t, err)
+
+	tmp, _ := os.MkdirTemp("", "mmctl-")
+	path := filepath.Join(tmp, configFileName)
+	viper.Set("config", path)
+
+	err = SaveCredentials(Credentials{Username: username})
+	require.NoError(t, err)
+
+	return func() { os.RemoveAll(tmp) }
 }

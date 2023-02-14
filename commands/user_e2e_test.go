@@ -523,6 +523,10 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 
 	s.RunForSystemAdminAndLocal("admin and local user can change user email", func(c client.Client) {
 		printer.Clean()
+
+		logout := s.LoginWithClient(c)
+		defer logout()
+
 		oldEmail := s.th.BasicUser2.Email
 		newEmail := "basicuser2@fakedomain.com"
 		err := updateUserEmailCmdF(c, &cobra.Command{}, []string{s.th.BasicUser2.Email, newEmail})
@@ -539,6 +543,10 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 
 	s.Run("normal user doesn't have permission to change another user's email", func() {
 		printer.Clean()
+
+		logout := s.LoginWithClient(s.th.Client)
+		defer logout()
+
 		newEmail := "basicuser2-change@fakedomain.com"
 		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser2.Id, newEmail})
 		s.Require().EqualError(err, ": You do not have the appropriate permissions.")
@@ -548,12 +556,32 @@ func (s *MmctlE2ETestSuite) TestUpdateUserEmailCmd() {
 		s.Require().Equal(s.th.BasicUser2.Email, u.Email)
 	})
 
-	s.Run("normal users can't update their own email due to security reasons", func() {
+	s.Run("normal users can't update their own email due to security reasons without a password", func() {
 		printer.Clean()
 
+		logout := s.LoginWithClient(s.th.Client)
+		defer logout()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("password", "somepass", "")
+
 		newEmail := "basicuser-change@fakedomain.com"
-		err := updateUserEmailCmdF(s.th.Client, &cobra.Command{}, []string{s.th.BasicUser.Id, newEmail})
+		err := updateUserEmailCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Id, newEmail})
 		s.Require().EqualError(err, ": Invalid or missing password in request body.")
+	})
+
+	s.Run("normal users can update their own email", func() {
+		printer.Clean()
+
+		logout := s.LoginWithClient(s.th.Client)
+		defer logout()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("password", s.th.BasicUser.Password, "")
+
+		newEmail := "basicuser-change@fakedomain.com"
+		err := updateUserEmailCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Id, newEmail})
+		s.Require().NoError(err)
 	})
 }
 
