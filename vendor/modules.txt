@@ -256,9 +256,6 @@ github.com/getsentry/sentry-go/internal/ratelimit
 # github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573
 ## explicit
 github.com/gigawattio/window
-# github.com/go-asn1-ber/asn1-ber v1.5.4
-## explicit; go 1.13
-github.com/go-asn1-ber/asn1-ber
 # github.com/go-redis/redis/v8 v8.11.5
 ## explicit; go 1.17
 github.com/go-redis/redis/v8
@@ -497,8 +494,8 @@ github.com/mattermost/gosaml2/uuid
 # github.com/mattermost/gziphandler v0.0.1
 ## explicit; go 1.11
 github.com/mattermost/gziphandler
-# github.com/mattermost/ldap v0.0.0-20201202150706-ee0e6284187d
-## explicit; go 1.13
+# github.com/mattermost/ldap v3.0.4+incompatible
+## explicit
 github.com/mattermost/ldap
 # github.com/mattermost/logr/v2 v2.0.15
 ## explicit; go 1.12
@@ -1166,6 +1163,9 @@ google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 ## explicit
 gopkg.in/alexcesaro/quotedprintable.v3
+# gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
+## explicit
+gopkg.in/asn1-ber.v1
 # gopkg.in/ini.v1 v1.67.0
 ## explicit
 gopkg.in/ini.v1

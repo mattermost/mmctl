@@ -1,11 +1,12 @@
 package ldap
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 
-	ber "github.com/go-asn1-ber/asn1-ber"
+	"gopkg.in/asn1-ber.v1"
 )
 
 // LDAP Application Codes
@@ -86,7 +87,7 @@ var BeheraPasswordPolicyErrorMap = map[int8]string{
 func addLDAPDescriptions(packet *ber.Packet) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = NewError(ErrorDebugging, fmt.Errorf("ldap: cannot process packet to add descriptions: %s", r))
+			err = NewError(ErrorDebugging, errors.New("ldap: cannot process packet to add descriptions"))
 		}
 	}()
 	packet.Description = "LDAP Response"

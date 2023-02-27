@@ -8,23 +8,21 @@ import (
 // Client knows how to interact with an LDAP server
 type Client interface {
 	Start()
-	StartTLS(*tls.Config) error
+	StartTLS(config *tls.Config) error
 	Close()
 	SetTimeout(time.Duration)
 
 	Bind(username, password string) error
-	UnauthenticatedBind(username string) error
-	SimpleBind(*SimpleBindRequest) (*SimpleBindResult, error)
-	ExternalBind() error
+	SimpleBind(simpleBindRequest *SimpleBindRequest) (*SimpleBindResult, error)
 
-	Add(*AddRequest) error
-	Del(*DelRequest) error
-	Modify(*ModifyRequest) error
-	ModifyDN(*ModifyDNRequest) error
+	Add(addRequest *AddRequest) error
+	Del(delRequest *DelRequest) error
+	Modify(modifyRequest *ModifyRequest) error
+	ModifyDN(modifyDNRequest *ModifyDNRequest) error
 
 	Compare(dn, attribute, value string) (bool, error)
-	PasswordModify(*PasswordModifyRequest) (*PasswordModifyResult, error)
+	PasswordModify(passwordModifyRequest *PasswordModifyRequest) (*PasswordModifyResult, error)
 
-	Search(*SearchRequest) (*SearchResult, error)
+	Search(searchRequest *SearchRequest) (*SearchResult, error)
 	SearchWithPaging(searchRequest *SearchRequest, pagingSize uint32) (*SearchResult, error)
 }

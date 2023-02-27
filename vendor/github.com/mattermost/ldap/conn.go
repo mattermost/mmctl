@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	ber "github.com/go-asn1-ber/asn1-ber"
+	"gopkg.in/asn1-ber.v1"
 )
 
 const (
@@ -120,6 +120,7 @@ func Dial(network, addr string) (*Conn, error) {
 		return nil, NewError(ErrorNetwork, err)
 	}
 	conn := NewConn(c, false)
+	conn.Start()
 	return conn, nil
 }
 
@@ -131,6 +132,7 @@ func DialTLS(network, addr string, config *tls.Config) (*Conn, error) {
 		return nil, NewError(ErrorNetwork, err)
 	}
 	conn := NewConn(c, true)
+	conn.Start()
 	return conn, nil
 }
 
@@ -138,6 +140,7 @@ func DialTLS(network, addr string, config *tls.Config) (*Conn, error) {
 // or ldap:// specified as protocol. On success a new Conn for the connection
 // is returned.
 func DialURL(addr string) (*Conn, error) {
+
 	lurl, err := url.Parse(addr)
 	if err != nil {
 		return nil, NewError(ErrorNetwork, err)
@@ -151,11 +154,6 @@ func DialURL(addr string) (*Conn, error) {
 	}
 
 	switch lurl.Scheme {
-	case "ldapi":
-		if lurl.Path == "" || lurl.Path == "/" {
-			lurl.Path = "/var/run/slapd/ldapi"
-		}
-		return Dial("unix", lurl.Path)
 	case "ldap":
 		if port == "" {
 			port = DefaultLdapPort
@@ -189,9 +187,9 @@ func NewConn(conn net.Conn, isTLS bool) *Conn {
 
 // Start initializes goroutines to read responses and process messages
 func (l *Conn) Start() {
-	l.wgClose.Add(1)
 	go l.reader()
 	go l.processMessages()
+	l.wgClose.Add(1)
 }
 
 // IsClosing returns whether or not we're currently closing.
@@ -276,7 +274,7 @@ func (l *Conn) StartTLS(config *tls.Config) error {
 			l.Close()
 			return err
 		}
-		l.Debug.PrintPacket(packet)
+		ber.PrintPacket(packet)
 	}
 
 	if err := GetLDAPError(packet); err == nil {
@@ -449,7 +447,7 @@ func (l *Conn) processMessages() {
 					msgCtx.sendResponse(&PacketResponse{message.Packet, nil})
 				} else {
 					log.Printf("Received unexpected message %d, %v", message.MessageID, l.IsClosing())
-					l.Debug.PrintPacket(message.Packet)
+					ber.PrintPacket(message.Packet)
 				}
 			case MessageTimeout:
 				// Handle the timeout by closing the channel
@@ -492,13 +490,11 @@ func (l *Conn) reader() {
 			// A read error is expected here if we are closing the connection...
 			if !l.IsClosing() {
 				l.closeErr.Store(fmt.Errorf("unable to read LDAP response packet: %s", err))
-				l.Debug.Printf("reader error: %s", err)
+				l.Debug.Printf("reader error: %s", err.Error())
 			}
 			return
 		}
-		if err := addLDAPDescriptions(packet); err != nil {
-			l.Debug.Printf("descriptions error: %s", err)
-		}
+		addLDAPDescriptions(packet)
 		if len(packet.Children) == 0 {
 			l.Debug.Printf("Received bad ldap packet")
 			continue

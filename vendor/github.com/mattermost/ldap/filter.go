@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/go-asn1-ber/asn1-ber"
+	"gopkg.in/asn1-ber.v1"
 )
 
 // Filter choices
