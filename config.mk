@@ -4,3 +4,4 @@
 
 # Path to the mattermost-server folder to be able to run end-to-end tests
 MM_SERVER_PATH ?= ${PWD}/../mattermost-server
+DIST_VER=v7.10.0
