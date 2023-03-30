@@ -17,7 +17,7 @@ import (
 func getUsersFromUserArgs(c client.Client, userArgs []string) []*model.User {
 	users := make([]*model.User, 0, len(userArgs))
 	for _, userArg := range userArgs {
-		user := getUserFromUserArg(c, userArg)
+		user := getUserFromUserArg(c, strings.TrimSpace(userArg))
 		users = append(users, user)
 	}
 	return users
