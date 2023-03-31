@@ -132,7 +132,7 @@ $ mmctl auth login https://community.mattermost.com --name community --access-to
 
 # Development
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/mattermost/mmctl)
+[![Open in Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/mattermost/mmctl)
 
 ## Compile
 
