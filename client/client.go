@@ -11,7 +11,9 @@ import (
 )
 
 type Client interface {
+	GetMe(etag string) (*model.User, *model.Response, error)
 	CreateChannel(channel *model.Channel) (*model.Channel, *model.Response, error)
+	CreateDirectChannel(userId1, userId2 string) (*model.Channel, *model.Response, error)
 	RemoveUserFromChannel(channelID, userID string) (*model.Response, error)
 	GetChannelMembers(channelID string, page, perPage int, etag string) (model.ChannelMembers, *model.Response, error)
 	AddChannelMember(channelID, userID string) (*model.ChannelMember, *model.Response, error)

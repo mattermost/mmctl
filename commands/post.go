@@ -6,6 +6,7 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -68,20 +69,41 @@ func postCreateCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return errors.New("message cannot be empty")
 	}
 
-	replyTo, _ := cmd.Flags().GetString("reply-to")
-	if replyTo != "" {
-		replyToPost, _, err := c.GetPost(replyTo, "")
-		if err != nil {
-			return err
-		}
-		if replyToPost.RootId != "" {
-			replyTo = replyToPost.RootId
-		}
-	}
+	var replyTo string
+	var channel *model.Channel
+	if len(args) > 0 && len(args[0]) > 1 && strings.HasPrefix(args[0], "@") {
+		username := args[0][1:]
 
-	channel := getChannelFromChannelArg(c, args[0])
-	if channel == nil {
-		return errors.New("Unable to find channel '" + args[0] + "'")
+		receiver, _, err := c.GetUserByUsername(username, "")
+		if err != nil {
+			return fmt.Errorf("could not find receiver user: %w", err)
+		}
+
+		sender, _, err := c.GetMe("")
+		if err != nil {
+			return fmt.Errorf("could not fetch account information: %w", err)
+		}
+
+		channel, _, err = c.CreateDirectChannel(sender.Id, receiver.Id)
+		if err != nil {
+			return fmt.Errorf("could not fetch direct channel information: %w", err)
+		}
+	} else {
+		replyTo, _ = cmd.Flags().GetString("reply-to")
+		if replyTo != "" {
+			replyToPost, _, err := c.GetPost(replyTo, "")
+			if err != nil {
+				return err
+			}
+			if replyToPost.RootId != "" {
+				replyTo = replyToPost.RootId
+			}
+		}
+
+		channel = getChannelFromChannelArg(c, args[0])
+		if channel == nil {
+			return errors.New("Unable to find channel '" + args[0] + "'")
+		}
 	}
 
 	post := &model.Post{
