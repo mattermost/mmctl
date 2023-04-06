@@ -32,6 +32,14 @@ var ShowCmd = &cobra.Command{
 	RunE:    withClient(showRoleCmdF),
 }
 
+var ListRolesCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "List all the roles",
+	Long:    "List all the available roles.",
+	Example: `  permissions role list`,
+	RunE:    withClient(listRoleCmdF),
+}
+
 var AssignCmd = &cobra.Command{
 	Use:   "assign <role_name> <username...>",
 	Short: "Assign users to role (EE Only)",
@@ -67,6 +75,7 @@ func init() {
 		AssignCmd,
 		UnassignCmd,
 		ShowCmd,
+		ListRolesCmd,
 	)
 
 	PermissionsCmd.AddCommand(
@@ -152,6 +161,19 @@ func showRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	printer.PrintT(prettyRole(role), nil)
+
+	return nil
+}
+
+func listRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	roles, _, err := c.GetAllRoles()
+	if err != nil {
+		return err
+	}
+
+	for _, role := range roles {
+		printer.PrintT(prettyRole(role), nil)
+	}
 
 	return nil
 }

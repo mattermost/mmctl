@@ -51,6 +51,7 @@ type Client interface {
 	UploadLicenseFile(data []byte) (*model.Response, error)
 	RemoveLicenseFile() (*model.Response, error)
 	GetLogs(page, perPage int) ([]string, *model.Response, error)
+	GetAllRoles() ([]*model.Role, *model.Response, error)
 	GetRoleByName(name string) (*model.Role, *model.Response, error)
 	PatchRole(roleID string, patch *model.RolePatch) (*model.Role, *model.Response, error)
 	UploadPlugin(file io.Reader) (*model.Manifest, *model.Response, error)
