@@ -1086,6 +1086,22 @@ func (mr *MockClientMockRecorder) GetPublicChannelsForTeam(arg0, arg1, arg2, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicChannelsForTeam", reflect.TypeOf((*MockClient)(nil).GetPublicChannelsForTeam), arg0, arg1, arg2, arg3)
 }
 
+// GetAllRoles mocks base method.
+func (m *MockClient) GetAllRoles() ([]*model.Role, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllRoles")
+	ret0, _ := ret[0].([]*model.Role)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetAllRoles indicates an expected call of GetAllRoles.
+func (mr *MockClientMockRecorder) GetAllRoles() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllRoles", reflect.TypeOf((*MockClient)(nil).GetAllRoles))
+}
+
 // GetRoleByName mocks base method.
 func (m *MockClient) GetRoleByName(arg0 string) (*model.Role, *model.Response, error) {
 	m.ctrl.T.Helper()
