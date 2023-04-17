@@ -70,10 +70,10 @@ jobs:
       with:
         go-version: 1.18.x
 
-    - name: Setup mattermost-server
-      working-directory: mattermost-server
-      run: |
-        git checkout $GITHUB_HEAD_REF || git checkout master
+   # - name: Setup mattermost-server
+   #   working-directory: mattermost-server
+   #   run: |
+   #     git checkout $GITHUB_HEAD_REF || git checkout master
 
     - name: Start containers
       working-directory: mattermost-server/build
