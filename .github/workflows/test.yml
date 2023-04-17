@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - "release-*"
+      - mono-repo
   pull_request:
 
 permissions:
@@ -61,6 +62,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: mattermost/mattermost-server
+        ref: release-7.10 # we are referencing the latest release pre mono-repo
         path: mattermost-server
         fetch-depth: 0
 
