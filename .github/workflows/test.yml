@@ -70,10 +70,16 @@ jobs:
       with:
         go-version: 1.18.x
 
-   # - name: Setup mattermost-server
-   #   working-directory: mattermost-server
-   #   run: |
-   #     git checkout $GITHUB_HEAD_REF || git checkout master
+    - name: Setup mattermost-server
+      working-directory: mattermost-server
+      run: |
+        SERVER_HEAD=$GITHUB_HEAD_REF;
+        if [[ $GITHUB_HEAD_REF == "master" || $GITHUB_HEAD_REF == "mono-repo" || $GITHUB_HEAD_REF == "" ]]
+        then
+          SERVER_HEAD="release-7.10"
+        fi;
+        echo $SERVER_HEAD;
+        git checkout $SERVER_HEAD
 
     - name: Start containers
       working-directory: mattermost-server/build
