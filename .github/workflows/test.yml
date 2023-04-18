@@ -74,12 +74,12 @@ jobs:
       working-directory: mattermost-server
       run: |
         SERVER_HEAD=$GITHUB_HEAD_REF;
-        if [[ $GITHUB_HEAD_REF == "master" || $GITHUB_HEAD_REF == "mono-repo" || $GITHUB_HEAD_REF == "" ]]
+        if [[ $GITHUB_HEAD_REF == "master" ]]
         then
           SERVER_HEAD="release-7.10"
         fi;
         echo $SERVER_HEAD;
-        git checkout $SERVER_HEAD
+        git checkout $SERVER_HEAD || git checkout release-7.10
 
     - name: Start containers
       working-directory: mattermost-server/build
