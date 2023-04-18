@@ -172,7 +172,7 @@ func listRoleCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	}
 
 	for _, role := range roles {
-		printer.PrintT(prettyRole(role), nil)
+		printer.Print(prettyRole(role))
 	}
 
 	return nil
