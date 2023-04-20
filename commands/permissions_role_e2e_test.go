@@ -101,3 +101,46 @@ func (s *MmctlE2ETestSuite) TestUnassignUsersCmd() {
 		s.Require().False(u.IsInRole(model.SystemManagerRoleId))
 	})
 }
+
+func (s *MmctlE2ETestSuite) TestListRolesCmdF() {
+	s.SetupTestHelper().InitBasic()
+	mockRoleName := "mockrole" + model.NewId()
+	_, appErr := s.th.App.CreateRole(&model.Role{Name: mockRoleName, DisplayName: mockRoleName})
+	s.Require().Nil(appErr)
+	mockRoleNameWithPermissions := "mockrole" + model.NewId()
+	mockRolePermissions := []string{"sysconsole_write_site", "edit_brand"}
+	_, appErr = s.th.App.CreateRole(&model.Role{Name: mockRoleNameWithPermissions, DisplayName: mockRoleNameWithPermissions, Permissions: mockRolePermissions})
+	s.Require().Nil(appErr)
+
+	s.RunForSystemAdminAndLocal("Should list all roles for syasdmin and local clients", func(c client.Client) {
+		printer.Clean()
+
+		err := listRoleCmdF(c, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+
+		size := 0
+		for _, line := range printer.GetLines() {
+			size += len(line.(string))
+		}
+
+		filled, buf := 0, make([]byte, size)
+		for _, line := range printer.GetLines() {
+			l, _ := line.(string)
+			copy(buf[filled:filled+len(l)], l)
+			filled += len(l)
+		}
+
+		data := string(buf)
+
+		s.Contains(data, mockRoleName)
+		s.Contains(data, mockRoleNameWithPermissions)
+	})
+
+	s.Run("Should not list teams for Client", func() {
+		printer.Clean()
+
+		err := listRoleCmdF(s.th.Client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Len(printer.GetLines(), 0)
+	})
+}

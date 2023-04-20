@@ -465,3 +465,50 @@ Permissions   edit_brand
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 }
+
+func (s *MmctlUnitTestSuite) TestListRoleCmd() {
+	s.Run("List roles", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		mockRoles := []*model.Role{{
+			Id:   "example-mock1-id",
+			Name: "example-role1-name",
+		}, {
+			Id:          "example-mock2-id",
+			Name:        "example-role2-name",
+			Permissions: []string{"sysconsole_write_site", "edit_brand"},
+		}}
+
+		s.client.
+			EXPECT().
+			GetAllRoles().
+			Return(mockRoles, &model.Response{}, nil).
+			Times(1)
+
+		err := listRoleCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Equal(`
+Property      Value
+--------      -----
+Name          example-role1-name
+DisplayName   
+BuiltIn       false
+SchemeManaged false
+`, printer.GetLines()[0])
+
+		s.Equal(`
+Property      Value                 Used by
+--------      -----                 -------
+Name          example-role2-name    
+DisplayName                         
+BuiltIn       false                 
+SchemeManaged false                 
+Permissions   edit_brand            
+              sysconsole_write_site 
+`, printer.GetLines()[1])
+	})
+}
