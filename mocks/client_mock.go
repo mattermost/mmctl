@@ -197,6 +197,22 @@ func (mr *MockClientMockRecorder) CreateChannel(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChannel", reflect.TypeOf((*MockClient)(nil).CreateChannel), arg0)
 }
 
+// CreateDirectChannel mocks base method.
+func (m *MockClient) CreateDirectChannel(arg0, arg1 string) (*model.Channel, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDirectChannel", arg0, arg1)
+	ret0, _ := ret[0].(*model.Channel)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// CreateDirectChannel indicates an expected call of CreateChannel.
+func (mr *MockClientMockRecorder) CreateDirectChannel(arg0, arg1 string) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDirectChannel", reflect.TypeOf((*MockClient)(nil).CreateChannel), arg0, arg1)
+}
+
 // CreateCommand mocks base method.
 func (m *MockClient) CreateCommand(arg0 *model.Command) (*model.Command, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -1180,6 +1196,22 @@ func (m *MockClient) GetUploadsForUser(arg0 string) ([]*model.UploadSession, *mo
 func (mr *MockClientMockRecorder) GetUploadsForUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUploadsForUser", reflect.TypeOf((*MockClient)(nil).GetUploadsForUser), arg0)
+}
+
+// GetMe mocks base method.
+func (m *MockClient) GetMe(arg0 string) (*model.User, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMe", arg0)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetMe indicates an expected call of GetMe.
+func (mr *MockClientMockRecorder) GetMe(arg0 string) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMe", reflect.TypeOf((*MockClient)(nil).GetUser), arg0)
 }
 
 // GetUser mocks base method.
