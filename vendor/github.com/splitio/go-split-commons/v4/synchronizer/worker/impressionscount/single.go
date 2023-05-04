@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/splitio/go-split-commons/v4/dtos"
-	"github.com/splitio/go-split-commons/v4/provisional"
+	"github.com/splitio/go-split-commons/v4/provisional/strategy"
 	"github.com/splitio/go-split-commons/v4/service"
 	"github.com/splitio/go-split-commons/v4/storage"
 	"github.com/splitio/go-split-commons/v4/telemetry"
@@ -18,7 +18,7 @@ type ImpressionsCountRecorder interface {
 
 // RecorderSingle struct for impressionsCount sync
 type RecorderSingle struct {
-	impressionsCounter *provisional.ImpressionsCounter
+	impressionsCounter *strategy.ImpressionsCounter
 	impressionRecorder service.ImpressionsRecorder
 	metadata           dtos.Metadata
 	logger             logging.LoggerInterface
@@ -27,7 +27,7 @@ type RecorderSingle struct {
 
 // NewRecorderSingle creates new impressionsCount synchronizer for posting impressionsCount
 func NewRecorderSingle(
-	impressionsCounter *provisional.ImpressionsCounter,
+	impressionsCounter *strategy.ImpressionsCounter,
 	impressionRecorder service.ImpressionsRecorder,
 	metadata dtos.Metadata,
 	logger logging.LoggerInterface,
@@ -46,6 +46,22 @@ func NewRecorderSingle(
 func (m *RecorderSingle) SynchronizeImpressionsCount() error {
 	impressionsCount := m.impressionsCounter.PopAll()
 
+	pf := impressionsCountMapper(impressionsCount)
+
+	before := time.Now()
+	err := m.impressionRecorder.RecordImpressionsCount(pf, m.metadata)
+	if err != nil {
+		if httpError, ok := err.(*dtos.HTTPError); ok {
+			m.runtimeTelemetry.RecordSyncError(telemetry.ImpressionCountSync, httpError.Code)
+		}
+		return err
+	}
+	m.runtimeTelemetry.RecordSyncLatency(telemetry.ImpressionCountSync, time.Since(before))
+	m.runtimeTelemetry.RecordSuccessfulSync(telemetry.ImpressionCountSync, time.Now().UTC())
+	return nil
+}
+
+func impressionsCountMapper(impressionsCount map[strategy.Key]int64) dtos.ImpressionsCountDTO {
 	impressionsInTimeFrame := make([]dtos.ImpressionsInTimeFrameDTO, 0)
 	for key, count := range impressionsCount {
 		impressionInTimeFrame := dtos.ImpressionsInTimeFrameDTO{
@@ -60,15 +76,5 @@ func (m *RecorderSingle) SynchronizeImpressionsCount() error {
 		PerFeature: impressionsInTimeFrame,
 	}
 
-	before := time.Now()
-	err := m.impressionRecorder.RecordImpressionsCount(pf, m.metadata)
-	if err != nil {
-		if httpError, ok := err.(*dtos.HTTPError); ok {
-			m.runtimeTelemetry.RecordSyncError(telemetry.ImpressionCountSync, httpError.Code)
-		}
-		return err
-	}
-	m.runtimeTelemetry.RecordSyncLatency(telemetry.ImpressionCountSync, time.Since(before))
-	m.runtimeTelemetry.RecordSuccessfulSync(telemetry.ImpressionCountSync, time.Now().UTC())
-	return nil
+	return pf
 }

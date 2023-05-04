@@ -30,6 +30,8 @@ type Dictionary struct {
 	fieldID   uint16
 	fst       *vellum.FST
 	fstReader *vellum.Reader
+
+	bytesRead uint64
 }
 
 // represents an immutable, empty dictionary
@@ -123,6 +125,22 @@ func (d *Dictionary) AutomatonIterator(a segment.Automaton,
 		return rv
 	}
 	return emptyDictionaryIterator
+}
+
+func (d *Dictionary) incrementBytesRead(val uint64) {
+	d.bytesRead += val
+}
+
+func (d *Dictionary) BytesRead() uint64 {
+	return d.bytesRead
+}
+
+func (d *Dictionary) ResetBytesRead(val uint64) {
+	d.bytesRead = val
+}
+
+func (d *Dictionary) BytesWritten() uint64 {
+	return 0
 }
 
 // DictionaryIterator is an iterator for term dictionary

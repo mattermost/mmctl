@@ -29,6 +29,7 @@ func NewRedisClient(config *conf.RedisConfig, logger logging.LoggerInterface) (*
 
 	universalOptions := &redis.UniversalOptions{
 		Password:     config.Password,
+		Username:     config.Username,
 		DB:           config.Database,
 		TLSConfig:    config.TLSConfig,
 		MaxRetries:   config.MaxRetries,

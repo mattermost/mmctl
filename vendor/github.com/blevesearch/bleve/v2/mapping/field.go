@@ -172,6 +172,18 @@ func NewGeoPointFieldMapping() *FieldMapping {
 	}
 }
 
+// NewGeoShapeFieldMapping returns a default field mapping
+// for geoshapes
+func NewGeoShapeFieldMapping() *FieldMapping {
+	return &FieldMapping{
+		Type:         "geoshape",
+		Store:        true,
+		Index:        true,
+		IncludeInAll: true,
+		DocValues:    true,
+	}
+}
+
 // NewIPFieldMapping returns a default field mapping for IP points
 func NewIPFieldMapping() *FieldMapping {
 	return &FieldMapping{
@@ -179,17 +191,6 @@ func NewIPFieldMapping() *FieldMapping {
 		Store:        true,
 		Index:        true,
 		IncludeInAll: true,
-	}
-}
-
-// NewGeoShapeFieldMapping returns a default field mapping
-// for geoshapes
-func NewGeoShapeFieldMapping() *FieldMapping {
-	return &FieldMapping{
-		Type:         "geoshape",
-		Index:        true,
-		IncludeInAll: true,
-		DocValues:    true,
 	}
 }
 
@@ -362,7 +363,7 @@ func (fm *FieldMapping) processGeoShape(propertyMightBeGeoShape interface{},
 	}
 }
 
-func (fm *FieldMapping) analyzerForField(path []string, context *walkContext) *analysis.Analyzer {
+func (fm *FieldMapping) analyzerForField(path []string, context *walkContext) analysis.Analyzer {
 	analyzerName := fm.Analyzer
 	if analyzerName == "" {
 		analyzerName = context.dm.defaultAnalyzerName(path)

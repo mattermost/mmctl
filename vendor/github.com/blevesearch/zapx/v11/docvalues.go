@@ -41,6 +41,18 @@ type docVisitState struct {
 	segment *SegmentBase
 }
 
+// No-op implementations for DiskStatsReporter interface.
+// Supported only in v15
+func (d *docVisitState) BytesRead() uint64 {
+	return 0
+}
+
+func (d *docVisitState) BytesWritten() uint64 {
+	return 0
+}
+
+func (d *docVisitState) ResetBytesRead(val uint64) {}
+
 type docValueReader struct {
 	field          string
 	curChunkNum    uint64

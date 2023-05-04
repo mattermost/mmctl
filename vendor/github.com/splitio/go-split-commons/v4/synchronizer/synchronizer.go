@@ -24,6 +24,9 @@ type SplitTasks struct {
 	ImpressionSyncTask       tasks.Task
 	EventSyncTask            tasks.Task
 	ImpressionsCountSyncTask tasks.Task
+	UniqueKeysTask           tasks.Task
+	CleanFilterTask          tasks.Task
+	ImpsCountConsumerTask    tasks.Task
 }
 
 // Workers struct for workers
@@ -152,6 +155,15 @@ func (s *SynchronizerImpl) StartPeriodicDataRecording() {
 	if s.splitTasks.ImpressionsCountSyncTask != nil {
 		s.splitTasks.ImpressionsCountSyncTask.Start()
 	}
+	if s.splitTasks.UniqueKeysTask != nil {
+		s.splitTasks.UniqueKeysTask.Start()
+	}
+	if s.splitTasks.CleanFilterTask != nil {
+		s.splitTasks.CleanFilterTask.Start()
+	}
+	if s.splitTasks.ImpsCountConsumerTask != nil {
+		s.splitTasks.ImpsCountConsumerTask.Start()
+	}
 }
 
 // StopPeriodicDataRecording stops periodic recorders tasks
@@ -167,6 +179,15 @@ func (s *SynchronizerImpl) StopPeriodicDataRecording() {
 	}
 	if s.splitTasks.ImpressionsCountSyncTask != nil {
 		s.splitTasks.ImpressionsCountSyncTask.Stop(true)
+	}
+	if s.splitTasks.UniqueKeysTask != nil {
+		s.splitTasks.UniqueKeysTask.Stop(true)
+	}
+	if s.splitTasks.CleanFilterTask != nil {
+		s.splitTasks.CleanFilterTask.Stop(true)
+	}
+	if s.splitTasks.ImpsCountConsumerTask != nil {
+		s.splitTasks.ImpsCountConsumerTask.Stop(true)
 	}
 }
 

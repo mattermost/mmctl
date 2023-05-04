@@ -4,9 +4,11 @@
 package commands
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mmctl/v6/client"
@@ -51,22 +53,31 @@ func teamUsersRemoveCmdF(c client.Client, cmd *cobra.Command, args []string) err
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
+	var errs *multierror.Error
 	users := getUsersFromUserArgs(c, args[1:])
 	for i, user := range users {
-		removeUserFromTeam(c, team, user, args[i+1])
+		if err := removeUserFromTeam(c, team, user, args[i+1]); err != nil {
+			errs = multierror.Append(errs, err)
+		}
 	}
 
-	return nil
+	return errs.ErrorOrNil()
 }
 
-func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) {
+func removeUserFromTeam(c client.Client, team *model.Team, user *model.User, userArg string) error {
 	if user == nil {
-		printer.PrintError("Can't find user '" + userArg + "'")
-		return
+		err := fmt.Errorf("can't find user '%s'", userArg)
+		printer.PrintError(err.Error())
+		return err
 	}
-	if _, err := c.RemoveTeamMember(team.Id, user.Id); err != nil {
-		printer.PrintError("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
+
+	var err error
+	if _, err = c.RemoveTeamMember(team.Id, user.Id); err != nil {
+		err = fmt.Errorf("unable to remove '%s' from %s. Error: %w", userArg, team.Name, err)
+		printer.PrintError(err.Error())
 	}
+
+	return err
 }
 
 func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -79,7 +90,7 @@ func teamUsersAddCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	users := getUsersFromUserArgs(c, args[1:])
 	for i, user := range users {
 		if user == nil {
-			userErr := errors.Errorf("can't find user '%s'", args[i+1])
+			userErr := fmt.Errorf("can't find user '%s'", args[i+1])
 			printer.PrintError(userErr.Error())
 			errs = multierror.Append(errs, userErr)
 			continue

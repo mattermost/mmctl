@@ -1,6 +1,7 @@
 package matchers
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,7 +17,7 @@ type BooleanMatcher struct {
 func (m *BooleanMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("BooleanMatcher: Couldn't parse matching key to a boolean")
+		m.logger.Warning(fmt.Sprintf("BooleanMatcher: %s", err.Error()))
 		return false
 	}
 

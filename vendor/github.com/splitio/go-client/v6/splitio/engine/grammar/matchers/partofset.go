@@ -1,6 +1,8 @@
 package matchers
 
 import (
+	"fmt"
+
 	"github.com/splitio/go-toolkit/v5/datastructures/set"
 )
 
@@ -14,7 +16,7 @@ type PartOfSetMatcher struct {
 func (m *PartOfSetMatcher) Match(key string, attributes map[string]interface{}, bucketingKey *string) bool {
 	matchingKey, err := m.matchingKey(key, attributes)
 	if err != nil {
-		m.logger.Error("PartOfSetMatcher: ", err)
+		m.logger.Warning(fmt.Sprintf("PartOfSetMatcher: %s", err.Error()))
 		return false
 	}
 

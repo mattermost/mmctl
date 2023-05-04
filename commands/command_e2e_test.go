@@ -23,7 +23,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		nonexistentTeamID := "nonexistent-team-id"
 
 		err := listCommandCmdF(c, &cobra.Command{}, []string{nonexistentTeamID})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to find team '"+nonexistentTeamID+"'", printer.GetErrorLines()[0])
@@ -154,7 +154,7 @@ func (s *MmctlE2ETestSuite) TestListCommandCmd() {
 		}()
 
 		err := listCommandCmdF(s.th.Client, &cobra.Command{}, []string{team.Id})
-		s.Require().Nil(err)
+		s.Require().Error(err)
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 1)
 		s.Equal("Unable to find team '"+team.Id+"'", printer.GetErrorLines()[0])

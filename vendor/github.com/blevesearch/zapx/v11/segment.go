@@ -213,6 +213,36 @@ func (s *Segment) loadConfig() error {
 	return nil
 }
 
+// Following methods are dummy implementations for the interface
+// DiskStatsReporter (for backward compatibility).
+// The working implementations are supported only in zap v15.x
+// and not in the earlier versions of zap.
+func (s *Segment) ResetBytesRead(uint64) {}
+
+func (s *Segment) BytesRead() uint64 {
+	return 0
+}
+
+func (s *Segment) BytesWritten() uint64 {
+	return 0
+}
+
+func (s *Segment) incrementBytesRead(uint64) {}
+
+func (s *SegmentBase) BytesWritten() uint64 {
+	return 0
+}
+
+func (s *SegmentBase) setBytesWritten(uint64) {}
+
+func (s *SegmentBase) BytesRead() uint64 {
+	return 0
+}
+
+func (s *SegmentBase) ResetBytesRead(uint64) {}
+
+func (s *SegmentBase) incrementBytesRead(uint64) {}
+
 func (s *SegmentBase) loadFields() error {
 	// NOTE for now we assume the fields index immediately precedes
 	// the footer, and if this changes, need to adjust accordingly (or

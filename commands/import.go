@@ -105,6 +105,7 @@ func init() {
 	ImportValidateCmd.Flags().StringArray("team", nil, "Predefined team[s] to assume as already present on the destination server. Implies --check-missing-teams. The flag can be repeated")
 	ImportValidateCmd.Flags().Bool("check-missing-teams", false, "Check for teams that are not defined but referenced in the archive")
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
+	ImportValidateCmd.Flags().Bool("check-server-duplicates", true, "Set to false to ignore teams, channels, and users already present on the server")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -332,24 +333,92 @@ func importJobListCmdF(c client.Client, command *cobra.Command, args []string) e
 }
 
 type Statistics struct {
-	Schemes        int `json:"schemes"`
-	Teams          int `json:"teams"`
-	Channels       int `json:"channels"`
-	Users          int `json:"users"`
-	Emojis         int `json:"emojis"`
-	Posts          int `json:"posts"`
-	DirectChannels int `json:"direct_channels"`
-	DirectPosts    int `json:"direct_posts"`
-	Attachments    int `json:"attachments"`
+	Schemes        uint64 `json:"schemes"`
+	Teams          uint64 `json:"teams"`
+	Channels       uint64 `json:"channels"`
+	Users          uint64 `json:"users"`
+	Emojis         uint64 `json:"emojis"`
+	Posts          uint64 `json:"posts"`
+	DirectChannels uint64 `json:"direct_channels"`
+	DirectPosts    uint64 `json:"direct_posts"`
+	Attachments    uint64 `json:"attachments"`
 }
 
 func importValidateCmdF(command *cobra.Command, args []string) error {
 	configurePrinter()
 	defer printer.Print("Validation complete\n")
 
+	var (
+		serverTeams    = make(map[string]*model.Team) // initialize it in case we need to add teams manually
+		serverChannels map[importer.ChannelTeam]*model.Channel
+		serverUsers    map[string]*model.User
+		serverEmails   map[string]*model.User
+	)
+
+	err := withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
+		users, err := getPages(c.GetUsers, 250)
+		if err != nil {
+			return err
+		}
+
+		serverUsers = make(map[string]*model.User)
+		serverEmails = make(map[string]*model.User)
+		for _, user := range users {
+			serverUsers[user.Nickname] = user
+			serverEmails[user.Email] = user
+		}
+
+		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
+			return c.GetAllTeams(etag, page, numPerPage)
+		}, 250)
+		if err != nil {
+			return err
+		}
+
+		serverChannels = make(map[importer.ChannelTeam]*model.Channel)
+		for _, team := range teams {
+			serverTeams[team.Name] = team
+
+			publicChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
+				return c.GetPublicChannelsForTeam(team.Id, page, numPerPage, etag)
+			}, 250)
+			if err != nil {
+				return err
+			}
+
+			privateChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
+				return c.GetPrivateChannelsForTeam(team.Id, page, numPerPage, etag)
+			}, 250)
+			if err != nil {
+				return err
+			}
+
+			for _, channel := range publicChannels {
+				serverChannels[importer.ChannelTeam{Channel: channel.Name, Team: team.Name}] = channel
+			}
+			for _, channel := range privateChannels {
+				serverChannels[importer.ChannelTeam{Channel: channel.Name, Team: team.Name}] = channel
+			}
+		}
+
+		return nil
+	})(command, args)
+	if err != nil {
+		printer.Print("could not initialize client, skipping online checks\n")
+	}
+
 	injectedTeams, err := command.Flags().GetStringArray("team")
 	if err != nil {
 		return err
+	}
+	for _, team := range injectedTeams {
+		if _, ok := serverTeams[team]; !ok {
+			serverTeams[team] = &model.Team{
+				Id:          "<predefined>",
+				Name:        team,
+				DisplayName: "team was predefined",
+			}
+		}
 	}
 
 	checkMissingTeams, err := command.Flags().GetBool("check-missing-teams")
@@ -362,12 +431,22 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
-	validator := importer.NewValidator(args[0], ignoreAttachments, createMissingTeams)
-
-	for _, team := range injectedTeams {
-		validator.InjectTeam(team)
+	checkServerDuplicates, err := command.Flags().GetBool("check-server-duplicates")
+	if err != nil {
+		return err
 	}
+
+	createMissingTeams := !checkMissingTeams && len(injectedTeams) == 0
+	validator := importer.NewValidator(
+		args[0],               // input file
+		ignoreAttachments,     // ignore attachments flag
+		createMissingTeams,    // create missing teams flag
+		checkServerDuplicates, // check for server duplicates flag
+		serverTeams,           // map of existing teams
+		serverChannels,        // map of existing channels
+		serverUsers,           // map of users by name
+		serverEmails,          // map of users by email
+	)
 
 	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))
 	validator.OnError(func(ive *importer.ImportValidationError) error {
@@ -380,26 +459,25 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	teams := validator.Teams()
-
 	stat := Statistics{
-		Schemes:        len(validator.Schemes()),
-		Teams:          len(teams),
-		Channels:       len(validator.Channels()),
-		Users:          len(validator.Users()),
-		Posts:          int(validator.PostCount()),
-		DirectChannels: int(validator.DirectChannelCount()),
-		DirectPosts:    int(validator.DirectPostCount()),
-		Emojis:         len(validator.Emojis()),
-		Attachments:    len(validator.Attachments()),
+		Schemes:        validator.Schemes(),
+		Teams:          validator.TeamCount(),
+		Channels:       validator.ChannelCount(),
+		Users:          validator.UserCount(),
+		Posts:          (validator.PostCount()),
+		DirectChannels: (validator.DirectChannelCount()),
+		DirectPosts:    (validator.DirectPostCount()),
+		Emojis:         (validator.Emojis()),
+		Attachments:    uint64(len(validator.Attachments())),
 	}
 
 	printStatistics(stat)
 
-	if createMissingTeams && len(teams) != 0 {
+	createdTeams := validator.CreatedTeams()
+	if createMissingTeams && len(createdTeams) != 0 {
 		printer.PrintT("Automatically created teams: {{ join .CreatedTeams \", \" }}\n", struct {
 			CreatedTeams []string `json:"created_teams"`
-		}{teams})
+		}{createdTeams})
 	}
 
 	unusedAttachments := validator.UnusedAttachments()

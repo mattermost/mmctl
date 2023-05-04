@@ -10,6 +10,7 @@ type RedisConfig struct {
 	Port     int
 	Database int
 	Password string
+	Username string
 	Prefix   string
 
 	// The network type, either tcp or unix.
@@ -83,11 +84,4 @@ type AdvancedConfig struct {
 	SegmentUpdateQueueSize int64
 	SplitsRefreshRate      int
 	SegmentsRefreshRate    int
-}
-
-// ManagerConfig exposes configurable parameters for ImpressionManager
-type ManagerConfig struct {
-	OperationMode   string
-	ImpressionsMode string
-	ListenerEnabled bool
 }

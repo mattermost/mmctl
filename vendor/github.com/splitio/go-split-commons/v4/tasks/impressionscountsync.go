@@ -6,14 +6,11 @@ import (
 	"github.com/splitio/go-toolkit/v5/logging"
 )
 
-const (
-	period = 1800 // 30 min
-)
-
 // NewRecordImpressionsCountTask creates a new impressionsCount recording task
 func NewRecordImpressionsCountTask(
 	recorder impressionscount.ImpressionsCountRecorder,
 	logger logging.LoggerInterface,
+	period int,
 ) *asynctask.AsyncTask {
 	record := func(logger logging.LoggerInterface) error {
 		return recorder.SynchronizeImpressionsCount()

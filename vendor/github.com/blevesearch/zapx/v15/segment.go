@@ -232,8 +232,7 @@ func (s *Segment) ResetBytesRead(val uint64) {
 }
 
 func (s *Segment) BytesRead() uint64 {
-	return atomic.LoadUint64(&s.bytesRead) +
-		atomic.LoadUint64(&s.SegmentBase.bytesRead)
+	return atomic.LoadUint64(&s.bytesRead)
 }
 
 func (s *Segment) BytesWritten() uint64 {
@@ -321,7 +320,7 @@ func (sb *SegmentBase) dictionary(field string) (rv *Dictionary, err error) {
 				// read the length of the vellum data
 				vellumLen, read := binary.Uvarint(sb.mem[dictStart : dictStart+binary.MaxVarintLen64])
 				fstBytes := sb.mem[dictStart+uint64(read) : dictStart+uint64(read)+vellumLen]
-				sb.incrementBytesRead(uint64(read) + vellumLen)
+				rv.incrementBytesRead(uint64(read) + vellumLen)
 				rv.fst, err = vellum.Load(fstBytes)
 				if err != nil {
 					sb.m.Unlock()

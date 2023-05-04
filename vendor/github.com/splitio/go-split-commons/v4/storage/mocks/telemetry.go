@@ -37,6 +37,7 @@ type MockTelemetryStorage struct {
 	GetSessionLengthCall       func() int64
 	GetNonReadyUsagesCall      func() int64
 	GetBURTimeoutsCall         func() int64
+	RecordUniqueKeysCall       func(uniques dtos.Uniques) error
 }
 
 // RecordConfigData mock
@@ -180,4 +181,9 @@ func (m MockTelemetryStorage) GetNonReadyUsages() int64 {
 // GetBURTimeouts mock
 func (m MockTelemetryStorage) GetBURTimeouts() int64 {
 	return m.GetBURTimeoutsCall()
+}
+
+// RecordUniqueKeys mock
+func (m MockTelemetryStorage) RecordUniqueKeys(uniques dtos.Uniques) error {
+	return m.RecordUniqueKeysCall(uniques)
 }

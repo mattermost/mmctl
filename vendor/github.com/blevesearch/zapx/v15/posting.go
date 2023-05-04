@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"math"
 	"reflect"
-	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
 	segment "github.com/blevesearch/scorch_segment_api/v2"
@@ -255,15 +254,15 @@ func (p *PostingsList) Count() uint64 {
 // the bytes read from the postings lists stored
 // on disk, while querying
 func (p *PostingsList) ResetBytesRead(val uint64) {
-	atomic.StoreUint64(&p.bytesRead, val)
+	p.bytesRead = val
 }
 
 func (p *PostingsList) BytesRead() uint64 {
-	return atomic.LoadUint64(&p.bytesRead)
+	return p.bytesRead
 }
 
 func (p *PostingsList) incrementBytesRead(val uint64) {
-	atomic.AddUint64(&p.bytesRead, val)
+	p.bytesRead += val
 }
 
 func (p *PostingsList) BytesWritten() uint64 {
@@ -368,15 +367,15 @@ func (i *PostingsIterator) Size() int {
 // the freqNorm and location specific information
 // of a hit
 func (i *PostingsIterator) ResetBytesRead(val uint64) {
-	atomic.StoreUint64(&i.bytesRead, val)
+	i.bytesRead = val
 }
 
 func (i *PostingsIterator) BytesRead() uint64 {
-	return atomic.LoadUint64(&i.bytesRead)
+	return i.bytesRead
 }
 
 func (i *PostingsIterator) incrementBytesRead(val uint64) {
-	atomic.AddUint64(&i.bytesRead, val)
+	i.bytesRead += val
 }
 
 func (i *PostingsIterator) BytesWritten() uint64 {

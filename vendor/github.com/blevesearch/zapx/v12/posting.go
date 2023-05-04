@@ -108,6 +108,22 @@ type PostingsList struct {
 	normBits1Hit uint64
 }
 
+// Following methods are dummy implementations for the interface
+// DiskStatsReporter (for backward compatibility).
+// The working implementations are supported only in zap v15.x
+// and not in the earlier versions of zap.
+func (i *PostingsList) ResetBytesRead(uint64) {}
+
+func (i *PostingsList) BytesRead() uint64 {
+	return 0
+}
+
+func (i *PostingsList) incrementBytesRead(uint64) {}
+
+func (i *PostingsList) BytesWritten() uint64 {
+	return 0
+}
+
 // represents an immutable, empty postings list
 var emptyPostingsList = &PostingsList{}
 
@@ -311,6 +327,22 @@ type PostingsIterator struct {
 }
 
 var emptyPostingsIterator = &PostingsIterator{}
+
+// Following methods are dummy implementations for the interface
+// DiskStatsReporter (for backward compatibility).
+// The working implementations are supported only in zap v15.x
+// and not in the earlier versions of zap.
+func (i *PostingsIterator) ResetBytesRead(uint64) {}
+
+func (i *PostingsIterator) BytesRead() uint64 {
+	return 0
+}
+
+func (i *PostingsIterator) incrementBytesRead(uint64) {}
+
+func (i *PostingsIterator) BytesWritten() uint64 {
+	return 0
+}
 
 func (i *PostingsIterator) Size() int {
 	sizeInBytes := reflectStaticSizePostingsIterator + SizeOfPtr +

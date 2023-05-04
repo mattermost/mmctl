@@ -1,10 +1,12 @@
 # mmctl
+[![Mattermost](https://user-images.githubusercontent.com/7205829/137170381-fe86eef0-bccc-4fdd-8e92-b258884ebdd7.png)](https://mattermost.com)
 
 ![CircleCI branch](https://img.shields.io/circleci/project/github/mattermost/mmctl/master.svg)
 [![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mmctl/master.svg)](https://codecov.io/gh/mattermost/mmctl/branch/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mattermost/mmctl)](https://goreportcard.com/report/github.com/mattermost/mmctl)
 
-A remote CLI tool for [Mattermost](https://github.com/mattermost/mattermost-server): the Open Source, self-hosted Slack-alternative.
+
+[Mattermost](https://mattermost.com) is an open source platform for secure collaboration across the entire software development lifecycle. mmctl is a remote CLI tool that lets you manage your Mattermost instance from the terminal.
 
 ## Install
 

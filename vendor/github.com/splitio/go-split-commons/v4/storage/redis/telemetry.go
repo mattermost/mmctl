@@ -97,3 +97,34 @@ func (t *TelemetryStorage) RecordNonReadyUsage() {
 func (t *TelemetryStorage) RecordBURTimeout() {
 	// No-Op. Redis is implicitly ready and does not need to block for anything. Tracking not required.
 }
+
+// RecordUniqueKeys records unique keys
+func (t *TelemetryStorage) RecordUniqueKeys(uniques dtos.Uniques) error {
+	if len(uniques.Keys) < 1 {
+		t.logger.Debug("Unique Keys list is empty, nothing to record.")
+		return nil
+	}
+
+	uniquesJSON, err := json.Marshal(uniques.Keys)
+	if err != nil {
+		t.logger.Error("Something were wrong marshaling provided event to JSON", err.Error())
+		return err
+	}
+
+	inserted, errPush := t.client.RPush(KeyUniquekeys, uniquesJSON)
+	if errPush != nil {
+		t.logger.Error("Something were wrong pushing event to redis", errPush)
+		return errPush
+	}
+
+	// Checks if expiration needs to be set
+	if inserted == int64(len(uniquesJSON)) {
+		t.logger.Debug("Proceeding to set expiration for: ", KeyUniquekeys)
+		result := t.client.Expire(KeyUniquekeys, time.Duration(TTLUniquekeys)*time.Second)
+		if !result {
+			t.logger.Error("Something were wrong setting expiration for %s", KeyUniquekeys)
+		}
+	}
+
+	return nil
+}

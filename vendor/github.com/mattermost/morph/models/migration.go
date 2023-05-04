@@ -8,7 +8,7 @@ import (
 )
 
 type Migration struct {
-	Bytes     io.ReadCloser
+	Bytes     []byte
 	Name      string
 	RawName   string
 	Version   uint32
@@ -36,23 +36,21 @@ func NewMigration(migrationBytes io.ReadCloser, fileName string) (*Migration, er
 		return nil, fmt.Errorf("could not parse file: %s", fileName)
 	}
 
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(migrationBytes); err != nil {
+		return nil, err
+	}
+	defer migrationBytes.Close()
+
 	return &Migration{
 		Version:   uint32(versionUint64),
 		Name:      identifier,
 		RawName:   fileName,
-		Bytes:     migrationBytes,
+		Bytes:     buf.Bytes(),
 		Direction: direction,
 	}, nil
 }
 
-func (m *Migration) Query() (string, error) {
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(m.Bytes); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-func (m *Migration) Close() error {
-	return m.Bytes.Close()
+func (m *Migration) Query() string {
+	return string(m.Bytes)
 }

@@ -262,17 +262,20 @@ func archiveChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) err
 	}
 
 	channels := getChannelsFromChannelArgs(c, args)
+	var errors *multierror.Error
 	for i, channel := range channels {
 		if channel == nil {
 			printer.PrintError("Unable to find channel '" + args[i] + "'")
+			errors = multierror.Append(errors, fmt.Errorf("unable to find channel %q", args[i]))
 			continue
 		}
 		if _, err := c.DeleteChannel(channel.Id); err != nil {
 			printer.PrintError("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
+			errors = multierror.Append(errors, fmt.Errorf("unable to archive channel %q, error: %w", channel.Name, err))
 		}
 	}
 
-	return nil
+	return errors.ErrorOrNil()
 }
 
 func getAllPublicChannelsForTeam(c client.Client, teamID string) ([]*model.Channel, error) {

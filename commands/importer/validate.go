@@ -32,16 +32,27 @@ import (
 	"github.com/mattermost/mmctl/v6/printer"
 )
 
+const (
+	SourceServer = "<server>"
+	SourceAdhoc  = "<adhoc>"
+)
+
 type ChannelTeam struct {
 	Channel string
 	Team    string
 }
 
 type Validator struct { //nolint:govet
-	archiveName        string
-	onError            func(*ImportValidationError) error
-	ignoreAttachments  bool
-	createMissingTeams bool
+	archiveName           string
+	onError               func(*ImportValidationError) error
+	ignoreAttachments     bool
+	createMissingTeams    bool
+	checkServerDuplicates bool
+
+	serverTeams    map[string]*model.Team
+	serverChannels map[ChannelTeam]*model.Channel
+	serverUsers    map[string]*model.User
+	serverEmails   map[string]*model.User
 
 	attachments     map[string]*zip.File
 	attachmentsUsed map[string]uint64
@@ -74,12 +85,27 @@ const (
 	LineTypeEmoji         = "emoji"
 )
 
-func NewValidator(name string, ignoreAttachments, createMissingTeams bool) *Validator {
-	return &Validator{
-		archiveName:        name,
-		onError:            func(ivErr *ImportValidationError) error { return ivErr },
-		ignoreAttachments:  ignoreAttachments,
-		createMissingTeams: createMissingTeams,
+func NewValidator(
+	name string,
+	ignoreAttachments,
+	createMissingTeams bool,
+	checkServerDuplicates bool,
+	serverTeams map[string]*model.Team,
+	serverChannels map[ChannelTeam]*model.Channel,
+	serverUsers map[string]*model.User,
+	serverEmails map[string]*model.User,
+) *Validator {
+	v := &Validator{
+		archiveName:           name,
+		onError:               func(ivErr *ImportValidationError) error { return ivErr },
+		ignoreAttachments:     ignoreAttachments,
+		createMissingTeams:    createMissingTeams,
+		checkServerDuplicates: checkServerDuplicates,
+
+		serverTeams:    serverTeams,
+		serverChannels: serverChannels,
+		serverUsers:    serverUsers,
+		serverEmails:   serverEmails,
 
 		attachments:     make(map[string]*zip.File),
 		attachmentsUsed: make(map[string]uint64),
@@ -90,27 +116,35 @@ func NewValidator(name string, ignoreAttachments, createMissingTeams bool) *Vali
 		users:    map[string]ImportFileInfo{},
 		emojis:   map[string]ImportFileInfo{},
 	}
+
+	v.loadFromServer()
+	return v
 }
 
-func (v *Validator) Schemes() []string {
-	return v.listMap(v.schemes)
+func (v *Validator) Schemes() uint64 {
+	return uint64(len(v.schemes))
 }
 
-func (v *Validator) Teams() []string {
-	return v.listMap(v.teams)
-}
-
-func (v *Validator) Channels() []string {
-	entries := make([]string, 0, len(v.channels))
-	for entry := range v.channels {
-		entries = append(entries, fmt.Sprintf("%s/%s", entry.Team, entry.Channel))
+func (v *Validator) CreatedTeams() []string {
+	createdTeams := make([]string, 0, len(v.teams))
+	for name, team := range v.teams {
+		if team.Source == SourceAdhoc {
+			createdTeams = append(createdTeams, name)
+		}
 	}
-	sort.Strings(entries)
-	return entries
+	return createdTeams
 }
 
-func (v *Validator) Users() []string {
-	return v.listMap(v.users)
+func (v *Validator) TeamCount() uint64 {
+	return uint64(len(v.teams) - len(v.serverTeams))
+}
+
+func (v *Validator) ChannelCount() uint64 {
+	return uint64(len(v.channels) - len(v.serverChannels))
+}
+
+func (v *Validator) UserCount() uint64 {
+	return uint64(len(v.users) - len(v.serverUsers))
 }
 
 func (v *Validator) PostCount() uint64 {
@@ -125,8 +159,8 @@ func (v *Validator) DirectPostCount() uint64 {
 	return v.directPosts
 }
 
-func (v *Validator) Emojis() []string {
-	return v.listMap(v.emojis)
+func (v *Validator) Emojis() uint64 {
+	return uint64(len(v.emojis))
 }
 
 func (v *Validator) StartTime() time.Time {
@@ -145,15 +179,6 @@ func (v *Validator) Lines() uint64 {
 	return v.lines
 }
 
-func (v *Validator) listMap(m map[string]ImportFileInfo) []string {
-	entries := make([]string, 0, len(m))
-	for entry := range m {
-		entries = append(entries, entry)
-	}
-	sort.Strings(entries)
-	return entries
-}
-
 func (v *Validator) OnError(f func(*ImportValidationError) error) {
 	if f == nil {
 		f = func(ivErr *ImportValidationError) error { return ivErr }
@@ -162,15 +187,27 @@ func (v *Validator) OnError(f func(*ImportValidationError) error) {
 	v.onError = f
 }
 
-func (v *Validator) InjectTeam(name string) {
+func (v *Validator) createTeam(name string) {
 	v.teams[name] = ImportFileInfo{
-		ArchiveName: "injected",
+		Source: SourceAdhoc,
 	}
 }
 
-func (v *Validator) createTeam(name string) {
-	v.teams[name] = ImportFileInfo{
-		ArchiveName: "autocreated",
+func (v *Validator) loadFromServer() {
+	for name := range v.serverTeams {
+		v.teams[name] = ImportFileInfo{
+			Source: SourceServer,
+		}
+	}
+	for channelTeam := range v.serverChannels {
+		v.channels[channelTeam] = ImportFileInfo{
+			Source: SourceServer,
+		}
+	}
+	for name := range v.serverUsers {
+		v.users[name] = ImportFileInfo{
+			Source: SourceServer,
+		}
 	}
 }
 
@@ -230,9 +267,9 @@ func (v *Validator) Validate() error {
 	}{v.lines})
 
 	info := ImportFileInfo{
-		ArchiveName: filepath.Base(v.archiveName),
-		FileName:    jsonlZip.Name,
-		TotalLines:  v.lines,
+		Source:     filepath.Base(v.archiveName),
+		FileName:   jsonlZip.Name,
+		TotalLines: v.lines,
 	}
 
 	err = v.validateLines(info, jsonlZip)
@@ -438,6 +475,28 @@ func (v *Validator) validateScheme(info ImportFileInfo, line imports.LineImportD
 	return nil
 }
 
+func (v *Validator) checkDuplicateTeam(info ImportFileInfo, team string) *ImportValidationError {
+	if v.checkServerDuplicates {
+		if existing, ok := v.serverTeams[team]; ok {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "team",
+				Err:            fmt.Errorf("duplicate entry, server already has a team named %q (display: %q, id: %s)", existing.Name, existing.DisplayName, existing.Id),
+			}
+		}
+	}
+
+	if existing, ok := v.teams[team]; ok && existing.Source != SourceServer {
+		return &ImportValidationError{
+			ImportFileInfo: info,
+			FieldName:      "team",
+			Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
+		}
+	}
+
+	return nil
+}
+
 func (v *Validator) validateTeam(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "team", line.Team, func(data imports.TeamImportData) *ImportValidationError {
 		appErr := imports.ValidateTeamImportData(&data)
@@ -450,12 +509,8 @@ func (v *Validator) validateTeam(info ImportFileInfo, line imports.LineImportDat
 		}
 
 		if data.Name != nil {
-			if existing, ok := v.teams[*data.Name]; ok {
-				return &ImportValidationError{
-					ImportFileInfo: info,
-					FieldName:      "team",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
-				}
+			if ive := v.checkDuplicateTeam(info, *data.Name); ive != nil {
+				return ive
 			}
 			v.teams[*data.Name] = info
 		}
@@ -473,6 +528,28 @@ func (v *Validator) validateTeam(info ImportFileInfo, line imports.LineImportDat
 	})
 	if ivErr != nil {
 		return v.onError(ivErr)
+	}
+
+	return nil
+}
+
+func (v *Validator) checkDuplicateChannel(info ImportFileInfo, team, channel string) *ImportValidationError {
+	if v.checkServerDuplicates {
+		if existing, ok := v.serverChannels[ChannelTeam{Channel: channel, Team: team}]; ok {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "channel",
+				Err:            fmt.Errorf("duplicate entry, server already has a channel %q (display: %q, id: %s) in team %q", existing.Name, existing.DisplayName, existing.Id, team),
+			}
+		}
+	}
+
+	if existing, ok := v.channels[ChannelTeam{Channel: channel, Team: team}]; ok && existing.Source != SourceServer {
+		return &ImportValidationError{
+			ImportFileInfo: info,
+			FieldName:      "channel",
+			Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
+		}
 	}
 
 	return nil
@@ -503,12 +580,8 @@ func (v *Validator) validateChannel(info ImportFileInfo, line imports.LineImport
 			}
 		}
 		if data.Name != nil {
-			if existing, ok := v.channels[ChannelTeam{Channel: *data.Name, Team: *data.Team}]; ok {
-				return &ImportValidationError{
-					ImportFileInfo: info,
-					FieldName:      "channel",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
-				}
+			if ive := v.checkDuplicateChannel(info, *data.Team, *data.Name); ive != nil {
+				return ive
 			}
 			v.channels[ChannelTeam{Channel: *data.Name, Team: *data.Team}] = info
 		}
@@ -531,6 +604,40 @@ func (v *Validator) validateChannel(info ImportFileInfo, line imports.LineImport
 	return nil
 }
 
+func (v *Validator) checkDuplicateUser(info ImportFileInfo, username, email string) *ImportValidationError {
+	if existing, ok := v.serverUsers[username]; ok {
+		if emailUser, ok := v.serverEmails[email]; ok {
+			if existing.Id != emailUser.Id {
+				// there is another user which already has this email address, this will result in
+				// an import errors regardless of the user merging.
+				return &ImportValidationError{
+					ImportFileInfo: info,
+					FieldName:      "user",
+					Err:            fmt.Errorf("email address %q for %q is already used by another user %q (id: %s)", email, username, emailUser.Username, emailUser.Id),
+				}
+			}
+		}
+
+		if v.checkServerDuplicates {
+			return &ImportValidationError{
+				ImportFileInfo: info,
+				FieldName:      "user",
+				Err:            fmt.Errorf("duplicate entry, server already has a user %q (email: %q, id: %s)", existing.Username, existing.Email, existing.Id),
+			}
+		}
+	}
+
+	if existing, ok := v.users[username]; ok && existing.Source != SourceServer {
+		return &ImportValidationError{
+			ImportFileInfo: info,
+			FieldName:      "user",
+			Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
+		}
+	}
+
+	return nil
+}
+
 func (v *Validator) validateUser(info ImportFileInfo, line imports.LineImportData) (err error) {
 	ivErr := validateNotNil(info, "user", line.User, func(data imports.UserImportData) *ImportValidationError {
 		appErr := imports.ValidateUserImportData(&data)
@@ -543,12 +650,8 @@ func (v *Validator) validateUser(info ImportFileInfo, line imports.LineImportDat
 		}
 
 		if data.Username != nil {
-			if existing, ok := v.users[*data.Username]; ok {
-				return &ImportValidationError{
-					ImportFileInfo: info,
-					FieldName:      "user",
-					Err:            fmt.Errorf("duplicate entry, previous was in line: %d", existing.CurrentLine),
-				}
+			if ive := v.checkDuplicateUser(info, *data.Username, *data.Email); ive != nil {
+				return ive
 			}
 			v.users[*data.Username] = info
 		}
@@ -606,7 +709,7 @@ func (v *Validator) validatePost(info ImportFileInfo, line imports.LineImportDat
 				return &ImportValidationError{
 					ImportFileInfo: info,
 					FieldName:      "post.channel",
-					Err:            fmt.Errorf("reference to unknown channel %q/%q", *data.Team, *data.Channel),
+					Err:            fmt.Errorf("reference to unknown channel \"%s/%s\"", *data.Team, *data.Channel),
 				}
 			}
 		}
