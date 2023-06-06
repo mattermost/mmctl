@@ -4,4 +4,6 @@
 
 All changes going forward should be made in the monorepo since we're no longer accepting PRs in this repository, and any existing PRs should be resubmitted over there. We have some notes on how to do that migration [here](https://developers.mattermost.com/contribute/monorepo-migration-notes/), but most of the code that was previously in this repository is now located in [`server/cmd/mmctl`](https://github.com/mattermost/mattermost-server/tree/master/server/cmd/mmctl) in the monorepo. We were unable to maintain Git history with the move, so migrating PRs to the new repo will likely involve a lot of manually copying changes to their new locations.
 
+The `mmctl` documentation can be accessed within the [the Mattermost documentation](https://docs.mattermost.com/manage/mmctl-command-line-tool.html).
+
 This repository is being kept open until December 2023 to maintain support for our [extended support releases](https://docs.mattermost.com/upgrade/extended-support-release.html) at which point it will be archived and kept as a historical record.
