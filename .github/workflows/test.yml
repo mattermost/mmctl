@@ -79,7 +79,7 @@ jobs:
           SERVER_HEAD="release-7.10"
         fi;
         echo $SERVER_HEAD;
-        git checkout $SERVER_HEAD
+        git checkout $SERVER_HEAD || git checkout "release-7.10"
 
     - name: Start containers
       working-directory: mattermost-server/build
