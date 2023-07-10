@@ -26,7 +26,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tylerb/graceful v1.2.15
 	golang.org/x/image v0.2.0
-	golang.org/x/term v0.3.0
+	golang.org/x/term v0.10.0
 	gopkg.in/olivere/elastic.v6 v6.2.37
 )
 
@@ -210,7 +210,7 @@ require (
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.2.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/tools v0.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20221114212237-e4508ebdbee1 // indirect
