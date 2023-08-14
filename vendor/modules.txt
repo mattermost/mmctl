@@ -774,7 +774,7 @@ github.com/sean-/seed
 # github.com/segmentio/backo-go v1.0.1
 ## explicit; go 1.13
 github.com/segmentio/backo-go
-# github.com/sirupsen/logrus v1.9.0
+# github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.9.2
