@@ -23,7 +23,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.9.0
 	github.com/tylerb/graceful v1.2.15
 	golang.org/x/image v0.2.0
 	golang.org/x/term v0.3.0
@@ -187,7 +187,7 @@ require (
 	github.com/splitio/go-split-commons/v4 v4.2.2 // indirect
 	github.com/splitio/go-toolkit/v5 v5.2.2 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/throttled/throttled v2.2.5+incompatible // indirect
 	github.com/tidwall/gjson v1.14.3 // indirect
