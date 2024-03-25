@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package memberlist
 
 import (
@@ -10,7 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	metrics "github.com/armon/go-metrics"
+	"github.com/armon/go-metrics"
 )
 
 type NodeStateType int
@@ -353,14 +356,14 @@ func (m *Memberlist) probeNode(node *nodeState) {
 		}
 	} else {
 		var msgs [][]byte
-		if buf, err := encode(pingMsg, &ping); err != nil {
+		if buf, err := encode(pingMsg, &ping, m.config.MsgpackUseNewTimeFormat); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to encode UDP ping message: %s", err)
 			return
 		} else {
 			msgs = append(msgs, buf.Bytes())
 		}
 		s := suspect{Incarnation: node.Incarnation, Node: node.Name, From: m.config.Name}
-		if buf, err := encode(suspectMsg, &s); err != nil {
+		if buf, err := encode(suspectMsg, &s, m.config.MsgpackUseNewTimeFormat); err != nil {
 			m.logger.Printf("[ERR] memberlist: Failed to encode suspect message: %s", err)
 			return
 		} else {

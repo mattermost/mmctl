@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 /*
 memberlist is a library that manages cluster
 membership and member failure detection using a gossip based protocol.
@@ -28,8 +31,8 @@ import (
 	"time"
 
 	"github.com/armon/go-metrics"
-	multierror "github.com/hashicorp/go-multierror"
-	sockaddr "github.com/hashicorp/go-sockaddr"
+	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/go-sockaddr"
 	"github.com/miekg/dns"
 )
 
